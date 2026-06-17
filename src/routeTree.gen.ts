@@ -9,38 +9,159 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
+import { Route as AuthenticatedAppIndexRouteImport } from './routes/_authenticated/app.index'
+import { Route as AuthenticatedAppWatchRouteImport } from './routes/_authenticated/app.watch'
+import { Route as AuthenticatedAppPlayRouteImport } from './routes/_authenticated/app.play'
+import { Route as AuthenticatedAppMeRouteImport } from './routes/_authenticated/app.me'
+import { Route as AuthenticatedAppInviteRouteImport } from './routes/_authenticated/app.invite'
+import { Route as AuthenticatedAppChatRouteImport } from './routes/_authenticated/app.chat'
 
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAppRoute = AuthenticatedAppRouteImport.update({
+  id: '/app',
+  path: '/app',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAppIndexRoute = AuthenticatedAppIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
+const AuthenticatedAppWatchRoute = AuthenticatedAppWatchRouteImport.update({
+  id: '/watch',
+  path: '/watch',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
+const AuthenticatedAppPlayRoute = AuthenticatedAppPlayRouteImport.update({
+  id: '/play',
+  path: '/play',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
+const AuthenticatedAppMeRoute = AuthenticatedAppMeRouteImport.update({
+  id: '/me',
+  path: '/me',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
+const AuthenticatedAppInviteRoute = AuthenticatedAppInviteRouteImport.update({
+  id: '/invite',
+  path: '/invite',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
+const AuthenticatedAppChatRoute = AuthenticatedAppChatRouteImport.update({
+  id: '/chat',
+  path: '/chat',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/app': typeof AuthenticatedAppRouteWithChildren
+  '/app/chat': typeof AuthenticatedAppChatRoute
+  '/app/invite': typeof AuthenticatedAppInviteRoute
+  '/app/me': typeof AuthenticatedAppMeRoute
+  '/app/play': typeof AuthenticatedAppPlayRoute
+  '/app/watch': typeof AuthenticatedAppWatchRoute
+  '/app/': typeof AuthenticatedAppIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/app/chat': typeof AuthenticatedAppChatRoute
+  '/app/invite': typeof AuthenticatedAppInviteRoute
+  '/app/me': typeof AuthenticatedAppMeRoute
+  '/app/play': typeof AuthenticatedAppPlayRoute
+  '/app/watch': typeof AuthenticatedAppWatchRoute
+  '/app': typeof AuthenticatedAppIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/_authenticated/app': typeof AuthenticatedAppRouteWithChildren
+  '/_authenticated/app/chat': typeof AuthenticatedAppChatRoute
+  '/_authenticated/app/invite': typeof AuthenticatedAppInviteRoute
+  '/_authenticated/app/me': typeof AuthenticatedAppMeRoute
+  '/_authenticated/app/play': typeof AuthenticatedAppPlayRoute
+  '/_authenticated/app/watch': typeof AuthenticatedAppWatchRoute
+  '/_authenticated/app/': typeof AuthenticatedAppIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/app'
+    | '/app/chat'
+    | '/app/invite'
+    | '/app/me'
+    | '/app/play'
+    | '/app/watch'
+    | '/app/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/auth'
+    | '/app/chat'
+    | '/app/invite'
+    | '/app/me'
+    | '/app/play'
+    | '/app/watch'
+    | '/app'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/auth'
+    | '/_authenticated/app'
+    | '/_authenticated/app/chat'
+    | '/_authenticated/app/invite'
+    | '/_authenticated/app/me'
+    | '/_authenticated/app/play'
+    | '/_authenticated/app/watch'
+    | '/_authenticated/app/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,22 +169,95 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/app': {
+      id: '/_authenticated/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AuthenticatedAppRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/app/': {
+      id: '/_authenticated/app/'
+      path: '/'
+      fullPath: '/app/'
+      preLoaderRoute: typeof AuthenticatedAppIndexRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/watch': {
+      id: '/_authenticated/app/watch'
+      path: '/watch'
+      fullPath: '/app/watch'
+      preLoaderRoute: typeof AuthenticatedAppWatchRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/play': {
+      id: '/_authenticated/app/play'
+      path: '/play'
+      fullPath: '/app/play'
+      preLoaderRoute: typeof AuthenticatedAppPlayRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/me': {
+      id: '/_authenticated/app/me'
+      path: '/me'
+      fullPath: '/app/me'
+      preLoaderRoute: typeof AuthenticatedAppMeRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/invite': {
+      id: '/_authenticated/app/invite'
+      path: '/invite'
+      fullPath: '/app/invite'
+      preLoaderRoute: typeof AuthenticatedAppInviteRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/chat': {
+      id: '/_authenticated/app/chat'
+      path: '/chat'
+      fullPath: '/app/chat'
+      preLoaderRoute: typeof AuthenticatedAppChatRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
   }
 }
 
+interface AuthenticatedAppRouteChildren {
+  AuthenticatedAppChatRoute: typeof AuthenticatedAppChatRoute
+  AuthenticatedAppInviteRoute: typeof AuthenticatedAppInviteRoute
+  AuthenticatedAppMeRoute: typeof AuthenticatedAppMeRoute
+  AuthenticatedAppPlayRoute: typeof AuthenticatedAppPlayRoute
+  AuthenticatedAppWatchRoute: typeof AuthenticatedAppWatchRoute
+  AuthenticatedAppIndexRoute: typeof AuthenticatedAppIndexRoute
+}
+
+const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
+  AuthenticatedAppChatRoute: AuthenticatedAppChatRoute,
+  AuthenticatedAppInviteRoute: AuthenticatedAppInviteRoute,
+  AuthenticatedAppMeRoute: AuthenticatedAppMeRoute,
+  AuthenticatedAppPlayRoute: AuthenticatedAppPlayRoute,
+  AuthenticatedAppWatchRoute: AuthenticatedAppWatchRoute,
+  AuthenticatedAppIndexRoute: AuthenticatedAppIndexRoute,
+}
+
+const AuthenticatedAppRouteWithChildren =
+  AuthenticatedAppRoute._addFileChildren(AuthenticatedAppRouteChildren)
+
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAppRoute: typeof AuthenticatedAppRouteWithChildren
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAppRoute: AuthenticatedAppRouteWithChildren,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
