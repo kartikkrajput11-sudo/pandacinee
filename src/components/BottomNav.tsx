@@ -1,13 +1,21 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { Home, MessageCircle, Film, Gamepad2, User } from "lucide-react";
 
-const items = [
+type Item = {
+  to: "/app" | "/app/chat" | "/app/watch" | "/app/play" | "/app/me";
+  label: string;
+  Icon: typeof Home;
+  exact?: boolean;
+  primary?: boolean;
+};
+
+const items: Item[] = [
   { to: "/app", label: "Home", Icon: Home, exact: true },
   { to: "/app/chat", label: "Chat", Icon: MessageCircle },
   { to: "/app/watch", label: "Watch", Icon: Film, primary: true },
   { to: "/app/play", label: "Play", Icon: Gamepad2 },
   { to: "/app/me", label: "Me", Icon: User },
-] as const;
+];
 
 export function BottomNav() {
   const location = useLocation();
