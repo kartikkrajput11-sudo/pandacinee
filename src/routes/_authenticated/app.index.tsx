@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useProfile } from "@/hooks/useProfile";
 import { Petals } from "@/components/Petals";
-import { Sparkles, Heart, Calendar, ArrowRight, Film } from "lucide-react";
+import { Sparkles, Heart, Calendar, ArrowRight, Film, MessageCircle } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/app/")({
   component: Home,
@@ -77,15 +77,24 @@ function Home() {
         </div>
       </div>
 
-      {/* Anniversary card */}
+      {/* Quick actions */}
       <div className="relative z-10 grid grid-cols-2 gap-3 mb-5">
-        <div className="p-4 bg-surface rounded-2xl border border-border">
+        <Link
+          to="/app/anniversary"
+          className="p-4 bg-surface rounded-2xl border border-border hover:border-petal/40 transition-colors"
+        >
           <Calendar className="size-5 text-petal mb-2" />
-          <p className="text-[10px] uppercase tracking-widest text-candle-muted">Next milestone</p>
-          <p className="font-serif italic text-lg mt-0.5">
-            {partner ? "Day 30" : "—"}
-          </p>
-        </div>
+          <p className="text-[10px] uppercase tracking-widest text-candle-muted">Just for us</p>
+          <p className="font-serif italic text-lg mt-0.5">Anniversary</p>
+        </Link>
+        <Link
+          to="/app/chat"
+          className="p-4 bg-surface rounded-2xl border border-border hover:border-petal/40 transition-colors"
+        >
+          <MessageCircle className="size-5 text-petal mb-2" />
+          <p className="text-[10px] uppercase tracking-widest text-candle-muted">Whisper</p>
+          <p className="font-serif italic text-lg mt-0.5">Chat</p>
+        </Link>
         <Link
           to="/app/watch"
           className="p-4 bg-surface rounded-2xl border border-border hover:border-petal/40 transition-colors"
@@ -93,6 +102,14 @@ function Home() {
           <Film className="size-5 text-petal mb-2" />
           <p className="text-[10px] uppercase tracking-widest text-candle-muted">Tonight</p>
           <p className="font-serif italic text-lg mt-0.5">Watch together</p>
+        </Link>
+        <Link
+          to="/app/play"
+          className="p-4 bg-surface rounded-2xl border border-border hover:border-petal/40 transition-colors"
+        >
+          <Sparkles className="size-5 text-petal mb-2" />
+          <p className="text-[10px] uppercase tracking-widest text-candle-muted">Together</p>
+          <p className="font-serif italic text-lg mt-0.5">Play games</p>
         </Link>
       </div>
 

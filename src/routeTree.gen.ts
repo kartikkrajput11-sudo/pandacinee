@@ -21,6 +21,8 @@ import { Route as AuthenticatedAppInviteRouteImport } from './routes/_authentica
 import { Route as AuthenticatedAppFriendsRouteImport } from './routes/_authenticated/app.friends'
 import { Route as AuthenticatedAppChatRouteImport } from './routes/_authenticated/app.chat'
 import { Route as AuthenticatedAppAnniversaryRouteImport } from './routes/_authenticated/app.anniversary'
+import { Route as AuthenticatedAppGamesGameRouteImport } from './routes/_authenticated/app.games.$game'
+import { Route as AuthenticatedAppCallPeerIdRouteImport } from './routes/_authenticated/app.call.$peerId'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -82,6 +84,18 @@ const AuthenticatedAppAnniversaryRoute =
     path: '/anniversary',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppGamesGameRoute =
+  AuthenticatedAppGamesGameRouteImport.update({
+    id: '/games/$game',
+    path: '/games/$game',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
+const AuthenticatedAppCallPeerIdRoute =
+  AuthenticatedAppCallPeerIdRouteImport.update({
+    id: '/call/$peerId',
+    path: '/call/$peerId',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -95,6 +109,8 @@ export interface FileRoutesByFullPath {
   '/app/play': typeof AuthenticatedAppPlayRoute
   '/app/watch': typeof AuthenticatedAppWatchRoute
   '/app/': typeof AuthenticatedAppIndexRoute
+  '/app/call/$peerId': typeof AuthenticatedAppCallPeerIdRoute
+  '/app/games/$game': typeof AuthenticatedAppGamesGameRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -107,6 +123,8 @@ export interface FileRoutesByTo {
   '/app/play': typeof AuthenticatedAppPlayRoute
   '/app/watch': typeof AuthenticatedAppWatchRoute
   '/app': typeof AuthenticatedAppIndexRoute
+  '/app/call/$peerId': typeof AuthenticatedAppCallPeerIdRoute
+  '/app/games/$game': typeof AuthenticatedAppGamesGameRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -122,6 +140,8 @@ export interface FileRoutesById {
   '/_authenticated/app/play': typeof AuthenticatedAppPlayRoute
   '/_authenticated/app/watch': typeof AuthenticatedAppWatchRoute
   '/_authenticated/app/': typeof AuthenticatedAppIndexRoute
+  '/_authenticated/app/call/$peerId': typeof AuthenticatedAppCallPeerIdRoute
+  '/_authenticated/app/games/$game': typeof AuthenticatedAppGamesGameRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -137,6 +157,8 @@ export interface FileRouteTypes {
     | '/app/play'
     | '/app/watch'
     | '/app/'
+    | '/app/call/$peerId'
+    | '/app/games/$game'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -149,6 +171,8 @@ export interface FileRouteTypes {
     | '/app/play'
     | '/app/watch'
     | '/app'
+    | '/app/call/$peerId'
+    | '/app/games/$game'
   id:
     | '__root__'
     | '/'
@@ -163,6 +187,8 @@ export interface FileRouteTypes {
     | '/_authenticated/app/play'
     | '/_authenticated/app/watch'
     | '/_authenticated/app/'
+    | '/_authenticated/app/call/$peerId'
+    | '/_authenticated/app/games/$game'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -257,6 +283,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppAnniversaryRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/games/$game': {
+      id: '/_authenticated/app/games/$game'
+      path: '/games/$game'
+      fullPath: '/app/games/$game'
+      preLoaderRoute: typeof AuthenticatedAppGamesGameRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/call/$peerId': {
+      id: '/_authenticated/app/call/$peerId'
+      path: '/call/$peerId'
+      fullPath: '/app/call/$peerId'
+      preLoaderRoute: typeof AuthenticatedAppCallPeerIdRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
   }
 }
 
@@ -269,6 +309,8 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppPlayRoute: typeof AuthenticatedAppPlayRoute
   AuthenticatedAppWatchRoute: typeof AuthenticatedAppWatchRoute
   AuthenticatedAppIndexRoute: typeof AuthenticatedAppIndexRoute
+  AuthenticatedAppCallPeerIdRoute: typeof AuthenticatedAppCallPeerIdRoute
+  AuthenticatedAppGamesGameRoute: typeof AuthenticatedAppGamesGameRoute
 }
 
 const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
@@ -280,6 +322,8 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppPlayRoute: AuthenticatedAppPlayRoute,
   AuthenticatedAppWatchRoute: AuthenticatedAppWatchRoute,
   AuthenticatedAppIndexRoute: AuthenticatedAppIndexRoute,
+  AuthenticatedAppCallPeerIdRoute: AuthenticatedAppCallPeerIdRoute,
+  AuthenticatedAppGamesGameRoute: AuthenticatedAppGamesGameRoute,
 }
 
 const AuthenticatedAppRouteWithChildren =
