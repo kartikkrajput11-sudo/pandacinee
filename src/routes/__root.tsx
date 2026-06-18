@@ -77,20 +77,26 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "PANDACINE — Cinema for two" },
+      { title: "PANDACINE — Never ending Love" },
       {
         name: "description",
         content:
           "Watch movies, chat, and create memories with your partner. PANDACINE is the cozy app made for the two of you.",
       },
       { name: "theme-color", content: "#1f0f24" },
-      { property: "og:title", content: "PANDACINE — Cinema for two" },
+      { property: "og:title", content: "PANDACINE — Never ending Love" },
       {
         property: "og:description",
         content: "A private digital living room designed for two. Watch. Chat. Connect.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "PANDACINE — Never ending Love" },
+      { name: "description", content: "Panda Love Cinema is a cozy app for couples to watch movies, play games, and connect." },
+      { property: "og:description", content: "Panda Love Cinema is a cozy app for couples to watch movies, play games, and connect." },
+      { name: "twitter:description", content: "Panda Love Cinema is a cozy app for couples to watch movies, play games, and connect." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/7dfe4062-8e6e-4bf0-becc-4a042ef1a047/id-preview-e2f08ce3--25270c29-07a4-4330-b880-59d2d9d53167.lovable.app-1781760079051.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/7dfe4062-8e6e-4bf0-becc-4a042ef1a047/id-preview-e2f08ce3--25270c29-07a4-4330-b880-59d2d9d53167.lovable.app-1781760079051.png" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
