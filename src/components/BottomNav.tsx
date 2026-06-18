@@ -1,8 +1,8 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { Home, MessageCircle, Film, Gamepad2, User } from "lucide-react";
+import { Home, Users, Film, Gamepad2, User } from "lucide-react";
 
 type Item = {
-  to: "/app" | "/app/chat" | "/app/watch" | "/app/play" | "/app/me";
+  to: "/app" | "/app/friends" | "/app/watch" | "/app/play" | "/app/me";
   label: string;
   Icon: typeof Home;
   exact?: boolean;
@@ -11,7 +11,7 @@ type Item = {
 
 const items: Item[] = [
   { to: "/app", label: "Home", Icon: Home, exact: true },
-  { to: "/app/chat", label: "Chat", Icon: MessageCircle },
+  { to: "/app/friends", label: "Friends", Icon: Users },
   { to: "/app/watch", label: "Watch", Icon: Film, primary: true },
   { to: "/app/play", label: "Play", Icon: Gamepad2 },
   { to: "/app/me", label: "Me", Icon: User },
@@ -26,12 +26,7 @@ export function BottomNav() {
           const active = exact ? location.pathname === to : location.pathname.startsWith(to);
           if (primary) {
             return (
-              <Link
-                key={to}
-                to={to}
-                className="flex flex-col items-center gap-0.5"
-                aria-label={label}
-              >
+              <Link key={to} to={to} className="flex flex-col items-center gap-0.5" aria-label={label}>
                 <div className="size-12 -translate-y-4 rounded-full bg-petal text-velvet flex items-center justify-center petal-glow">
                   <Icon className="size-5" />
                 </div>

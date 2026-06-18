@@ -9,6 +9,11 @@ export type Profile = {
   invite_code: string;
   partner_id: string | null;
   paired_at: string | null;
+  favorite_color: string | null;
+  favorite_emoji: string | null;
+  anniversary_date: string | null;
+  partner_nickname: string | null;
+  bio: string | null;
 };
 
 export function useProfile() {
@@ -30,7 +35,7 @@ export function useProfile() {
           .select("*")
           .eq("id", profile.partner_id)
           .maybeSingle();
-        partner = p ?? null;
+        partner = (p as Profile) ?? null;
       }
       return { profile: (profile as Profile) ?? null, partner };
     },
