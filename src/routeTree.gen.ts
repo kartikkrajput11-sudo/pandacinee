@@ -18,7 +18,11 @@ import { Route as AuthenticatedAppWatchRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedAppPlayRouteImport } from './routes/_authenticated/app.play'
 import { Route as AuthenticatedAppMeRouteImport } from './routes/_authenticated/app.me'
 import { Route as AuthenticatedAppInviteRouteImport } from './routes/_authenticated/app.invite'
+import { Route as AuthenticatedAppFriendsRouteImport } from './routes/_authenticated/app.friends'
 import { Route as AuthenticatedAppChatRouteImport } from './routes/_authenticated/app.chat'
+import { Route as AuthenticatedAppAnniversaryRouteImport } from './routes/_authenticated/app.anniversary'
+import { Route as AuthenticatedAppGamesGameRouteImport } from './routes/_authenticated/app.games.$game'
+import { Route as AuthenticatedAppCallPeerIdRouteImport } from './routes/_authenticated/app.call.$peerId'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -64,32 +68,63 @@ const AuthenticatedAppInviteRoute = AuthenticatedAppInviteRouteImport.update({
   path: '/invite',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
+const AuthenticatedAppFriendsRoute = AuthenticatedAppFriendsRouteImport.update({
+  id: '/friends',
+  path: '/friends',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
 const AuthenticatedAppChatRoute = AuthenticatedAppChatRouteImport.update({
   id: '/chat',
   path: '/chat',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
+const AuthenticatedAppAnniversaryRoute =
+  AuthenticatedAppAnniversaryRouteImport.update({
+    id: '/anniversary',
+    path: '/anniversary',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
+const AuthenticatedAppGamesGameRoute =
+  AuthenticatedAppGamesGameRouteImport.update({
+    id: '/games/$game',
+    path: '/games/$game',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
+const AuthenticatedAppCallPeerIdRoute =
+  AuthenticatedAppCallPeerIdRouteImport.update({
+    id: '/call/$peerId',
+    path: '/call/$peerId',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/app': typeof AuthenticatedAppRouteWithChildren
+  '/app/anniversary': typeof AuthenticatedAppAnniversaryRoute
   '/app/chat': typeof AuthenticatedAppChatRoute
+  '/app/friends': typeof AuthenticatedAppFriendsRoute
   '/app/invite': typeof AuthenticatedAppInviteRoute
   '/app/me': typeof AuthenticatedAppMeRoute
   '/app/play': typeof AuthenticatedAppPlayRoute
   '/app/watch': typeof AuthenticatedAppWatchRoute
   '/app/': typeof AuthenticatedAppIndexRoute
+  '/app/call/$peerId': typeof AuthenticatedAppCallPeerIdRoute
+  '/app/games/$game': typeof AuthenticatedAppGamesGameRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/app/anniversary': typeof AuthenticatedAppAnniversaryRoute
   '/app/chat': typeof AuthenticatedAppChatRoute
+  '/app/friends': typeof AuthenticatedAppFriendsRoute
   '/app/invite': typeof AuthenticatedAppInviteRoute
   '/app/me': typeof AuthenticatedAppMeRoute
   '/app/play': typeof AuthenticatedAppPlayRoute
   '/app/watch': typeof AuthenticatedAppWatchRoute
   '/app': typeof AuthenticatedAppIndexRoute
+  '/app/call/$peerId': typeof AuthenticatedAppCallPeerIdRoute
+  '/app/games/$game': typeof AuthenticatedAppGamesGameRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -97,12 +132,16 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/_authenticated/app': typeof AuthenticatedAppRouteWithChildren
+  '/_authenticated/app/anniversary': typeof AuthenticatedAppAnniversaryRoute
   '/_authenticated/app/chat': typeof AuthenticatedAppChatRoute
+  '/_authenticated/app/friends': typeof AuthenticatedAppFriendsRoute
   '/_authenticated/app/invite': typeof AuthenticatedAppInviteRoute
   '/_authenticated/app/me': typeof AuthenticatedAppMeRoute
   '/_authenticated/app/play': typeof AuthenticatedAppPlayRoute
   '/_authenticated/app/watch': typeof AuthenticatedAppWatchRoute
   '/_authenticated/app/': typeof AuthenticatedAppIndexRoute
+  '/_authenticated/app/call/$peerId': typeof AuthenticatedAppCallPeerIdRoute
+  '/_authenticated/app/games/$game': typeof AuthenticatedAppGamesGameRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -110,34 +149,46 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/app'
+    | '/app/anniversary'
     | '/app/chat'
+    | '/app/friends'
     | '/app/invite'
     | '/app/me'
     | '/app/play'
     | '/app/watch'
     | '/app/'
+    | '/app/call/$peerId'
+    | '/app/games/$game'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
+    | '/app/anniversary'
     | '/app/chat'
+    | '/app/friends'
     | '/app/invite'
     | '/app/me'
     | '/app/play'
     | '/app/watch'
     | '/app'
+    | '/app/call/$peerId'
+    | '/app/games/$game'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
     | '/_authenticated/app'
+    | '/_authenticated/app/anniversary'
     | '/_authenticated/app/chat'
+    | '/_authenticated/app/friends'
     | '/_authenticated/app/invite'
     | '/_authenticated/app/me'
     | '/_authenticated/app/play'
     | '/_authenticated/app/watch'
     | '/_authenticated/app/'
+    | '/_authenticated/app/call/$peerId'
+    | '/_authenticated/app/games/$game'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -211,6 +262,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppInviteRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/friends': {
+      id: '/_authenticated/app/friends'
+      path: '/friends'
+      fullPath: '/app/friends'
+      preLoaderRoute: typeof AuthenticatedAppFriendsRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/chat': {
       id: '/_authenticated/app/chat'
       path: '/chat'
@@ -218,25 +276,54 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppChatRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/anniversary': {
+      id: '/_authenticated/app/anniversary'
+      path: '/anniversary'
+      fullPath: '/app/anniversary'
+      preLoaderRoute: typeof AuthenticatedAppAnniversaryRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/games/$game': {
+      id: '/_authenticated/app/games/$game'
+      path: '/games/$game'
+      fullPath: '/app/games/$game'
+      preLoaderRoute: typeof AuthenticatedAppGamesGameRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/call/$peerId': {
+      id: '/_authenticated/app/call/$peerId'
+      path: '/call/$peerId'
+      fullPath: '/app/call/$peerId'
+      preLoaderRoute: typeof AuthenticatedAppCallPeerIdRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
   }
 }
 
 interface AuthenticatedAppRouteChildren {
+  AuthenticatedAppAnniversaryRoute: typeof AuthenticatedAppAnniversaryRoute
   AuthenticatedAppChatRoute: typeof AuthenticatedAppChatRoute
+  AuthenticatedAppFriendsRoute: typeof AuthenticatedAppFriendsRoute
   AuthenticatedAppInviteRoute: typeof AuthenticatedAppInviteRoute
   AuthenticatedAppMeRoute: typeof AuthenticatedAppMeRoute
   AuthenticatedAppPlayRoute: typeof AuthenticatedAppPlayRoute
   AuthenticatedAppWatchRoute: typeof AuthenticatedAppWatchRoute
   AuthenticatedAppIndexRoute: typeof AuthenticatedAppIndexRoute
+  AuthenticatedAppCallPeerIdRoute: typeof AuthenticatedAppCallPeerIdRoute
+  AuthenticatedAppGamesGameRoute: typeof AuthenticatedAppGamesGameRoute
 }
 
 const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
+  AuthenticatedAppAnniversaryRoute: AuthenticatedAppAnniversaryRoute,
   AuthenticatedAppChatRoute: AuthenticatedAppChatRoute,
+  AuthenticatedAppFriendsRoute: AuthenticatedAppFriendsRoute,
   AuthenticatedAppInviteRoute: AuthenticatedAppInviteRoute,
   AuthenticatedAppMeRoute: AuthenticatedAppMeRoute,
   AuthenticatedAppPlayRoute: AuthenticatedAppPlayRoute,
   AuthenticatedAppWatchRoute: AuthenticatedAppWatchRoute,
   AuthenticatedAppIndexRoute: AuthenticatedAppIndexRoute,
+  AuthenticatedAppCallPeerIdRoute: AuthenticatedAppCallPeerIdRoute,
+  AuthenticatedAppGamesGameRoute: AuthenticatedAppGamesGameRoute,
 }
 
 const AuthenticatedAppRouteWithChildren =
@@ -261,13 +348,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

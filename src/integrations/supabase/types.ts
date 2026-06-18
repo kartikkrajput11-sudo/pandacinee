@@ -14,6 +14,90 @@ export type Database = {
   }
   public: {
     Tables: {
+      call_signals: {
+        Row: {
+          created_at: string
+          from_id: string
+          id: string
+          kind: string
+          payload: Json | null
+          to_id: string
+        }
+        Insert: {
+          created_at?: string
+          from_id: string
+          id?: string
+          kind: string
+          payload?: Json | null
+          to_id: string
+        }
+        Update: {
+          created_at?: string
+          from_id?: string
+          id?: string
+          kind?: string
+          payload?: Json | null
+          to_id?: string
+        }
+        Relationships: []
+      }
+      friendships: {
+        Row: {
+          addressee_id: string
+          created_at: string
+          id: string
+          requester_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          addressee_id: string
+          created_at?: string
+          id?: string
+          requester_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          addressee_id?: string
+          created_at?: string
+          id?: string
+          requester_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      game_sessions: {
+        Row: {
+          created_at: string
+          game: string
+          host_id: string
+          id: string
+          partner_id: string
+          state: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          game: string
+          host_id: string
+          id?: string
+          partner_id: string
+          state?: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          game?: string
+          host_id?: string
+          id?: string
+          partner_id?: string
+          state?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           content: string
@@ -40,37 +124,82 @@ export type Database = {
       }
       profiles: {
         Row: {
+          anniversary_date: string | null
           avatar_url: string | null
+          bio: string | null
           created_at: string
           display_name: string
+          favorite_color: string | null
+          favorite_emoji: string | null
           id: string
           invite_code: string
           paired_at: string | null
           partner_id: string | null
+          partner_nickname: string | null
           updated_at: string
           username: string
         }
         Insert: {
+          anniversary_date?: string | null
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string
           display_name: string
+          favorite_color?: string | null
+          favorite_emoji?: string | null
           id: string
           invite_code?: string
           paired_at?: string | null
           partner_id?: string | null
+          partner_nickname?: string | null
           updated_at?: string
           username: string
         }
         Update: {
+          anniversary_date?: string | null
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string
           display_name?: string
+          favorite_color?: string | null
+          favorite_emoji?: string | null
           id?: string
           invite_code?: string
           paired_at?: string | null
           partner_id?: string | null
+          partner_nickname?: string | null
           updated_at?: string
           username?: string
+        }
+        Relationships: []
+      }
+      time_capsules: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          recipient_id: string
+          sender_id: string
+          title: string | null
+          unlock_at: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          recipient_id: string
+          sender_id: string
+          title?: string | null
+          unlock_at: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          recipient_id?: string
+          sender_id?: string
+          title?: string | null
+          unlock_at?: string
         }
         Relationships: []
       }
@@ -124,13 +253,18 @@ export type Database = {
       pair_with_invite_code: {
         Args: { _code: string }
         Returns: {
+          anniversary_date: string | null
           avatar_url: string | null
+          bio: string | null
           created_at: string
           display_name: string
+          favorite_color: string | null
+          favorite_emoji: string | null
           id: string
           invite_code: string
           paired_at: string | null
           partner_id: string | null
+          partner_nickname: string | null
           updated_at: string
           username: string
         }
@@ -140,6 +274,15 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      search_profiles: {
+        Args: { _q: string }
+        Returns: {
+          avatar_url: string
+          display_name: string
+          id: string
+          username: string
+        }[]
       }
     }
     Enums: {
