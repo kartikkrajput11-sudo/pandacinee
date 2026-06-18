@@ -18,7 +18,9 @@ import { Route as AuthenticatedAppWatchRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedAppPlayRouteImport } from './routes/_authenticated/app.play'
 import { Route as AuthenticatedAppMeRouteImport } from './routes/_authenticated/app.me'
 import { Route as AuthenticatedAppInviteRouteImport } from './routes/_authenticated/app.invite'
+import { Route as AuthenticatedAppFriendsRouteImport } from './routes/_authenticated/app.friends'
 import { Route as AuthenticatedAppChatRouteImport } from './routes/_authenticated/app.chat'
+import { Route as AuthenticatedAppAnniversaryRouteImport } from './routes/_authenticated/app.anniversary'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -64,17 +66,30 @@ const AuthenticatedAppInviteRoute = AuthenticatedAppInviteRouteImport.update({
   path: '/invite',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
+const AuthenticatedAppFriendsRoute = AuthenticatedAppFriendsRouteImport.update({
+  id: '/friends',
+  path: '/friends',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
 const AuthenticatedAppChatRoute = AuthenticatedAppChatRouteImport.update({
   id: '/chat',
   path: '/chat',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
+const AuthenticatedAppAnniversaryRoute =
+  AuthenticatedAppAnniversaryRouteImport.update({
+    id: '/anniversary',
+    path: '/anniversary',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/app': typeof AuthenticatedAppRouteWithChildren
+  '/app/anniversary': typeof AuthenticatedAppAnniversaryRoute
   '/app/chat': typeof AuthenticatedAppChatRoute
+  '/app/friends': typeof AuthenticatedAppFriendsRoute
   '/app/invite': typeof AuthenticatedAppInviteRoute
   '/app/me': typeof AuthenticatedAppMeRoute
   '/app/play': typeof AuthenticatedAppPlayRoute
@@ -84,7 +99,9 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/app/anniversary': typeof AuthenticatedAppAnniversaryRoute
   '/app/chat': typeof AuthenticatedAppChatRoute
+  '/app/friends': typeof AuthenticatedAppFriendsRoute
   '/app/invite': typeof AuthenticatedAppInviteRoute
   '/app/me': typeof AuthenticatedAppMeRoute
   '/app/play': typeof AuthenticatedAppPlayRoute
@@ -97,7 +114,9 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/_authenticated/app': typeof AuthenticatedAppRouteWithChildren
+  '/_authenticated/app/anniversary': typeof AuthenticatedAppAnniversaryRoute
   '/_authenticated/app/chat': typeof AuthenticatedAppChatRoute
+  '/_authenticated/app/friends': typeof AuthenticatedAppFriendsRoute
   '/_authenticated/app/invite': typeof AuthenticatedAppInviteRoute
   '/_authenticated/app/me': typeof AuthenticatedAppMeRoute
   '/_authenticated/app/play': typeof AuthenticatedAppPlayRoute
@@ -110,7 +129,9 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/app'
+    | '/app/anniversary'
     | '/app/chat'
+    | '/app/friends'
     | '/app/invite'
     | '/app/me'
     | '/app/play'
@@ -120,7 +141,9 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/app/anniversary'
     | '/app/chat'
+    | '/app/friends'
     | '/app/invite'
     | '/app/me'
     | '/app/play'
@@ -132,7 +155,9 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/_authenticated/app'
+    | '/_authenticated/app/anniversary'
     | '/_authenticated/app/chat'
+    | '/_authenticated/app/friends'
     | '/_authenticated/app/invite'
     | '/_authenticated/app/me'
     | '/_authenticated/app/play'
@@ -211,6 +236,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppInviteRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/friends': {
+      id: '/_authenticated/app/friends'
+      path: '/friends'
+      fullPath: '/app/friends'
+      preLoaderRoute: typeof AuthenticatedAppFriendsRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/chat': {
       id: '/_authenticated/app/chat'
       path: '/chat'
@@ -218,11 +250,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppChatRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/anniversary': {
+      id: '/_authenticated/app/anniversary'
+      path: '/anniversary'
+      fullPath: '/app/anniversary'
+      preLoaderRoute: typeof AuthenticatedAppAnniversaryRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
   }
 }
 
 interface AuthenticatedAppRouteChildren {
+  AuthenticatedAppAnniversaryRoute: typeof AuthenticatedAppAnniversaryRoute
   AuthenticatedAppChatRoute: typeof AuthenticatedAppChatRoute
+  AuthenticatedAppFriendsRoute: typeof AuthenticatedAppFriendsRoute
   AuthenticatedAppInviteRoute: typeof AuthenticatedAppInviteRoute
   AuthenticatedAppMeRoute: typeof AuthenticatedAppMeRoute
   AuthenticatedAppPlayRoute: typeof AuthenticatedAppPlayRoute
@@ -231,7 +272,9 @@ interface AuthenticatedAppRouteChildren {
 }
 
 const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
+  AuthenticatedAppAnniversaryRoute: AuthenticatedAppAnniversaryRoute,
   AuthenticatedAppChatRoute: AuthenticatedAppChatRoute,
+  AuthenticatedAppFriendsRoute: AuthenticatedAppFriendsRoute,
   AuthenticatedAppInviteRoute: AuthenticatedAppInviteRoute,
   AuthenticatedAppMeRoute: AuthenticatedAppMeRoute,
   AuthenticatedAppPlayRoute: AuthenticatedAppPlayRoute,
