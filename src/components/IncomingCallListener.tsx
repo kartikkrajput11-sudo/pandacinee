@@ -10,14 +10,15 @@ export function IncomingCallListener() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    let me: string | null = null;
+    let cancelled = false;
     let channel: ReturnType<typeof supabase.channel> | null = null;
     (async () => {
       const { data: u } = await supabase.auth.getUser();
-      if (!u.user) return;
-      me = u.user.id;
-      channel = supabase
-        .channel(`incoming-${me}`)
+      if (!u.user || cancelled) return;
+      const me = u.user.id;
+      const topic = `incoming-${me}-${Math.random().toString(36).slice(2)}`;
+      channel = supabase.channel(topic);
+      channel
         .on(
           "postgres_changes",
           { event: "INSERT", schema: "public", table: "call_signals", filter: `to_id=eq.${me}` },
@@ -35,6 +36,7 @@ export function IncomingCallListener() {
         .subscribe();
     })();
     return () => {
+      cancelled = true;
       if (channel) supabase.removeChannel(channel);
     };
   }, []);
