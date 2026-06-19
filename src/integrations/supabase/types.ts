@@ -102,25 +102,57 @@ export type Database = {
         Row: {
           content: string
           created_at: string
+          expires_at: string | null
           id: string
+          media_meta: Json | null
+          media_url: string | null
+          pinned: boolean
+          reactions: Json
+          read_at: string | null
           receiver_id: string
+          reply_to_id: string | null
           sender_id: string
+          type: string
         }
         Insert: {
           content: string
           created_at?: string
+          expires_at?: string | null
           id?: string
+          media_meta?: Json | null
+          media_url?: string | null
+          pinned?: boolean
+          reactions?: Json
+          read_at?: string | null
           receiver_id: string
+          reply_to_id?: string | null
           sender_id: string
+          type?: string
         }
         Update: {
           content?: string
           created_at?: string
+          expires_at?: string | null
           id?: string
+          media_meta?: Json | null
+          media_url?: string | null
+          pinned?: boolean
+          reactions?: Json
+          read_at?: string | null
           receiver_id?: string
+          reply_to_id?: string | null
           sender_id?: string
+          type?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "messages_reply_to_id_fkey"
+            columns: ["reply_to_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -133,6 +165,9 @@ export type Database = {
           favorite_emoji: string | null
           id: string
           invite_code: string
+          mood: string | null
+          mood_emoji: string | null
+          mood_updated_at: string | null
           paired_at: string | null
           partner_id: string | null
           partner_nickname: string | null
@@ -149,6 +184,9 @@ export type Database = {
           favorite_emoji?: string | null
           id: string
           invite_code?: string
+          mood?: string | null
+          mood_emoji?: string | null
+          mood_updated_at?: string | null
           paired_at?: string | null
           partner_id?: string | null
           partner_nickname?: string | null
@@ -165,6 +203,9 @@ export type Database = {
           favorite_emoji?: string | null
           id?: string
           invite_code?: string
+          mood?: string | null
+          mood_emoji?: string | null
+          mood_updated_at?: string | null
           paired_at?: string | null
           partner_id?: string | null
           partner_nickname?: string | null
@@ -263,6 +304,9 @@ export type Database = {
           favorite_emoji: string | null
           id: string
           invite_code: string
+          mood: string | null
+          mood_emoji: string | null
+          mood_updated_at: string | null
           paired_at: string | null
           partner_id: string | null
           partner_nickname: string | null
@@ -276,6 +320,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      purge_expired_messages: { Args: never; Returns: undefined }
       search_profiles: {
         Args: { _q: string }
         Returns: {
