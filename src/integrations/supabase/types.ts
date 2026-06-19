@@ -250,6 +250,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      is_accepted_friend: { Args: { _other: string }; Returns: boolean }
       pair_with_invite_code: {
         Args: { _code: string }
         Returns: {
