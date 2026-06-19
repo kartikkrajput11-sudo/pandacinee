@@ -14,6 +14,9 @@ export type Profile = {
   anniversary_date: string | null;
   partner_nickname: string | null;
   bio: string | null;
+  mood: string | null;
+  mood_emoji: string | null;
+  mood_updated_at: string | null;
 };
 
 export function useProfile() {
