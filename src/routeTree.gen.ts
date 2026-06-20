@@ -19,9 +19,10 @@ import { Route as AuthenticatedAppPlayRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedAppMeRouteImport } from './routes/_authenticated/app.me'
 import { Route as AuthenticatedAppInviteRouteImport } from './routes/_authenticated/app.invite'
 import { Route as AuthenticatedAppFriendsRouteImport } from './routes/_authenticated/app.friends'
-import { Route as AuthenticatedAppChatRouteImport } from './routes/_authenticated/app.chat'
 import { Route as AuthenticatedAppAnniversaryRouteImport } from './routes/_authenticated/app.anniversary'
+import { Route as AuthenticatedAppChatIndexRouteImport } from './routes/_authenticated/app.chat.index'
 import { Route as AuthenticatedAppGamesGameRouteImport } from './routes/_authenticated/app.games.$game'
+import { Route as AuthenticatedAppChatPeerIdRouteImport } from './routes/_authenticated/app.chat.$peerId'
 import { Route as AuthenticatedAppCallPeerIdRouteImport } from './routes/_authenticated/app.call.$peerId'
 
 const AuthRoute = AuthRouteImport.update({
@@ -73,21 +74,28 @@ const AuthenticatedAppFriendsRoute = AuthenticatedAppFriendsRouteImport.update({
   path: '/friends',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
-const AuthenticatedAppChatRoute = AuthenticatedAppChatRouteImport.update({
-  id: '/chat',
-  path: '/chat',
-  getParentRoute: () => AuthenticatedAppRoute,
-} as any)
 const AuthenticatedAppAnniversaryRoute =
   AuthenticatedAppAnniversaryRouteImport.update({
     id: '/anniversary',
     path: '/anniversary',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppChatIndexRoute =
+  AuthenticatedAppChatIndexRouteImport.update({
+    id: '/chat/',
+    path: '/chat/',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppGamesGameRoute =
   AuthenticatedAppGamesGameRouteImport.update({
     id: '/games/$game',
     path: '/games/$game',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
+const AuthenticatedAppChatPeerIdRoute =
+  AuthenticatedAppChatPeerIdRouteImport.update({
+    id: '/chat/$peerId',
+    path: '/chat/$peerId',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
 const AuthenticatedAppCallPeerIdRoute =
@@ -102,7 +110,6 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/app': typeof AuthenticatedAppRouteWithChildren
   '/app/anniversary': typeof AuthenticatedAppAnniversaryRoute
-  '/app/chat': typeof AuthenticatedAppChatRoute
   '/app/friends': typeof AuthenticatedAppFriendsRoute
   '/app/invite': typeof AuthenticatedAppInviteRoute
   '/app/me': typeof AuthenticatedAppMeRoute
@@ -110,13 +117,14 @@ export interface FileRoutesByFullPath {
   '/app/watch': typeof AuthenticatedAppWatchRoute
   '/app/': typeof AuthenticatedAppIndexRoute
   '/app/call/$peerId': typeof AuthenticatedAppCallPeerIdRoute
+  '/app/chat/$peerId': typeof AuthenticatedAppChatPeerIdRoute
   '/app/games/$game': typeof AuthenticatedAppGamesGameRoute
+  '/app/chat/': typeof AuthenticatedAppChatIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/app/anniversary': typeof AuthenticatedAppAnniversaryRoute
-  '/app/chat': typeof AuthenticatedAppChatRoute
   '/app/friends': typeof AuthenticatedAppFriendsRoute
   '/app/invite': typeof AuthenticatedAppInviteRoute
   '/app/me': typeof AuthenticatedAppMeRoute
@@ -124,7 +132,9 @@ export interface FileRoutesByTo {
   '/app/watch': typeof AuthenticatedAppWatchRoute
   '/app': typeof AuthenticatedAppIndexRoute
   '/app/call/$peerId': typeof AuthenticatedAppCallPeerIdRoute
+  '/app/chat/$peerId': typeof AuthenticatedAppChatPeerIdRoute
   '/app/games/$game': typeof AuthenticatedAppGamesGameRoute
+  '/app/chat': typeof AuthenticatedAppChatIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -133,7 +143,6 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/_authenticated/app': typeof AuthenticatedAppRouteWithChildren
   '/_authenticated/app/anniversary': typeof AuthenticatedAppAnniversaryRoute
-  '/_authenticated/app/chat': typeof AuthenticatedAppChatRoute
   '/_authenticated/app/friends': typeof AuthenticatedAppFriendsRoute
   '/_authenticated/app/invite': typeof AuthenticatedAppInviteRoute
   '/_authenticated/app/me': typeof AuthenticatedAppMeRoute
@@ -141,7 +150,9 @@ export interface FileRoutesById {
   '/_authenticated/app/watch': typeof AuthenticatedAppWatchRoute
   '/_authenticated/app/': typeof AuthenticatedAppIndexRoute
   '/_authenticated/app/call/$peerId': typeof AuthenticatedAppCallPeerIdRoute
+  '/_authenticated/app/chat/$peerId': typeof AuthenticatedAppChatPeerIdRoute
   '/_authenticated/app/games/$game': typeof AuthenticatedAppGamesGameRoute
+  '/_authenticated/app/chat/': typeof AuthenticatedAppChatIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -150,7 +161,6 @@ export interface FileRouteTypes {
     | '/auth'
     | '/app'
     | '/app/anniversary'
-    | '/app/chat'
     | '/app/friends'
     | '/app/invite'
     | '/app/me'
@@ -158,13 +168,14 @@ export interface FileRouteTypes {
     | '/app/watch'
     | '/app/'
     | '/app/call/$peerId'
+    | '/app/chat/$peerId'
     | '/app/games/$game'
+    | '/app/chat/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
     | '/app/anniversary'
-    | '/app/chat'
     | '/app/friends'
     | '/app/invite'
     | '/app/me'
@@ -172,7 +183,9 @@ export interface FileRouteTypes {
     | '/app/watch'
     | '/app'
     | '/app/call/$peerId'
+    | '/app/chat/$peerId'
     | '/app/games/$game'
+    | '/app/chat'
   id:
     | '__root__'
     | '/'
@@ -180,7 +193,6 @@ export interface FileRouteTypes {
     | '/auth'
     | '/_authenticated/app'
     | '/_authenticated/app/anniversary'
-    | '/_authenticated/app/chat'
     | '/_authenticated/app/friends'
     | '/_authenticated/app/invite'
     | '/_authenticated/app/me'
@@ -188,7 +200,9 @@ export interface FileRouteTypes {
     | '/_authenticated/app/watch'
     | '/_authenticated/app/'
     | '/_authenticated/app/call/$peerId'
+    | '/_authenticated/app/chat/$peerId'
     | '/_authenticated/app/games/$game'
+    | '/_authenticated/app/chat/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -269,13 +283,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppFriendsRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
-    '/_authenticated/app/chat': {
-      id: '/_authenticated/app/chat'
-      path: '/chat'
-      fullPath: '/app/chat'
-      preLoaderRoute: typeof AuthenticatedAppChatRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
     '/_authenticated/app/anniversary': {
       id: '/_authenticated/app/anniversary'
       path: '/anniversary'
@@ -283,11 +290,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppAnniversaryRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/chat/': {
+      id: '/_authenticated/app/chat/'
+      path: '/chat'
+      fullPath: '/app/chat/'
+      preLoaderRoute: typeof AuthenticatedAppChatIndexRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/games/$game': {
       id: '/_authenticated/app/games/$game'
       path: '/games/$game'
       fullPath: '/app/games/$game'
       preLoaderRoute: typeof AuthenticatedAppGamesGameRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/chat/$peerId': {
+      id: '/_authenticated/app/chat/$peerId'
+      path: '/chat/$peerId'
+      fullPath: '/app/chat/$peerId'
+      preLoaderRoute: typeof AuthenticatedAppChatPeerIdRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/call/$peerId': {
@@ -302,7 +323,6 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedAppRouteChildren {
   AuthenticatedAppAnniversaryRoute: typeof AuthenticatedAppAnniversaryRoute
-  AuthenticatedAppChatRoute: typeof AuthenticatedAppChatRoute
   AuthenticatedAppFriendsRoute: typeof AuthenticatedAppFriendsRoute
   AuthenticatedAppInviteRoute: typeof AuthenticatedAppInviteRoute
   AuthenticatedAppMeRoute: typeof AuthenticatedAppMeRoute
@@ -310,12 +330,13 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppWatchRoute: typeof AuthenticatedAppWatchRoute
   AuthenticatedAppIndexRoute: typeof AuthenticatedAppIndexRoute
   AuthenticatedAppCallPeerIdRoute: typeof AuthenticatedAppCallPeerIdRoute
+  AuthenticatedAppChatPeerIdRoute: typeof AuthenticatedAppChatPeerIdRoute
   AuthenticatedAppGamesGameRoute: typeof AuthenticatedAppGamesGameRoute
+  AuthenticatedAppChatIndexRoute: typeof AuthenticatedAppChatIndexRoute
 }
 
 const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppAnniversaryRoute: AuthenticatedAppAnniversaryRoute,
-  AuthenticatedAppChatRoute: AuthenticatedAppChatRoute,
   AuthenticatedAppFriendsRoute: AuthenticatedAppFriendsRoute,
   AuthenticatedAppInviteRoute: AuthenticatedAppInviteRoute,
   AuthenticatedAppMeRoute: AuthenticatedAppMeRoute,
@@ -323,7 +344,9 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppWatchRoute: AuthenticatedAppWatchRoute,
   AuthenticatedAppIndexRoute: AuthenticatedAppIndexRoute,
   AuthenticatedAppCallPeerIdRoute: AuthenticatedAppCallPeerIdRoute,
+  AuthenticatedAppChatPeerIdRoute: AuthenticatedAppChatPeerIdRoute,
   AuthenticatedAppGamesGameRoute: AuthenticatedAppGamesGameRoute,
+  AuthenticatedAppChatIndexRoute: AuthenticatedAppChatIndexRoute,
 }
 
 const AuthenticatedAppRouteWithChildren =
@@ -348,13 +371,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

@@ -41,6 +41,92 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_answers: {
+        Row: {
+          answer: string
+          created_at: string
+          date: string
+          id: string
+          partner_id: string | null
+          question_id: string
+          user_id: string
+        }
+        Insert: {
+          answer: string
+          created_at?: string
+          date?: string
+          id?: string
+          partner_id?: string | null
+          question_id: string
+          user_id: string
+        }
+        Update: {
+          answer?: string
+          created_at?: string
+          date?: string
+          id?: string
+          partner_id?: string | null
+          question_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_answers_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "daily_questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      daily_checkins: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          note: string | null
+          partner_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date?: string
+          id?: string
+          note?: string | null
+          partner_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          note?: string | null
+          partner_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      daily_questions: {
+        Row: {
+          created_at: string
+          day_index: number
+          id: string
+          prompt: string
+        }
+        Insert: {
+          created_at?: string
+          day_index: number
+          id?: string
+          prompt: string
+        }
+        Update: {
+          created_at?: string
+          day_index?: number
+          id?: string
+          prompt?: string
+        }
+        Relationships: []
+      }
       friendships: {
         Row: {
           addressee_id: string
@@ -291,6 +377,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      couple_streak: {
+        Args: { _me: string; _partner: string }
+        Returns: number
+      }
+      has_answered_on: {
+        Args: { _date: string; _user: string }
+        Returns: boolean
+      }
       is_accepted_friend: { Args: { _other: string }; Returns: boolean }
       pair_with_invite_code: {
         Args: { _code: string }
