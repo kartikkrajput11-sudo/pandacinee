@@ -1,0 +1,168 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ArrowLeft, Phone, Video, Pin, ChevronDown } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useProfile, type Profile } from "@/hooks/useProfile";
+import { useChat } from "@/hooks/useChat";
+import { ChatBubble } from "@/components/chat/ChatBubble";
+import { ChatComposer } from "@/components/chat/ChatComposer";
+import { MoodBar } from "@/components/chat/MoodBar";
+import type { MessageRow } from "@/lib/chat";
+
+export const Route = createFileRoute("/_authenticated/app/chat/$peerId")({
+  component: ChatPeer,
+});
+
+function ChatPeer() {
+  const { peerId } = Route.useParams();
+  const { data, isLoading } = useProfile();
+  const me = data?.profile;
+
+  const peerQ = useQuery({
+    enabled: !!peerId,
+    queryKey: ["peer", peerId],
+    queryFn: async () => {
+      const { data: p } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", peerId)
+        .maybeSingle();
+      return (p as Profile) ?? null;
+    },
+  });
+  const peer = peerQ.data ?? null;
+
+  const { messages, loading, partnerTyping, partnerOnline, send, react, togglePin, remove, sendTyping } =
+    useChat(me?.id ?? null, peer?.id ?? null);
+  const [replyTo, setReplyTo] = useState<MessageRow | null>(null);
+  const [showPinned, setShowPinned] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const messagesById = useMemo(() => {
+    const map: Record<string, MessageRow> = {};
+    messages.forEach((m) => (map[m.id] = m));
+    return map;
+  }, [messages]);
+
+  const pinned = useMemo(() => messages.filter((m) => m.pinned), [messages]);
+  const lastMineId = useMemo(() => {
+    for (let i = messages.length - 1; i >= 0; i--) if (messages[i].sender_id === me?.id) return messages[i].id;
+    return null;
+  }, [messages, me?.id]);
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+  }, [messages.length, partnerTyping]);
+
+  if (isLoading || peerQ.isLoading) {
+    return <div className="flex flex-col h-[calc(100vh-7rem)] items-center justify-center text-candle-muted">Loading…</div>;
+  }
+  if (!me) return null;
+  if (!peer) {
+    return (
+      <div className="px-5 pt-10">
+        <Link to="/app/chat" className="text-petal text-sm">← Back to chats</Link>
+        <p className="mt-6 text-candle-muted">Couldn't find that person.</p>
+      </div>
+    );
+  }
+
+  const isPartner = me.partner_id === peer.id;
+  const peerDisplay = (isPartner && me.partner_nickname) ? me.partner_nickname : peer.display_name;
+
+  return (
+    <div className="flex flex-col h-[calc(100vh-7rem)]">
+      <header className="px-4 pt-6 pb-3 flex items-center gap-3 border-b border-border bg-velvet/80 backdrop-blur sticky top-0 z-10">
+        <Link to="/app/chat" className="text-candle-muted"><ArrowLeft className="size-5" /></Link>
+        <div className="size-10 rounded-full bg-petal-soft flex items-center justify-center overflow-hidden">
+          {peer.avatar_url ? <img src={peer.avatar_url} alt="" className="size-full object-cover" /> : <span className="text-lg">🐼</span>}
+        </div>
+        <div className="flex-1 min-w-0">
+          <h1 className="font-serif italic text-lg leading-tight truncate">{peerDisplay}</h1>
+          <p className="text-[10px] text-petal flex items-center gap-1">
+            <span className={`size-1.5 rounded-full ${partnerOnline ? "bg-green-400" : "bg-candle-muted"}`} />
+            {partnerTyping ? "typing…" : partnerOnline ? "online" : "offline"}
+            {isPartner && <span className="text-candle-muted">· 💜 partner</span>}
+          </p>
+        </div>
+        <Link to="/app/call/$peerId" params={{ peerId: peer.id }} search={{ role: "caller", mode: "audio" }} className="size-10 rounded-full bg-surface border border-border flex items-center justify-center text-petal">
+          <Phone className="size-4" />
+        </Link>
+        <Link to="/app/call/$peerId" params={{ peerId: peer.id }} search={{ role: "caller", mode: "video" }} className="size-10 rounded-full bg-surface border border-border flex items-center justify-center text-petal">
+          <Video className="size-4" />
+        </Link>
+      </header>
+
+      <MoodBar me={me} partner={peer} />
+
+      {pinned.length > 0 && (
+        <div className="border-b border-border bg-surface/30">
+          <button onClick={() => setShowPinned((s) => !s)} className="w-full px-4 py-2 flex items-center gap-2 text-xs text-petal">
+            <Pin className="size-3" />
+            <span>{pinned.length} pinned</span>
+            <ChevronDown className={`size-3 ml-auto transition-transform ${showPinned ? "rotate-180" : ""}`} />
+          </button>
+          {showPinned && (
+            <div className="px-4 pb-3 space-y-1">
+              {pinned.map((p) => (
+                <div key={p.id} className="text-xs text-candle bg-surface px-3 py-2 rounded-lg border border-border truncate">
+                  {p.type === "voice" ? "🎙 Voice message" : p.type === "image" ? "📷 Photo" : p.type === "file" ? `📎 ${p.content}` : p.content}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      <div ref={scrollRef} className="flex-1 overflow-y-auto px-2 py-4">
+        {loading && <div className="text-center py-8 text-sm text-candle-muted">Loading messages…</div>}
+        {!loading && messages.length === 0 && (
+          <div className="text-center py-12 text-sm text-candle-muted">
+            <p className="font-serif italic text-lg text-candle mb-1">Say hi 🐼</p>
+            <p>Voice, photos, stickers — make it cozy.</p>
+          </div>
+        )}
+        {messages.map((m, i) => {
+          const prev = messages[i - 1];
+          const showAvatar = !prev || prev.sender_id !== m.sender_id;
+          const isLastMine = m.id === lastMineId;
+          return (
+            <ChatBubble
+              key={m.id}
+              m={m}
+              mine={m.sender_id === me.id}
+              replyTo={m.reply_to_id ? messagesById[m.reply_to_id] ?? null : null}
+              showAvatar={showAvatar}
+              isLast={isLastMine}
+              onReact={react}
+              onReply={setReplyTo}
+              onPin={togglePin}
+              onDelete={remove}
+            />
+          );
+        })}
+        {partnerTyping && (
+          <div className="px-3 mt-2 flex">
+            <div className="px-4 py-2.5 rounded-2xl rounded-bl-md bg-surface-elevated border border-border">
+              <div className="flex gap-1">
+                <span className="size-1.5 rounded-full bg-petal animate-bounce" style={{ animationDelay: "0ms" }} />
+                <span className="size-1.5 rounded-full bg-petal animate-bounce" style={{ animationDelay: "150ms" }} />
+                <span className="size-1.5 rounded-full bg-petal animate-bounce" style={{ animationDelay: "300ms" }} />
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <ChatComposer
+        meId={me.id}
+        partnerName={peerDisplay}
+        replyTo={replyTo}
+        onClearReply={() => setReplyTo(null)}
+        onTyping={sendTyping}
+        onSend={send}
+      />
+    </div>
+  );
+}
