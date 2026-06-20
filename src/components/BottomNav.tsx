@@ -1,8 +1,8 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { Home, Users, Film, Gamepad2, User } from "lucide-react";
+import { Home, MessageCircle, Film, Gamepad2, User } from "lucide-react";
 
 type Item = {
-  to: "/app" | "/app/friends" | "/app/watch" | "/app/play" | "/app/me";
+  to: "/app" | "/app/chat" | "/app/watch" | "/app/play" | "/app/me";
   label: string;
   Icon: typeof Home;
   exact?: boolean;
@@ -11,7 +11,7 @@ type Item = {
 
 const items: Item[] = [
   { to: "/app", label: "Home", Icon: Home, exact: true },
-  { to: "/app/friends", label: "Friends", Icon: Users },
+  { to: "/app/chat", label: "Chat", Icon: MessageCircle },
   { to: "/app/watch", label: "Watch", Icon: Film, primary: true },
   { to: "/app/play", label: "Play", Icon: Gamepad2 },
   { to: "/app/me", label: "Me", Icon: User },

@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
 import { Petals } from "@/components/Petals";
+import { CountdownCard } from "@/components/CountdownCard";
 
 export const Route = createFileRoute("/_authenticated/app/anniversary")({
   component: Anniversary,
@@ -113,26 +114,27 @@ function Anniversary() {
         </div>
       ) : (
         <>
-          <div
-            className="relative z-10 mb-5 p-6 rounded-3xl border overflow-hidden text-center"
+          <div className="relative z-10 mb-5">
+            <CountdownCard
+              anniversaryDate={me.anniversary_date}
+              pairedAt={me.paired_at}
+              emoji={emoji}
+              accent={accent}
+            />
+          </div>
+
+          <div className="relative z-10 mb-5 p-6 rounded-3xl border text-center"
             style={{
               borderColor: `color-mix(in oklab, ${accent} 35%, transparent)`,
-              background: `radial-gradient(120% 100% at 50% 0%, color-mix(in oklab, ${accent} 22%, transparent) 0%, transparent 70%), var(--surface)`,
-            }}
-          >
-            <div className="text-5xl mb-2">{emoji}</div>
-            <p className="text-[10px] uppercase tracking-widest" style={{ color: accent }}>
-              You and {nickname}
-            </p>
-            <p className="font-serif text-5xl italic mt-1" style={{ color: "var(--candle)" }}>
-              {daysTogether}
-            </p>
+              background: `radial-gradient(120% 100% at 50% 0%, color-mix(in oklab, ${accent} 18%, transparent) 0%, transparent 70%), var(--surface)`,
+            }}>
+            <div className="text-4xl mb-1">{emoji}</div>
+            <p className="text-[10px] uppercase tracking-widest" style={{ color: accent }}>You and {nickname}</p>
+            <p className="font-serif text-5xl italic mt-1">{daysTogether}</p>
             <p className="text-sm text-candle-muted -mt-1">days together</p>
             {anniversary && (
               <p className="text-xs text-candle-muted mt-3">
-                Next milestone in <span style={{ color: accent }}>{anniversary.daysUntilNext}</span> days
-                {" · "}
-                {anniversary.nextLabel}
+                Next milestone in <span style={{ color: accent }}>{anniversary.daysUntilNext}</span> days · {anniversary.nextLabel}
               </p>
             )}
           </div>
