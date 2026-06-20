@@ -65,5 +65,11 @@ export function useStreak(meId: string | null, partnerId: string | null) {
     };
   }, [meId, qc]);
 
-  return { ...q.data, isLoading: q.isLoading, checkIn };
+  return {
+    streak: q.data?.streak ?? 0,
+    meChecked: q.data?.meChecked ?? false,
+    partnerChecked: q.data?.partnerChecked ?? false,
+    isLoading: q.isLoading,
+    checkIn,
+  };
 }
