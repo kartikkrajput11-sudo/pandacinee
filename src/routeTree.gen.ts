@@ -22,6 +22,7 @@ import { Route as AuthenticatedAppFriendsRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAppChatRouteImport } from './routes/_authenticated/app.chat'
 import { Route as AuthenticatedAppAnniversaryRouteImport } from './routes/_authenticated/app.anniversary'
 import { Route as AuthenticatedAppGamesGameRouteImport } from './routes/_authenticated/app.games.$game'
+import { Route as AuthenticatedAppChatPeerIdRouteImport } from './routes/_authenticated/app.chat.$peerId'
 import { Route as AuthenticatedAppCallPeerIdRouteImport } from './routes/_authenticated/app.call.$peerId'
 
 const AuthRoute = AuthRouteImport.update({
@@ -90,6 +91,12 @@ const AuthenticatedAppGamesGameRoute =
     path: '/games/$game',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppChatPeerIdRoute =
+  AuthenticatedAppChatPeerIdRouteImport.update({
+    id: '/$peerId',
+    path: '/$peerId',
+    getParentRoute: () => AuthenticatedAppChatRoute,
+  } as any)
 const AuthenticatedAppCallPeerIdRoute =
   AuthenticatedAppCallPeerIdRouteImport.update({
     id: '/call/$peerId',
@@ -102,7 +109,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/app': typeof AuthenticatedAppRouteWithChildren
   '/app/anniversary': typeof AuthenticatedAppAnniversaryRoute
-  '/app/chat': typeof AuthenticatedAppChatRoute
+  '/app/chat': typeof AuthenticatedAppChatRouteWithChildren
   '/app/friends': typeof AuthenticatedAppFriendsRoute
   '/app/invite': typeof AuthenticatedAppInviteRoute
   '/app/me': typeof AuthenticatedAppMeRoute
@@ -110,13 +117,14 @@ export interface FileRoutesByFullPath {
   '/app/watch': typeof AuthenticatedAppWatchRoute
   '/app/': typeof AuthenticatedAppIndexRoute
   '/app/call/$peerId': typeof AuthenticatedAppCallPeerIdRoute
+  '/app/chat/$peerId': typeof AuthenticatedAppChatPeerIdRoute
   '/app/games/$game': typeof AuthenticatedAppGamesGameRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/app/anniversary': typeof AuthenticatedAppAnniversaryRoute
-  '/app/chat': typeof AuthenticatedAppChatRoute
+  '/app/chat': typeof AuthenticatedAppChatRouteWithChildren
   '/app/friends': typeof AuthenticatedAppFriendsRoute
   '/app/invite': typeof AuthenticatedAppInviteRoute
   '/app/me': typeof AuthenticatedAppMeRoute
@@ -124,6 +132,7 @@ export interface FileRoutesByTo {
   '/app/watch': typeof AuthenticatedAppWatchRoute
   '/app': typeof AuthenticatedAppIndexRoute
   '/app/call/$peerId': typeof AuthenticatedAppCallPeerIdRoute
+  '/app/chat/$peerId': typeof AuthenticatedAppChatPeerIdRoute
   '/app/games/$game': typeof AuthenticatedAppGamesGameRoute
 }
 export interface FileRoutesById {
@@ -133,7 +142,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/_authenticated/app': typeof AuthenticatedAppRouteWithChildren
   '/_authenticated/app/anniversary': typeof AuthenticatedAppAnniversaryRoute
-  '/_authenticated/app/chat': typeof AuthenticatedAppChatRoute
+  '/_authenticated/app/chat': typeof AuthenticatedAppChatRouteWithChildren
   '/_authenticated/app/friends': typeof AuthenticatedAppFriendsRoute
   '/_authenticated/app/invite': typeof AuthenticatedAppInviteRoute
   '/_authenticated/app/me': typeof AuthenticatedAppMeRoute
@@ -141,6 +150,7 @@ export interface FileRoutesById {
   '/_authenticated/app/watch': typeof AuthenticatedAppWatchRoute
   '/_authenticated/app/': typeof AuthenticatedAppIndexRoute
   '/_authenticated/app/call/$peerId': typeof AuthenticatedAppCallPeerIdRoute
+  '/_authenticated/app/chat/$peerId': typeof AuthenticatedAppChatPeerIdRoute
   '/_authenticated/app/games/$game': typeof AuthenticatedAppGamesGameRoute
 }
 export interface FileRouteTypes {
@@ -158,6 +168,7 @@ export interface FileRouteTypes {
     | '/app/watch'
     | '/app/'
     | '/app/call/$peerId'
+    | '/app/chat/$peerId'
     | '/app/games/$game'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -172,6 +183,7 @@ export interface FileRouteTypes {
     | '/app/watch'
     | '/app'
     | '/app/call/$peerId'
+    | '/app/chat/$peerId'
     | '/app/games/$game'
   id:
     | '__root__'
@@ -188,6 +200,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/watch'
     | '/_authenticated/app/'
     | '/_authenticated/app/call/$peerId'
+    | '/_authenticated/app/chat/$peerId'
     | '/_authenticated/app/games/$game'
   fileRoutesById: FileRoutesById
 }
@@ -290,6 +303,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppGamesGameRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/chat/$peerId': {
+      id: '/_authenticated/app/chat/$peerId'
+      path: '/$peerId'
+      fullPath: '/app/chat/$peerId'
+      preLoaderRoute: typeof AuthenticatedAppChatPeerIdRouteImport
+      parentRoute: typeof AuthenticatedAppChatRoute
+    }
     '/_authenticated/app/call/$peerId': {
       id: '/_authenticated/app/call/$peerId'
       path: '/call/$peerId'
@@ -300,9 +320,20 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedAppChatRouteChildren {
+  AuthenticatedAppChatPeerIdRoute: typeof AuthenticatedAppChatPeerIdRoute
+}
+
+const AuthenticatedAppChatRouteChildren: AuthenticatedAppChatRouteChildren = {
+  AuthenticatedAppChatPeerIdRoute: AuthenticatedAppChatPeerIdRoute,
+}
+
+const AuthenticatedAppChatRouteWithChildren =
+  AuthenticatedAppChatRoute._addFileChildren(AuthenticatedAppChatRouteChildren)
+
 interface AuthenticatedAppRouteChildren {
   AuthenticatedAppAnniversaryRoute: typeof AuthenticatedAppAnniversaryRoute
-  AuthenticatedAppChatRoute: typeof AuthenticatedAppChatRoute
+  AuthenticatedAppChatRoute: typeof AuthenticatedAppChatRouteWithChildren
   AuthenticatedAppFriendsRoute: typeof AuthenticatedAppFriendsRoute
   AuthenticatedAppInviteRoute: typeof AuthenticatedAppInviteRoute
   AuthenticatedAppMeRoute: typeof AuthenticatedAppMeRoute
@@ -315,7 +346,7 @@ interface AuthenticatedAppRouteChildren {
 
 const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppAnniversaryRoute: AuthenticatedAppAnniversaryRoute,
-  AuthenticatedAppChatRoute: AuthenticatedAppChatRoute,
+  AuthenticatedAppChatRoute: AuthenticatedAppChatRouteWithChildren,
   AuthenticatedAppFriendsRoute: AuthenticatedAppFriendsRoute,
   AuthenticatedAppInviteRoute: AuthenticatedAppInviteRoute,
   AuthenticatedAppMeRoute: AuthenticatedAppMeRoute,

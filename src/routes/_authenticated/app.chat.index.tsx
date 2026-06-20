@@ -3,7 +3,7 @@ import { ArrowLeft, MessageCircle, Heart, Users } from "lucide-react";
 import { useChatThreads } from "@/hooks/useChatThreads";
 import { useProfile } from "@/hooks/useProfile";
 
-export const Route = createFileRoute("/_authenticated/app/chat")({
+export const Route = createFileRoute("/_authenticated/app/chat/")({
   component: ChatList,
 });
 
