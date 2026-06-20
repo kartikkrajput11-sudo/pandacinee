@@ -78,5 +78,11 @@ export function useDailyQuestion(meId: string | null, partnerId: string | null) 
     };
   }, [meId, qc]);
 
-  return { ...q.data, isLoading: q.isLoading, submit };
+  return {
+    question: q.data?.question ?? null,
+    myAnswer: q.data?.myAnswer ?? null,
+    partnerAnswer: q.data?.partnerAnswer ?? null,
+    isLoading: q.isLoading,
+    submit,
+  };
 }
