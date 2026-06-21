@@ -184,6 +184,45 @@ export type Database = {
         }
         Relationships: []
       }
+      memory_jar: {
+        Row: {
+          author_id: string
+          body: string | null
+          created_at: string
+          happened_on: string | null
+          id: string
+          mood: string | null
+          partner_id: string | null
+          photo_url: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author_id: string
+          body?: string | null
+          created_at?: string
+          happened_on?: string | null
+          id?: string
+          mood?: string | null
+          partner_id?: string | null
+          photo_url?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          body?: string | null
+          created_at?: string
+          happened_on?: string | null
+          id?: string
+          mood?: string | null
+          partner_id?: string | null
+          photo_url?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           content: string
@@ -239,6 +278,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      mood_log: {
+        Row: {
+          created_at: string
+          date: string
+          emoji: string | null
+          id: string
+          label: string | null
+          score: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date?: string
+          emoji?: string | null
+          id?: string
+          label?: string | null
+          score: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          emoji?: string | null
+          id?: string
+          label?: string | null
+          score?: number
+          user_id?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
@@ -369,6 +438,51 @@ export type Database = {
           updated_at?: string
           video_title?: string | null
           video_url?: string | null
+        }
+        Relationships: []
+      }
+      wishlist_items: {
+        Row: {
+          claimed_by: string | null
+          created_at: string
+          got_it: boolean
+          id: string
+          image_url: string | null
+          note: string | null
+          owner_id: string
+          partner_id: string | null
+          priority: number
+          title: string
+          updated_at: string
+          url: string | null
+        }
+        Insert: {
+          claimed_by?: string | null
+          created_at?: string
+          got_it?: boolean
+          id?: string
+          image_url?: string | null
+          note?: string | null
+          owner_id: string
+          partner_id?: string | null
+          priority?: number
+          title: string
+          updated_at?: string
+          url?: string | null
+        }
+        Update: {
+          claimed_by?: string | null
+          created_at?: string
+          got_it?: boolean
+          id?: string
+          image_url?: string | null
+          note?: string | null
+          owner_id?: string
+          partner_id?: string | null
+          priority?: number
+          title?: string
+          updated_at?: string
+          url?: string | null
         }
         Relationships: []
       }

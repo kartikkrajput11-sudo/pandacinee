@@ -12,10 +12,23 @@ import {
   THIS_OR_THAT,
   WOULD_YOU_RATHER,
   GUESS_ME,
+  checkWinner,
+  TTTCell,
+  RPS_CHOICES,
+  RPS_EMOJI,
+  RPSChoice,
+  rpsWinner,
 } from "@/lib/games";
 
 const paramsSchema = z.object({
-  game: z.enum(["truth-or-dare", "this-or-that", "would-you-rather", "guess-me"]),
+  game: z.enum([
+    "truth-or-dare",
+    "this-or-that",
+    "would-you-rather",
+    "guess-me",
+    "tic-tac-toe",
+    "rock-paper-scissors",
+  ]),
 });
 
 export const Route = createFileRoute("/_authenticated/app/games/$game")({
@@ -126,6 +139,10 @@ function GameRoute() {
         <PairPick me={me.id} session={session} patch={patch} options={THIS_OR_THAT} />
       ) : game === "would-you-rather" ? (
         <PairPick me={me.id} session={session} patch={patch} options={WOULD_YOU_RATHER} />
+      ) : game === "tic-tac-toe" ? (
+        <TicTacToe me={me.id} session={session} patch={patch} />
+      ) : game === "rock-paper-scissors" ? (
+        <RockPaperScissors me={me.id} session={session} patch={patch} />
       ) : (
         <GuessMe me={me.id} partnerId={partner.id} session={session} patch={patch} />
       )}
@@ -137,7 +154,115 @@ function initialState(game: GameKind) {
   if (game === "truth-or-dare") return { index: 0 };
   if (game === "this-or-that" || game === "would-you-rather")
     return { index: 0, picks: {} as Record<string, 0 | 1>, score: { matches: 0, total: 0 } };
+  if (game === "tic-tac-toe")
+    return { board: Array(9).fill(null), turn: "X", wins: { X: 0, O: 0, draws: 0 } };
+  if (game === "rock-paper-scissors")
+    return { picks: {} as Record<string, RPSChoice>, round: 1, score: {} as Record<string, number> };
   return { index: 0, answer: null as string | null, answeredBy: null as string | null, guess: null as string | null, revealed: false };
+}
+
+function TicTacToe({ me, session, patch }: { me: string; session: Session; patch: (s: any) => void }) {
+  const s = session.state ?? { board: Array(9).fill(null), turn: "X", wins: { X: 0, O: 0, draws: 0 } };
+  const board: TTTCell[] = s.board;
+  const mySymbol = session.host_id === me ? "X" : "O";
+  const winner = checkWinner(board);
+  const myTurn = !winner && s.turn === mySymbol;
+
+  function play(i: number) {
+    if (!myTurn || board[i]) return;
+    const next = [...board];
+    next[i] = mySymbol;
+    const w = checkWinner(next);
+    const wins = { ...s.wins };
+    if (w === "draw") wins.draws += 1;
+    else if (w) wins[w] += 1;
+    patch({ ...s, board: next, turn: mySymbol === "X" ? "O" : "X" });
+    if (w) setTimeout(() => patch({ board: Array(9).fill(null), turn: w === "draw" ? s.turn : (w === "X" ? "O" : "X"), wins }), 1500);
+  }
+
+  return (
+    <div>
+      <p className="text-[10px] uppercase tracking-widest text-petal mb-2 text-center">
+        You are {mySymbol} · X {s.wins?.X ?? 0} – O {s.wins?.O ?? 0} · draws {s.wins?.draws ?? 0}
+      </p>
+      <div className="grid grid-cols-3 gap-2 mb-5 mx-auto max-w-[300px]">
+        {board.map((c, i) => (
+          <button
+            key={i}
+            onClick={() => play(i)}
+            disabled={!myTurn || !!c || !!winner}
+            className="aspect-square rounded-2xl bg-surface border border-border text-4xl font-serif italic disabled:opacity-70"
+          >
+            {c}
+          </button>
+        ))}
+      </div>
+      <p className="text-center text-sm text-candle-muted">
+        {winner === "draw" ? "Draw 🤝 — new round…" :
+          winner ? `${winner} wins 🎉 — new round…` :
+          myTurn ? "Your move" : "Waiting on your panda…"}
+      </p>
+    </div>
+  );
+}
+
+function RockPaperScissors({ me, session, patch }: { me: string; session: Session; patch: (s: any) => void }) {
+  const s = session.state ?? { picks: {}, round: 1, score: {} };
+  const otherId = session.host_id === me ? session.partner_id : session.host_id;
+  const myPick = s.picks?.[me] as RPSChoice | undefined;
+  const theirPick = s.picks?.[otherId] as RPSChoice | undefined;
+  const both = myPick && theirPick;
+  const myScore = s.score?.[me] ?? 0;
+  const theirScore = s.score?.[otherId] ?? 0;
+
+  function pick(c: RPSChoice) {
+    if (myPick) return;
+    patch({ ...s, picks: { ...s.picks, [me]: c } });
+  }
+  function next() {
+    if (!both) return;
+    const w = rpsWinner(myPick!, theirPick!);
+    const score = { ...(s.score ?? {}) };
+    if (w === 0) score[me] = (score[me] ?? 0) + 1;
+    else if (w === 1) score[otherId] = (score[otherId] ?? 0) + 1;
+    patch({ picks: {}, round: (s.round ?? 1) + 1, score });
+  }
+  const result = both ? rpsWinner(myPick!, theirPick!) : null;
+
+  return (
+    <div>
+      <p className="text-[10px] uppercase tracking-widest text-petal mb-2 text-center">
+        Round {s.round ?? 1} · You {myScore} – {theirScore} Them
+      </p>
+      <div className="grid grid-cols-3 gap-3 mb-5">
+        {RPS_CHOICES.map((c) => (
+          <button
+            key={c}
+            onClick={() => pick(c)}
+            disabled={!!myPick}
+            className={`aspect-square rounded-3xl border text-5xl flex items-center justify-center transition-all ${
+              myPick === c ? "border-petal bg-petal-soft" : "border-border bg-surface"
+            } ${myPick && myPick !== c ? "opacity-40" : ""}`}
+          >
+            {RPS_EMOJI[c]}
+          </button>
+        ))}
+      </div>
+      {both ? (
+        <div className="p-4 rounded-2xl border border-petal bg-petal-soft text-center mb-4">
+          <p className="font-serif italic text-xl">
+            {result === -1 ? "Tie 🤝" : result === 0 ? "You won 🎉" : "They won 🌸"}
+          </p>
+          <p className="text-xs text-candle-muted mt-1">{RPS_EMOJI[myPick!]} vs {RPS_EMOJI[theirPick!]}</p>
+          <button onClick={next} className="mt-3 px-5 py-2 bg-petal text-velvet rounded-full font-semibold">Next round</button>
+        </div>
+      ) : myPick ? (
+        <p className="text-sm text-candle-muted text-center">Locked in. Waiting on your panda…</p>
+      ) : (
+        <p className="text-sm text-candle-muted text-center">Pick your weapon.</p>
+      )}
+    </div>
+  );
 }
 
 function TruthOrDare({ me, session, patch }: { me: string; session: Session; patch: (s: any) => void }) {

@@ -4,7 +4,7 @@ import { Petals } from "@/components/Petals";
 import { CountdownCard } from "@/components/CountdownCard";
 import { StreakBadge } from "@/components/StreakBadge";
 import { DailyQuestionCard } from "@/components/DailyQuestionCard";
-import { Sparkles, Heart, Calendar, ArrowRight, Film, MessageCircle, Users } from "lucide-react";
+import { Sparkles, Heart, Calendar, ArrowRight, Film, MessageCircle, Users, Gift, BookHeart, LineChart } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/app/")({
   component: Home,
@@ -116,6 +116,22 @@ function Home() {
           <Sparkles className="size-5 text-petal mb-2" />
           <p className="text-[10px] uppercase tracking-widest text-candle-muted">Together</p>
           <p className="font-serif italic text-lg mt-0.5">Play games</p>
+        </Link>
+      </div>
+
+      {/* Couple tools */}
+      <div className="relative z-10 grid grid-cols-3 gap-2 mb-4">
+        <Link to="/app/memories" className="p-3 bg-surface rounded-2xl border border-border flex flex-col items-center text-center gap-1 hover:border-petal/40 transition-colors">
+          <BookHeart className="size-5 text-petal" />
+          <span className="text-[10px] font-semibold text-candle">Memories</span>
+        </Link>
+        <Link to="/app/wishlist" className="p-3 bg-surface rounded-2xl border border-border flex flex-col items-center text-center gap-1 hover:border-petal/40 transition-colors">
+          <Gift className="size-5 text-petal" />
+          <span className="text-[10px] font-semibold text-candle">Wishlist</span>
+        </Link>
+        <Link to="/app/mood" className="p-3 bg-surface rounded-2xl border border-border flex flex-col items-center text-center gap-1 hover:border-petal/40 transition-colors">
+          <LineChart className="size-5 text-petal" />
+          <span className="text-[10px] font-semibold text-candle">Mood</span>
         </Link>
       </div>
 

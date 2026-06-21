@@ -1,6 +1,23 @@
-export type GameKind = "truth-or-dare" | "this-or-that" | "would-you-rather" | "guess-me";
+export type GameKind =
+  | "truth-or-dare"
+  | "this-or-that"
+  | "would-you-rather"
+  | "guess-me"
+  | "tic-tac-toe"
+  | "rock-paper-scissors";
+
+export const GAME_KINDS: GameKind[] = [
+  "tic-tac-toe",
+  "rock-paper-scissors",
+  "truth-or-dare",
+  "this-or-that",
+  "would-you-rather",
+  "guess-me",
+];
 
 export const GAMES: Record<GameKind, { name: string; emoji: string; body: string }> = {
+  "tic-tac-toe": { name: "Tic Tac Toe", emoji: "❌⭕", body: "Live 3-in-a-row." },
+  "rock-paper-scissors": { name: "Rock · Paper · Scissors", emoji: "✊✋✌️", body: "Best of 5, live." },
   "truth-or-dare": { name: "Truth or Dare", emoji: "🎯", body: "Romantic, funny, or deep." },
   "this-or-that": { name: "This or That", emoji: "⚖️", body: "Quick taste comparisons." },
   "would-you-rather": { name: "Would You Rather", emoji: "💭", body: "Tough little dilemmas." },
@@ -21,16 +38,9 @@ export const TRUTH_OR_DARE: { type: "truth" | "dare"; text: string }[] = [
 ];
 
 export const THIS_OR_THAT: [string, string][] = [
-  ["Beach", "Mountains"],
-  ["Coffee", "Tea"],
-  ["Morning", "Night"],
-  ["Sweet", "Salty"],
-  ["Cats", "Dogs"],
-  ["City", "Countryside"],
-  ["Movies", "Shows"],
-  ["Sunrise", "Sunset"],
-  ["Pizza", "Pasta"],
-  ["Cozy in", "Night out"],
+  ["Beach", "Mountains"], ["Coffee", "Tea"], ["Morning", "Night"], ["Sweet", "Salty"],
+  ["Cats", "Dogs"], ["City", "Countryside"], ["Movies", "Shows"], ["Sunrise", "Sunset"],
+  ["Pizza", "Pasta"], ["Cozy in", "Night out"],
 ];
 
 export const WOULD_YOU_RATHER: [string, string][] = [
@@ -45,11 +55,27 @@ export const WOULD_YOU_RATHER: [string, string][] = [
 ];
 
 export const GUESS_ME: string[] = [
-  "My favorite comfort food",
-  "The song I secretly love",
-  "My biggest fear",
-  "My happiest childhood memory",
-  "What I'd do with a free weekend alone",
-  "My dream job as a kid",
-  "The compliment that means most to me",
+  "My favorite comfort food", "The song I secretly love", "My biggest fear",
+  "My happiest childhood memory", "What I'd do with a free weekend alone",
+  "My dream job as a kid", "The compliment that means most to me",
 ];
+
+// Tic-tac-toe helpers
+export type TTTCell = "X" | "O" | null;
+export function checkWinner(board: TTTCell[]): "X" | "O" | "draw" | null {
+  const lines = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+  for (const [a,b,c] of lines) {
+    if (board[a] && board[a] === board[b] && board[a] === board[c]) return board[a] as "X" | "O";
+  }
+  if (board.every((c) => c)) return "draw";
+  return null;
+}
+
+export const RPS_CHOICES = ["rock", "paper", "scissors"] as const;
+export type RPSChoice = (typeof RPS_CHOICES)[number];
+export const RPS_EMOJI: Record<RPSChoice, string> = { rock: "✊", paper: "✋", scissors: "✌️" };
+export function rpsWinner(a: RPSChoice, b: RPSChoice): 0 | 1 | -1 {
+  if (a === b) return -1;
+  if ((a === "rock" && b === "scissors") || (a === "paper" && b === "rock") || (a === "scissors" && b === "paper")) return 0;
+  return 1;
+}
