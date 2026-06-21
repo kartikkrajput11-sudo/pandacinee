@@ -14,8 +14,11 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
 import { Route as AuthenticatedAppIndexRouteImport } from './routes/_authenticated/app.index'
+import { Route as AuthenticatedAppWishlistRouteImport } from './routes/_authenticated/app.wishlist'
 import { Route as AuthenticatedAppWatchRouteImport } from './routes/_authenticated/app.watch'
 import { Route as AuthenticatedAppPlayRouteImport } from './routes/_authenticated/app.play'
+import { Route as AuthenticatedAppMoodRouteImport } from './routes/_authenticated/app.mood'
+import { Route as AuthenticatedAppMemoriesRouteImport } from './routes/_authenticated/app.memories'
 import { Route as AuthenticatedAppMeRouteImport } from './routes/_authenticated/app.me'
 import { Route as AuthenticatedAppInviteRouteImport } from './routes/_authenticated/app.invite'
 import { Route as AuthenticatedAppFriendsRouteImport } from './routes/_authenticated/app.friends'
@@ -49,6 +52,12 @@ const AuthenticatedAppIndexRoute = AuthenticatedAppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
+const AuthenticatedAppWishlistRoute =
+  AuthenticatedAppWishlistRouteImport.update({
+    id: '/wishlist',
+    path: '/wishlist',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppWatchRoute = AuthenticatedAppWatchRouteImport.update({
   id: '/watch',
   path: '/watch',
@@ -59,6 +68,17 @@ const AuthenticatedAppPlayRoute = AuthenticatedAppPlayRouteImport.update({
   path: '/play',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
+const AuthenticatedAppMoodRoute = AuthenticatedAppMoodRouteImport.update({
+  id: '/mood',
+  path: '/mood',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
+const AuthenticatedAppMemoriesRoute =
+  AuthenticatedAppMemoriesRouteImport.update({
+    id: '/memories',
+    path: '/memories',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppMeRoute = AuthenticatedAppMeRouteImport.update({
   id: '/me',
   path: '/me',
@@ -113,8 +133,11 @@ export interface FileRoutesByFullPath {
   '/app/friends': typeof AuthenticatedAppFriendsRoute
   '/app/invite': typeof AuthenticatedAppInviteRoute
   '/app/me': typeof AuthenticatedAppMeRoute
+  '/app/memories': typeof AuthenticatedAppMemoriesRoute
+  '/app/mood': typeof AuthenticatedAppMoodRoute
   '/app/play': typeof AuthenticatedAppPlayRoute
   '/app/watch': typeof AuthenticatedAppWatchRoute
+  '/app/wishlist': typeof AuthenticatedAppWishlistRoute
   '/app/': typeof AuthenticatedAppIndexRoute
   '/app/call/$peerId': typeof AuthenticatedAppCallPeerIdRoute
   '/app/chat/$peerId': typeof AuthenticatedAppChatPeerIdRoute
@@ -128,8 +151,11 @@ export interface FileRoutesByTo {
   '/app/friends': typeof AuthenticatedAppFriendsRoute
   '/app/invite': typeof AuthenticatedAppInviteRoute
   '/app/me': typeof AuthenticatedAppMeRoute
+  '/app/memories': typeof AuthenticatedAppMemoriesRoute
+  '/app/mood': typeof AuthenticatedAppMoodRoute
   '/app/play': typeof AuthenticatedAppPlayRoute
   '/app/watch': typeof AuthenticatedAppWatchRoute
+  '/app/wishlist': typeof AuthenticatedAppWishlistRoute
   '/app': typeof AuthenticatedAppIndexRoute
   '/app/call/$peerId': typeof AuthenticatedAppCallPeerIdRoute
   '/app/chat/$peerId': typeof AuthenticatedAppChatPeerIdRoute
@@ -146,8 +172,11 @@ export interface FileRoutesById {
   '/_authenticated/app/friends': typeof AuthenticatedAppFriendsRoute
   '/_authenticated/app/invite': typeof AuthenticatedAppInviteRoute
   '/_authenticated/app/me': typeof AuthenticatedAppMeRoute
+  '/_authenticated/app/memories': typeof AuthenticatedAppMemoriesRoute
+  '/_authenticated/app/mood': typeof AuthenticatedAppMoodRoute
   '/_authenticated/app/play': typeof AuthenticatedAppPlayRoute
   '/_authenticated/app/watch': typeof AuthenticatedAppWatchRoute
+  '/_authenticated/app/wishlist': typeof AuthenticatedAppWishlistRoute
   '/_authenticated/app/': typeof AuthenticatedAppIndexRoute
   '/_authenticated/app/call/$peerId': typeof AuthenticatedAppCallPeerIdRoute
   '/_authenticated/app/chat/$peerId': typeof AuthenticatedAppChatPeerIdRoute
@@ -164,8 +193,11 @@ export interface FileRouteTypes {
     | '/app/friends'
     | '/app/invite'
     | '/app/me'
+    | '/app/memories'
+    | '/app/mood'
     | '/app/play'
     | '/app/watch'
+    | '/app/wishlist'
     | '/app/'
     | '/app/call/$peerId'
     | '/app/chat/$peerId'
@@ -179,8 +211,11 @@ export interface FileRouteTypes {
     | '/app/friends'
     | '/app/invite'
     | '/app/me'
+    | '/app/memories'
+    | '/app/mood'
     | '/app/play'
     | '/app/watch'
+    | '/app/wishlist'
     | '/app'
     | '/app/call/$peerId'
     | '/app/chat/$peerId'
@@ -196,8 +231,11 @@ export interface FileRouteTypes {
     | '/_authenticated/app/friends'
     | '/_authenticated/app/invite'
     | '/_authenticated/app/me'
+    | '/_authenticated/app/memories'
+    | '/_authenticated/app/mood'
     | '/_authenticated/app/play'
     | '/_authenticated/app/watch'
+    | '/_authenticated/app/wishlist'
     | '/_authenticated/app/'
     | '/_authenticated/app/call/$peerId'
     | '/_authenticated/app/chat/$peerId'
@@ -248,6 +286,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppIndexRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/wishlist': {
+      id: '/_authenticated/app/wishlist'
+      path: '/wishlist'
+      fullPath: '/app/wishlist'
+      preLoaderRoute: typeof AuthenticatedAppWishlistRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/watch': {
       id: '/_authenticated/app/watch'
       path: '/watch'
@@ -260,6 +305,20 @@ declare module '@tanstack/react-router' {
       path: '/play'
       fullPath: '/app/play'
       preLoaderRoute: typeof AuthenticatedAppPlayRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/mood': {
+      id: '/_authenticated/app/mood'
+      path: '/mood'
+      fullPath: '/app/mood'
+      preLoaderRoute: typeof AuthenticatedAppMoodRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/memories': {
+      id: '/_authenticated/app/memories'
+      path: '/memories'
+      fullPath: '/app/memories'
+      preLoaderRoute: typeof AuthenticatedAppMemoriesRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/me': {
@@ -326,8 +385,11 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppFriendsRoute: typeof AuthenticatedAppFriendsRoute
   AuthenticatedAppInviteRoute: typeof AuthenticatedAppInviteRoute
   AuthenticatedAppMeRoute: typeof AuthenticatedAppMeRoute
+  AuthenticatedAppMemoriesRoute: typeof AuthenticatedAppMemoriesRoute
+  AuthenticatedAppMoodRoute: typeof AuthenticatedAppMoodRoute
   AuthenticatedAppPlayRoute: typeof AuthenticatedAppPlayRoute
   AuthenticatedAppWatchRoute: typeof AuthenticatedAppWatchRoute
+  AuthenticatedAppWishlistRoute: typeof AuthenticatedAppWishlistRoute
   AuthenticatedAppIndexRoute: typeof AuthenticatedAppIndexRoute
   AuthenticatedAppCallPeerIdRoute: typeof AuthenticatedAppCallPeerIdRoute
   AuthenticatedAppChatPeerIdRoute: typeof AuthenticatedAppChatPeerIdRoute
@@ -340,8 +402,11 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppFriendsRoute: AuthenticatedAppFriendsRoute,
   AuthenticatedAppInviteRoute: AuthenticatedAppInviteRoute,
   AuthenticatedAppMeRoute: AuthenticatedAppMeRoute,
+  AuthenticatedAppMemoriesRoute: AuthenticatedAppMemoriesRoute,
+  AuthenticatedAppMoodRoute: AuthenticatedAppMoodRoute,
   AuthenticatedAppPlayRoute: AuthenticatedAppPlayRoute,
   AuthenticatedAppWatchRoute: AuthenticatedAppWatchRoute,
+  AuthenticatedAppWishlistRoute: AuthenticatedAppWishlistRoute,
   AuthenticatedAppIndexRoute: AuthenticatedAppIndexRoute,
   AuthenticatedAppCallPeerIdRoute: AuthenticatedAppCallPeerIdRoute,
   AuthenticatedAppChatPeerIdRoute: AuthenticatedAppChatPeerIdRoute,
