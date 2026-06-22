@@ -1,0 +1,162 @@
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { ArrowLeft, Send, Film, Play } from "lucide-react";
+import { toast } from "sonner";
+import { tmdbMovie } from "@/lib/tmdb.functions";
+import { poster } from "./app.movies";
+import { useProfile } from "@/hooks/useProfile";
+import { supabase } from "@/integrations/supabase/client";
+
+export const Route = createFileRoute("/_authenticated/app/movies/$id")({
+  component: MovieDetail,
+});
+
+function MovieDetail() {
+  const { id } = Route.useParams();
+  const fetchMovie = useServerFn(tmdbMovie);
+  const { data: prof } = useProfile();
+  const me = prof?.profile;
+  const partner = prof?.partner;
+  const [movie, setMovie] = useState<any>(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    fetchMovie({ data: { id: Number(id) } }).then(setMovie).catch(() => setMovie(null));
+  }, [id]);
+
+  const trailer = movie?.videos?.results?.find((v: any) => v.site === "YouTube" && v.type === "Trailer") ?? movie?.videos?.results?.[0];
+  const director = movie?.credits?.crew?.find((c: any) => c.job === "Director")?.name;
+  const cast = (movie?.credits?.cast ?? []).slice(0, 8);
+
+  async function sendToPartner() {
+    if (!me || !partner || !movie) return;
+    const content = `🎬 ${movie.title}${movie.release_date ? ` (${movie.release_date.slice(0, 4)})` : ""}\n★ ${movie.vote_average?.toFixed(1)} · ${movie.runtime ?? "?"} min\n${movie.overview ?? ""}\n\nhttps://www.themoviedb.org/movie/${movie.id}`;
+    const { error } = await supabase.from("messages").insert({
+      sender_id: me.id, receiver_id: partner.id, content, type: "text",
+    });
+    if (error) toast.error(error.message);
+    else {
+      toast.success("Sent to " + partner.display_name);
+      navigate({ to: "/app/chat/$peerId", params: { peerId: partner.id } });
+    }
+  }
+
+  function watchTogether() {
+    if (!movie) return;
+    navigate({ to: "/app/watch", search: { title: movie.title } as any });
+  }
+
+  if (!movie) {
+    return (
+      <div className="pt-10 px-5">
+        <header className="flex items-center gap-3 mb-5">
+          <Link to="/app/movies" search={{ q: "" }} className="text-candle-muted"><ArrowLeft className="size-5" /></Link>
+        </header>
+        <div className="aspect-[2/3] rounded-2xl bg-velvet animate-pulse" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="pb-24">
+      <div className="relative h-56">
+        {movie.backdrop_path && (
+          <img src={poster(movie.backdrop_path, "w500")!} alt="" className="absolute inset-0 w-full h-full object-cover" />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-b from-velvet/40 via-velvet/60 to-background" />
+        <Link to="/app/movies" search={{ q: "" }} className="absolute top-10 left-5 size-9 rounded-full bg-velvet/70 backdrop-blur flex items-center justify-center">
+          <ArrowLeft className="size-4 text-candle" />
+        </Link>
+      </div>
+
+      <div className="px-5 -mt-20 relative">
+        <div className="flex gap-4">
+          <div className="w-28 shrink-0 aspect-[2/3] rounded-2xl overflow-hidden border border-border bg-velvet">
+            {movie.poster_path && <img src={poster(movie.poster_path, "w342")!} alt={movie.title} className="w-full h-full object-cover" />}
+          </div>
+          <div className="flex-1 pt-12">
+            <h1 className="font-serif italic text-2xl leading-tight">{movie.title}</h1>
+            <p className="text-xs text-candle-muted mt-1">
+              {movie.release_date?.slice(0, 4)} · {movie.runtime ?? "?"} min · ★ {movie.vote_average?.toFixed(1)}
+            </p>
+            {movie.genres?.length > 0 && (
+              <div className="flex flex-wrap gap-1 mt-2">
+                {movie.genres.slice(0, 3).map((g: any) => (
+                  <span key={g.id} className="text-[10px] px-2 py-0.5 rounded-full bg-petal-soft text-petal">{g.name}</span>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {movie.overview && (
+          <p className="mt-5 text-sm text-candle leading-relaxed">{movie.overview}</p>
+        )}
+
+        {director && <p className="mt-3 text-xs text-candle-muted">Directed by <span className="text-candle">{director}</span></p>}
+
+        <div className="mt-5 grid grid-cols-2 gap-3">
+          {partner ? (
+            <button onClick={sendToPartner} className="flex items-center justify-center gap-2 h-11 rounded-full bg-petal text-velvet font-semibold text-sm">
+              <Send className="size-4" /> Send to {partner.display_name.split(" ")[0]}
+            </button>
+          ) : (
+            <Link to="/app/invite" className="flex items-center justify-center gap-2 h-11 rounded-full bg-petal text-velvet font-semibold text-sm">
+              <Send className="size-4" /> Invite to share
+            </Link>
+          )}
+          <button onClick={watchTogether} className="flex items-center justify-center gap-2 h-11 rounded-full bg-surface border border-border text-candle text-sm">
+            <Film className="size-4" /> Watch together
+          </button>
+        </div>
+
+        {trailer && (
+          <a
+            href={`https://www.youtube.com/watch?v=${trailer.key}`}
+            target="_blank" rel="noreferrer"
+            className="mt-3 flex items-center justify-center gap-2 h-11 rounded-full bg-surface border border-border text-candle text-sm"
+          >
+            <Play className="size-4 text-petal" /> Watch trailer
+          </a>
+        )}
+
+        {cast.length > 0 && (
+          <div className="mt-6">
+            <p className="text-[10px] uppercase tracking-widest text-candle-muted mb-2">Cast</p>
+            <div className="flex gap-3 overflow-x-auto -mx-5 px-5 pb-2">
+              {cast.map((c: any) => (
+                <div key={c.id} className="w-16 shrink-0 text-center">
+                  <div className="size-16 rounded-full overflow-hidden bg-velvet mx-auto">
+                    {c.profile_path && <img src={poster(c.profile_path, "w185")!} alt={c.name} className="w-full h-full object-cover" />}
+                  </div>
+                  <p className="text-[10px] text-candle mt-1 truncate">{c.name}</p>
+                  <p className="text-[9px] text-candle-muted truncate">{c.character}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {movie.similar?.results?.length > 0 && (
+          <div className="mt-6">
+            <p className="text-[10px] uppercase tracking-widest text-candle-muted mb-2">More like this</p>
+            <div className="flex gap-3 overflow-x-auto -mx-5 px-5 pb-2">
+              {movie.similar.results.slice(0, 10).map((s: any) => (
+                <Link
+                  key={s.id} to="/app/movies/$id" params={{ id: String(s.id) }}
+                  className="w-24 shrink-0"
+                >
+                  <div className="aspect-[2/3] rounded-xl overflow-hidden bg-velvet">
+                    {s.poster_path && <img src={poster(s.poster_path, "w185")!} alt={s.title} className="w-full h-full object-cover" />}
+                  </div>
+                  <p className="text-[10px] text-candle truncate mt-1">{s.title}</p>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

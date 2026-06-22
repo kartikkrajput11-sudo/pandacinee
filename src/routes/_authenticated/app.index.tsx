@@ -4,7 +4,7 @@ import { Petals } from "@/components/Petals";
 import { CountdownCard } from "@/components/CountdownCard";
 import { StreakBadge } from "@/components/StreakBadge";
 import { DailyQuestionCard } from "@/components/DailyQuestionCard";
-import { Sparkles, Heart, Calendar, ArrowRight, Film, MessageCircle, Users, Gift, BookHeart, LineChart } from "lucide-react";
+import { Sparkles, Heart, Calendar, ArrowRight, Film, MessageCircle, Users, Gift, BookHeart, LineChart, Clapperboard } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/app/")({
   component: Home,
@@ -120,7 +120,11 @@ function Home() {
       </div>
 
       {/* Couple tools */}
-      <div className="relative z-10 grid grid-cols-3 gap-2 mb-4">
+      <div className="relative z-10 grid grid-cols-4 gap-2 mb-4">
+        <Link to="/app/movies" search={{ q: "" }} className="p-3 bg-surface rounded-2xl border border-border flex flex-col items-center text-center gap-1 hover:border-petal/40 transition-colors">
+          <Clapperboard className="size-5 text-petal" />
+          <span className="text-[10px] font-semibold text-candle">Movies</span>
+        </Link>
         <Link to="/app/memories" className="p-3 bg-surface rounded-2xl border border-border flex flex-col items-center text-center gap-1 hover:border-petal/40 transition-colors">
           <BookHeart className="size-5 text-petal" />
           <span className="text-[10px] font-semibold text-candle">Memories</span>
