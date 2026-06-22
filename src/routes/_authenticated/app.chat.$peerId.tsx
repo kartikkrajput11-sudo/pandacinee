@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, Phone, Video, Pin, ChevronDown } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,6 +7,7 @@ import { useProfile, type Profile } from "@/hooks/useProfile";
 import { useChat } from "@/hooks/useChat";
 import { ChatBubble } from "@/components/chat/ChatBubble";
 import { ChatComposer } from "@/components/chat/ChatComposer";
+import { ChatSearch } from "@/components/chat/ChatSearch";
 import { MoodBar } from "@/components/chat/MoodBar";
 import type { MessageRow } from "@/lib/chat";
 
@@ -37,7 +38,9 @@ function ChatPeer() {
     useChat(me?.id ?? null, peer?.id ?? null);
   const [replyTo, setReplyTo] = useState<MessageRow | null>(null);
   const [showPinned, setShowPinned] = useState(false);
+  const [highlightId, setHighlightId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const bubbleRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   const messagesById = useMemo(() => {
     const map: Record<string, MessageRow> = {};
@@ -50,6 +53,14 @@ function ChatPeer() {
     for (let i = messages.length - 1; i >= 0; i--) if (messages[i].sender_id === me?.id) return messages[i].id;
     return null;
   }, [messages, me?.id]);
+
+  const jumpTo = useCallback((id: string) => {
+    const el = bubbleRefs.current[id];
+    if (!el) return;
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    setHighlightId(id);
+    setTimeout(() => setHighlightId((cur) => (cur === id ? null : cur)), 1800);
+  }, []);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
