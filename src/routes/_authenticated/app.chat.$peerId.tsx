@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, Phone, Video, Pin, ChevronDown } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,6 +7,7 @@ import { useProfile, type Profile } from "@/hooks/useProfile";
 import { useChat } from "@/hooks/useChat";
 import { ChatBubble } from "@/components/chat/ChatBubble";
 import { ChatComposer } from "@/components/chat/ChatComposer";
+import { ChatSearch } from "@/components/chat/ChatSearch";
 import { MoodBar } from "@/components/chat/MoodBar";
 import type { MessageRow } from "@/lib/chat";
 
@@ -37,7 +38,9 @@ function ChatPeer() {
     useChat(me?.id ?? null, peer?.id ?? null);
   const [replyTo, setReplyTo] = useState<MessageRow | null>(null);
   const [showPinned, setShowPinned] = useState(false);
+  const [highlightId, setHighlightId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const bubbleRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   const messagesById = useMemo(() => {
     const map: Record<string, MessageRow> = {};
@@ -50,6 +53,14 @@ function ChatPeer() {
     for (let i = messages.length - 1; i >= 0; i--) if (messages[i].sender_id === me?.id) return messages[i].id;
     return null;
   }, [messages, me?.id]);
+
+  const jumpTo = useCallback((id: string) => {
+    const el = bubbleRefs.current[id];
+    if (!el) return;
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    setHighlightId(id);
+    setTimeout(() => setHighlightId((cur) => (cur === id ? null : cur)), 1800);
+  }, []);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -73,7 +84,7 @@ function ChatPeer() {
 
   return (
     <div className="flex flex-col h-[calc(100vh-7rem)]">
-      <header className="px-4 pt-6 pb-3 flex items-center gap-3 border-b border-border bg-velvet/80 backdrop-blur sticky top-0 z-10">
+      <header className="relative px-4 pt-6 pb-3 flex items-center gap-2 border-b border-border bg-velvet/80 backdrop-blur sticky top-0 z-10">
         <Link to="/app/chat" className="text-candle-muted"><ArrowLeft className="size-5" /></Link>
         <div className="size-10 rounded-full bg-petal-soft flex items-center justify-center overflow-hidden">
           {peer.avatar_url ? <img src={peer.avatar_url} alt="" className="size-full object-cover" /> : <span className="text-lg">🐼</span>}
@@ -86,6 +97,7 @@ function ChatPeer() {
             {isPartner && <span className="text-candle-muted">· 💜 partner</span>}
           </p>
         </div>
+        <ChatSearch messages={messages} onJump={jumpTo} />
         <Link to="/app/call/$peerId" params={{ peerId: peer.id }} search={{ role: "caller", mode: "audio" }} className="size-10 rounded-full bg-surface border border-border flex items-center justify-center text-petal">
           <Phone className="size-4" />
         </Link>
@@ -128,18 +140,23 @@ function ChatPeer() {
           const showAvatar = !prev || prev.sender_id !== m.sender_id;
           const isLastMine = m.id === lastMineId;
           return (
-            <ChatBubble
+            <div
               key={m.id}
-              m={m}
-              mine={m.sender_id === me.id}
-              replyTo={m.reply_to_id ? messagesById[m.reply_to_id] ?? null : null}
-              showAvatar={showAvatar}
-              isLast={isLastMine}
-              onReact={react}
-              onReply={setReplyTo}
-              onPin={togglePin}
-              onDelete={remove}
-            />
+              ref={(el) => { bubbleRefs.current[m.id] = el; }}
+              className={`transition-colors rounded-2xl ${highlightId === m.id ? "bg-petal/15 ring-1 ring-petal/40" : ""}`}
+            >
+              <ChatBubble
+                m={m}
+                mine={m.sender_id === me.id}
+                replyTo={m.reply_to_id ? messagesById[m.reply_to_id] ?? null : null}
+                showAvatar={showAvatar}
+                isLast={isLastMine}
+                onReact={react}
+                onReply={setReplyTo}
+                onPin={togglePin}
+                onDelete={remove}
+              />
+            </div>
           );
         })}
         {partnerTyping && (
