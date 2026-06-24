@@ -30,6 +30,7 @@ import { Route as AuthenticatedAppMoviesIdRouteImport } from './routes/_authenti
 import { Route as AuthenticatedAppGamesGameRouteImport } from './routes/_authenticated/app.games.$game'
 import { Route as AuthenticatedAppChatPeerIdRouteImport } from './routes/_authenticated/app.chat.$peerId'
 import { Route as AuthenticatedAppCallPeerIdRouteImport } from './routes/_authenticated/app.call.$peerId'
+import { Route as AuthenticatedAppMoviesIdWatchRouteImport } from './routes/_authenticated/app.movies.$id.watch'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -144,6 +145,12 @@ const AuthenticatedAppCallPeerIdRoute =
     path: '/call/$peerId',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppMoviesIdWatchRoute =
+  AuthenticatedAppMoviesIdWatchRouteImport.update({
+    id: '/watch',
+    path: '/watch',
+    getParentRoute: () => AuthenticatedAppMoviesIdRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -163,9 +170,10 @@ export interface FileRoutesByFullPath {
   '/app/call/$peerId': typeof AuthenticatedAppCallPeerIdRoute
   '/app/chat/$peerId': typeof AuthenticatedAppChatPeerIdRoute
   '/app/games/$game': typeof AuthenticatedAppGamesGameRoute
-  '/app/movies/$id': typeof AuthenticatedAppMoviesIdRoute
+  '/app/movies/$id': typeof AuthenticatedAppMoviesIdRouteWithChildren
   '/app/chat/': typeof AuthenticatedAppChatIndexRoute
   '/app/movies/': typeof AuthenticatedAppMoviesIndexRoute
+  '/app/movies/$id/watch': typeof AuthenticatedAppMoviesIdWatchRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -183,9 +191,10 @@ export interface FileRoutesByTo {
   '/app/call/$peerId': typeof AuthenticatedAppCallPeerIdRoute
   '/app/chat/$peerId': typeof AuthenticatedAppChatPeerIdRoute
   '/app/games/$game': typeof AuthenticatedAppGamesGameRoute
-  '/app/movies/$id': typeof AuthenticatedAppMoviesIdRoute
+  '/app/movies/$id': typeof AuthenticatedAppMoviesIdRouteWithChildren
   '/app/chat': typeof AuthenticatedAppChatIndexRoute
   '/app/movies': typeof AuthenticatedAppMoviesIndexRoute
+  '/app/movies/$id/watch': typeof AuthenticatedAppMoviesIdWatchRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -207,9 +216,10 @@ export interface FileRoutesById {
   '/_authenticated/app/call/$peerId': typeof AuthenticatedAppCallPeerIdRoute
   '/_authenticated/app/chat/$peerId': typeof AuthenticatedAppChatPeerIdRoute
   '/_authenticated/app/games/$game': typeof AuthenticatedAppGamesGameRoute
-  '/_authenticated/app/movies/$id': typeof AuthenticatedAppMoviesIdRoute
+  '/_authenticated/app/movies/$id': typeof AuthenticatedAppMoviesIdRouteWithChildren
   '/_authenticated/app/chat/': typeof AuthenticatedAppChatIndexRoute
   '/_authenticated/app/movies/': typeof AuthenticatedAppMoviesIndexRoute
+  '/_authenticated/app/movies/$id/watch': typeof AuthenticatedAppMoviesIdWatchRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -234,6 +244,7 @@ export interface FileRouteTypes {
     | '/app/movies/$id'
     | '/app/chat/'
     | '/app/movies/'
+    | '/app/movies/$id/watch'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -254,6 +265,7 @@ export interface FileRouteTypes {
     | '/app/movies/$id'
     | '/app/chat'
     | '/app/movies'
+    | '/app/movies/$id/watch'
   id:
     | '__root__'
     | '/'
@@ -277,6 +289,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/movies/$id'
     | '/_authenticated/app/chat/'
     | '/_authenticated/app/movies/'
+    | '/_authenticated/app/movies/$id/watch'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -434,17 +447,38 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppCallPeerIdRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/movies/$id/watch': {
+      id: '/_authenticated/app/movies/$id/watch'
+      path: '/watch'
+      fullPath: '/app/movies/$id/watch'
+      preLoaderRoute: typeof AuthenticatedAppMoviesIdWatchRouteImport
+      parentRoute: typeof AuthenticatedAppMoviesIdRoute
+    }
   }
 }
 
+interface AuthenticatedAppMoviesIdRouteChildren {
+  AuthenticatedAppMoviesIdWatchRoute: typeof AuthenticatedAppMoviesIdWatchRoute
+}
+
+const AuthenticatedAppMoviesIdRouteChildren: AuthenticatedAppMoviesIdRouteChildren =
+  {
+    AuthenticatedAppMoviesIdWatchRoute: AuthenticatedAppMoviesIdWatchRoute,
+  }
+
+const AuthenticatedAppMoviesIdRouteWithChildren =
+  AuthenticatedAppMoviesIdRoute._addFileChildren(
+    AuthenticatedAppMoviesIdRouteChildren,
+  )
+
 interface AuthenticatedAppMoviesRouteChildren {
-  AuthenticatedAppMoviesIdRoute: typeof AuthenticatedAppMoviesIdRoute
+  AuthenticatedAppMoviesIdRoute: typeof AuthenticatedAppMoviesIdRouteWithChildren
   AuthenticatedAppMoviesIndexRoute: typeof AuthenticatedAppMoviesIndexRoute
 }
 
 const AuthenticatedAppMoviesRouteChildren: AuthenticatedAppMoviesRouteChildren =
   {
-    AuthenticatedAppMoviesIdRoute: AuthenticatedAppMoviesIdRoute,
+    AuthenticatedAppMoviesIdRoute: AuthenticatedAppMoviesIdRouteWithChildren,
     AuthenticatedAppMoviesIndexRoute: AuthenticatedAppMoviesIndexRoute,
   }
 
@@ -511,13 +545,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
