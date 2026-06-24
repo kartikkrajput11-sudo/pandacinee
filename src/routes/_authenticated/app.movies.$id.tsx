@@ -29,7 +29,7 @@ function MovieDetail() {
   const [region, setRegion] = useState<string>("US");
   const navigate = useNavigate();
   const location = useLocation();
-  const isWatchRoute = location.pathname.endsWith(`/movies/${id}/watch`);
+  const isWatchRoute = location.pathname.endsWith("/watch");
 
   useEffect(() => {
     fetchMovie({ data: { id: Number(id) } }).then(setMovie).catch(() => setMovie(null));
