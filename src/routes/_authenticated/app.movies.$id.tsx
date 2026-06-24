@@ -1,9 +1,10 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { ArrowLeft, Send, Film, Play } from "lucide-react";
+import { ArrowLeft, Send, Film, Play, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { tmdbMovie } from "@/lib/tmdb.functions";
+import { watchmodeSources, type WatchSource } from "@/lib/watchmode.functions";
 import { poster } from "./app.movies";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,18 +13,37 @@ export const Route = createFileRoute("/_authenticated/app/movies/$id")({
   component: MovieDetail,
 });
 
+const TYPE_LABEL: Record<string, string> = {
+  sub: "Stream", free: "Free", rent: "Rent", buy: "Buy", tve: "TV",
+};
+
 function MovieDetail() {
   const { id } = Route.useParams();
   const fetchMovie = useServerFn(tmdbMovie);
+  const fetchSources = useServerFn(watchmodeSources);
   const { data: prof } = useProfile();
   const me = prof?.profile;
   const partner = prof?.partner;
   const [movie, setMovie] = useState<any>(null);
+  const [sources, setSources] = useState<WatchSource[]>([]);
+  const [region, setRegion] = useState<string>("US");
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchMovie({ data: { id: Number(id) } }).then(setMovie).catch(() => setMovie(null));
+    fetchSources({ data: { tmdbId: Number(id) } })
+      .then((r) => setSources(r.sources))
+      .catch(() => setSources([]));
   }, [id]);
+
+  const regions = useMemo(() => Array.from(new Set(sources.map((s) => s.region))).sort(), [sources]);
+  useEffect(() => { if (regions.length && !regions.includes(region)) setRegion(regions[0]); }, [regions]);
+  const regionSources = useMemo(() => sources.filter((s) => s.region === region), [sources, region]);
+  const grouped = useMemo(() => {
+    const g: Record<string, WatchSource[]> = {};
+    for (const s of regionSources) (g[s.type] ||= []).push(s);
+    return g;
+  }, [regionSources]);
 
   const trailer = movie?.videos?.results?.find((v: any) => v.site === "YouTube" && v.type === "Trailer") ?? movie?.videos?.results?.[0];
   const director = movie?.credits?.crew?.find((c: any) => c.job === "Director")?.name;
@@ -111,6 +131,7 @@ function MovieDetail() {
           </button>
         </div>
 
+
         {trailer && (
           <a
             href={`https://www.youtube.com/watch?v=${trailer.key}`}
@@ -121,8 +142,49 @@ function MovieDetail() {
           </a>
         )}
 
+        {sources.length > 0 && (
+          <div className="mt-6">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-[10px] uppercase tracking-widest text-candle-muted">Where to watch</p>
+              {regions.length > 1 && (
+                <select
+                  value={region}
+                  onChange={(e) => setRegion(e.target.value)}
+                  className="text-[11px] bg-surface border border-border rounded-full px-2 py-1 text-candle"
+                >
+                  {regions.map((r) => <option key={r} value={r}>{r}</option>)}
+                </select>
+              )}
+            </div>
+            <div className="space-y-3">
+              {(["sub", "free", "rent", "buy", "tve"] as const).map((t) =>
+                grouped[t]?.length ? (
+                  <div key={t}>
+                    <p className="text-[10px] text-petal mb-1.5">{TYPE_LABEL[t]}</p>
+                    <div className="flex flex-wrap gap-2">
+                      {grouped[t].map((s) => (
+                        <a
+                          key={`${s.source_id}-${s.region}-${s.type}`}
+                          href={s.web_url} target="_blank" rel="noreferrer"
+                          className="flex items-center gap-1.5 text-xs px-3 h-8 rounded-full bg-surface border border-border text-candle hover:border-petal/60 transition"
+                        >
+                          {s.name}
+                          {s.price ? <span className="text-candle-muted">· ${s.price}</span> : null}
+                          <ExternalLink className="size-3 text-candle-muted" />
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                ) : null
+              )}
+            </div>
+            <p className="mt-2 text-[10px] text-candle-muted">Availability via Watchmode.</p>
+          </div>
+        )}
+
         {cast.length > 0 && (
           <div className="mt-6">
+
             <p className="text-[10px] uppercase tracking-widest text-candle-muted mb-2">Cast</p>
             <div className="flex gap-3 overflow-x-auto -mx-5 px-5 pb-2">
               {cast.map((c: any) => (
