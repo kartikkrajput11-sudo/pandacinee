@@ -2,17 +2,18 @@ import { Link, useLocation } from "@tanstack/react-router";
 import { Home, MessageCircle, Film, Gamepad2, User } from "lucide-react";
 
 type Item = {
-  to: "/app" | "/app/chat" | "/app/watch" | "/app/play" | "/app/me";
+  to: "/app" | "/app/chat" | "/app/movies" | "/app/play" | "/app/me";
   label: string;
   Icon: typeof Home;
   exact?: boolean;
   primary?: boolean;
+  search?: Record<string, unknown>;
 };
 
 const items: Item[] = [
   { to: "/app", label: "Home", Icon: Home, exact: true },
   { to: "/app/chat", label: "Chat", Icon: MessageCircle },
-  { to: "/app/watch", label: "Watch", Icon: Film, primary: true },
+  { to: "/app/movies", label: "Watch", Icon: Film, primary: true, search: { q: "" } },
   { to: "/app/play", label: "Play", Icon: Gamepad2 },
   { to: "/app/me", label: "Me", Icon: User },
 ];
