@@ -257,76 +257,14 @@ function MovieDetail() {
           </div>
         </div>
 
-        {/* Inline VidSrc player — plays on this page */}
-        <div className="mt-5 rounded-2xl overflow-hidden border border-border bg-black">
-          <div className="relative aspect-video">
-            {started ? (
-              <iframe
-                id="movie-frame"
-                key={`${sourceIdx}-${iframeKey}`}
-                src={embedSrc}
-                referrerPolicy="origin"
-                className="absolute inset-0 w-full h-full"
-                allow="autoplay; encrypted-media; fullscreen; picture-in-picture; web-share"
-                allowFullScreen
-              />
-            ) : (
-              <button
-                onClick={() => setStarted(true)}
-                className="absolute inset-0 w-full h-full flex flex-col items-center justify-center gap-2 group"
-                aria-label="Play movie"
-                style={
-                  movie?.backdrop_path
-                    ? {
-                        backgroundImage: `linear-gradient(to top, rgba(0,0,0,0.85), rgba(0,0,0,0.45)), url(https://image.tmdb.org/t/p/w1280${movie.backdrop_path})`,
-                        backgroundSize: "cover",
-                        backgroundPosition: "center",
-                      }
-                    : undefined
-                }
-              >
-                <span className="size-16 rounded-full bg-petal text-velvet flex items-center justify-center shadow-2xl shadow-petal/40 group-hover:scale-105 transition">
-                  <Play className="size-7 fill-velvet ml-1" />
-                </span>
-                <span className="text-candle text-sm font-medium">Tap to play</span>
-                <span className="text-candle-muted text-[10px]">via {EMBED_SOURCES[sourceIdx].label}</span>
-              </button>
-            )}
-          </div>
-          <div className="flex items-center gap-2 overflow-x-auto p-2 bg-surface border-t border-border">
-            <span className="text-[10px] uppercase tracking-widest text-candle-muted shrink-0 pl-1">Sources</span>
-            {EMBED_SOURCES.map((s, i) => (
-              <button
-                key={s.id}
-                onClick={() => switchEmbedSource(i)}
-                className={`shrink-0 px-2.5 h-7 rounded-full text-[11px] border transition ${
-                  i === sourceIdx ? "bg-petal text-velvet border-petal" : "bg-background text-candle border-border hover:border-petal/60"
-                }`}
-              >
-                {s.label}
-              </button>
-            ))}
-            <button
-              onClick={() => { setStarted(true); setIframeKey((k) => k + 1); }}
-              className="shrink-0 size-7 rounded-full bg-background border border-border flex items-center justify-center text-candle-muted"
-              aria-label="Reload"
-              title="Reload"
-            >
-              <RefreshCw className="size-3" />
-            </button>
-            <button
-              onClick={openFullscreen}
-              className="shrink-0 size-7 rounded-full bg-background border border-border flex items-center justify-center text-candle-muted"
-              aria-label="Fullscreen"
-              title="Fullscreen"
-            >
-              <Maximize2 className="size-3" />
-            </button>
-          </div>
-        </div>
-        <p className="mt-2 text-[10px] text-candle-muted">
-          Stream via VidSrc. If a source is blank, switch to another above.
-        </p>
+        {/* Big Play CTA — navigates to dedicated watch page */}
+        <Link
+          to="/app/movies/$id/watch"
+          params={{ id: String(movie.id) }}
+          className="mt-5 flex items-center justify-center gap-2 h-14 rounded-full bg-petal text-velvet font-semibold text-base shadow-2xl shadow-petal/40 active:scale-[0.98] transition"
+        >
+          <Play className="size-5 fill-velvet" /> Play Movie
+        </Link>
 
         {movie.overview && (
           <p className="mt-5 text-sm text-candle leading-relaxed">{movie.overview}</p>
