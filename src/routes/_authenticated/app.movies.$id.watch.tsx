@@ -89,10 +89,11 @@ function WatchMovie() {
             key={`${sourceIdx}-${iframeKey}`}
             src={src}
             className="absolute inset-0 w-full h-full"
-            allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+            allow="autoplay; encrypted-media; fullscreen; picture-in-picture; web-share"
             allowFullScreen
-            referrerPolicy="no-referrer"
+            sandbox="allow-scripts allow-same-origin allow-forms allow-presentation allow-popups allow-popups-to-escape-sandbox"
           />
+
         </div>
 
         <div className="mt-3 flex items-center gap-2 overflow-x-auto pb-1">
@@ -122,10 +123,20 @@ function WatchMovie() {
           </button>
         </div>
 
+        <a
+          href={src}
+          target="_blank"
+          rel="noreferrer"
+          className="mt-3 flex items-center justify-center gap-2 h-10 rounded-full bg-surface border border-border text-candle text-xs"
+        >
+          Open in new tab if the player is blocked
+        </a>
+
         <p className="mt-3 text-[11px] text-candle-muted leading-relaxed">
-          If a source is slow or stuck, switch to another. Ads in the player come from the
-          third-party provider — close any pop-ups and press play again.
+          Streams come from third-party providers. If one is slow or stuck, switch sources or open in a
+          new tab. Pop-up ads belong to the provider — close them and press play again.
         </p>
+
 
         <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-3">
           {partner ? (
