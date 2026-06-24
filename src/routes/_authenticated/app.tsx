@@ -10,7 +10,7 @@ function AppShell() {
   return (
     <div className="min-h-screen velvet-bg pb-28">
       <IncomingCallListener />
-      <div className="max-w-[440px] mx-auto">
+      <div className="max-w-[440px] md:max-w-3xl lg:max-w-5xl xl:max-w-6xl mx-auto">
         <Outlet />
       </div>
       <BottomNav />

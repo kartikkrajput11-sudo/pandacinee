@@ -44,7 +44,7 @@ function MovieDetail() {
 
   function watchTogether() {
     if (!movie) return;
-    navigate({ to: "/app/watch", search: { title: movie.title } as any });
+    navigate({ to: "/app/movies/$id/watch", params: { id: String(movie.id) } });
   }
 
   if (!movie) {
