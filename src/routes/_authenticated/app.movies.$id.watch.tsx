@@ -10,12 +10,15 @@ import { supabase } from "@/integrations/supabase/client";
 type Source = { id: string; label: string; url: (tmdb: number) => string };
 
 const SOURCES: Source[] = [
-  { id: "vidsrc.to",  label: "Source 1", url: (id) => `https://vidsrc.to/embed/movie/${id}` },
-  { id: "vidsrc.xyz", label: "Source 2", url: (id) => `https://vidsrc.xyz/embed/movie?tmdb=${id}` },
-  { id: "2embed",     label: "Source 3", url: (id) => `https://www.2embed.cc/embed/${id}` },
-  { id: "multiembed", label: "Source 4", url: (id) => `https://multiembed.mov/?video_id=${id}&tmdb=1` },
-  { id: "embedsu",    label: "Source 5", url: (id) => `https://embed.su/embed/movie/${id}` },
+  { id: "vidsrc.cc",  label: "Source 1", url: (id) => `https://vidsrc.cc/v2/embed/movie/${id}?autoPlay=false` },
+  { id: "vidsrc.to",  label: "Source 2", url: (id) => `https://vidsrc.to/embed/movie/${id}` },
+  { id: "vidsrc.xyz", label: "Source 3", url: (id) => `https://vidsrc.xyz/embed/movie?tmdb=${id}` },
+  { id: "autoembed",  label: "Source 4", url: (id) => `https://player.autoembed.cc/embed/movie/${id}` },
+  { id: "2embed",     label: "Source 5", url: (id) => `https://www.2embed.cc/embed/${id}` },
+  { id: "embedsu",    label: "Source 6", url: (id) => `https://embed.su/embed/movie/${id}` },
+  { id: "multiembed", label: "Source 7", url: (id) => `https://multiembed.mov/?video_id=${id}&tmdb=1` },
 ];
+
 
 export const Route = createFileRoute("/_authenticated/app/movies/$id/watch")({
   component: WatchMovie,
