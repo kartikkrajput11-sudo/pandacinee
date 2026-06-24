@@ -1,4 +1,4 @@
-import { createFileRoute, Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { ArrowLeft, Send, Film, Play, ExternalLink } from "lucide-react";
@@ -28,8 +28,7 @@ function MovieDetail() {
   const [sources, setSources] = useState<WatchSource[]>([]);
   const [region, setRegion] = useState<string>("US");
   const navigate = useNavigate();
-  const location = useLocation();
-  const isWatchRoute = location.pathname.endsWith("/watch");
+  const isWatchRoute = typeof window !== "undefined" && window.location.pathname.endsWith("/watch");
 
   useEffect(() => {
     fetchMovie({ data: { id: Number(id) } }).then(setMovie).catch(() => setMovie(null));
