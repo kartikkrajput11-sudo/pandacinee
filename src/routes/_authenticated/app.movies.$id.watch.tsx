@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { ArrowLeft, Send, RefreshCw, Maximize2 } from "lucide-react";
+import { ArrowLeft, Send, RefreshCw, Maximize2, ExternalLink, Play } from "lucide-react";
 import { toast } from "sonner";
 import { tmdbMovie } from "@/lib/tmdb.functions";
 import { useProfile } from "@/hooks/useProfile";
@@ -9,16 +9,20 @@ import { supabase } from "@/integrations/supabase/client";
 
 type Source = { id: string; label: string; url: (tmdb: number) => string };
 
+// vidsrc family first (ad-free with referrerpolicy="origin"), then fallbacks.
 const SOURCES: Source[] = [
-  { id: "vidsrc.cc",  label: "Source 1", url: (id) => `https://vidsrc.cc/v2/embed/movie/${id}?autoPlay=false` },
-  { id: "vidsrc.to",  label: "Source 2", url: (id) => `https://vidsrc.to/embed/movie/${id}` },
-  { id: "vidsrc.xyz", label: "Source 3", url: (id) => `https://vidsrc.xyz/embed/movie?tmdb=${id}` },
-  { id: "autoembed",  label: "Source 4", url: (id) => `https://player.autoembed.cc/embed/movie/${id}` },
-  { id: "2embed",     label: "Source 5", url: (id) => `https://www.2embed.cc/embed/${id}` },
-  { id: "embedsu",    label: "Source 6", url: (id) => `https://embed.su/embed/movie/${id}` },
-  { id: "multiembed", label: "Source 7", url: (id) => `https://multiembed.mov/?video_id=${id}&tmdb=1` },
+  { id: "vidsrc.me",   label: "VidSrc",     url: (id) => `https://vidsrc.me/embed/movie?tmdb=${id}` },
+  { id: "vidsrc.xyz",  label: "VidSrc Alt", url: (id) => `https://vidsrc.xyz/embed/movie?tmdb=${id}` },
+  { id: "vidsrc.in",   label: "VidSrc IN",  url: (id) => `https://vidsrc.in/embed/movie?tmdb=${id}` },
+  { id: "vidsrc.pm",   label: "VidSrc PM",  url: (id) => `https://vidsrc.pm/embed/movie?tmdb=${id}` },
+  { id: "vidsrc.net",  label: "VidSrc NET", url: (id) => `https://vidsrc.net/embed/movie?tmdb=${id}` },
+  { id: "vidsrc.cc",   label: "VidSrc CC",  url: (id) => `https://vidsrc.cc/v2/embed/movie/${id}?autoPlay=false` },
+  { id: "vidsrc.to",   label: "VidSrc TO",  url: (id) => `https://vidsrc.to/embed/movie/${id}` },
+  { id: "autoembed",   label: "AutoEmbed",  url: (id) => `https://player.autoembed.cc/embed/movie/${id}` },
+  { id: "2embed",      label: "2Embed",     url: (id) => `https://www.2embed.cc/embed/${id}` },
+  { id: "embedsu",     label: "Embed.su",   url: (id) => `https://embed.su/embed/movie/${id}` },
+  { id: "multiembed",  label: "MultiEmbed", url: (id) => `https://multiembed.mov/?video_id=${id}&tmdb=1` },
 ];
-
 
 export const Route = createFileRoute("/_authenticated/app/movies/$id/watch")({
   component: WatchMovie,
@@ -35,6 +39,7 @@ function WatchMovie() {
   const [movie, setMovie] = useState<any>(null);
   const [sourceIdx, setSourceIdx] = useState(0);
   const [iframeKey, setIframeKey] = useState(0);
+  const [started, setStarted] = useState(false);
 
   useEffect(() => {
     fetchMovie({ data: { id: tmdbId } }).then(setMovie).catch(() => setMovie(null));
@@ -61,9 +66,15 @@ function WatchMovie() {
     if (el && (el as any).requestFullscreen) (el as any).requestFullscreen();
   }
 
+  function switchSource(i: number) {
+    setSourceIdx(i);
+    setStarted(true);
+    setIframeKey((k) => k + 1);
+  }
+
   return (
     <div className="pt-8 pb-24">
-      <header className="px-5 pb-3 flex items-center gap-3">
+      <header className="px-5 pb-3 flex items-center gap-3 max-w-6xl mx-auto">
         <Link to="/app/movies/$id" params={{ id }} className="text-candle-muted">
           <ArrowLeft className="size-5" />
         </Link>
@@ -71,6 +82,11 @@ function WatchMovie() {
           <p className="text-[10px] uppercase tracking-widest text-petal">Now playing</p>
           <h1 className="font-serif text-lg md:text-2xl italic truncate">
             {movie?.title ?? "Loading…"}
+            {movie?.release_date && (
+              <span className="text-candle-muted not-italic font-sans text-sm md:text-base ml-2">
+                ({movie.release_date.slice(0, 4)})
+              </span>
+            )}
           </h1>
         </div>
         <button
@@ -82,19 +98,39 @@ function WatchMovie() {
         </button>
       </header>
 
-      <div className="px-3 md:px-5">
+      <div className="px-3 md:px-5 max-w-6xl mx-auto">
         <div className="relative rounded-2xl md:rounded-3xl overflow-hidden bg-black border border-border aspect-video">
-          <iframe
-            id="movie-frame"
-            key={`${sourceIdx}-${iframeKey}`}
-            src={src}
-            referrerPolicy="origin"
-            className="absolute inset-0 w-full h-full"
-            allow="autoplay; encrypted-media; fullscreen; picture-in-picture; web-share"
-            allowFullScreen
-            sandbox="allow-scripts allow-same-origin allow-forms allow-presentation allow-popups allow-popups-to-escape-sandbox"
-          />
-
+          {started ? (
+            <iframe
+              id="movie-frame"
+              key={`${sourceIdx}-${iframeKey}`}
+              src={src}
+              referrerPolicy="origin"
+              className="absolute inset-0 w-full h-full"
+              allow="autoplay; encrypted-media; fullscreen; picture-in-picture; web-share"
+              allowFullScreen
+            />
+          ) : (
+            <button
+              onClick={() => setStarted(true)}
+              className="absolute inset-0 w-full h-full flex flex-col items-center justify-center gap-3 group"
+              style={
+                movie?.backdrop_path
+                  ? {
+                      backgroundImage: `linear-gradient(to top, rgba(0,0,0,0.85), rgba(0,0,0,0.45)), url(https://image.tmdb.org/t/p/w1280${movie.backdrop_path})`,
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
+                    }
+                  : undefined
+              }
+            >
+              <span className="size-16 md:size-20 rounded-full bg-petal text-velvet flex items-center justify-center shadow-2xl shadow-petal/40 group-hover:scale-105 transition">
+                <Play className="size-7 md:size-9 fill-velvet ml-1" />
+              </span>
+              <span className="text-candle text-sm md:text-base font-medium">Tap to play</span>
+              <span className="text-candle-muted text-[11px] md:text-xs">Source: {SOURCES[sourceIdx].label}</span>
+            </button>
+          )}
         </div>
 
         <div className="mt-3 flex items-center gap-2 overflow-x-auto pb-1">
@@ -104,7 +140,7 @@ function WatchMovie() {
           {SOURCES.map((s, i) => (
             <button
               key={s.id}
-              onClick={() => setSourceIdx(i)}
+              onClick={() => switchSource(i)}
               className={`shrink-0 px-3 h-8 rounded-full text-xs border transition ${
                 i === sourceIdx
                   ? "bg-petal text-velvet border-petal"
@@ -130,14 +166,13 @@ function WatchMovie() {
           rel="noreferrer"
           className="mt-3 flex items-center justify-center gap-2 h-10 rounded-full bg-surface border border-border text-candle text-xs"
         >
-          Open in new tab if the player is blocked
+          <ExternalLink className="size-3.5" /> Open in new tab if player is blocked
         </a>
 
         <p className="mt-3 text-[11px] text-candle-muted leading-relaxed">
-          Streams come from third-party providers. If one is slow or stuck, switch sources or open in a
-          new tab. Pop-up ads belong to the provider — close them and press play again.
+          Streams come from third-party providers. If one is slow or stuck, switch sources.
+          Pop-up ads belong to the provider — close them and press play again.
         </p>
-
 
         <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-3">
           {partner ? (
@@ -167,7 +202,7 @@ function WatchMovie() {
         {movie?.overview && (
           <div className="mt-6">
             <p className="text-[10px] uppercase tracking-widest text-candle-muted mb-2">Synopsis</p>
-            <p className="text-sm text-candle leading-relaxed">{movie.overview}</p>
+            <p className="text-sm text-candle leading-relaxed max-w-3xl">{movie.overview}</p>
           </div>
         )}
       </div>
