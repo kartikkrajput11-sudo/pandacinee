@@ -116,13 +116,21 @@ function MovieDetail() {
 
         {director && <p className="mt-3 text-xs text-candle-muted">Directed by <span className="text-candle">{director}</span></p>}
 
-        <div className="mt-5 grid grid-cols-2 gap-3">
+        <Link
+          to="/app/movies/$id/watch"
+          params={{ id: String(movie.id) }}
+          className="mt-5 flex items-center justify-center gap-2 h-12 rounded-full bg-petal text-velvet font-semibold text-sm shadow-lg shadow-petal/20"
+        >
+          <Play className="size-4 fill-velvet" /> Watch now
+        </Link>
+
+        <div className="mt-3 grid grid-cols-2 gap-3">
           {partner ? (
-            <button onClick={sendToPartner} className="flex items-center justify-center gap-2 h-11 rounded-full bg-petal text-velvet font-semibold text-sm">
+            <button onClick={sendToPartner} className="flex items-center justify-center gap-2 h-11 rounded-full bg-surface border border-border text-candle text-sm">
               <Send className="size-4" /> Send to {partner.display_name.split(" ")[0]}
             </button>
           ) : (
-            <Link to="/app/invite" className="flex items-center justify-center gap-2 h-11 rounded-full bg-petal text-velvet font-semibold text-sm">
+            <Link to="/app/invite" className="flex items-center justify-center gap-2 h-11 rounded-full bg-surface border border-border text-candle text-sm">
               <Send className="size-4" /> Invite to share
             </Link>
           )}
@@ -130,6 +138,7 @@ function MovieDetail() {
             <Film className="size-4" /> Watch together
           </button>
         </div>
+
 
 
         {trailer && (
