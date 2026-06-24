@@ -1,9 +1,10 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { ArrowLeft, Send, Film, Play } from "lucide-react";
+import { ArrowLeft, Send, Film, Play, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { tmdbMovie } from "@/lib/tmdb.functions";
+import { watchmodeSources, type WatchSource } from "@/lib/watchmode.functions";
 import { poster } from "./app.movies";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,18 +13,37 @@ export const Route = createFileRoute("/_authenticated/app/movies/$id")({
   component: MovieDetail,
 });
 
+const TYPE_LABEL: Record<string, string> = {
+  sub: "Stream", free: "Free", rent: "Rent", buy: "Buy", tve: "TV",
+};
+
 function MovieDetail() {
   const { id } = Route.useParams();
   const fetchMovie = useServerFn(tmdbMovie);
+  const fetchSources = useServerFn(watchmodeSources);
   const { data: prof } = useProfile();
   const me = prof?.profile;
   const partner = prof?.partner;
   const [movie, setMovie] = useState<any>(null);
+  const [sources, setSources] = useState<WatchSource[]>([]);
+  const [region, setRegion] = useState<string>("US");
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchMovie({ data: { id: Number(id) } }).then(setMovie).catch(() => setMovie(null));
+    fetchSources({ data: { tmdbId: Number(id) } })
+      .then((r) => setSources(r.sources))
+      .catch(() => setSources([]));
   }, [id]);
+
+  const regions = useMemo(() => Array.from(new Set(sources.map((s) => s.region))).sort(), [sources]);
+  useEffect(() => { if (regions.length && !regions.includes(region)) setRegion(regions[0]); }, [regions]);
+  const regionSources = useMemo(() => sources.filter((s) => s.region === region), [sources, region]);
+  const grouped = useMemo(() => {
+    const g: Record<string, WatchSource[]> = {};
+    for (const s of regionSources) (g[s.type] ||= []).push(s);
+    return g;
+  }, [regionSources]);
 
   const trailer = movie?.videos?.results?.find((v: any) => v.site === "YouTube" && v.type === "Trailer") ?? movie?.videos?.results?.[0];
   const director = movie?.credits?.crew?.find((c: any) => c.job === "Director")?.name;
