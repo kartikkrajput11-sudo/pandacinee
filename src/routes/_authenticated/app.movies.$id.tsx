@@ -142,7 +142,47 @@ function MovieDetail() {
           </a>
         )}
 
-        {cast.length > 0 && (
+        {sources.length > 0 && (
+          <div className="mt-6">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-[10px] uppercase tracking-widest text-candle-muted">Where to watch</p>
+              {regions.length > 1 && (
+                <select
+                  value={region}
+                  onChange={(e) => setRegion(e.target.value)}
+                  className="text-[11px] bg-surface border border-border rounded-full px-2 py-1 text-candle"
+                >
+                  {regions.map((r) => <option key={r} value={r}>{r}</option>)}
+                </select>
+              )}
+            </div>
+            <div className="space-y-3">
+              {(["sub", "free", "rent", "buy", "tve"] as const).map((t) =>
+                grouped[t]?.length ? (
+                  <div key={t}>
+                    <p className="text-[10px] text-petal mb-1.5">{TYPE_LABEL[t]}</p>
+                    <div className="flex flex-wrap gap-2">
+                      {grouped[t].map((s) => (
+                        <a
+                          key={`${s.source_id}-${s.region}-${s.type}`}
+                          href={s.web_url} target="_blank" rel="noreferrer"
+                          className="flex items-center gap-1.5 text-xs px-3 h-8 rounded-full bg-surface border border-border text-candle hover:border-petal/60 transition"
+                        >
+                          {s.name}
+                          {s.price ? <span className="text-candle-muted">· ${s.price}</span> : null}
+                          <ExternalLink className="size-3 text-candle-muted" />
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                ) : null
+              )}
+            </div>
+            <p className="mt-2 text-[10px] text-candle-muted">Availability via Watchmode.</p>
+          </div>
+        )}
+
+
           <div className="mt-6">
             <p className="text-[10px] uppercase tracking-widest text-candle-muted mb-2">Cast</p>
             <div className="flex gap-3 overflow-x-auto -mx-5 px-5 pb-2">
