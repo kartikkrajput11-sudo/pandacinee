@@ -62,15 +62,15 @@ function Movies() {
       {!q && <p className="text-[10px] uppercase tracking-widest text-candle-muted mb-3">Trending this week</p>}
 
       {loading ? (
-        <div className="grid grid-cols-3 gap-3">
-          {Array.from({ length: 9 }).map((_, i) => (
+        <div className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-3">
+          {Array.from({ length: 12 }).map((_, i) => (
             <div key={i} className="aspect-[2/3] rounded-2xl bg-velvet animate-pulse" />
           ))}
         </div>
       ) : movies.length === 0 ? (
         <p className="text-sm text-candle-muted text-center mt-10">No movies found.</p>
       ) : (
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-3">
           {movies.map((m) => (
             <MovieCard key={m.id} id={m.id} title={m.title} poster_path={m.poster_path} vote_average={m.vote_average} />
           ))}
