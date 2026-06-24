@@ -10,12 +10,15 @@ import { supabase } from "@/integrations/supabase/client";
 type Source = { id: string; label: string; url: (tmdb: number) => string };
 
 const SOURCES: Source[] = [
-  { id: "vidsrc.to",  label: "Source 1", url: (id) => `https://vidsrc.to/embed/movie/${id}` },
-  { id: "vidsrc.xyz", label: "Source 2", url: (id) => `https://vidsrc.xyz/embed/movie?tmdb=${id}` },
-  { id: "2embed",     label: "Source 3", url: (id) => `https://www.2embed.cc/embed/${id}` },
-  { id: "multiembed", label: "Source 4", url: (id) => `https://multiembed.mov/?video_id=${id}&tmdb=1` },
-  { id: "embedsu",    label: "Source 5", url: (id) => `https://embed.su/embed/movie/${id}` },
+  { id: "vidsrc.cc",  label: "Source 1", url: (id) => `https://vidsrc.cc/v2/embed/movie/${id}?autoPlay=false` },
+  { id: "vidsrc.to",  label: "Source 2", url: (id) => `https://vidsrc.to/embed/movie/${id}` },
+  { id: "vidsrc.xyz", label: "Source 3", url: (id) => `https://vidsrc.xyz/embed/movie?tmdb=${id}` },
+  { id: "autoembed",  label: "Source 4", url: (id) => `https://player.autoembed.cc/embed/movie/${id}` },
+  { id: "2embed",     label: "Source 5", url: (id) => `https://www.2embed.cc/embed/${id}` },
+  { id: "embedsu",    label: "Source 6", url: (id) => `https://embed.su/embed/movie/${id}` },
+  { id: "multiembed", label: "Source 7", url: (id) => `https://multiembed.mov/?video_id=${id}&tmdb=1` },
 ];
+
 
 export const Route = createFileRoute("/_authenticated/app/movies/$id/watch")({
   component: WatchMovie,
@@ -86,10 +89,11 @@ function WatchMovie() {
             key={`${sourceIdx}-${iframeKey}`}
             src={src}
             className="absolute inset-0 w-full h-full"
-            allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+            allow="autoplay; encrypted-media; fullscreen; picture-in-picture; web-share"
             allowFullScreen
-            referrerPolicy="no-referrer"
+            sandbox="allow-scripts allow-same-origin allow-forms allow-presentation allow-popups allow-popups-to-escape-sandbox"
           />
+
         </div>
 
         <div className="mt-3 flex items-center gap-2 overflow-x-auto pb-1">
@@ -119,10 +123,20 @@ function WatchMovie() {
           </button>
         </div>
 
+        <a
+          href={src}
+          target="_blank"
+          rel="noreferrer"
+          className="mt-3 flex items-center justify-center gap-2 h-10 rounded-full bg-surface border border-border text-candle text-xs"
+        >
+          Open in new tab if the player is blocked
+        </a>
+
         <p className="mt-3 text-[11px] text-candle-muted leading-relaxed">
-          If a source is slow or stuck, switch to another. Ads in the player come from the
-          third-party provider — close any pop-ups and press play again.
+          Streams come from third-party providers. If one is slow or stuck, switch sources or open in a
+          new tab. Pop-up ads belong to the provider — close them and press play again.
         </p>
+
 
         <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-3">
           {partner ? (

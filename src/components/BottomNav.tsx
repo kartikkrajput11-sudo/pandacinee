@@ -21,7 +21,8 @@ export function BottomNav() {
   const location = useLocation();
   return (
     <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[440px] z-40">
-      <div className="mx-3 mb-3 h-16 px-2 bg-surface/80 backdrop-blur-xl border border-border rounded-full flex items-center justify-around shadow-2xl">
+      <div className="mx-3 mb-3 h-16 px-2 bg-surface border border-border rounded-full flex items-center justify-around shadow-2xl">
+
         {items.map(({ to, label, Icon, primary, exact }) => {
           const active = exact ? location.pathname === to : location.pathname.startsWith(to);
           if (primary) {
