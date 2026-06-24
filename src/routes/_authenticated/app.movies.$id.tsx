@@ -182,8 +182,9 @@ function MovieDetail() {
           </div>
         )}
 
-
+        {cast.length > 0 && (
           <div className="mt-6">
+
             <p className="text-[10px] uppercase tracking-widest text-candle-muted mb-2">Cast</p>
             <div className="flex gap-3 overflow-x-auto -mx-5 px-5 pb-2">
               {cast.map((c: any) => (
