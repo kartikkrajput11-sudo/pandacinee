@@ -118,6 +118,7 @@ function MovieDetail() {
                 referrerPolicy="origin"
                 className="absolute inset-0 w-full h-full"
                 allow="autoplay; encrypted-media; fullscreen; picture-in-picture; web-share"
+                sandbox="allow-scripts allow-same-origin allow-forms allow-presentation allow-popups allow-popups-to-escape-sandbox"
                 allowFullScreen
               />
             ) : (
