@@ -11,8 +11,8 @@ type Source = { id: string; label: string; url: (tmdb: number) => string };
 
 // VidKing embed sources
 const SOURCES: Source[] = [
-  { id: "vidking.net",     label: "VidKing",     url: (id) => `https://www.vidking.net/embed/movie/${id}` },
-  { id: "vidking.net.alt", label: "VidKing Alt", url: (id) => `https://vidking.net/embed/movie/${id}?autoPlay=false` },
+  { id: "vidking",     label: "VidKing",     url: (id) => `https://www.vidking.net/embed/movie/${id}?color=a78bfa&autoPlay=true` },
+  { id: "vidking-alt", label: "VidKing Alt", url: (id) => `https://vidking.net/embed/movie/${id}?color=a78bfa` },
 ];
 
 export const Route = createFileRoute("/_authenticated/app/movies/$id/watch")({
@@ -96,7 +96,7 @@ function WatchMovie() {
               id="movie-frame"
               key={`${sourceIdx}-${iframeKey}`}
               src={src}
-              referrerPolicy="origin"
+              referrerPolicy="no-referrer-when-downgrade"
               className="absolute inset-0 w-full h-full"
               allow="autoplay; encrypted-media; fullscreen; picture-in-picture; web-share"
               allowFullScreen
