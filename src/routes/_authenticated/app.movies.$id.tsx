@@ -37,6 +37,7 @@ function MovieDetail() {
   const [sourceIdx, setSourceIdx] = useState(0);
   const [iframeKey, setIframeKey] = useState(0);
   const [started, setStarted] = useState(false);
+  const [playerLoading, setPlayerLoading] = useState(false);
   const navigate = useNavigate();
   const isWatchRoute = typeof window !== "undefined" && window.location.pathname.endsWith("/watch");
 
@@ -69,6 +70,7 @@ function MovieDetail() {
   function switchEmbedSource(i: number) {
     setSourceIdx(i);
     setStarted(true);
+    setPlayerLoading(true);
     setIframeKey((key) => key + 1);
   }
 
@@ -106,15 +108,18 @@ function MovieDetail() {
                 id="movie-frame"
                 key={`${sourceIdx}-${iframeKey}`}
                 src={embedSrc}
-                referrerPolicy="origin"
+                referrerPolicy="no-referrer-when-downgrade"
                 className="absolute inset-0 w-full h-full"
                 allow="autoplay; encrypted-media; fullscreen; picture-in-picture; web-share"
-                sandbox="allow-scripts allow-same-origin allow-forms allow-presentation allow-popups allow-popups-to-escape-sandbox"
+                onLoad={() => setPlayerLoading(false)}
                 allowFullScreen
               />
             ) : (
               <button
-                onClick={() => setStarted(true)}
+                onClick={() => {
+                  setStarted(true);
+                  setPlayerLoading(true);
+                }}
                 className="absolute inset-0 w-full h-full flex flex-col items-center justify-center gap-3 group"
                 aria-label="Tap to play"
                 style={
@@ -134,6 +139,14 @@ function MovieDetail() {
                 <span className="text-candle-muted text-[11px] md:text-xs">Source: {EMBED_SOURCES[sourceIdx].label}</span>
               </button>
             )}
+            {started && playerLoading && (
+              <div className="absolute inset-0 pointer-events-none flex items-center justify-center bg-velvet/80">
+                <div className="flex flex-col items-center gap-3 text-candle">
+                  <RefreshCw className="size-6 animate-spin text-petal" />
+                  <span className="text-xs uppercase tracking-widest text-candle-muted">Loading player</span>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="mt-3 flex items-center gap-2 overflow-x-auto pb-1">
@@ -152,6 +165,7 @@ function MovieDetail() {
             <button
               onClick={() => {
                 setStarted(true);
+                setPlayerLoading(true);
                 setIframeKey((key) => key + 1);
               }}
               className="shrink-0 size-8 rounded-full bg-surface border border-border flex items-center justify-center text-candle-muted"

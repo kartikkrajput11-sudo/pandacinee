@@ -31,6 +31,7 @@ function WatchMovie() {
   const [sourceIdx, setSourceIdx] = useState(0);
   const [iframeKey, setIframeKey] = useState(0);
   const [started, setStarted] = useState(false);
+  const [playerLoading, setPlayerLoading] = useState(false);
 
   useEffect(() => {
     fetchMovie({ data: { id: tmdbId } }).then(setMovie).catch(() => setMovie(null));
@@ -60,6 +61,7 @@ function WatchMovie() {
   function switchSource(i: number) {
     setSourceIdx(i);
     setStarted(true);
+    setPlayerLoading(true);
     setIframeKey((k) => k + 1);
   }
 
@@ -99,11 +101,15 @@ function WatchMovie() {
               referrerPolicy="no-referrer-when-downgrade"
               className="absolute inset-0 w-full h-full"
               allow="autoplay; encrypted-media; fullscreen; picture-in-picture; web-share"
+              onLoad={() => setPlayerLoading(false)}
               allowFullScreen
             />
           ) : (
             <button
-              onClick={() => setStarted(true)}
+              onClick={() => {
+                setStarted(true);
+                setPlayerLoading(true);
+              }}
               className="absolute inset-0 w-full h-full flex flex-col items-center justify-center gap-3 group"
               style={
                 movie?.backdrop_path
@@ -121,6 +127,14 @@ function WatchMovie() {
               <span className="text-candle text-sm md:text-base font-medium">Tap to play</span>
               <span className="text-candle-muted text-[11px] md:text-xs">Source: {SOURCES[sourceIdx].label}</span>
             </button>
+          )}
+          {started && playerLoading && (
+            <div className="absolute inset-0 pointer-events-none flex items-center justify-center bg-velvet/80">
+              <div className="flex flex-col items-center gap-3 text-candle">
+                <RefreshCw className="size-6 animate-spin text-petal" />
+                <span className="text-xs uppercase tracking-widest text-candle-muted">Loading player</span>
+              </div>
+            </div>
           )}
         </div>
 
@@ -142,7 +156,11 @@ function WatchMovie() {
             </button>
           ))}
           <button
-            onClick={() => setIframeKey((k) => k + 1)}
+            onClick={() => {
+              setStarted(true);
+              setPlayerLoading(true);
+              setIframeKey((k) => k + 1);
+            }}
             className="shrink-0 size-8 rounded-full bg-surface border border-border flex items-center justify-center text-candle-muted"
             aria-label="Reload"
             title="Reload"
