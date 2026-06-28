@@ -98,9 +98,9 @@ function WatchMovie() {
               id="movie-frame"
               key={`${sourceIdx}-${iframeKey}`}
               src={src}
-              referrerPolicy="no-referrer-when-downgrade"
+              referrerPolicy="unsafe-url"
               className="absolute inset-0 w-full h-full"
-              allow="autoplay; encrypted-media; fullscreen; picture-in-picture; web-share"
+              allow="autoplay; encrypted-media; fullscreen; picture-in-picture; web-share; clipboard-write"
               onLoad={() => setPlayerLoading(false)}
               allowFullScreen
             />
