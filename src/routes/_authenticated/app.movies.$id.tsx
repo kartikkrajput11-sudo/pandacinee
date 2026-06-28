@@ -20,17 +20,8 @@ const TYPE_LABEL: Record<string, string> = {
 type EmbedSource = { id: string; label: string; url: (tmdb: number) => string };
 
 const EMBED_SOURCES: EmbedSource[] = [
-  { id: "vidsrc.me", label: "VidSrc", url: (id) => `https://vidsrc.me/embed/movie?tmdb=${id}` },
-  { id: "vidsrc.cc", label: "VidSrc CC", url: (id) => `https://vidsrc.cc/v2/embed/movie/${id}?autoPlay=false` },
-  { id: "vidsrc.xyz", label: "VidSrc Alt", url: (id) => `https://vidsrc.xyz/embed/movie?tmdb=${id}` },
-  { id: "vidsrc.in", label: "VidSrc IN", url: (id) => `https://vidsrc.in/embed/movie?tmdb=${id}` },
-  { id: "vidsrc.pm", label: "VidSrc PM", url: (id) => `https://vidsrc.pm/embed/movie?tmdb=${id}` },
-  { id: "vidsrc.net", label: "VidSrc NET", url: (id) => `https://vidsrc.net/embed/movie?tmdb=${id}` },
-  { id: "vidsrc.to", label: "VidSrc TO", url: (id) => `https://vidsrc.to/embed/movie/${id}` },
-  { id: "autoembed", label: "AutoEmbed", url: (id) => `https://player.autoembed.cc/embed/movie/${id}` },
-  { id: "2embed", label: "2Embed", url: (id) => `https://www.2embed.cc/embed/${id}` },
-  { id: "embedsu", label: "Embed.su", url: (id) => `https://embed.su/embed/movie/${id}` },
-  { id: "multiembed", label: "MultiEmbed", url: (id) => `https://multiembed.mov/?video_id=${id}&tmdb=1` },
+  { id: "vidking.net",     label: "VidKing",     url: (id) => `https://www.vidking.net/embed/movie/${id}` },
+  { id: "vidking.net.alt", label: "VidKing Alt", url: (id) => `https://vidking.net/embed/movie/${id}?autoPlay=false` },
 ];
 
 function MovieDetail() {
