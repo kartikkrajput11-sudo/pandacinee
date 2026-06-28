@@ -96,7 +96,7 @@ function WatchMovie() {
               id="movie-frame"
               key={`${sourceIdx}-${iframeKey}`}
               src={src}
-              referrerPolicy="origin"
+              referrerPolicy="no-referrer-when-downgrade"
               className="absolute inset-0 w-full h-full"
               allow="autoplay; encrypted-media; fullscreen; picture-in-picture; web-share"
               allowFullScreen
