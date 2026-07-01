@@ -217,7 +217,22 @@ function WatchMovie() {
             <p className="text-sm text-candle leading-relaxed max-w-3xl">{movie.overview}</p>
           </div>
         )}
+        {movie?.overview && (
+          <div className="mt-6">
+            <p className="text-[10px] uppercase tracking-widest text-candle-muted mb-2">Synopsis</p>
+            <p className="text-sm text-candle leading-relaxed max-w-3xl">{movie.overview}</p>
+          </div>
+        )}
       </div>
+
+      {me && partner && movie && (
+        <WatchTogetherPanel
+          me={me}
+          partner={partner}
+          movieId={tmdbId}
+          movieTitle={movie.title}
+        />
+      )}
     </div>
   );
 }
