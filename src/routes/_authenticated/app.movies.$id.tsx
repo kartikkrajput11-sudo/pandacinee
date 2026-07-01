@@ -1,7 +1,7 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { ArrowLeft, Send, Film, Play, ExternalLink, RefreshCw, Maximize2 } from "lucide-react";
+import { ArrowLeft, Send, Film, Play, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { tmdbMovie } from "@/lib/tmdb.functions";
 import { watchmodeSources, type WatchSource } from "@/lib/watchmode.functions";
@@ -17,15 +17,9 @@ const TYPE_LABEL: Record<string, string> = {
   sub: "Stream", free: "Free", rent: "Rent", buy: "Buy", tve: "TV",
 };
 
-type EmbedSource = { id: string; label: string; url: (tmdb: number) => string };
-
-const EMBED_SOURCES: EmbedSource[] = [
-  { id: "vidking.net",     label: "VidKing",     url: (id) => `https://www.vidking.net/embed/movie/${id}` },
-  { id: "vidking.net.alt", label: "VidKing Alt", url: (id) => `https://vidking.net/embed/movie/${id}?autoPlay=false` },
-];
-
 function MovieDetail() {
   const { id } = Route.useParams();
+  const location = useLocation();
   const fetchMovie = useServerFn(tmdbMovie);
   const fetchSources = useServerFn(watchmodeSources);
   const { data: prof } = useProfile();
@@ -34,19 +28,16 @@ function MovieDetail() {
   const [movie, setMovie] = useState<any>(null);
   const [sources, setSources] = useState<WatchSource[]>([]);
   const [region, setRegion] = useState<string>("US");
-  const [sourceIdx, setSourceIdx] = useState(0);
-  const [iframeKey, setIframeKey] = useState(0);
-  const [started, setStarted] = useState(false);
-  const [playerLoading, setPlayerLoading] = useState(false);
   const navigate = useNavigate();
-  const isWatchRoute = typeof window !== "undefined" && window.location.pathname.endsWith("/watch");
+  const isWatchRoute = location.pathname.endsWith("/watch");
 
   useEffect(() => {
+    if (isWatchRoute) return;
     fetchMovie({ data: { id: Number(id) } }).then(setMovie).catch(() => setMovie(null));
     fetchSources({ data: { tmdbId: Number(id) } })
       .then((r) => setSources(r.sources))
       .catch(() => setSources([]));
-  }, [id]);
+  }, [id, isWatchRoute]);
 
   const regions = useMemo(() => Array.from(new Set(sources.map((s) => s.region))).sort(), [sources]);
   useEffect(() => { if (regions.length && !regions.includes(region)) setRegion(regions[0]); }, [regions]);
@@ -60,145 +51,9 @@ function MovieDetail() {
   const trailer = movie?.videos?.results?.find((v: any) => v.site === "YouTube" && v.type === "Trailer") ?? movie?.videos?.results?.[0];
   const director = movie?.credits?.crew?.find((c: any) => c.job === "Director")?.name;
   const cast = (movie?.credits?.cast ?? []).slice(0, 8);
-  const embedSrc = EMBED_SOURCES[sourceIdx].url(Number(id));
-
-  function openFullscreen() {
-    const el = document.getElementById("movie-frame");
-    if (el && (el as any).requestFullscreen) (el as any).requestFullscreen();
-  }
-
-  function switchEmbedSource(i: number) {
-    setSourceIdx(i);
-    setStarted(true);
-    setPlayerLoading(true);
-    setIframeKey((key) => key + 1);
-  }
 
   if (isWatchRoute) {
-    return (
-      <div className="pt-8 pb-24">
-        <header className="px-5 pb-3 flex items-center gap-3 max-w-6xl mx-auto">
-          <Link to="/app/movies/$id" params={{ id }} className="text-candle-muted">
-            <ArrowLeft className="size-5" />
-          </Link>
-          <div className="flex-1 min-w-0">
-            <p className="text-[10px] uppercase tracking-widest text-petal">Now playing</p>
-            <h1 className="font-serif text-lg md:text-2xl italic truncate">
-              {movie?.title ?? "Loading…"}
-              {movie?.release_date && (
-                <span className="text-candle-muted not-italic font-sans text-sm md:text-base ml-2">
-                  ({movie.release_date.slice(0, 4)})
-                </span>
-              )}
-            </h1>
-          </div>
-          <button
-            onClick={openFullscreen}
-            className="size-9 rounded-full bg-surface border border-border flex items-center justify-center text-candle"
-            aria-label="Fullscreen"
-          >
-            <Maximize2 className="size-4" />
-          </button>
-        </header>
-
-        <div className="px-3 md:px-5 max-w-6xl mx-auto">
-          <div className="relative rounded-2xl md:rounded-3xl overflow-hidden bg-black border border-border aspect-video">
-            {started ? (
-              <iframe
-                id="movie-frame"
-                key={`${sourceIdx}-${iframeKey}`}
-                src={embedSrc}
-                referrerPolicy="no-referrer-when-downgrade"
-                className="absolute inset-0 w-full h-full"
-                allow="autoplay; encrypted-media; fullscreen; picture-in-picture; web-share"
-                onLoad={() => setPlayerLoading(false)}
-                allowFullScreen
-              />
-            ) : (
-              <button
-                onClick={() => {
-                  setStarted(true);
-                  setPlayerLoading(true);
-                }}
-                className="absolute inset-0 w-full h-full flex flex-col items-center justify-center gap-3 group"
-                aria-label="Tap to play"
-                style={
-                  movie?.backdrop_path
-                    ? {
-                        backgroundImage: `linear-gradient(to top, rgba(0,0,0,0.85), rgba(0,0,0,0.45)), url(https://image.tmdb.org/t/p/w1280${movie.backdrop_path})`,
-                        backgroundSize: "cover",
-                        backgroundPosition: "center",
-                      }
-                    : undefined
-                }
-              >
-                <span className="size-16 md:size-20 rounded-full bg-petal text-velvet flex items-center justify-center shadow-2xl shadow-petal/40 group-hover:scale-105 transition">
-                  <Play className="size-7 md:size-9 fill-velvet ml-1" />
-                </span>
-                <span className="text-candle text-sm md:text-base font-medium">Tap to play</span>
-                <span className="text-candle-muted text-[11px] md:text-xs">Source: {EMBED_SOURCES[sourceIdx].label}</span>
-              </button>
-            )}
-            {started && playerLoading && (
-              <div className="absolute inset-0 pointer-events-none flex items-center justify-center bg-velvet/80">
-                <div className="flex flex-col items-center gap-3 text-candle">
-                  <RefreshCw className="size-6 animate-spin text-petal" />
-                  <span className="text-xs uppercase tracking-widest text-candle-muted">Loading player</span>
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div className="mt-3 flex items-center gap-2 overflow-x-auto pb-1">
-            <span className="text-[10px] uppercase tracking-widest text-candle-muted shrink-0 pr-1">Sources</span>
-            {EMBED_SOURCES.map((s, i) => (
-              <button
-                key={s.id}
-                onClick={() => switchEmbedSource(i)}
-                className={`shrink-0 px-3 h-8 rounded-full text-xs border transition ${
-                  i === sourceIdx ? "bg-petal text-velvet border-petal" : "bg-surface text-candle border-border hover:border-petal/60"
-                }`}
-              >
-                {s.label}
-              </button>
-            ))}
-            <button
-              onClick={() => {
-                setStarted(true);
-                setPlayerLoading(true);
-                setIframeKey((key) => key + 1);
-              }}
-              className="shrink-0 size-8 rounded-full bg-surface border border-border flex items-center justify-center text-candle-muted"
-              aria-label="Reload"
-              title="Reload"
-            >
-              <RefreshCw className="size-3.5" />
-            </button>
-          </div>
-
-          <a
-            href={embedSrc}
-            target="_blank"
-            rel="noreferrer"
-            className="mt-3 flex items-center justify-center gap-2 h-10 rounded-full bg-surface border border-border text-candle text-xs"
-          >
-            <ExternalLink className="size-3.5" /> Open in new tab if player is blocked
-          </a>
-
-          <p className="mt-3 text-[11px] text-candle-muted leading-relaxed">
-            Streams come from third-party providers. If one is slow or stuck, switch sources.
-          </p>
-
-          <Link
-            to="/app/movies/$id"
-            params={{ id }}
-            className="mt-5 flex items-center justify-center gap-2 h-11 rounded-full bg-surface border border-border text-candle text-sm"
-          >
-            Back to details
-          </Link>
-        </div>
-      </div>
-    );
+    return <Outlet />;
   }
 
   async function sendToPartner() {
