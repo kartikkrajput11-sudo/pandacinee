@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { tmdbMovie } from "@/lib/tmdb.functions";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/integrations/supabase/client";
+import { WatchTogetherPanel } from "@/components/watch/WatchTogetherPanel";
 
 type Source = { id: string; label: string; url: (tmdb: number) => string };
 
