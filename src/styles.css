@@ -144,7 +144,13 @@
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
 }
+@keyframes float-up {
+  0% { transform: translateY(0) scale(0.6); opacity: 0; }
+  15% { opacity: 1; transform: translateY(-20px) scale(1.1); }
+  100% { transform: translateY(-60vh) scale(1) rotate(15deg); opacity: 0; }
+}
 
 .animate-petal { animation: float-petal 12s linear infinite; }
 .animate-pulse-soft { animation: pulse-soft 2.4s var(--ease-out-expo) infinite; }
 .animate-fade-up { animation: fade-up 0.7s var(--ease-out-expo) both; }
+.animate-float-up { animation: float-up 3s ease-out forwards; }
