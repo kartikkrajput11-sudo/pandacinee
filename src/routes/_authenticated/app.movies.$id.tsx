@@ -149,15 +149,26 @@ function MovieDetail() {
 
 
 
-        {trailer && (
-          <a
-            href={`https://www.youtube.com/watch?v=${trailer.key}`}
-            target="_blank" rel="noreferrer"
-            className="mt-3 flex items-center justify-center gap-2 h-11 rounded-full bg-surface border border-border text-candle text-sm"
-          >
-            <Play className="size-4 text-petal" /> Watch trailer
-          </a>
-        )}
+        <div className="mt-3 grid grid-cols-2 gap-3">
+          {trailer && (
+            <a
+              href={`https://www.youtube.com/watch?v=${trailer.key}`}
+              target="_blank" rel="noreferrer"
+              className="flex items-center justify-center gap-2 h-11 rounded-full bg-surface border border-border text-candle text-sm"
+            >
+              <Play className="size-4 text-petal" /> Trailer
+            </a>
+          )}
+          {movie.imdb_id && (
+            <a
+              href={`https://www.imdb.com/title/${movie.imdb_id}/`}
+              target="_blank" rel="noreferrer"
+              className="flex items-center justify-center gap-2 h-11 rounded-full bg-[#f5c518] text-black font-semibold text-sm"
+            >
+              <ExternalLink className="size-4" /> IMDb
+            </a>
+          )}
+        </div>
 
         {sources.length > 0 && (
           <div className="mt-6">
