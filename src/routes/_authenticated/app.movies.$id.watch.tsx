@@ -291,6 +291,8 @@ function WatchMovie() {
           partner={partner}
           movieId={tmdbId}
           movieTitle={movie.title}
+          moviePoster={movie.poster_path ? `https://image.tmdb.org/t/p/w154${movie.poster_path}` : null}
+          mediaType="movie"
         />
       )}
     </div>
