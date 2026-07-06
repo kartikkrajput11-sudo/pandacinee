@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   MessageCircle,
   Send,
@@ -10,15 +10,15 @@ import {
   Volume2,
   VolumeX,
   Minimize2,
-  Reply,
   Pause,
   Play as PlayIcon,
+  Film,
+  Trash2,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useChat } from "@/hooks/useChat";
+import { useMovieChat } from "@/hooks/useMovieChat";
 import { STICKERS } from "@/lib/chat";
 import type { Profile } from "@/hooks/useProfile";
-import type { MessageRow } from "@/lib/chat";
 
 const QUICK_REACTIONS = ["❤️", "😂", "😮", "🥺", "🔥", "🍿", "🐼", "💜"];
 const QUICK_PHRASES = [
@@ -40,29 +40,32 @@ export function WatchTogetherPanel({
   partner,
   movieId,
   movieTitle,
+  moviePoster,
+  mediaType = "movie",
 }: {
   me: Profile;
   partner: Profile;
   movieId: number;
   movieTitle: string;
+  moviePoster?: string | null;
+  mediaType?: "movie" | "tv";
 }) {
   const [open, setOpen] = useState(false);
   const [minimized, setMinimized] = useState(false);
   const [tab, setTab] = useState<Tab>("chat");
   const [text, setText] = useState("");
   const [floats, setFloats] = useState<FloatingReaction[]>([]);
-  const [partnerWatching, setPartnerWatching] = useState(false);
   const [soundOn, setSoundOn] = useState(true);
-  const [replyTo, setReplyTo] = useState<MessageRow | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const roomChannel = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const lastCountRef = useRef(0);
 
-  const { messages, send, react, partnerTyping, partnerOnline, sendTyping } = useChat(me.id, partner.id);
+  const { messages, send, remove, sendTyping, partnerTyping, partnerPresent } =
+    useMovieChat(me.id, partner.id, movieId, mediaType);
 
-  // Presence + reactions room specific to this movie
+  // Presence + ambient reactions for this movie room (ephemeral broadcast)
   useEffect(() => {
-    const topic = `watch-room:${movieId}:${[me.id, partner.id].sort().join(":")}`;
+    const topic = `watch-room:${mediaType}:${movieId}:${[me.id, partner.id].sort().join(":")}`;
     const ch = supabase.channel(topic, { config: { presence: { key: me.id } } });
 
     ch.on("broadcast", { event: "reaction" }, ({ payload }) => {
@@ -73,10 +76,6 @@ export function WatchTogetherPanel({
       if (action === "pause") spawnFloat("⏸️");
       if (action === "play") spawnFloat("▶️");
     });
-    ch.on("presence", { event: "sync" }, () => {
-      const state = ch.presenceState() as Record<string, unknown>;
-      setPartnerWatching(Boolean(state[partner.id]));
-    });
     ch.subscribe(async (s) => {
       if (s === "SUBSCRIBED") await ch.track({ at: Date.now(), title: movieTitle });
     });
@@ -85,13 +84,19 @@ export function WatchTogetherPanel({
       supabase.removeChannel(ch);
       roomChannel.current = null;
     };
-  }, [me.id, partner.id, movieId, movieTitle]);
+  }, [me.id, partner.id, movieId, mediaType, movieTitle]);
+
+  // Reset chat state when the movie changes
+  useEffect(() => {
+    setText("");
+    setTab("chat");
+    lastCountRef.current = 0;
+  }, [movieId, mediaType]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages.length, open, tab]);
 
-  // Sound cue on new partner message
   useEffect(() => {
     const prev = lastCountRef.current;
     lastCountRef.current = messages.length;
@@ -134,26 +139,22 @@ export function WatchTogetherPanel({
     if (!t) return;
     setText("");
     sendTyping(false);
-    await send({ content: t, type: "text", reply_to_id: replyTo?.id ?? null });
-    setReplyTo(null);
+    await send(t, "text");
   }
 
   async function sendSticker(emoji: string) {
-    await send({ content: emoji, type: "sticker" });
+    await send(emoji, "sticker");
     setTab("chat");
   }
 
   async function sendPhrase(p: { emoji: string; text: string }) {
-    await send({ content: `${p.emoji} ${p.text}`, type: "text" });
+    await send(`${p.emoji} ${p.text}`, "text");
     setTab("chat");
   }
 
-  const unread = messages.filter((m) => m.sender_id === partner.id && !m.read_at).length;
+  const unread = 0; // ephemeral movie chat — no persisted read receipts
   const partnerFirst = partner.display_name.split(" ")[0];
-
-  const findMsg = (id: string | null) => (id ? messages.find((m) => m.id === id) ?? null : null);
-
-  const pinnedCount = useMemo(() => messages.filter((m) => m.pinned).length, [messages]);
+  const viewerCount = 1 + (partnerPresent ? 1 : 0);
 
   return (
     <>
@@ -187,21 +188,19 @@ export function WatchTogetherPanel({
         <button
           onClick={() => sendControl("pause")}
           className="shrink-0 h-9 px-3 rounded-full bg-surface border border-border text-[11px] text-candle-muted hover:border-petal flex items-center gap-1"
-          title="Nudge partner to pause"
         >
           <Pause className="size-3" /> Pause
         </button>
         <button
           onClick={() => sendControl("play")}
           className="shrink-0 h-9 px-3 rounded-full bg-surface border border-border text-[11px] text-candle-muted hover:border-petal flex items-center gap-1"
-          title="Nudge partner to play"
         >
           <PlayIcon className="size-3" /> Play
         </button>
         <div className="ml-auto flex items-center gap-2 shrink-0 pl-2">
-          <span className={`size-1.5 rounded-full ${partnerWatching ? "bg-green-400 animate-pulse" : "bg-candle-muted"}`} />
+          <span className={`size-1.5 rounded-full ${partnerPresent ? "bg-green-400 animate-pulse" : "bg-candle-muted"}`} />
           <span className="text-[10px] text-candle-muted">
-            {partnerWatching ? `${partnerFirst} is watching` : "Waiting…"}
+            {partnerPresent ? `${partnerFirst} is here` : "Waiting…"}
           </span>
         </div>
       </div>
@@ -213,14 +212,9 @@ export function WatchTogetherPanel({
           className="fixed bottom-24 right-4 z-40 h-12 pl-2 pr-4 rounded-full bg-petal text-velvet shadow-xl shadow-petal/40 flex items-center gap-2 hover:scale-105 transition md:bottom-8"
         >
           <span className="size-8 rounded-full bg-velvet/20 flex items-center justify-center">
-            <MessageCircle className="size-4" />
+            <Film className="size-4" />
           </span>
-          <span className="text-xs font-semibold">Chat with {partnerFirst}</span>
-          {unread > 0 && (
-            <span className="size-5 rounded-full bg-velvet text-petal text-[10px] font-bold flex items-center justify-center">
-              {unread}
-            </span>
-          )}
+          <span className="text-xs font-semibold truncate max-w-[10rem]">{movieTitle}</span>
         </button>
       )}
 
@@ -229,7 +223,7 @@ export function WatchTogetherPanel({
         <button
           onClick={() => { setOpen((o) => !o); setMinimized(false); }}
           className="fixed bottom-24 right-4 z-40 size-14 rounded-full bg-petal text-velvet shadow-xl shadow-petal/40 flex items-center justify-center hover:scale-105 transition md:bottom-8"
-          aria-label="Open watch chat"
+          aria-label="Open movie chat"
         >
           {open ? <X className="size-5" /> : <MessageCircle className="size-6" />}
           {!open && unread > 0 && (
@@ -237,7 +231,7 @@ export function WatchTogetherPanel({
               {unread}
             </span>
           )}
-          {!open && partnerOnline && (
+          {!open && partnerPresent && (
             <span className="absolute -bottom-0.5 -right-0.5 size-3.5 rounded-full bg-green-400 border-2 border-velvet" />
           )}
         </button>
@@ -250,55 +244,65 @@ export function WatchTogetherPanel({
           md:left-auto md:bottom-4 md:right-4 md:w-[26rem] md:rounded-3xl md:max-h-[75vh]
           ${open && !minimized ? "translate-y-0" : "translate-y-[110%]"}`}
       >
-        {/* Header */}
-        <header className="px-4 py-3 flex items-center gap-3 border-b border-border">
+        {/* Movie-specific header */}
+        <header className="px-4 py-3 flex items-center gap-3 border-b border-border bg-gradient-to-r from-petal/10 to-transparent">
           <div className="relative shrink-0">
-            <div className="size-10 rounded-full bg-petal-soft overflow-hidden flex items-center justify-center ring-2 ring-petal/40">
-              {partner.avatar_url ? (
-                <img src={partner.avatar_url} alt="" className="size-full object-cover" />
+            <div className="w-10 h-14 rounded-lg overflow-hidden bg-surface border border-border">
+              {moviePoster ? (
+                <img src={moviePoster} alt={movieTitle} className="size-full object-cover" />
               ) : (
-                <span className="text-lg">🐼</span>
+                <div className="size-full flex items-center justify-center">
+                  <Film className="size-4 text-candle-muted" />
+                </div>
               )}
             </div>
-            <span className={`absolute -bottom-0.5 -right-0.5 size-3 rounded-full border-2 border-velvet ${partnerOnline ? "bg-green-400" : "bg-candle-muted"}`} />
+            <span className="absolute -top-1 -right-1 size-4 rounded-full bg-petal text-velvet text-[9px] font-bold flex items-center justify-center border-2 border-velvet">
+              {viewerCount}
+            </span>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="font-serif italic text-sm truncate">
-              Watching with {partner.display_name}
-            </p>
-            <p className="text-[10px] text-petal truncate flex items-center gap-1">
-              <Sparkles className="size-2.5" />
+            <p className="text-[9px] uppercase tracking-widest text-petal">Movie discussion</p>
+            <p className="font-serif italic text-sm truncate">{movieTitle}</p>
+            <p className="text-[10px] text-candle-muted truncate flex items-center gap-1">
+              <Sparkles className="size-2.5 text-petal" />
               {partnerTyping
-                ? "typing…"
-                : partnerWatching
-                ? `both watching 🎬 ${movieTitle}`
-                : partnerOnline
-                ? "online · waiting for them"
-                : "offline"}
+                ? `${partnerFirst} is typing…`
+                : partnerPresent
+                ? `with ${partnerFirst} · live`
+                : `${partnerFirst} hasn't joined yet`}
             </p>
           </div>
-          <button
-            onClick={() => setSoundOn((s) => !s)}
-            className="size-8 rounded-full bg-surface border border-border flex items-center justify-center text-candle-muted hover:text-petal"
-            title={soundOn ? "Mute notifications" : "Enable notifications"}
-          >
-            {soundOn ? <Volume2 className="size-3.5" /> : <VolumeX className="size-3.5" />}
-          </button>
-          <button
-            onClick={() => setMinimized(true)}
-            className="size-8 rounded-full bg-surface border border-border flex items-center justify-center text-candle-muted hover:text-petal"
-            title="Minimize"
-          >
-            <Minimize2 className="size-3.5" />
-          </button>
+          <div className="flex flex-col gap-1">
+            <button
+              onClick={() => setSoundOn((s) => !s)}
+              className="size-7 rounded-full bg-surface border border-border flex items-center justify-center text-candle-muted hover:text-petal"
+              title={soundOn ? "Mute" : "Unmute"}
+            >
+              {soundOn ? <Volume2 className="size-3" /> : <VolumeX className="size-3" />}
+            </button>
+            <button
+              onClick={() => setMinimized(true)}
+              className="size-7 rounded-full bg-surface border border-border flex items-center justify-center text-candle-muted hover:text-petal"
+              title="Minimize"
+            >
+              <Minimize2 className="size-3" />
+            </button>
+          </div>
           <button
             onClick={() => setOpen(false)}
             className="size-8 rounded-full bg-surface border border-border flex items-center justify-center text-candle-muted hover:text-petal"
-            title="Close"
           >
             <X className="size-3.5" />
           </button>
         </header>
+
+        {/* Info banner */}
+        <div className="px-4 py-2 text-[10px] text-candle-muted bg-surface/40 border-b border-border/60 flex items-center gap-1.5">
+          <Film className="size-3 text-petal shrink-0" />
+          <span className="truncate">
+            This chat is only for <span className="text-petal font-semibold">{movieTitle}</span>. Your permanent messages stay in Chat.
+          </span>
+        </div>
 
         {/* Tabs */}
         <div className="px-2 pt-2 flex items-center gap-1 border-b border-border/60">
@@ -328,86 +332,36 @@ export function WatchTogetherPanel({
             {messages.length === 0 && (
               <div className="text-center py-10 text-xs text-candle-muted">
                 <Heart className="size-6 mx-auto mb-2 text-petal animate-pulse" />
-                <p className="mb-1">Whisper to your panda while the movie plays</p>
-                <p className="text-[10px] opacity-70">React with 🍿 or drop a sticker 💜</p>
+                <p className="mb-1">Start the discussion for</p>
+                <p className="font-serif italic text-candle mb-1">{movieTitle}</p>
+                <p className="text-[10px] opacity-70">Only messages about this title live here 🍿</p>
               </div>
             )}
-            {pinnedCount > 0 && (
-              <div className="mb-2 px-2 py-1 rounded-lg bg-petal-soft/10 text-[10px] text-petal">
-                📌 {pinnedCount} pinned moment{pinnedCount > 1 ? "s" : ""} in this chat
-              </div>
-            )}
-            {messages.slice(-60).map((m) => {
+            {messages.map((m) => {
               const mine = m.sender_id === me.id;
-              const replied = findMsg(m.reply_to_id);
-              const reactions = (m.reactions ?? {}) as Record<string, string[]>;
-              const reactionEntries = Object.entries(reactions).filter(([, arr]) => arr.length > 0);
               return (
                 <div key={m.id} className={`group flex ${mine ? "justify-end" : "justify-start"} animate-fade-up`}>
-                  <div className="max-w-[82%] flex flex-col items-stretch gap-1">
-                    {replied && (
-                      <div className={`text-[10px] px-2 py-1 rounded-lg border border-border bg-surface/60 text-candle-muted truncate ${mine ? "self-end" : "self-start"}`}>
-                        <span className="text-petal">↩</span> {replied.type === "sticker" ? replied.content : replied.content.slice(0, 60)}
-                      </div>
-                    )}
-                    <div className="flex items-center gap-1">
-                      {mine && (
-                        <button
-                          onClick={() => setReplyTo(m)}
-                          className="opacity-0 group-hover:opacity-100 text-candle-muted hover:text-petal transition"
-                          title="Reply"
-                        >
-                          <Reply className="size-3" />
-                        </button>
-                      )}
-                      <div
-                        onDoubleClick={() => react(m, "❤️")}
-                        className={`px-3 py-1.5 rounded-2xl text-sm relative cursor-pointer select-none ${
-                          m.type === "sticker"
-                            ? "bg-transparent"
-                            : mine
-                            ? "bg-petal text-velvet rounded-br-md"
-                            : "bg-surface-elevated text-candle rounded-bl-md border border-border"
-                        }`}
+                  <div className="max-w-[82%] flex items-center gap-1">
+                    {mine && (
+                      <button
+                        onClick={() => remove(m.id)}
+                        className="opacity-0 group-hover:opacity-100 text-candle-muted hover:text-destructive transition"
+                        title="Delete"
                       >
-                        {m.type === "text" ? (
-                          m.content
-                        ) : m.type === "sticker" ? (
-                          <span className="text-4xl">{m.content}</span>
-                        ) : (
-                          "…"
-                        )}
-                      </div>
-                      {!mine && (
-                        <button
-                          onClick={() => setReplyTo(m)}
-                          className="opacity-0 group-hover:opacity-100 text-candle-muted hover:text-petal transition"
-                          title="Reply"
-                        >
-                          <Reply className="size-3" />
-                        </button>
-                      )}
+                        <Trash2 className="size-3" />
+                      </button>
+                    )}
+                    <div
+                      className={`px-3 py-1.5 rounded-2xl text-sm ${
+                        m.type === "sticker"
+                          ? "bg-transparent"
+                          : mine
+                          ? "bg-petal text-velvet rounded-br-md"
+                          : "bg-surface-elevated text-candle rounded-bl-md border border-border"
+                      }`}
+                    >
+                      {m.type === "sticker" ? <span className="text-4xl">{m.content}</span> : m.content}
                     </div>
-                    {reactionEntries.length > 0 && (
-                      <div className={`flex gap-1 ${mine ? "justify-end" : "justify-start"}`}>
-                        {reactionEntries.map(([emoji, arr]) => (
-                          <button
-                            key={emoji}
-                            onClick={() => react(m, emoji)}
-                            className={`h-5 px-1.5 rounded-full text-[10px] border ${
-                              arr.includes(me.id)
-                                ? "bg-petal/20 border-petal text-petal"
-                                : "bg-surface border-border text-candle-muted"
-                            }`}
-                          >
-                            {emoji} {arr.length}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                    {mine && m.read_at && (
-                      <span className="text-[9px] text-petal/70 self-end">seen ✓</span>
-                    )}
                   </div>
                 </div>
               );
@@ -462,22 +416,6 @@ export function WatchTogetherPanel({
           </div>
         )}
 
-        {/* Reply preview */}
-        {replyTo && tab === "chat" && (
-          <div className="px-3 py-2 border-t border-border bg-surface/60 flex items-center gap-2">
-            <div className="size-1 rounded-full bg-petal" />
-            <div className="flex-1 min-w-0">
-              <p className="text-[10px] text-petal">Replying to {replyTo.sender_id === me.id ? "yourself" : partnerFirst}</p>
-              <p className="text-[11px] text-candle-muted truncate">
-                {replyTo.type === "sticker" ? replyTo.content : replyTo.content}
-              </p>
-            </div>
-            <button onClick={() => setReplyTo(null)} className="text-candle-muted p-1">
-              <X className="size-3.5" />
-            </button>
-          </div>
-        )}
-
         {/* Composer */}
         <form onSubmit={submit} className="p-2 border-t border-border flex items-center gap-2">
           <button
@@ -498,7 +436,7 @@ export function WatchTogetherPanel({
               setText(e.target.value);
               sendTyping(e.target.value.length > 0);
             }}
-            placeholder={replyTo ? `Reply to ${partnerFirst}…` : "Say something cozy…"}
+            placeholder={`Discuss ${movieTitle}…`}
             className="flex-1 h-10 px-4 rounded-full bg-surface border border-border text-candle text-sm outline-none focus:border-petal"
           />
           <button
