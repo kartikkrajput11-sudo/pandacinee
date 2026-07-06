@@ -309,6 +309,39 @@ export type Database = {
         }
         Relationships: []
       }
+      movie_chat_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          media_type: string
+          movie_id: number
+          receiver_id: string
+          sender_id: string
+          type: string
+        }
+        Insert: {
+          content?: string
+          created_at?: string
+          id?: string
+          media_type?: string
+          movie_id: number
+          receiver_id: string
+          sender_id: string
+          type?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          media_type?: string
+          movie_id?: number
+          receiver_id?: string
+          sender_id?: string
+          type?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           anniversary_date: string | null
