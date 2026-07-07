@@ -61,6 +61,33 @@ export function WatchTogetherPanel({
   const roomChannel = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const lastCountRef = useRef(0);
 
+  // Draggable panel position (top-left in px). null => default (top-right).
+  const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const dragRef = useRef<{ dx: number; dy: number; active: boolean }>({ dx: 0, dy: 0, active: false });
+
+  function onDragStart(e: React.PointerEvent) {
+    const el = panelRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    dragRef.current = { dx: e.clientX - rect.left, dy: e.clientY - rect.top, active: true };
+    (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
+  }
+  function onDragMove(e: React.PointerEvent) {
+    if (!dragRef.current.active) return;
+    const el = panelRef.current;
+    if (!el) return;
+    const w = el.offsetWidth;
+    const h = el.offsetHeight;
+    const nx = Math.max(4, Math.min(window.innerWidth - w - 4, e.clientX - dragRef.current.dx));
+    const ny = Math.max(4, Math.min(window.innerHeight - h - 4, e.clientY - dragRef.current.dy));
+    setPos({ x: nx, y: ny });
+  }
+  function onDragEnd(e: React.PointerEvent) {
+    dragRef.current.active = false;
+    (e.target as HTMLElement).releasePointerCapture?.(e.pointerId);
+  }
+
   const { messages, send, remove, sendTyping, partnerTyping, partnerPresent } =
     useMovieChat(me.id, partner.id, movieId, mediaType);
 
