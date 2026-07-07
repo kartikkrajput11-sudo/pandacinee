@@ -14,6 +14,7 @@ import {
   Play as PlayIcon,
   Film,
   Trash2,
+  GripVertical,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useMovieChat } from "@/hooks/useMovieChat";
