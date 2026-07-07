@@ -8,6 +8,7 @@ import { watchmodeSources, type WatchSource } from "@/lib/watchmode.functions";
 import { poster } from "./app.movies";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/integrations/supabase/client";
+import { WatchTogetherPanel } from "@/components/watch/WatchTogetherPanel";
 
 export const Route = createFileRoute("/_authenticated/app/movies/$id")({
   component: MovieDetail,
@@ -247,6 +248,17 @@ function MovieDetail() {
           </div>
         )}
       </div>
+
+      {me && partner && movie && (
+        <WatchTogetherPanel
+          me={me}
+          partner={partner}
+          movieId={Number(id)}
+          movieTitle={movie.title}
+          moviePoster={movie.poster_path ? poster(movie.poster_path, "w185") : null}
+          mediaType="movie"
+        />
+      )}
     </div>
   );
 }
