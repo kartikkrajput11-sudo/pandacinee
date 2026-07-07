@@ -237,7 +237,7 @@ export function WatchTogetherPanel({
       {open && minimized && (
         <button
           onClick={() => setMinimized(false)}
-          className="fixed bottom-24 right-4 z-40 h-12 pl-2 pr-4 rounded-full bg-petal text-velvet shadow-xl shadow-petal/40 flex items-center gap-2 hover:scale-105 transition md:bottom-8"
+          className="fixed top-20 right-4 z-40 h-12 pl-2 pr-4 rounded-full bg-petal text-velvet shadow-xl shadow-petal/40 flex items-center gap-2 hover:scale-105 transition"
         >
           <span className="size-8 rounded-full bg-velvet/20 flex items-center justify-center">
             <Film className="size-4" />
@@ -246,11 +246,11 @@ export function WatchTogetherPanel({
         </button>
       )}
 
-      {/* Toggle button */}
+      {/* Toggle button — top-right so bottom nav can't cover it */}
       {(!open || !minimized) && (
         <button
           onClick={() => { setOpen((o) => !o); setMinimized(false); }}
-          className="fixed bottom-24 right-4 z-40 size-14 rounded-full bg-petal text-velvet shadow-xl shadow-petal/40 flex items-center justify-center hover:scale-105 transition md:bottom-8"
+          className="fixed top-20 right-4 z-40 size-14 rounded-full bg-petal text-velvet shadow-xl shadow-petal/40 flex items-center justify-center hover:scale-105 transition"
           aria-label="Open movie chat"
         >
           {open ? <X className="size-5" /> : <MessageCircle className="size-6" />}
@@ -265,15 +265,28 @@ export function WatchTogetherPanel({
         </button>
       )}
 
-      {/* Chat drawer */}
+      {/* Chat drawer — draggable, anchored top-right by default, above bottom nav */}
       <div
-        className={`fixed z-40 bg-velvet/95 backdrop-blur-xl border border-border shadow-2xl transition-transform
-          bottom-0 right-0 left-0 rounded-t-3xl max-h-[80vh] flex flex-col
-          md:left-auto md:bottom-4 md:right-4 md:w-[26rem] md:rounded-3xl md:max-h-[75vh]
-          ${open && !minimized ? "translate-y-0" : "translate-y-[110%]"}`}
+        ref={panelRef}
+        style={
+          pos
+            ? { top: pos.y, left: pos.x, right: "auto", bottom: "auto" }
+            : undefined
+        }
+        className={`fixed z-40 bg-velvet/95 backdrop-blur-xl border border-border shadow-2xl rounded-3xl flex flex-col
+          top-20 right-3 left-3 max-h-[calc(100vh-8rem)]
+          sm:left-auto sm:w-[26rem] sm:max-h-[75vh]
+          transition-opacity ${open && !minimized ? "opacity-100" : "opacity-0 pointer-events-none"}`}
       >
-        {/* Movie-specific header */}
-        <header className="px-4 py-3 flex items-center gap-3 border-b border-border bg-gradient-to-r from-petal/10 to-transparent">
+        {/* Movie-specific header (drag handle) */}
+        <header
+          onPointerDown={onDragStart}
+          onPointerMove={onDragMove}
+          onPointerUp={onDragEnd}
+          onPointerCancel={onDragEnd}
+          className="px-4 py-3 flex items-center gap-3 border-b border-border bg-gradient-to-r from-petal/10 to-transparent cursor-grab active:cursor-grabbing touch-none select-none"
+        >
+          <GripVertical className="size-4 text-candle-muted shrink-0" />
           <div className="relative shrink-0">
             <div className="w-10 h-14 rounded-lg overflow-hidden bg-surface border border-border">
               {moviePoster ? (
