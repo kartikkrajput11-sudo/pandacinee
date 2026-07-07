@@ -14,6 +14,7 @@ import {
   Play as PlayIcon,
   Film,
   Trash2,
+  GripVertical,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useMovieChat } from "@/hooks/useMovieChat";
@@ -59,6 +60,33 @@ export function WatchTogetherPanel({
   const scrollRef = useRef<HTMLDivElement>(null);
   const roomChannel = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const lastCountRef = useRef(0);
+
+  // Draggable panel position (top-left in px). null => default (top-right).
+  const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const dragRef = useRef<{ dx: number; dy: number; active: boolean }>({ dx: 0, dy: 0, active: false });
+
+  function onDragStart(e: React.PointerEvent) {
+    const el = panelRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    dragRef.current = { dx: e.clientX - rect.left, dy: e.clientY - rect.top, active: true };
+    (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
+  }
+  function onDragMove(e: React.PointerEvent) {
+    if (!dragRef.current.active) return;
+    const el = panelRef.current;
+    if (!el) return;
+    const w = el.offsetWidth;
+    const h = el.offsetHeight;
+    const nx = Math.max(4, Math.min(window.innerWidth - w - 4, e.clientX - dragRef.current.dx));
+    const ny = Math.max(4, Math.min(window.innerHeight - h - 4, e.clientY - dragRef.current.dy));
+    setPos({ x: nx, y: ny });
+  }
+  function onDragEnd(e: React.PointerEvent) {
+    dragRef.current.active = false;
+    (e.target as HTMLElement).releasePointerCapture?.(e.pointerId);
+  }
 
   const { messages, send, remove, sendTyping, partnerTyping, partnerPresent } =
     useMovieChat(me.id, partner.id, movieId, mediaType);
@@ -209,7 +237,7 @@ export function WatchTogetherPanel({
       {open && minimized && (
         <button
           onClick={() => setMinimized(false)}
-          className="fixed bottom-24 right-4 z-40 h-12 pl-2 pr-4 rounded-full bg-petal text-velvet shadow-xl shadow-petal/40 flex items-center gap-2 hover:scale-105 transition md:bottom-8"
+          className="fixed top-20 right-4 z-40 h-12 pl-2 pr-4 rounded-full bg-petal text-velvet shadow-xl shadow-petal/40 flex items-center gap-2 hover:scale-105 transition"
         >
           <span className="size-8 rounded-full bg-velvet/20 flex items-center justify-center">
             <Film className="size-4" />
@@ -218,11 +246,11 @@ export function WatchTogetherPanel({
         </button>
       )}
 
-      {/* Toggle button */}
+      {/* Toggle button — top-right so bottom nav can't cover it */}
       {(!open || !minimized) && (
         <button
           onClick={() => { setOpen((o) => !o); setMinimized(false); }}
-          className="fixed bottom-24 right-4 z-40 size-14 rounded-full bg-petal text-velvet shadow-xl shadow-petal/40 flex items-center justify-center hover:scale-105 transition md:bottom-8"
+          className="fixed top-20 right-4 z-40 size-14 rounded-full bg-petal text-velvet shadow-xl shadow-petal/40 flex items-center justify-center hover:scale-105 transition"
           aria-label="Open movie chat"
         >
           {open ? <X className="size-5" /> : <MessageCircle className="size-6" />}
@@ -237,15 +265,28 @@ export function WatchTogetherPanel({
         </button>
       )}
 
-      {/* Chat drawer */}
+      {/* Chat drawer — draggable, anchored top-right by default, above bottom nav */}
       <div
-        className={`fixed z-40 bg-velvet/95 backdrop-blur-xl border border-border shadow-2xl transition-transform
-          bottom-0 right-0 left-0 rounded-t-3xl max-h-[80vh] flex flex-col
-          md:left-auto md:bottom-4 md:right-4 md:w-[26rem] md:rounded-3xl md:max-h-[75vh]
-          ${open && !minimized ? "translate-y-0" : "translate-y-[110%]"}`}
+        ref={panelRef}
+        style={
+          pos
+            ? { top: pos.y, left: pos.x, right: "auto", bottom: "auto" }
+            : undefined
+        }
+        className={`fixed z-40 bg-velvet/95 backdrop-blur-xl border border-border shadow-2xl rounded-3xl flex flex-col
+          top-20 right-3 left-3 max-h-[calc(100vh-8rem)]
+          sm:left-auto sm:w-[26rem] sm:max-h-[75vh]
+          transition-opacity ${open && !minimized ? "opacity-100" : "opacity-0 pointer-events-none"}`}
       >
-        {/* Movie-specific header */}
-        <header className="px-4 py-3 flex items-center gap-3 border-b border-border bg-gradient-to-r from-petal/10 to-transparent">
+        {/* Movie-specific header (drag handle) */}
+        <header
+          onPointerDown={onDragStart}
+          onPointerMove={onDragMove}
+          onPointerUp={onDragEnd}
+          onPointerCancel={onDragEnd}
+          className="px-4 py-3 flex items-center gap-3 border-b border-border bg-gradient-to-r from-petal/10 to-transparent cursor-grab active:cursor-grabbing touch-none select-none"
+        >
+          <GripVertical className="size-4 text-candle-muted shrink-0" />
           <div className="relative shrink-0">
             <div className="w-10 h-14 rounded-lg overflow-hidden bg-surface border border-border">
               {moviePoster ? (
