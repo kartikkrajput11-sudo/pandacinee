@@ -255,7 +255,7 @@ function MovieDetail() {
           partner={partner}
           movieId={Number(id)}
           movieTitle={movie.title}
-          moviePoster={movie.poster_path ? poster(movie.poster_path, "w154") : null}
+          moviePoster={movie.poster_path ? poster(movie.poster_path, "w185") : null}
           mediaType="movie"
         />
       )}
