@@ -13,9 +13,10 @@ export type MovieMessage = {
 };
 
 /**
- * Per-movie chat scoped to a paired couple. Messages are isolated by
- * (movie_id, media_type) and only involve the two partners. This is
- * completely separate from the permanent partner DM (public.messages).
+ * Per-movie EPHEMERAL chat. Nothing is stored — messages exist only for the
+ * duration of the current viewing session and are delivered via Supabase
+ * Realtime broadcast. Opening the same movie later shows an empty chat.
+ * The permanent partner DM lives elsewhere (public.messages).
  */
 export function useMovieChat(
   meId: string | null,
@@ -24,7 +25,7 @@ export function useMovieChat(
   mediaType: "movie" | "tv" = "movie",
 ) {
   const [messages, setMessages] = useState<MovieMessage[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading] = useState(false);
   const [partnerTyping, setPartnerTyping] = useState(false);
   const [partnerPresent, setPartnerPresent] = useState(false);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
@@ -33,51 +34,26 @@ export function useMovieChat(
 
   useEffect(() => {
     if (!meId || !partnerId || !movieId) return;
-    let cancelled = false;
-    setLoading(true);
+    // Fresh chat every time this movie opens
     setMessages([]);
-
-    (async () => {
-      const { data } = await supabase
-        .from("movie_chat_messages")
-        .select("*")
-        .eq("movie_id", movieId)
-        .eq("media_type", mediaType)
-        .or(
-          `and(sender_id.eq.${meId},receiver_id.eq.${partnerId}),and(sender_id.eq.${partnerId},receiver_id.eq.${meId})`,
-        )
-        .order("created_at", { ascending: true })
-        .limit(500);
-      if (!cancelled && data) setMessages(data as MovieMessage[]);
-      setLoading(false);
-    })();
+    setPartnerTyping(false);
+    setPartnerPresent(false);
 
     const topic = `movie-chat:${mediaType}:${movieId}:${[meId, partnerId].sort().join(":")}`;
     const ch = supabase.channel(topic, {
       config: { presence: { key: meId }, broadcast: { self: false } },
     });
 
-    ch.on(
-      "postgres_changes",
-      { event: "INSERT", schema: "public", table: "movie_chat_messages", filter: `movie_id=eq.${movieId}` },
-      (payload) => {
-        const m = payload.new as MovieMessage;
-        if (m.media_type !== mediaType) return;
-        const inPair =
-          (m.sender_id === meId && m.receiver_id === partnerId) ||
-          (m.sender_id === partnerId && m.receiver_id === meId);
-        if (!inPair) return;
-        setMessages((prev) => (prev.some((x) => x.id === m.id) ? prev : [...prev, m]));
-      },
-    );
-    ch.on(
-      "postgres_changes",
-      { event: "DELETE", schema: "public", table: "movie_chat_messages" },
-      (payload) => {
-        const old = payload.old as { id: string };
-        setMessages((prev) => prev.filter((x) => x.id !== old.id));
-      },
-    );
+    ch.on("broadcast", { event: "message" }, ({ payload }) => {
+      const m = payload as MovieMessage;
+      if (!m || m.movie_id !== movieId || m.media_type !== mediaType) return;
+      setMessages((prev) => (prev.some((x) => x.id === m.id) ? prev : [...prev, m]));
+    });
+    ch.on("broadcast", { event: "delete" }, ({ payload }) => {
+      const id = (payload as { id: string })?.id;
+      if (!id) return;
+      setMessages((prev) => prev.filter((x) => x.id !== id));
+    });
     ch.on("broadcast", { event: "typing" }, (e) => {
       setPartnerTyping(Boolean((e.payload as { isTyping?: boolean })?.isTyping));
     });
@@ -92,30 +68,36 @@ export function useMovieChat(
     channelRef.current = ch;
 
     return () => {
-      cancelled = true;
       supabase.removeChannel(ch);
       channelRef.current = null;
+      setMessages([]);
     };
   }, [meId, partnerId, movieId, mediaType]);
 
   const send = useCallback(
     async (content: string, type: "text" | "sticker" = "text") => {
-      if (!meId || !partnerId || !content.trim()) return;
-      const { error } = await supabase.from("movie_chat_messages").insert({
+      const ch = channelRef.current;
+      if (!ch || !meId || !partnerId || !content.trim()) return;
+      const msg: MovieMessage = {
+        id: crypto.randomUUID(),
         movie_id: movieId,
         media_type: mediaType,
         sender_id: meId,
         receiver_id: partnerId,
         content,
         type,
-      });
-      if (error) throw error;
+        created_at: new Date().toISOString(),
+      };
+      // Optimistic local render
+      setMessages((prev) => [...prev, msg]);
+      await ch.send({ type: "broadcast", event: "message", payload: msg });
     },
     [meId, partnerId, movieId, mediaType],
   );
 
   const remove = useCallback(async (id: string) => {
-    await supabase.from("movie_chat_messages").delete().eq("id", id);
+    setMessages((prev) => prev.filter((x) => x.id !== id));
+    await channelRef.current?.send({ type: "broadcast", event: "delete", payload: { id } });
   }, []);
 
   const sendTyping = useCallback((isTyping: boolean) => {
