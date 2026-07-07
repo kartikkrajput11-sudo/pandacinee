@@ -248,6 +248,17 @@ function MovieDetail() {
           </div>
         )}
       </div>
+
+      {me && partner && movie && (
+        <WatchTogetherPanel
+          me={me}
+          partner={partner}
+          movieId={Number(id)}
+          movieTitle={movie.title}
+          moviePoster={movie.poster_path ? poster(movie.poster_path, "w154") : null}
+          mediaType="movie"
+        />
+      )}
     </div>
   );
 }
