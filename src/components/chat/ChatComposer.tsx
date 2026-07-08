@@ -1,8 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { Plus, X, Image as ImageIcon, Paperclip, Smile, Send, Clock } from "lucide-react";
+import { Plus, X, Image as ImageIcon, Paperclip, Smile, Send, Clock, Film } from "lucide-react";
 import { toast } from "sonner";
 import { uploadChatMedia, STICKERS, DISAPPEAR_OPTIONS, type MessageRow } from "@/lib/chat";
 import { VoiceRecorder } from "./VoiceRecorder";
+import { WatchInvitePicker } from "./WatchInvitePicker";
+import type { TmdbMovie } from "@/lib/tmdb.functions";
+
 
 type Props = {
   meId: string;
@@ -12,7 +15,7 @@ type Props = {
   onTyping: (v: boolean) => void;
   onSend: (input: {
     content?: string;
-    type?: "text" | "voice" | "image" | "file" | "sticker";
+    type?: "text" | "voice" | "image" | "file" | "sticker" | "watch_invite";
     media_url?: string | null;
     media_meta?: Record<string, unknown> | null;
     reply_to_id?: string | null;
@@ -27,8 +30,33 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
   const [stickersOpen, setStickersOpen] = useState(false);
   const [disappearSecs, setDisappearSecs] = useState<number | null>(null);
   const [disappearMenu, setDisappearMenu] = useState(false);
+  const [watchPickerOpen, setWatchPickerOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const imgRef = useRef<HTMLInputElement>(null);
+
+  async function sendWatchInvite(movie: TmdbMovie) {
+    setWatchPickerOpen(false);
+    setMenuOpen(false);
+    try {
+      await onSend({
+        type: "watch_invite",
+        content: movie.title,
+        media_meta: {
+          tmdb_id: movie.id,
+          media_type: "movie",
+          poster_path: movie.poster_path,
+          release_date: movie.release_date,
+          vote_average: movie.vote_average,
+          overview: movie.overview,
+        },
+        reply_to_id: replyTo?.id ?? null,
+        disappear_seconds: disappearSecs,
+      });
+      onClearReply();
+    } catch (err: any) {
+      toast.error(err?.message ?? "Failed to send invite");
+    }
+  }
 
   useEffect(() => {
     if (replyTo) onTyping(false);
