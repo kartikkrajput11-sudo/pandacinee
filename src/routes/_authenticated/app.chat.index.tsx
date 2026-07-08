@@ -108,6 +108,7 @@ function previewText(last: { content: string; type: string; sender_id: string } 
   if (last.type === "image") return prefix + "📷 Photo";
   if (last.type === "file") return prefix + "📎 File";
   if (last.type === "sticker") return prefix + last.content;
+  if (last.type === "watch_invite") return prefix + `🎬 Watch invite: ${last.content}`;
   return prefix + last.content;
 }
 
