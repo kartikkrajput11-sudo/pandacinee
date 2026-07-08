@@ -3,6 +3,8 @@ import { Heart, Pin, Trash2, Reply, Check, CheckCheck, Download } from "lucide-r
 import { signMedia, type MessageRow } from "@/lib/chat";
 import { VoicePlayer } from "./VoicePlayer";
 import { SignedImage } from "./SignedImage";
+import { WatchInviteCard } from "./WatchInviteCard";
+
 
 const QUICK_REACTIONS = ["❤️", "😂", "🥺", "🔥", "🐼", "👍"];
 
@@ -38,6 +40,8 @@ export function ChatBubble({
   const reactionsEntries = Object.entries(m.reactions ?? {}).filter(([, ids]) => ids.length > 0);
 
   const isSticker = m.type === "sticker";
+  const isWatchInvite = m.type === "watch_invite";
+
 
   return (
     <div className={`group flex ${mine ? "justify-end" : "justify-start"} mt-1.5 px-1`}>
@@ -49,12 +53,14 @@ export function ChatBubble({
         )}
         <button
           onClick={() => setActionsOpen((o) => !o)}
-          className={`relative text-left px-3 py-2 rounded-2xl text-sm leading-relaxed transition-colors ${
+          className={`relative text-left rounded-2xl text-sm leading-relaxed transition-colors ${
             isSticker
               ? "bg-transparent p-0 text-6xl leading-none"
+              : isWatchInvite
+              ? "bg-transparent p-0"
               : mine
-              ? "bg-petal text-velvet rounded-br-md"
-              : "bg-surface-elevated text-candle rounded-bl-md border border-border"
+              ? "bg-petal text-velvet rounded-br-md px-3 py-2"
+              : "bg-surface-elevated text-candle rounded-bl-md border border-border px-3 py-2"
           }`}
         >
           {replyTo && (
@@ -70,6 +76,8 @@ export function ChatBubble({
 
           {m.type === "text" && <p className="whitespace-pre-wrap break-words">{m.content}</p>}
           {m.type === "sticker" && <span>{m.content}</span>}
+          {isWatchInvite && <WatchInviteCard m={m} mine={mine} />}
+
           {m.type === "voice" && m.media_url && (
             <VoicePlayer path={m.media_url} durationMs={(m.media_meta as any)?.duration_ms} />
           )}

@@ -1,8 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { Plus, X, Image as ImageIcon, Paperclip, Smile, Send, Clock } from "lucide-react";
+import { Plus, X, Image as ImageIcon, Paperclip, Smile, Send, Clock, Film } from "lucide-react";
 import { toast } from "sonner";
 import { uploadChatMedia, STICKERS, DISAPPEAR_OPTIONS, type MessageRow } from "@/lib/chat";
 import { VoiceRecorder } from "./VoiceRecorder";
+import { WatchInvitePicker } from "./WatchInvitePicker";
+import type { TmdbMovie } from "@/lib/tmdb.functions";
+
 
 type Props = {
   meId: string;
@@ -12,7 +15,7 @@ type Props = {
   onTyping: (v: boolean) => void;
   onSend: (input: {
     content?: string;
-    type?: "text" | "voice" | "image" | "file" | "sticker";
+    type?: "text" | "voice" | "image" | "file" | "sticker" | "watch_invite";
     media_url?: string | null;
     media_meta?: Record<string, unknown> | null;
     reply_to_id?: string | null;
@@ -27,8 +30,33 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
   const [stickersOpen, setStickersOpen] = useState(false);
   const [disappearSecs, setDisappearSecs] = useState<number | null>(null);
   const [disappearMenu, setDisappearMenu] = useState(false);
+  const [watchPickerOpen, setWatchPickerOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const imgRef = useRef<HTMLInputElement>(null);
+
+  async function sendWatchInvite(movie: TmdbMovie) {
+    setWatchPickerOpen(false);
+    setMenuOpen(false);
+    try {
+      await onSend({
+        type: "watch_invite",
+        content: movie.title,
+        media_meta: {
+          tmdb_id: movie.id,
+          media_type: "movie",
+          poster_path: movie.poster_path,
+          release_date: movie.release_date,
+          vote_average: movie.vote_average,
+          overview: movie.overview,
+        },
+        reply_to_id: replyTo?.id ?? null,
+        disappear_seconds: disappearSecs,
+      });
+      onClearReply();
+    } catch (err: any) {
+      toast.error(err?.message ?? "Failed to send invite");
+    }
+  }
 
   useEffect(() => {
     if (replyTo) onTyping(false);
@@ -156,16 +184,23 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
       )}
 
       {menuOpen && (
-        <div className="px-4 py-3 flex gap-2 border-b border-border/60 bg-surface/40">
-          <button onClick={() => imgRef.current?.click()} className="flex-1 flex flex-col items-center gap-1 p-3 rounded-2xl bg-surface border border-border text-candle">
+        <div className="px-4 py-3 grid grid-cols-4 gap-2 border-b border-border/60 bg-surface/40">
+          <button onClick={() => imgRef.current?.click()} className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-surface border border-border text-candle">
             <ImageIcon className="size-5 text-petal" />
             <span className="text-xs">Photo</span>
           </button>
-          <button onClick={() => fileRef.current?.click()} className="flex-1 flex flex-col items-center gap-1 p-3 rounded-2xl bg-surface border border-border text-candle">
+          <button onClick={() => fileRef.current?.click()} className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-surface border border-border text-candle">
             <Paperclip className="size-5 text-petal" />
             <span className="text-xs">File</span>
           </button>
-          <button onClick={() => { setDisappearMenu((d) => !d); }} className="flex-1 flex flex-col items-center gap-1 p-3 rounded-2xl bg-surface border border-border text-candle relative">
+          <button
+            onClick={() => { setWatchPickerOpen(true); setMenuOpen(false); }}
+            className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-petal-soft/40 border border-petal/40 text-candle"
+          >
+            <Film className="size-5 text-petal" />
+            <span className="text-xs">Watch</span>
+          </button>
+          <button onClick={() => { setDisappearMenu((d) => !d); }} className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-surface border border-border text-candle relative">
             <Clock className="size-5 text-petal" />
             <span className="text-xs">{disappearSecs ? "Vanish" : "Disappear"}</span>
             {disappearMenu && (
@@ -184,6 +219,9 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
           </button>
         </div>
       )}
+
+      <WatchInvitePicker open={watchPickerOpen} onClose={() => setWatchPickerOpen(false)} onPick={sendWatchInvite} />
+
 
       <form onSubmit={sendText} className="px-3 py-3 flex items-center gap-2">
         <input ref={imgRef} type="file" accept="image/*" className="hidden" onChange={handleImage} />
