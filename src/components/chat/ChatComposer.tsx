@@ -184,16 +184,23 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
       )}
 
       {menuOpen && (
-        <div className="px-4 py-3 flex gap-2 border-b border-border/60 bg-surface/40">
-          <button onClick={() => imgRef.current?.click()} className="flex-1 flex flex-col items-center gap-1 p-3 rounded-2xl bg-surface border border-border text-candle">
+        <div className="px-4 py-3 grid grid-cols-4 gap-2 border-b border-border/60 bg-surface/40">
+          <button onClick={() => imgRef.current?.click()} className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-surface border border-border text-candle">
             <ImageIcon className="size-5 text-petal" />
             <span className="text-xs">Photo</span>
           </button>
-          <button onClick={() => fileRef.current?.click()} className="flex-1 flex flex-col items-center gap-1 p-3 rounded-2xl bg-surface border border-border text-candle">
+          <button onClick={() => fileRef.current?.click()} className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-surface border border-border text-candle">
             <Paperclip className="size-5 text-petal" />
             <span className="text-xs">File</span>
           </button>
-          <button onClick={() => { setDisappearMenu((d) => !d); }} className="flex-1 flex flex-col items-center gap-1 p-3 rounded-2xl bg-surface border border-border text-candle relative">
+          <button
+            onClick={() => { setWatchPickerOpen(true); setMenuOpen(false); }}
+            className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-petal-soft/40 border border-petal/40 text-candle"
+          >
+            <Film className="size-5 text-petal" />
+            <span className="text-xs">Watch</span>
+          </button>
+          <button onClick={() => { setDisappearMenu((d) => !d); }} className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-surface border border-border text-candle relative">
             <Clock className="size-5 text-petal" />
             <span className="text-xs">{disappearSecs ? "Vanish" : "Disappear"}</span>
             {disappearMenu && (
@@ -212,6 +219,9 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
           </button>
         </div>
       )}
+
+      <WatchInvitePicker open={watchPickerOpen} onClose={() => setWatchPickerOpen(false)} onPick={sendWatchInvite} />
+
 
       <form onSubmit={sendText} className="px-3 py-3 flex items-center gap-2">
         <input ref={imgRef} type="file" accept="image/*" className="hidden" onChange={handleImage} />
