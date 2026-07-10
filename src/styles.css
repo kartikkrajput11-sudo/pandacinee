@@ -134,6 +134,20 @@
   box-shadow: var(--shadow-petal);
 }
 
+@utility bloom-glow {
+  box-shadow: var(--shadow-bloom);
+}
+
+@utility aurora-bg {
+  background: var(--gradient-aurora);
+}
+
+@utility glass {
+  background: color-mix(in oklab, var(--surface) 60%, transparent);
+  backdrop-filter: blur(24px) saturate(140%);
+  border: 1px solid var(--border);
+}
+
 /* Animations */
 @keyframes float-petal {
   0% { transform: translateY(-10vh) translateX(0) rotate(0deg); opacity: 0; }
@@ -142,8 +156,8 @@
   100% { transform: translateY(110vh) translateX(60px) rotate(360deg); opacity: 0; }
 }
 @keyframes pulse-soft {
-  0%, 100% { opacity: 0.6; }
-  50% { opacity: 1; }
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.04); }
 }
 @keyframes fade-up {
   from { opacity: 0; transform: translateY(16px); }
@@ -158,8 +172,19 @@
   15% { opacity: 1; transform: translateY(-20px) scale(1.1); }
   100% { transform: translateY(-60vh) scale(1) rotate(15deg); opacity: 0; }
 }
+@keyframes bloom-ring {
+  0% { transform: scale(0.8); opacity: 0.7; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
 
 .animate-petal { animation: float-petal 12s linear infinite; }
 .animate-pulse-soft { animation: pulse-soft 2.4s var(--ease-out-expo) infinite; }
 .animate-fade-up { animation: fade-up 0.7s var(--ease-out-expo) both; }
 .animate-float-up { animation: float-up 3s ease-out forwards; }
+.animate-bloom-ring { animation: bloom-ring 2s ease-out infinite; }
+.animate-gradient { background-size: 200% 200%; animation: gradient-shift 8s ease infinite; }
+
