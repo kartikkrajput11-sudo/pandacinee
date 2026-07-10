@@ -5,14 +5,14 @@
 @custom-variant dark (&:is(.dark *));
 
 /* ============================================================
- * PANDACINE — Velvet Evening Glow
- * Cinema for two: deep velvet night, warm petal coral, candle cream.
- * All tokens are oklch; never hardcode colors in components.
+ * PANDACINE — Midnight Sakura
+ * Deep indigo night + cherry-blossom petal glow.
+ * Palette anchors: #0b0b1e, #181633, #f2b5c9, #e85d90
  * ============================================================ */
 
 @theme inline {
-  --font-serif: "Instrument Serif", ui-serif, Georgia, serif;
-  --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Cormorant Garamond", ui-serif, Georgia, serif;
+  --font-sans: "Karla", ui-sans-serif, system-ui, sans-serif;
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -28,6 +28,7 @@
   --color-surface-elevated: var(--surface-elevated);
   --color-petal: var(--petal);
   --color-petal-soft: var(--petal-soft);
+  --color-petal-bloom: var(--petal-bloom);
   --color-candle: var(--candle);
   --color-candle-muted: var(--candle-muted);
   --color-lavender: var(--lavender);
@@ -50,43 +51,51 @@
   --color-ring: var(--petal);
   --color-ring-offset-background: var(--background);
 
-  --shadow-petal: 0 20px 60px -20px color-mix(in oklab, var(--petal) 40%, transparent);
-  --shadow-velvet: 0 30px 80px -30px oklch(0 0 0 / 0.6);
+  --shadow-petal: 0 20px 60px -20px color-mix(in oklab, var(--petal) 55%, transparent);
+  --shadow-velvet: 0 30px 80px -30px oklch(0 0 0 / 0.7);
+  --shadow-bloom: 0 0 40px color-mix(in oklab, var(--petal-bloom) 35%, transparent);
 
   --gradient-velvet: radial-gradient(
-    ellipse at 50% 0%,
-    color-mix(in oklab, var(--petal) 14%, var(--velvet)) 0%,
-    var(--velvet) 60%
+    ellipse at 50% -10%,
+    color-mix(in oklab, var(--petal) 22%, var(--velvet)) 0%,
+    color-mix(in oklab, var(--lavender) 10%, var(--velvet)) 45%,
+    var(--velvet) 80%
   );
   --gradient-petal: linear-gradient(
     135deg,
-    color-mix(in oklab, var(--petal) 30%, transparent),
-    color-mix(in oklab, var(--lavender) 25%, transparent)
+    var(--petal) 0%,
+    var(--petal-bloom) 100%
+  );
+  --gradient-aurora: linear-gradient(
+    135deg,
+    color-mix(in oklab, var(--petal) 40%, transparent),
+    color-mix(in oklab, var(--lavender) 50%, transparent)
   );
 
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 :root {
-  --radius: 1rem;
-  /* Velvet evening — deep aubergine night */
-  --velvet: oklch(0.16 0.04 305);
-  --background: oklch(0.16 0.04 305);
-  --surface: oklch(0.22 0.05 305);
-  --surface-elevated: oklch(0.27 0.055 305);
-  --foreground: oklch(0.96 0.025 85);
-  --candle: oklch(0.96 0.025 85);
-  --candle-muted: oklch(0.78 0.04 85 / 0.7);
-  --petal: oklch(0.72 0.16 25);
-  --petal-soft: oklch(0.72 0.16 25 / 0.18);
-  --lavender: oklch(0.78 0.09 305);
-  --border: oklch(1 0 0 / 0.08);
-  --input: oklch(1 0 0 / 0.1);
+  --radius: 1.15rem;
+  /* Midnight Sakura */
+  --velvet: oklch(0.12 0.05 275);           /* #0b0b1e */
+  --background: oklch(0.12 0.05 275);
+  --surface: oklch(0.19 0.07 275);          /* #181633 */
+  --surface-elevated: oklch(0.24 0.08 278);
+  --foreground: oklch(0.97 0.015 340);
+  --candle: oklch(0.97 0.015 340);
+  --candle-muted: oklch(0.78 0.03 320 / 0.75);
+  --petal: oklch(0.72 0.20 355);             /* #e85d90 */
+  --petal-bloom: oklch(0.86 0.08 350);       /* #f2b5c9 */
+  --petal-soft: oklch(0.72 0.20 355 / 0.16);
+  --lavender: oklch(0.75 0.10 295);
+  --border: oklch(1 0 0 / 0.09);
+  --input: oklch(1 0 0 / 0.11);
 }
 
 .dark {
-  --background: oklch(0.16 0.04 305);
-  --foreground: oklch(0.96 0.025 85);
+  --background: oklch(0.12 0.05 275);
+  --foreground: oklch(0.97 0.015 340);
 }
 
 @layer base {
@@ -125,6 +134,20 @@
   box-shadow: var(--shadow-petal);
 }
 
+@utility bloom-glow {
+  box-shadow: var(--shadow-bloom);
+}
+
+@utility aurora-bg {
+  background: var(--gradient-aurora);
+}
+
+@utility glass {
+  background: color-mix(in oklab, var(--surface) 60%, transparent);
+  backdrop-filter: blur(24px) saturate(140%);
+  border: 1px solid var(--border);
+}
+
 /* Animations */
 @keyframes float-petal {
   0% { transform: translateY(-10vh) translateX(0) rotate(0deg); opacity: 0; }
@@ -133,8 +156,8 @@
   100% { transform: translateY(110vh) translateX(60px) rotate(360deg); opacity: 0; }
 }
 @keyframes pulse-soft {
-  0%, 100% { opacity: 0.6; }
-  50% { opacity: 1; }
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.04); }
 }
 @keyframes fade-up {
   from { opacity: 0; transform: translateY(16px); }
@@ -149,8 +172,19 @@
   15% { opacity: 1; transform: translateY(-20px) scale(1.1); }
   100% { transform: translateY(-60vh) scale(1) rotate(15deg); opacity: 0; }
 }
+@keyframes bloom-ring {
+  0% { transform: scale(0.8); opacity: 0.7; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
 
 .animate-petal { animation: float-petal 12s linear infinite; }
 .animate-pulse-soft { animation: pulse-soft 2.4s var(--ease-out-expo) infinite; }
 .animate-fade-up { animation: fade-up 0.7s var(--ease-out-expo) both; }
 .animate-float-up { animation: float-up 3s ease-out forwards; }
+.animate-bloom-ring { animation: bloom-ring 2s ease-out infinite; }
+.animate-gradient { background-size: 200% 200%; animation: gradient-shift 8s ease infinite; }
+
