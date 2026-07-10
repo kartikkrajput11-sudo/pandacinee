@@ -1,11 +1,13 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, Mic, MicOff, Video, VideoOff, PhoneOff, MessageCircle, X } from "lucide-react";
+import { ArrowLeft, Mic, MicOff, Video, VideoOff, PhoneOff, MessageCircle, X, Signal, Volume2 } from "lucide-react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useWebRTCCall } from "@/hooks/useWebRTCCall";
 import { useProfile } from "@/hooks/useProfile";
 import { useChat } from "@/hooks/useChat";
+import { useSpeakingLevel } from "@/hooks/useSpeakingLevel";
+import { AudioWaveform } from "@/components/call/AudioWaveform";
 import { ChatBubble } from "@/components/chat/ChatBubble";
 import { ChatComposer } from "@/components/chat/ChatComposer";
 import type { MessageRow } from "@/lib/chat";
