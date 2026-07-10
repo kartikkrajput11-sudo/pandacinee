@@ -83,39 +83,39 @@ function Home() {
         </div>
       )}
 
-      {/* Bento quick-actions */}
-      <div className="relative z-10 grid grid-cols-4 gap-3 mb-4">
+      {/* Quick actions */}
+      <div className="relative z-10 grid grid-cols-2 gap-3 mb-5">
         <Link
           to="/app/chat"
-          className="col-span-2 row-span-2 p-5 bg-surface rounded-3xl border border-border hover:border-petal/50 transition-all hover:-translate-y-0.5 relative overflow-hidden group"
+          className="p-4 bg-surface rounded-2xl border border-border hover:border-petal/40 transition-colors"
         >
-          <div className="absolute -top-8 -right-8 size-32 aurora-bg rounded-full blur-2xl opacity-40 group-hover:opacity-70 transition-opacity" />
-          <MessageCircle className="size-6 text-petal mb-3 relative" />
-          <p className="text-[10px] uppercase tracking-widest text-candle-muted relative">Whisper</p>
-          <p className="font-serif italic text-2xl mt-0.5 relative">Chats</p>
-          <p className="text-xs text-candle-muted mt-2 relative">Private messages, voice notes, stickers</p>
+          <MessageCircle className="size-5 text-petal mb-2" />
+          <p className="text-[10px] uppercase tracking-widest text-candle-muted">Whisper</p>
+          <p className="font-serif italic text-lg mt-0.5">Chats</p>
+        </Link>
+        <Link
+          to="/app/anniversary"
+          className="p-4 bg-surface rounded-2xl border border-border hover:border-petal/40 transition-colors"
+        >
+          <Calendar className="size-5 text-petal mb-2" />
+          <p className="text-[10px] uppercase tracking-widest text-candle-muted">Just for us</p>
+          <p className="font-serif italic text-lg mt-0.5">Anniversary</p>
         </Link>
         <Link
           to="/app/watch"
-          className="col-span-2 p-4 bg-surface rounded-3xl border border-border hover:border-petal/50 transition-all hover:-translate-y-0.5 relative overflow-hidden"
+          className="p-4 bg-surface rounded-2xl border border-border hover:border-petal/40 transition-colors"
         >
           <Film className="size-5 text-petal mb-2" />
           <p className="text-[10px] uppercase tracking-widest text-candle-muted">Tonight</p>
           <p className="font-serif italic text-lg mt-0.5">Watch together</p>
         </Link>
         <Link
-          to="/app/anniversary"
-          className="p-4 bg-surface rounded-3xl border border-border hover:border-petal/50 transition-all flex flex-col items-center text-center justify-center gap-1"
-        >
-          <Calendar className="size-5 text-petal" />
-          <span className="text-[10px] font-semibold text-candle">Anniversary</span>
-        </Link>
-        <Link
           to="/app/play"
-          className="p-4 bg-surface rounded-3xl border border-border hover:border-petal/50 transition-all flex flex-col items-center text-center justify-center gap-1"
+          className="p-4 bg-surface rounded-2xl border border-border hover:border-petal/40 transition-colors"
         >
-          <Sparkles className="size-5 text-petal" />
-          <span className="text-[10px] font-semibold text-candle">Play</span>
+          <Sparkles className="size-5 text-petal mb-2" />
+          <p className="text-[10px] uppercase tracking-widest text-candle-muted">Together</p>
+          <p className="font-serif italic text-lg mt-0.5">Play games</p>
         </Link>
       </div>
 
