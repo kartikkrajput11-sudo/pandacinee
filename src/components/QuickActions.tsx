@@ -4,7 +4,7 @@ import type { ComponentType } from "react";
 
 type Action = {
   label: string;
-  Icon: ComponentType<{ className?: string }>;
+  Icon: ComponentType<{ className?: string; style?: React.CSSProperties }>;
   to: string;
   search?: Record<string, unknown>;
   tint: string;
