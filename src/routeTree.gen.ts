@@ -26,6 +26,7 @@ import { Route as AuthenticatedAppFriendsRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAppAnniversaryRouteImport } from './routes/_authenticated/app.anniversary'
 import { Route as AuthenticatedAppMoviesIndexRouteImport } from './routes/_authenticated/app.movies.index'
 import { Route as AuthenticatedAppChatIndexRouteImport } from './routes/_authenticated/app.chat.index'
+import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as AuthenticatedAppMoviesIdRouteImport } from './routes/_authenticated/app.movies.$id'
 import { Route as AuthenticatedAppGamesGameRouteImport } from './routes/_authenticated/app.games.$game'
 import { Route as AuthenticatedAppChatPeerIdRouteImport } from './routes/_authenticated/app.chat.$peerId'
@@ -121,6 +122,12 @@ const AuthenticatedAppChatIndexRoute =
     path: '/chat/',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const LovableEmailQueueProcessRoute =
+  LovableEmailQueueProcessRouteImport.update({
+    id: '/lovable/email/queue/process',
+    path: '/lovable/email/queue/process',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedAppMoviesIdRoute =
   AuthenticatedAppMoviesIdRouteImport.update({
     id: '/$id',
@@ -171,6 +178,7 @@ export interface FileRoutesByFullPath {
   '/app/chat/$peerId': typeof AuthenticatedAppChatPeerIdRoute
   '/app/games/$game': typeof AuthenticatedAppGamesGameRoute
   '/app/movies/$id': typeof AuthenticatedAppMoviesIdRouteWithChildren
+  '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/app/chat/': typeof AuthenticatedAppChatIndexRoute
   '/app/movies/': typeof AuthenticatedAppMoviesIndexRoute
   '/app/movies/$id/watch': typeof AuthenticatedAppMoviesIdWatchRoute
@@ -192,6 +200,7 @@ export interface FileRoutesByTo {
   '/app/chat/$peerId': typeof AuthenticatedAppChatPeerIdRoute
   '/app/games/$game': typeof AuthenticatedAppGamesGameRoute
   '/app/movies/$id': typeof AuthenticatedAppMoviesIdRouteWithChildren
+  '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/app/chat': typeof AuthenticatedAppChatIndexRoute
   '/app/movies': typeof AuthenticatedAppMoviesIndexRoute
   '/app/movies/$id/watch': typeof AuthenticatedAppMoviesIdWatchRoute
@@ -217,6 +226,7 @@ export interface FileRoutesById {
   '/_authenticated/app/chat/$peerId': typeof AuthenticatedAppChatPeerIdRoute
   '/_authenticated/app/games/$game': typeof AuthenticatedAppGamesGameRoute
   '/_authenticated/app/movies/$id': typeof AuthenticatedAppMoviesIdRouteWithChildren
+  '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/_authenticated/app/chat/': typeof AuthenticatedAppChatIndexRoute
   '/_authenticated/app/movies/': typeof AuthenticatedAppMoviesIndexRoute
   '/_authenticated/app/movies/$id/watch': typeof AuthenticatedAppMoviesIdWatchRoute
@@ -242,6 +252,7 @@ export interface FileRouteTypes {
     | '/app/chat/$peerId'
     | '/app/games/$game'
     | '/app/movies/$id'
+    | '/lovable/email/queue/process'
     | '/app/chat/'
     | '/app/movies/'
     | '/app/movies/$id/watch'
@@ -263,6 +274,7 @@ export interface FileRouteTypes {
     | '/app/chat/$peerId'
     | '/app/games/$game'
     | '/app/movies/$id'
+    | '/lovable/email/queue/process'
     | '/app/chat'
     | '/app/movies'
     | '/app/movies/$id/watch'
@@ -287,6 +299,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/chat/$peerId'
     | '/_authenticated/app/games/$game'
     | '/_authenticated/app/movies/$id'
+    | '/lovable/email/queue/process'
     | '/_authenticated/app/chat/'
     | '/_authenticated/app/movies/'
     | '/_authenticated/app/movies/$id/watch'
@@ -296,6 +309,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -419,6 +433,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppChatIndexRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/lovable/email/queue/process': {
+      id: '/lovable/email/queue/process'
+      path: '/lovable/email/queue/process'
+      fullPath: '/lovable/email/queue/process'
+      preLoaderRoute: typeof LovableEmailQueueProcessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/app/movies/$id': {
       id: '/_authenticated/app/movies/$id'
       path: '/$id'
@@ -541,17 +562,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
