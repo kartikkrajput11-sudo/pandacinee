@@ -22,15 +22,24 @@ export function BottomNav() {
   const location = useLocation();
   return (
     <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[440px] z-40">
-      <div className="mx-3 mb-3 h-16 px-2 bg-surface border border-border rounded-full flex items-center justify-around shadow-2xl">
-
+      <div className="mx-3 mb-3 h-[62px] px-3 glass-strong rounded-full flex items-center justify-around shadow-2xl">
         {items.map(({ to, label, Icon, primary, exact, search }) => {
           const active = exact ? location.pathname === to : location.pathname.startsWith(to);
           if (primary) {
             return (
-              <Link key={to} to={to} search={search as any} className="flex flex-col items-center gap-0.5" aria-label={label}>
-                <div className="size-12 -translate-y-4 rounded-full bg-petal text-velvet flex items-center justify-center petal-glow">
-                  <Icon className="size-5" />
+              <Link
+                key={to}
+                to={to}
+                search={search as any}
+                className="flex flex-col items-center active:scale-95 transition-transform"
+                aria-label={label}
+              >
+                <div className="relative size-11 -translate-y-3 rounded-full bg-petal text-velvet flex items-center justify-center petal-glow">
+                  <Icon className="size-[18px]" />
+                  <span
+                    aria-hidden
+                    className="absolute inset-0 rounded-full animate-glow-breath pointer-events-none"
+                  />
                 </div>
               </Link>
             );
@@ -40,13 +49,27 @@ export function BottomNav() {
               key={to}
               to={to}
               search={search as any}
-              className={`flex flex-col items-center gap-0.5 px-3 py-2 rounded-full transition-colors ${
-                active ? "text-petal" : "text-candle-muted hover:text-candle"
-              }`}
+              className="relative flex flex-col items-center gap-0.5 px-3 py-2 rounded-full transition-colors active:scale-95"
               aria-label={label}
             >
-              <Icon className="size-5" />
-              <span className="text-[9px] uppercase tracking-wider font-semibold">{label}</span>
+              <Icon
+                className={`size-[20px] transition-all duration-300 ${
+                  active ? "text-petal scale-110" : "text-candle-muted"
+                }`}
+              />
+              <span
+                className={`text-[9px] uppercase tracking-wider font-semibold transition-colors ${
+                  active ? "text-petal" : "text-candle-muted/80"
+                }`}
+              >
+                {label}
+              </span>
+              {active && (
+                <span
+                  aria-hidden
+                  className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 size-1 rounded-full bg-petal petal-glow"
+                />
+              )}
             </Link>
           );
         })}

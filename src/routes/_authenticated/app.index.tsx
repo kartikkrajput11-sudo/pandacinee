@@ -4,7 +4,10 @@ import { Petals } from "@/components/Petals";
 import { CountdownCard } from "@/components/CountdownCard";
 import { StreakBadge } from "@/components/StreakBadge";
 import { DailyQuestionCard } from "@/components/DailyQuestionCard";
-import { Sparkles, Heart, Calendar, ArrowRight, Film, MessageCircle, Users, Gift, BookHeart, LineChart, Clapperboard } from "lucide-react";
+import { PartnerPresenceCard } from "@/components/PartnerPresenceCard";
+import { QuickActions } from "@/components/QuickActions";
+import { MemoryOfTheDayCard } from "@/components/MemoryOfTheDayCard";
+import { Heart, ArrowRight, Users, LineChart, Clapperboard, BookHeart, Gift } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/app/")({
   component: Home,
@@ -19,31 +22,33 @@ function Home() {
   const partnerName = partner ? (profile?.partner_nickname || partner.display_name) : "your panda";
 
   return (
-    <div className="relative px-5 pt-10">
+    <div className="relative px-5 pt-10 space-y-6">
       <Petals count={4} />
 
-      <header className="relative z-10 flex items-start justify-between mb-6">
+      {/* Header */}
+      <header className="relative z-10 flex items-start justify-between">
         <div>
-          <p className="text-[10px] uppercase tracking-[0.2em] text-petal mb-1">{greeting}</p>
-          <h1 className="font-serif text-3xl italic">
+          <p className="text-[10px] uppercase tracking-[0.22em] text-petal mb-1">{greeting}</p>
+          <h1 className="font-serif text-3xl italic leading-tight">
             {isLoading ? "…" : profile?.display_name?.split(" ")[0] ?? "Friend"}
           </h1>
           {partner && (
             <p className="text-xs text-candle-muted mt-1">
-              with {partnerName} ❤︎
+              with {partnerName} <span className="text-petal">❤︎</span>
             </p>
           )}
         </div>
         <Avatar profile={profile} />
       </header>
 
+      {/* Invite banner (no partner) */}
       {!partner && !isLoading && (
         <Link
           to="/app/invite"
-          className="relative z-10 block mb-5 p-5 rounded-3xl border border-petal/30 bg-petal-soft hover:bg-petal/25 transition-colors"
+          className="relative z-10 block p-5 rounded-3xl glass-strong hover:-translate-y-0.5 transition-transform"
         >
           <div className="flex items-start gap-4">
-            <div className="size-10 rounded-2xl bg-petal text-velvet flex items-center justify-center shrink-0">
+            <div className="size-11 rounded-2xl bg-petal text-velvet flex items-center justify-center shrink-0 petal-glow">
               <Heart className="size-5" />
             </div>
             <div className="flex-1">
@@ -57,102 +62,125 @@ function Home() {
         </Link>
       )}
 
-      {/* Live anniversary countdown */}
+      {/* Hero: Anniversary countdown */}
       {partner && (
-        <div className="relative z-10 mb-5">
+        <div className="relative z-10">
           <CountdownCard
             anniversaryDate={profile?.anniversary_date ?? null}
             pairedAt={profile?.paired_at ?? null}
             emoji={profile?.favorite_emoji ?? "🌸"}
             accent={profile?.favorite_color ?? "#f87171"}
+            me={profile ? { display_name: profile.display_name, avatar_url: profile.avatar_url } : null}
+            partner={{ display_name: partner.display_name, avatar_url: partner.avatar_url }}
           />
         </div>
       )}
 
-      {/* Streak */}
+      {/* Partner presence */}
+      {partner && (
+        <div className="relative z-10">
+          <PartnerPresenceCard partner={partner} nickname={profile?.partner_nickname ?? undefined} />
+        </div>
+      )}
+
+      {/* Couple streak */}
       {profile && (
-        <div className="relative z-10 mb-5">
+        <div className="relative z-10">
           <StreakBadge meId={profile.id} partnerId={profile.partner_id} />
         </div>
       )}
 
-      {/* Daily question */}
+      {/* Today's question */}
       {profile && (
-        <div className="relative z-10 mb-5">
+        <div className="relative z-10">
           <DailyQuestionCard meId={profile.id} partnerId={profile.partner_id} partnerName={partnerName} />
         </div>
       )}
 
       {/* Quick actions */}
-      <div className="relative z-10 grid grid-cols-2 gap-3 mb-5">
-        <Link
-          to="/app/chat"
-          className="p-4 bg-surface rounded-2xl border border-border hover:border-petal/40 transition-colors"
-        >
-          <MessageCircle className="size-5 text-petal mb-2" />
-          <p className="text-[10px] uppercase tracking-widest text-candle-muted">Whisper</p>
-          <p className="font-serif italic text-lg mt-0.5">Chats</p>
-        </Link>
-        <Link
-          to="/app/anniversary"
-          className="p-4 bg-surface rounded-2xl border border-border hover:border-petal/40 transition-colors"
-        >
-          <Calendar className="size-5 text-petal mb-2" />
-          <p className="text-[10px] uppercase tracking-widest text-candle-muted">Just for us</p>
-          <p className="font-serif italic text-lg mt-0.5">Anniversary</p>
-        </Link>
-        <Link
-          to="/app/watch"
-          className="p-4 bg-surface rounded-2xl border border-border hover:border-petal/40 transition-colors"
-        >
-          <Film className="size-5 text-petal mb-2" />
-          <p className="text-[10px] uppercase tracking-widest text-candle-muted">Tonight</p>
-          <p className="font-serif italic text-lg mt-0.5">Watch together</p>
-        </Link>
-        <Link
-          to="/app/play"
-          className="p-4 bg-surface rounded-2xl border border-border hover:border-petal/40 transition-colors"
-        >
-          <Sparkles className="size-5 text-petal mb-2" />
-          <p className="text-[10px] uppercase tracking-widest text-candle-muted">Together</p>
-          <p className="font-serif italic text-lg mt-0.5">Play games</p>
-        </Link>
+      <div className="relative z-10">
+        <QuickActions />
       </div>
 
-      {/* Couple tools */}
-      <div className="relative z-10 grid grid-cols-4 gap-2 mb-4">
-        <Link to="/app/movies" search={{ q: "" }} className="p-3 bg-surface rounded-2xl border border-border flex flex-col items-center text-center gap-1 hover:border-petal/40 transition-colors">
-          <Clapperboard className="size-5 text-petal" />
-          <span className="text-[10px] font-semibold text-candle">Movies</span>
+      {/* Mood entry */}
+      {profile && (
+        <Link
+          to="/app/mood"
+          className="relative z-10 flex items-center gap-4 p-5 rounded-3xl glass overflow-hidden hover:-translate-y-0.5 transition-transform group"
+        >
+          <div className="size-12 rounded-2xl bg-petal-soft border border-petal/30 flex items-center justify-center text-xl">
+            {profile.mood_emoji ?? "💭"}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-[10px] uppercase tracking-[0.2em] text-petal flex items-center gap-1.5">
+              <LineChart className="size-3" /> Mood
+            </p>
+            <p className="font-serif text-lg italic truncate leading-tight">
+              {profile.mood ? profile.mood : "How are you feeling?"}
+            </p>
+            <p className="text-[11px] text-candle-muted mt-0.5">Share it — set the tone of your day.</p>
+          </div>
+          <ArrowRight className="size-4 text-candle-muted group-hover:text-petal group-hover:translate-x-0.5 transition-all" />
         </Link>
-        <Link to="/app/memories" className="p-3 bg-surface rounded-2xl border border-border flex flex-col items-center text-center gap-1 hover:border-petal/40 transition-colors">
-          <BookHeart className="size-5 text-petal" />
-          <span className="text-[10px] font-semibold text-candle">Memories</span>
-        </Link>
-        <Link to="/app/wishlist" className="p-3 bg-surface rounded-2xl border border-border flex flex-col items-center text-center gap-1 hover:border-petal/40 transition-colors">
-          <Gift className="size-5 text-petal" />
-          <span className="text-[10px] font-semibold text-candle">Wishlist</span>
-        </Link>
-        <Link to="/app/mood" className="p-3 bg-surface rounded-2xl border border-border flex flex-col items-center text-center gap-1 hover:border-petal/40 transition-colors">
-          <LineChart className="size-5 text-petal" />
-          <span className="text-[10px] font-semibold text-candle">Mood</span>
-        </Link>
+      )}
+
+      {/* Memory of the day */}
+      <div className="relative z-10">
+        <MemoryOfTheDayCard />
       </div>
 
+      {/* Section: Together */}
+      <section className="relative z-10">
+        <p className="text-[10px] uppercase tracking-[0.22em] text-candle-muted mb-3 px-1">Together</p>
+        <div className="grid grid-cols-2 gap-3">
+          <TileLink to="/app/movies" search={{ q: "" }} Icon={Clapperboard} label="Watch" caption="Tonight's pick" />
+          <TileLink to="/app/memories" Icon={BookHeart} label="Memories" caption="Your archive" />
+          <TileLink to="/app/anniversary" Icon={Heart} label="Anniversary" caption="Just for us" />
+          <TileLink to="/app/wishlist" Icon={Gift} label="Wishlist" caption="Little dreams" />
+        </div>
+      </section>
+
+      {/* Friends circle — de-emphasized */}
       <Link
         to="/app/friends"
-        className="relative z-10 mb-4 flex items-center gap-3 p-4 bg-surface rounded-2xl border border-border hover:border-petal/40 transition-colors"
+        className="relative z-10 flex items-center gap-3 p-4 rounded-2xl bg-surface/60 border border-border hover:border-petal/40 transition-colors"
       >
-        <div className="size-10 rounded-xl bg-petal-soft flex items-center justify-center">
-          <Users className="size-5 text-petal" />
+        <div className="size-9 rounded-xl bg-petal-soft flex items-center justify-center">
+          <Users className="size-4 text-petal" />
         </div>
         <div className="flex-1">
           <p className="text-[10px] uppercase tracking-widest text-candle-muted">Your circle</p>
-          <p className="font-serif italic text-base">Friends</p>
+          <p className="text-sm text-candle">Friends</p>
         </div>
         <ArrowRight className="size-4 text-candle-muted" />
       </Link>
     </div>
+  );
+}
+
+function TileLink({
+  to,
+  search,
+  Icon,
+  label,
+  caption,
+}: {
+  to: string;
+  search?: Record<string, unknown>;
+  Icon: typeof Heart;
+  label: string;
+  caption: string;
+}) {
+  return (
+    <Link
+      to={to as any}
+      search={search as any}
+      className="group relative p-4 rounded-2xl glass overflow-hidden hover:-translate-y-0.5 transition-transform"
+    >
+      <Icon className="size-5 text-petal mb-3" />
+      <p className="text-[10px] uppercase tracking-widest text-candle-muted">{caption}</p>
+      <p className="font-serif italic text-lg mt-0.5">{label}</p>
+    </Link>
   );
 }
 
@@ -166,7 +194,7 @@ function Avatar({ profile }: { profile?: { avatar_url: string | null; display_na
   return (
     <Link
       to="/app/me"
-      className="size-11 rounded-full bg-surface border border-border flex items-center justify-center overflow-hidden"
+      className="size-11 rounded-full glass flex items-center justify-center overflow-hidden active:scale-95 transition-transform"
     >
       {profile?.avatar_url ? (
         <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
