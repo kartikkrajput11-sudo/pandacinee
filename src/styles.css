@@ -125,6 +125,25 @@
   box-shadow: var(--shadow-petal);
 }
 
+@utility glass {
+  background: color-mix(in oklab, var(--surface) 70%, transparent);
+  backdrop-filter: blur(24px) saturate(140%);
+  border: 1px solid color-mix(in oklab, var(--candle) 10%, transparent);
+}
+
+@utility glass-strong {
+  background: color-mix(in oklab, var(--surface-elevated) 82%, transparent);
+  backdrop-filter: blur(32px) saturate(160%);
+  border: 1px solid color-mix(in oklab, var(--candle) 14%, transparent);
+}
+
+@utility ring-petal {
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--petal) 40%, transparent),
+    0 20px 60px -30px color-mix(in oklab, var(--petal) 55%, transparent),
+    inset 0 1px 0 color-mix(in oklab, var(--candle) 12%, transparent);
+}
+
 /* Animations */
 @keyframes float-petal {
   0% { transform: translateY(-10vh) translateX(0) rotate(0deg); opacity: 0; }
@@ -149,8 +168,29 @@
   15% { opacity: 1; transform: translateY(-20px) scale(1.1); }
   100% { transform: translateY(-60vh) scale(1) rotate(15deg); opacity: 0; }
 }
+@keyframes digit-flip {
+  0% { transform: translateY(-60%); opacity: 0; }
+  60% { transform: translateY(4%); opacity: 1; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+@keyframes flame-flicker {
+  0%, 100% { transform: scale(1) rotate(-1deg); filter: brightness(1); }
+  50% { transform: scale(1.06) rotate(1deg); filter: brightness(1.15); }
+}
+@keyframes glow-breath {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--petal) 0%, transparent); }
+  50% { box-shadow: 0 0 32px 4px color-mix(in oklab, var(--petal) 30%, transparent); }
+}
+@keyframes shine-sweep {
+  0% { transform: translateX(-120%) skewX(-20deg); }
+  100% { transform: translateX(220%) skewX(-20deg); }
+}
 
 .animate-petal { animation: float-petal 12s linear infinite; }
 .animate-pulse-soft { animation: pulse-soft 2.4s var(--ease-out-expo) infinite; }
 .animate-fade-up { animation: fade-up 0.7s var(--ease-out-expo) both; }
 .animate-float-up { animation: float-up 3s ease-out forwards; }
+.animate-digit-flip { animation: digit-flip 0.5s var(--ease-out-expo) both; }
+.animate-flame { animation: flame-flicker 2.4s ease-in-out infinite; transform-origin: 50% 90%; }
+.animate-glow-breath { animation: glow-breath 3.6s ease-in-out infinite; }
+.animate-shine { animation: shine-sweep 2.8s ease-in-out infinite; }
