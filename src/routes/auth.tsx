@@ -59,14 +59,14 @@ function AuthPage() {
     }
   }
 
-  async function handleGoogle() {
+  async function handleOAuth(provider: "google" | "apple") {
     setLoading(true);
     try {
-      const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin + "/app",
+      const result = await lovable.auth.signInWithOAuth(provider, {
+        redirect_uri: window.location.origin,
       });
       if (result.error) {
-        toast.error(result.error.message ?? "Could not sign in with Google");
+        toast.error(result.error.message ?? `Could not sign in with ${provider}`);
         setLoading(false);
         return;
       }
