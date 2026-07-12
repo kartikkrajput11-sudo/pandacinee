@@ -41,6 +41,54 @@ export type Database = {
         }
         Relationships: []
       }
+      custom_movies: {
+        Row: {
+          backdrop_url: string | null
+          created_at: string
+          created_by: string
+          genres: string[]
+          id: string
+          overview: string | null
+          poster_url: string | null
+          runtime: number | null
+          title: string
+          updated_at: string
+          video_storage_path: string | null
+          video_url: string | null
+          year: number | null
+        }
+        Insert: {
+          backdrop_url?: string | null
+          created_at?: string
+          created_by: string
+          genres?: string[]
+          id?: string
+          overview?: string | null
+          poster_url?: string | null
+          runtime?: number | null
+          title: string
+          updated_at?: string
+          video_storage_path?: string | null
+          video_url?: string | null
+          year?: number | null
+        }
+        Update: {
+          backdrop_url?: string | null
+          created_at?: string
+          created_by?: string
+          genres?: string[]
+          id?: string
+          overview?: string | null
+          poster_url?: string | null
+          runtime?: number | null
+          title?: string
+          updated_at?: string
+          video_storage_path?: string | null
+          video_url?: string | null
+          year?: number | null
+        }
+        Relationships: []
+      }
       daily_answers: {
         Row: {
           answer: string
@@ -440,12 +488,16 @@ export type Database = {
           favorite_emoji: string | null
           id: string
           invite_code: string
+          is_admin: boolean
+          last_seen_visible: boolean
           mood: string | null
           mood_emoji: string | null
           mood_updated_at: string | null
+          notifications_enabled: boolean
           paired_at: string | null
           partner_id: string | null
           partner_nickname: string | null
+          read_receipts_enabled: boolean
           updated_at: string
           username: string
         }
@@ -459,12 +511,16 @@ export type Database = {
           favorite_emoji?: string | null
           id: string
           invite_code?: string
+          is_admin?: boolean
+          last_seen_visible?: boolean
           mood?: string | null
           mood_emoji?: string | null
           mood_updated_at?: string | null
+          notifications_enabled?: boolean
           paired_at?: string | null
           partner_id?: string | null
           partner_nickname?: string | null
+          read_receipts_enabled?: boolean
           updated_at?: string
           username: string
         }
@@ -478,12 +534,16 @@ export type Database = {
           favorite_emoji?: string | null
           id?: string
           invite_code?: string
+          is_admin?: boolean
+          last_seen_visible?: boolean
           mood?: string | null
           mood_emoji?: string | null
           mood_updated_at?: string | null
+          notifications_enabled?: boolean
           paired_at?: string | null
           partner_id?: string | null
           partner_nickname?: string | null
+          read_receipts_enabled?: boolean
           updated_at?: string
           username?: string
         }
@@ -635,6 +695,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      claim_admin: { Args: { _pin: string }; Returns: boolean }
       couple_streak: {
         Args: { _me: string; _partner: string }
         Returns: number
@@ -653,6 +714,7 @@ export type Database = {
         Returns: boolean
       }
       is_accepted_friend: { Args: { _other: string }; Returns: boolean }
+      is_admin: { Args: { _user_id: string }; Returns: boolean }
       move_to_dlq: {
         Args: {
           dlq_name: string
@@ -674,12 +736,16 @@ export type Database = {
           favorite_emoji: string | null
           id: string
           invite_code: string
+          is_admin: boolean
+          last_seen_visible: boolean
           mood: string | null
           mood_emoji: string | null
           mood_updated_at: string | null
+          notifications_enabled: boolean
           paired_at: string | null
           partner_id: string | null
           partner_nickname: string | null
+          read_receipts_enabled: boolean
           updated_at: string
           username: string
         }
@@ -708,6 +774,7 @@ export type Database = {
           username: string
         }[]
       }
+      unpair_partner: { Args: never; Returns: undefined }
     }
     Enums: {
       [_ in never]: never
