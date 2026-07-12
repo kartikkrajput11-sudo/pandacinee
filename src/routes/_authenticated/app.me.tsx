@@ -230,24 +230,35 @@ function Me() {
             <Save className="size-4" /> {saving ? "Saving…" : "Save changes"}
           </button>
 
-          <div className="p-5 rounded-3xl border border-border bg-surface mb-4">
-            <p className="text-[10px] uppercase tracking-widest text-petal mb-2">Partner</p>
-            {partner ? (
-              <div className="flex items-center gap-3">
-                <Heart className="size-5 text-petal" />
-                <div>
-                  <p className="font-serif italic text-lg">
-                    {partnerNickname || partner.display_name}
-                  </p>
-                  <p className="text-xs text-candle-muted">@{partner.username}</p>
-                </div>
-              </div>
-            ) : (
-              <Link to="/app/invite" className="block py-2 text-sm text-petal underline">
-                Invite your partner →
-              </Link>
-            )}
-          </div>
+          <ThemeSection />
+
+          <Link to="/app/partner" className="p-5 mb-4 rounded-3xl border border-border bg-surface flex items-center gap-3 hover:border-petal/40 transition-colors">
+            <Heart className="size-5 text-petal" />
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] uppercase tracking-widest text-petal">Partner</p>
+              {partner ? (
+                <p className="font-serif italic text-lg truncate">{partnerNickname || partner.display_name}</p>
+              ) : (
+                <p className="text-sm text-candle-muted">Invite your partner</p>
+              )}
+            </div>
+            <ChevronRight className="size-4 text-candle-muted" />
+          </Link>
+
+          {(me as any)?.is_admin && (
+            <Link to="/app/admin" className="p-5 mb-4 rounded-3xl border border-petal/30 bg-petal-soft/10 flex items-center gap-3">
+              <ShieldCheck className="size-5 text-petal" />
+              <div className="flex-1"><p className="text-[10px] uppercase tracking-widest text-petal">Admin</p><p className="text-sm text-candle">Manage custom movies</p></div>
+              <ChevronRight className="size-4 text-candle-muted" />
+            </Link>
+          )}
+          {!(me as any)?.is_admin && (
+            <Link to="/app/admin" className="p-5 mb-4 rounded-3xl border border-border bg-surface flex items-center gap-3">
+              <ShieldCheck className="size-5 text-candle-muted" />
+              <div className="flex-1"><p className="text-[10px] uppercase tracking-widest text-candle-muted">Admin</p><p className="text-sm text-candle-muted">Enter PIN to unlock</p></div>
+              <ChevronRight className="size-4 text-candle-muted" />
+            </Link>
+          )}
 
           <div className="p-5 rounded-3xl border border-border bg-surface mb-4">
             <p className="text-[10px] uppercase tracking-widest text-petal mb-2">Your invite code</p>
