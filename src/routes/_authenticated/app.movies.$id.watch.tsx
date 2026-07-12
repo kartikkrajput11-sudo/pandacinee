@@ -24,6 +24,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/integrations/supabase/client";
 import { WatchTogetherPanel } from "@/components/watch/WatchTogetherPanel";
 import { useWatchSync, fmtTime } from "@/hooks/useWatchSync";
+import { CustomMoviePlayer, type CustomPlayerHandle } from "@/components/CustomMoviePlayer";
 
 type Source = { id: string; label: string; url: (tmdb: number, startAt?: number) => string; hint: string };
 
@@ -56,8 +57,10 @@ export const Route = createFileRoute("/_authenticated/app/movies/$id/watch")({
 
 function WatchMovie() {
   const { id } = Route.useParams();
+  const isCustom = id.startsWith("custom:");
   const tmdbId = Number(id);
   const fetchMovie = useServerFn(tmdbMovie);
+  if (isCustom) return <CustomWatch customId={id.slice("custom:".length)} />;
   const { data: prof } = useProfile();
   const me = prof?.profile;
   const partner = prof?.partner;
@@ -529,6 +532,103 @@ function WatchMovie() {
           mediaType="movie"
         />
       )}
+    </div>
+  );
+}
+
+function CustomWatch({ customId }: { customId: string }) {
+  const { data: prof } = useProfile();
+  const me = prof?.profile;
+  const partner = prof?.partner;
+  const [movie, setMovie] = useState<any>(null);
+  const [videoSrc, setVideoSrc] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const {
+    mine, peer, partnerOnline, publish, sendSeek, incomingSeek, clearIncomingSeek, drift,
+  } = useWatchSync(me?.id ?? null, partner?.id ?? null, 0, "movie");
+
+  const handleRef = useRef<CustomPlayerHandle | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      const { data, error } = await supabase.from("custom_movies").select("*").eq("id", customId).maybeSingle();
+      if (!alive) return;
+      if (error || !data) { setLoading(false); return; }
+      setMovie(data);
+      if (data.video_storage_path) {
+        const { data: signed } = await supabase.storage.from("custom-movies").createSignedUrl(data.video_storage_path, 60 * 60 * 6);
+        setVideoSrc(signed?.signedUrl ?? null);
+      } else {
+        setVideoSrc(data.video_url ?? null);
+      }
+      setLoading(false);
+    })();
+    return () => { alive = false; };
+  }, [customId]);
+
+  useEffect(() => {
+    if (!incomingSeek) return;
+    handleRef.current?.seek(incomingSeek.time);
+    clearIncomingSeek();
+  }, [incomingSeek, clearIncomingSeek]);
+
+  const partnerFirst = partner?.display_name.split(" ")[0] ?? "them";
+
+  return (
+    <div className="pt-8 pb-24 max-w-6xl mx-auto">
+      <header className="px-5 pb-3 flex items-center gap-3">
+        <Link to="/app/admin" className="text-candle-muted"><ArrowLeft className="size-5" /></Link>
+        <div className="flex-1 min-w-0">
+          <p className="text-[10px] uppercase tracking-widest text-petal">Custom · Watch Party</p>
+          <h1 className="font-serif text-lg md:text-2xl italic truncate">{movie?.title ?? (loading ? "Loading…" : "Not found")}</h1>
+        </div>
+      </header>
+
+      <div className="px-3 md:px-5">
+        <div className="relative aspect-video">
+          {videoSrc ? (
+            <CustomMoviePlayer
+              src={videoSrc}
+              poster={movie?.backdrop_url ?? movie?.poster_url ?? null}
+              onReady={(h) => (handleRef.current = h)}
+              onEvent={(evt) => publish({ event: evt.event, currentTime: evt.currentTime, duration: evt.duration, sourceIdx: 0 })}
+            />
+          ) : (
+            <div className="w-full h-full bg-black rounded-2xl flex items-center justify-center text-candle-muted text-sm">
+              {loading ? "Loading video…" : "No video available for this movie."}
+            </div>
+          )}
+        </div>
+
+        {partner && (
+          <div className="mt-3 rounded-2xl border border-border bg-surface px-3 py-2.5 flex items-center gap-3">
+            <span className={`size-2.5 rounded-full ${partnerOnline ? "bg-green-400" : "bg-candle-muted/60"}`} />
+            <span className="text-xs text-candle">{partnerFirst} · {peer ? `${peer.event} at ${fmtTime(peer.currentTime)}` : "not in room"}</span>
+            <button
+              onClick={() => { if (peer) handleRef.current?.seek(peer.currentTime); }}
+              disabled={!peer}
+              className="ml-auto h-8 px-3 rounded-full bg-surface-elevated text-xs text-candle disabled:opacity-40"
+            >
+              Jump to {partnerFirst}
+            </button>
+            <button
+              onClick={() => sendSeek(mine.currentTime)}
+              className="h-8 px-3 rounded-full bg-petal text-velvet text-xs font-semibold"
+            >
+              Pull them here
+            </button>
+            {drift != null && Math.abs(drift) > 3 && (
+              <span className="text-[10px] text-amber-400">±{fmtTime(Math.abs(drift))}</span>
+            )}
+          </div>
+        )}
+
+        {movie?.overview && (
+          <p className="mt-5 text-sm text-candle leading-relaxed">{movie.overview}</p>
+        )}
+      </div>
     </div>
   );
 }

@@ -17,6 +17,7 @@ import { Route as AuthenticatedAppIndexRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedAppWishlistRouteImport } from './routes/_authenticated/app.wishlist'
 import { Route as AuthenticatedAppWatchRouteImport } from './routes/_authenticated/app.watch'
 import { Route as AuthenticatedAppPlayRouteImport } from './routes/_authenticated/app.play'
+import { Route as AuthenticatedAppPartnerRouteImport } from './routes/_authenticated/app.partner'
 import { Route as AuthenticatedAppMoviesRouteImport } from './routes/_authenticated/app.movies'
 import { Route as AuthenticatedAppMoodRouteImport } from './routes/_authenticated/app.mood'
 import { Route as AuthenticatedAppMemoriesRouteImport } from './routes/_authenticated/app.memories'
@@ -24,6 +25,7 @@ import { Route as AuthenticatedAppMeRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedAppInviteRouteImport } from './routes/_authenticated/app.invite'
 import { Route as AuthenticatedAppFriendsRouteImport } from './routes/_authenticated/app.friends'
 import { Route as AuthenticatedAppAnniversaryRouteImport } from './routes/_authenticated/app.anniversary'
+import { Route as AuthenticatedAppAdminRouteImport } from './routes/_authenticated/app.admin'
 import { Route as AuthenticatedAppMoviesIndexRouteImport } from './routes/_authenticated/app.movies.index'
 import { Route as AuthenticatedAppChatIndexRouteImport } from './routes/_authenticated/app.chat.index'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
@@ -73,6 +75,11 @@ const AuthenticatedAppPlayRoute = AuthenticatedAppPlayRouteImport.update({
   path: '/play',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
+const AuthenticatedAppPartnerRoute = AuthenticatedAppPartnerRouteImport.update({
+  id: '/partner',
+  path: '/partner',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
 const AuthenticatedAppMoviesRoute = AuthenticatedAppMoviesRouteImport.update({
   id: '/movies',
   path: '/movies',
@@ -110,6 +117,11 @@ const AuthenticatedAppAnniversaryRoute =
     path: '/anniversary',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppAdminRoute = AuthenticatedAppAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
 const AuthenticatedAppMoviesIndexRoute =
   AuthenticatedAppMoviesIndexRouteImport.update({
     id: '/',
@@ -163,6 +175,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/app': typeof AuthenticatedAppRouteWithChildren
+  '/app/admin': typeof AuthenticatedAppAdminRoute
   '/app/anniversary': typeof AuthenticatedAppAnniversaryRoute
   '/app/friends': typeof AuthenticatedAppFriendsRoute
   '/app/invite': typeof AuthenticatedAppInviteRoute
@@ -170,6 +183,7 @@ export interface FileRoutesByFullPath {
   '/app/memories': typeof AuthenticatedAppMemoriesRoute
   '/app/mood': typeof AuthenticatedAppMoodRoute
   '/app/movies': typeof AuthenticatedAppMoviesRouteWithChildren
+  '/app/partner': typeof AuthenticatedAppPartnerRoute
   '/app/play': typeof AuthenticatedAppPlayRoute
   '/app/watch': typeof AuthenticatedAppWatchRoute
   '/app/wishlist': typeof AuthenticatedAppWishlistRoute
@@ -186,12 +200,14 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/app/admin': typeof AuthenticatedAppAdminRoute
   '/app/anniversary': typeof AuthenticatedAppAnniversaryRoute
   '/app/friends': typeof AuthenticatedAppFriendsRoute
   '/app/invite': typeof AuthenticatedAppInviteRoute
   '/app/me': typeof AuthenticatedAppMeRoute
   '/app/memories': typeof AuthenticatedAppMemoriesRoute
   '/app/mood': typeof AuthenticatedAppMoodRoute
+  '/app/partner': typeof AuthenticatedAppPartnerRoute
   '/app/play': typeof AuthenticatedAppPlayRoute
   '/app/watch': typeof AuthenticatedAppWatchRoute
   '/app/wishlist': typeof AuthenticatedAppWishlistRoute
@@ -211,6 +227,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/_authenticated/app': typeof AuthenticatedAppRouteWithChildren
+  '/_authenticated/app/admin': typeof AuthenticatedAppAdminRoute
   '/_authenticated/app/anniversary': typeof AuthenticatedAppAnniversaryRoute
   '/_authenticated/app/friends': typeof AuthenticatedAppFriendsRoute
   '/_authenticated/app/invite': typeof AuthenticatedAppInviteRoute
@@ -218,6 +235,7 @@ export interface FileRoutesById {
   '/_authenticated/app/memories': typeof AuthenticatedAppMemoriesRoute
   '/_authenticated/app/mood': typeof AuthenticatedAppMoodRoute
   '/_authenticated/app/movies': typeof AuthenticatedAppMoviesRouteWithChildren
+  '/_authenticated/app/partner': typeof AuthenticatedAppPartnerRoute
   '/_authenticated/app/play': typeof AuthenticatedAppPlayRoute
   '/_authenticated/app/watch': typeof AuthenticatedAppWatchRoute
   '/_authenticated/app/wishlist': typeof AuthenticatedAppWishlistRoute
@@ -237,6 +255,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/app'
+    | '/app/admin'
     | '/app/anniversary'
     | '/app/friends'
     | '/app/invite'
@@ -244,6 +263,7 @@ export interface FileRouteTypes {
     | '/app/memories'
     | '/app/mood'
     | '/app/movies'
+    | '/app/partner'
     | '/app/play'
     | '/app/watch'
     | '/app/wishlist'
@@ -260,12 +280,14 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/app/admin'
     | '/app/anniversary'
     | '/app/friends'
     | '/app/invite'
     | '/app/me'
     | '/app/memories'
     | '/app/mood'
+    | '/app/partner'
     | '/app/play'
     | '/app/watch'
     | '/app/wishlist'
@@ -284,6 +306,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/_authenticated/app'
+    | '/_authenticated/app/admin'
     | '/_authenticated/app/anniversary'
     | '/_authenticated/app/friends'
     | '/_authenticated/app/invite'
@@ -291,6 +314,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/memories'
     | '/_authenticated/app/mood'
     | '/_authenticated/app/movies'
+    | '/_authenticated/app/partner'
     | '/_authenticated/app/play'
     | '/_authenticated/app/watch'
     | '/_authenticated/app/wishlist'
@@ -370,6 +394,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppPlayRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/partner': {
+      id: '/_authenticated/app/partner'
+      path: '/partner'
+      fullPath: '/app/partner'
+      preLoaderRoute: typeof AuthenticatedAppPartnerRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/movies': {
       id: '/_authenticated/app/movies'
       path: '/movies'
@@ -417,6 +448,13 @@ declare module '@tanstack/react-router' {
       path: '/anniversary'
       fullPath: '/app/anniversary'
       preLoaderRoute: typeof AuthenticatedAppAnniversaryRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/admin': {
+      id: '/_authenticated/app/admin'
+      path: '/admin'
+      fullPath: '/app/admin'
+      preLoaderRoute: typeof AuthenticatedAppAdminRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/movies/': {
@@ -509,6 +547,7 @@ const AuthenticatedAppMoviesRouteWithChildren =
   )
 
 interface AuthenticatedAppRouteChildren {
+  AuthenticatedAppAdminRoute: typeof AuthenticatedAppAdminRoute
   AuthenticatedAppAnniversaryRoute: typeof AuthenticatedAppAnniversaryRoute
   AuthenticatedAppFriendsRoute: typeof AuthenticatedAppFriendsRoute
   AuthenticatedAppInviteRoute: typeof AuthenticatedAppInviteRoute
@@ -516,6 +555,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppMemoriesRoute: typeof AuthenticatedAppMemoriesRoute
   AuthenticatedAppMoodRoute: typeof AuthenticatedAppMoodRoute
   AuthenticatedAppMoviesRoute: typeof AuthenticatedAppMoviesRouteWithChildren
+  AuthenticatedAppPartnerRoute: typeof AuthenticatedAppPartnerRoute
   AuthenticatedAppPlayRoute: typeof AuthenticatedAppPlayRoute
   AuthenticatedAppWatchRoute: typeof AuthenticatedAppWatchRoute
   AuthenticatedAppWishlistRoute: typeof AuthenticatedAppWishlistRoute
@@ -527,6 +567,7 @@ interface AuthenticatedAppRouteChildren {
 }
 
 const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
+  AuthenticatedAppAdminRoute: AuthenticatedAppAdminRoute,
   AuthenticatedAppAnniversaryRoute: AuthenticatedAppAnniversaryRoute,
   AuthenticatedAppFriendsRoute: AuthenticatedAppFriendsRoute,
   AuthenticatedAppInviteRoute: AuthenticatedAppInviteRoute,
@@ -534,6 +575,7 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppMemoriesRoute: AuthenticatedAppMemoriesRoute,
   AuthenticatedAppMoodRoute: AuthenticatedAppMoodRoute,
   AuthenticatedAppMoviesRoute: AuthenticatedAppMoviesRouteWithChildren,
+  AuthenticatedAppPartnerRoute: AuthenticatedAppPartnerRoute,
   AuthenticatedAppPlayRoute: AuthenticatedAppPlayRoute,
   AuthenticatedAppWatchRoute: AuthenticatedAppWatchRoute,
   AuthenticatedAppWishlistRoute: AuthenticatedAppWishlistRoute,
@@ -567,13 +609,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

@@ -1,10 +1,11 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, LogOut, Heart, Copy, Camera, Save } from "lucide-react";
+import { ArrowLeft, LogOut, Heart, Copy, Camera, Save, Sun, Moon, Monitor, ShieldCheck, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
+import { useTheme, type ThemeMode } from "@/components/ThemeProvider";
 
 export const Route = createFileRoute("/_authenticated/app/me")({
   component: Me,
@@ -229,24 +230,35 @@ function Me() {
             <Save className="size-4" /> {saving ? "Saving…" : "Save changes"}
           </button>
 
-          <div className="p-5 rounded-3xl border border-border bg-surface mb-4">
-            <p className="text-[10px] uppercase tracking-widest text-petal mb-2">Partner</p>
-            {partner ? (
-              <div className="flex items-center gap-3">
-                <Heart className="size-5 text-petal" />
-                <div>
-                  <p className="font-serif italic text-lg">
-                    {partnerNickname || partner.display_name}
-                  </p>
-                  <p className="text-xs text-candle-muted">@{partner.username}</p>
-                </div>
-              </div>
-            ) : (
-              <Link to="/app/invite" className="block py-2 text-sm text-petal underline">
-                Invite your partner →
-              </Link>
-            )}
-          </div>
+          <ThemeSection />
+
+          <Link to="/app/partner" className="p-5 mb-4 rounded-3xl border border-border bg-surface flex items-center gap-3 hover:border-petal/40 transition-colors">
+            <Heart className="size-5 text-petal" />
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] uppercase tracking-widest text-petal">Partner</p>
+              {partner ? (
+                <p className="font-serif italic text-lg truncate">{partnerNickname || partner.display_name}</p>
+              ) : (
+                <p className="text-sm text-candle-muted">Invite your partner</p>
+              )}
+            </div>
+            <ChevronRight className="size-4 text-candle-muted" />
+          </Link>
+
+          {(me as any)?.is_admin && (
+            <Link to="/app/admin" className="p-5 mb-4 rounded-3xl border border-petal/30 bg-petal-soft/10 flex items-center gap-3">
+              <ShieldCheck className="size-5 text-petal" />
+              <div className="flex-1"><p className="text-[10px] uppercase tracking-widest text-petal">Admin</p><p className="text-sm text-candle">Manage custom movies</p></div>
+              <ChevronRight className="size-4 text-candle-muted" />
+            </Link>
+          )}
+          {!(me as any)?.is_admin && (
+            <Link to="/app/admin" className="p-5 mb-4 rounded-3xl border border-border bg-surface flex items-center gap-3">
+              <ShieldCheck className="size-5 text-candle-muted" />
+              <div className="flex-1"><p className="text-[10px] uppercase tracking-widest text-candle-muted">Admin</p><p className="text-sm text-candle-muted">Enter PIN to unlock</p></div>
+              <ChevronRight className="size-4 text-candle-muted" />
+            </Link>
+          )}
 
           <div className="p-5 rounded-3xl border border-border bg-surface mb-4">
             <p className="text-[10px] uppercase tracking-widest text-petal mb-2">Your invite code</p>
@@ -279,6 +291,34 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
     <div>
       <label className="block text-[10px] uppercase tracking-widest text-petal mb-1.5">{label}</label>
       {children}
+    </div>
+  );
+}
+
+function ThemeSection() {
+  const { mode, setMode } = useTheme();
+  const options: { id: ThemeMode; label: string; Icon: typeof Sun }[] = [
+    { id: "light", label: "Light", Icon: Sun },
+    { id: "dark", label: "Dark", Icon: Moon },
+    { id: "system", label: "System", Icon: Monitor },
+  ];
+  return (
+    <div className="p-5 mb-4 rounded-3xl border border-border bg-surface">
+      <p className="text-[10px] uppercase tracking-widest text-petal mb-3">Appearance</p>
+      <div className="grid grid-cols-3 gap-2">
+        {options.map(({ id, label, Icon }) => (
+          <button
+            key={id}
+            onClick={() => setMode(id)}
+            className={`flex flex-col items-center gap-1 py-3 rounded-2xl border text-xs transition-colors ${
+              mode === id ? "border-petal bg-petal-soft/20 text-petal" : "border-border bg-velvet text-candle-muted"
+            }`}
+          >
+            <Icon className="size-4" />
+            {label}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

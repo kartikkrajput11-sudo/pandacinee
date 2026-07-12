@@ -13,6 +13,7 @@ import { Toaster } from "sonner";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { supabase } from "@/integrations/supabase/client";
+import { ThemeProvider } from "@/components/ThemeProvider";
 
 function NotFoundComponent() {
   return (
@@ -145,18 +146,20 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Outlet />
-      <Toaster
-        theme="dark"
-        position="top-center"
-        toastOptions={{
-          style: {
-            background: "var(--surface-elevated)",
-            color: "var(--candle)",
-            border: "1px solid var(--border)",
-          },
-        }}
-      />
+      <ThemeProvider>
+        <Outlet />
+        <Toaster
+          theme="dark"
+          position="top-center"
+          toastOptions={{
+            style: {
+              background: "var(--surface-elevated)",
+              color: "var(--candle)",
+              border: "1px solid var(--border)",
+            },
+          }}
+        />
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }
