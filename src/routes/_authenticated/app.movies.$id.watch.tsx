@@ -548,7 +548,7 @@ function CustomWatch({ customId }: { customId: string }) {
     mine, peer, partnerOnline, publish, sendSeek, incomingSeek, clearIncomingSeek, drift,
   } = useWatchSync(me?.id ?? null, partner?.id ?? null, 0, "movie");
 
-  const handleRef = useRef<import("@/components/CustomMoviePlayer").CustomPlayerHandle | null>(null);
+  const handleRef = useRef<CustomPlayerHandle | null>(null);
 
   useEffect(() => {
     let alive = true;
