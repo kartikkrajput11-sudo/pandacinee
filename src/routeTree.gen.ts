@@ -17,6 +17,7 @@ import { Route as AuthenticatedAppIndexRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedAppWishlistRouteImport } from './routes/_authenticated/app.wishlist'
 import { Route as AuthenticatedAppWatchRouteImport } from './routes/_authenticated/app.watch'
 import { Route as AuthenticatedAppPlayRouteImport } from './routes/_authenticated/app.play'
+import { Route as AuthenticatedAppPartnerRouteImport } from './routes/_authenticated/app.partner'
 import { Route as AuthenticatedAppMoviesRouteImport } from './routes/_authenticated/app.movies'
 import { Route as AuthenticatedAppMoodRouteImport } from './routes/_authenticated/app.mood'
 import { Route as AuthenticatedAppMemoriesRouteImport } from './routes/_authenticated/app.memories'
@@ -72,6 +73,11 @@ const AuthenticatedAppWatchRoute = AuthenticatedAppWatchRouteImport.update({
 const AuthenticatedAppPlayRoute = AuthenticatedAppPlayRouteImport.update({
   id: '/play',
   path: '/play',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
+const AuthenticatedAppPartnerRoute = AuthenticatedAppPartnerRouteImport.update({
+  id: '/partner',
+  path: '/partner',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
 const AuthenticatedAppMoviesRoute = AuthenticatedAppMoviesRouteImport.update({
@@ -177,6 +183,7 @@ export interface FileRoutesByFullPath {
   '/app/memories': typeof AuthenticatedAppMemoriesRoute
   '/app/mood': typeof AuthenticatedAppMoodRoute
   '/app/movies': typeof AuthenticatedAppMoviesRouteWithChildren
+  '/app/partner': typeof AuthenticatedAppPartnerRoute
   '/app/play': typeof AuthenticatedAppPlayRoute
   '/app/watch': typeof AuthenticatedAppWatchRoute
   '/app/wishlist': typeof AuthenticatedAppWishlistRoute
@@ -200,6 +207,7 @@ export interface FileRoutesByTo {
   '/app/me': typeof AuthenticatedAppMeRoute
   '/app/memories': typeof AuthenticatedAppMemoriesRoute
   '/app/mood': typeof AuthenticatedAppMoodRoute
+  '/app/partner': typeof AuthenticatedAppPartnerRoute
   '/app/play': typeof AuthenticatedAppPlayRoute
   '/app/watch': typeof AuthenticatedAppWatchRoute
   '/app/wishlist': typeof AuthenticatedAppWishlistRoute
@@ -227,6 +235,7 @@ export interface FileRoutesById {
   '/_authenticated/app/memories': typeof AuthenticatedAppMemoriesRoute
   '/_authenticated/app/mood': typeof AuthenticatedAppMoodRoute
   '/_authenticated/app/movies': typeof AuthenticatedAppMoviesRouteWithChildren
+  '/_authenticated/app/partner': typeof AuthenticatedAppPartnerRoute
   '/_authenticated/app/play': typeof AuthenticatedAppPlayRoute
   '/_authenticated/app/watch': typeof AuthenticatedAppWatchRoute
   '/_authenticated/app/wishlist': typeof AuthenticatedAppWishlistRoute
@@ -254,6 +263,7 @@ export interface FileRouteTypes {
     | '/app/memories'
     | '/app/mood'
     | '/app/movies'
+    | '/app/partner'
     | '/app/play'
     | '/app/watch'
     | '/app/wishlist'
@@ -277,6 +287,7 @@ export interface FileRouteTypes {
     | '/app/me'
     | '/app/memories'
     | '/app/mood'
+    | '/app/partner'
     | '/app/play'
     | '/app/watch'
     | '/app/wishlist'
@@ -303,6 +314,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/memories'
     | '/_authenticated/app/mood'
     | '/_authenticated/app/movies'
+    | '/_authenticated/app/partner'
     | '/_authenticated/app/play'
     | '/_authenticated/app/watch'
     | '/_authenticated/app/wishlist'
@@ -380,6 +392,13 @@ declare module '@tanstack/react-router' {
       path: '/play'
       fullPath: '/app/play'
       preLoaderRoute: typeof AuthenticatedAppPlayRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/partner': {
+      id: '/_authenticated/app/partner'
+      path: '/partner'
+      fullPath: '/app/partner'
+      preLoaderRoute: typeof AuthenticatedAppPartnerRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/movies': {
@@ -536,6 +555,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppMemoriesRoute: typeof AuthenticatedAppMemoriesRoute
   AuthenticatedAppMoodRoute: typeof AuthenticatedAppMoodRoute
   AuthenticatedAppMoviesRoute: typeof AuthenticatedAppMoviesRouteWithChildren
+  AuthenticatedAppPartnerRoute: typeof AuthenticatedAppPartnerRoute
   AuthenticatedAppPlayRoute: typeof AuthenticatedAppPlayRoute
   AuthenticatedAppWatchRoute: typeof AuthenticatedAppWatchRoute
   AuthenticatedAppWishlistRoute: typeof AuthenticatedAppWishlistRoute
@@ -555,6 +575,7 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppMemoriesRoute: AuthenticatedAppMemoriesRoute,
   AuthenticatedAppMoodRoute: AuthenticatedAppMoodRoute,
   AuthenticatedAppMoviesRoute: AuthenticatedAppMoviesRouteWithChildren,
+  AuthenticatedAppPartnerRoute: AuthenticatedAppPartnerRoute,
   AuthenticatedAppPlayRoute: AuthenticatedAppPlayRoute,
   AuthenticatedAppWatchRoute: AuthenticatedAppWatchRoute,
   AuthenticatedAppWishlistRoute: AuthenticatedAppWishlistRoute,
