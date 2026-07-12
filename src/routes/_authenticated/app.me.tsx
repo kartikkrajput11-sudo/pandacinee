@@ -294,3 +294,31 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
     </div>
   );
 }
+
+function ThemeSection() {
+  const { mode, setMode } = useTheme();
+  const options: { id: ThemeMode; label: string; Icon: typeof Sun }[] = [
+    { id: "light", label: "Light", Icon: Sun },
+    { id: "dark", label: "Dark", Icon: Moon },
+    { id: "system", label: "System", Icon: Monitor },
+  ];
+  return (
+    <div className="p-5 mb-4 rounded-3xl border border-border bg-surface">
+      <p className="text-[10px] uppercase tracking-widest text-petal mb-3">Appearance</p>
+      <div className="grid grid-cols-3 gap-2">
+        {options.map(({ id, label, Icon }) => (
+          <button
+            key={id}
+            onClick={() => setMode(id)}
+            className={`flex flex-col items-center gap-1 py-3 rounded-2xl border text-xs transition-colors ${
+              mode === id ? "border-petal bg-petal-soft/20 text-petal" : "border-border bg-velvet text-candle-muted"
+            }`}
+          >
+            <Icon className="size-4" />
+            {label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
