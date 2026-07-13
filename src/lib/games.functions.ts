@@ -72,13 +72,13 @@ export const generateGameCard = createServerFn({ method: "POST" })
     const gateway = createLovableAiGatewayProvider(key);
     const seed = Math.floor(Math.random() * 1_000_000);
     try {
-      const { experimental_output } = await generateText({
+      const { output } = await generateText({
         model: gateway("google/gemini-2.5-flash"),
         system: cfg.system,
         prompt: cfg.user(data.intensity, seed),
-        experimental_output: Output.object({ schema: cfg.schema as z.ZodType<any> }),
+        output: Output.object({ schema: cfg.schema as z.ZodType<any> }),
       });
-      return { card: experimental_output, seed };
+      return { card: output, seed };
     } catch (err: any) {
       const msg = String(err?.message ?? "");
       if (msg.includes("429")) throw new Error("AI is busy — try again in a moment.");
