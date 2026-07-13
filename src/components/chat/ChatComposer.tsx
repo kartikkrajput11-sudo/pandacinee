@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { Plus, X, Image as ImageIcon, Paperclip, Smile, Send, Clock, Film } from "lucide-react";
 import { toast } from "sonner";
-import { uploadChatMedia, STICKERS, DISAPPEAR_OPTIONS, type MessageRow } from "@/lib/chat";
+import { uploadChatMedia, DISAPPEAR_OPTIONS, type MessageRow } from "@/lib/chat";
 import { VoiceRecorder } from "./VoiceRecorder";
 import { WatchInvitePicker } from "./WatchInvitePicker";
+import { EmojiPicker } from "./EmojiPicker";
 import type { TmdbMovie } from "@/lib/tmdb.functions";
 
 
@@ -85,18 +86,22 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
     }
   }
 
-  async function sendSticker(emoji: string) {
-    setStickersOpen(false);
-    try {
-      await onSend({
-        content: emoji,
-        type: "sticker",
-        reply_to_id: replyTo?.id ?? null,
-        disappear_seconds: disappearSecs,
-      });
-      onClearReply();
-    } catch (err: any) {
-      toast.error(err?.message ?? "Failed");
+  async function sendEmoji(emoji: string, asSticker: boolean) {
+    if (asSticker) {
+      setStickersOpen(false);
+      try {
+        await onSend({
+          content: emoji,
+          type: "sticker",
+          reply_to_id: replyTo?.id ?? null,
+          disappear_seconds: disappearSecs,
+        });
+        onClearReply();
+      } catch (err: any) {
+        toast.error(err?.message ?? "Failed");
+      }
+    } else {
+      setText((t) => t + emoji);
     }
   }
 
@@ -175,13 +180,11 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
         </div>
       )}
 
-      {stickersOpen && (
-        <div className="px-3 py-3 grid grid-cols-8 gap-1 border-b border-border/60 bg-surface/40 max-h-44 overflow-y-auto">
-          {STICKERS.map((s) => (
-            <button key={s} onClick={() => sendSticker(s)} className="text-2xl hover:scale-125 transition-transform">{s}</button>
-          ))}
-        </div>
-      )}
+      <EmojiPicker
+        open={stickersOpen}
+        onPick={(emoji, opts) => sendEmoji(emoji, opts.asSticker)}
+        onClose={() => setStickersOpen(false)}
+      />
 
       {menuOpen && (
         <div className="px-4 py-3 grid grid-cols-4 gap-2 border-b border-border/60 bg-surface/40">

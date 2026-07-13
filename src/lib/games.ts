@@ -2,6 +2,7 @@ export type GameKind =
   | "truth-or-dare"
   | "this-or-that"
   | "would-you-rather"
+  | "never-have-i-ever"
   | "guess-me"
   | "tic-tac-toe"
   | "rock-paper-scissors";
@@ -10,18 +11,20 @@ export const GAME_KINDS: GameKind[] = [
   "tic-tac-toe",
   "rock-paper-scissors",
   "truth-or-dare",
-  "this-or-that",
   "would-you-rather",
+  "never-have-i-ever",
+  "this-or-that",
   "guess-me",
 ];
 
-export const GAMES: Record<GameKind, { name: string; emoji: string; body: string }> = {
+export const GAMES: Record<GameKind, { name: string; emoji: string; body: string; ai?: boolean }> = {
   "tic-tac-toe": { name: "Tic Tac Toe", emoji: "❌⭕", body: "Live 3-in-a-row." },
   "rock-paper-scissors": { name: "Rock · Paper · Scissors", emoji: "✊✋✌️", body: "Best of 5, live." },
-  "truth-or-dare": { name: "Truth or Dare", emoji: "🎯", body: "Romantic, funny, or deep." },
-  "this-or-that": { name: "This or That", emoji: "⚖️", body: "Quick taste comparisons." },
-  "would-you-rather": { name: "Would You Rather", emoji: "💭", body: "Tough little dilemmas." },
-  "guess-me": { name: "Guess Me", emoji: "🐼", body: "How well do you know me?" },
+  "truth-or-dare": { name: "Truth or Dare", emoji: "🎯", body: "AI-crafted prompts, endless.", ai: true },
+  "this-or-that": { name: "This or That", emoji: "⚖️", body: "AI taste comparisons.", ai: true },
+  "would-you-rather": { name: "Would You Rather", emoji: "💭", body: "AI dilemmas, no repeats.", ai: true },
+  "never-have-i-ever": { name: "Never Have I Ever", emoji: "🤫", body: "Reveal secrets together.", ai: true },
+  "guess-me": { name: "Guess Me", emoji: "🐼", body: "How well do you know me?", ai: true },
 };
 
 export const TRUTH_OR_DARE: { type: "truth" | "dare"; text: string }[] = [
