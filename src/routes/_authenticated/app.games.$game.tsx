@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowLeft, RefreshCw, Send } from "lucide-react";
+import { ArrowLeft, RefreshCw, Send, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,10 +8,10 @@ import { useProfile } from "@/hooks/useProfile";
 import {
   GAMES,
   GameKind,
-  TRUTH_OR_DARE,
   THIS_OR_THAT,
   WOULD_YOU_RATHER,
   GUESS_ME,
+  TRUTH_OR_DARE,
   checkWinner,
   TTTCell,
   RPS_CHOICES,
@@ -19,17 +19,27 @@ import {
   RPSChoice,
   rpsWinner,
 } from "@/lib/games";
+import { generateGameCard } from "@/lib/games.functions";
 
 const paramsSchema = z.object({
   game: z.enum([
     "truth-or-dare",
     "this-or-that",
     "would-you-rather",
+    "never-have-i-ever",
     "guess-me",
     "tic-tac-toe",
     "rock-paper-scissors",
   ]),
 });
+
+const INTENSITIES = [
+  { id: "sweet", label: "Sweet", emoji: "🌸" },
+  { id: "playful", label: "Playful", emoji: "✨" },
+  { id: "spicy", label: "Spicy", emoji: "🌶️" },
+  { id: "deep", label: "Deep", emoji: "🌙" },
+] as const;
+type Intensity = (typeof INTENSITIES)[number]["id"];
 
 export const Route = createFileRoute("/_authenticated/app/games/$game")({
   parseParams: (raw) => paramsSchema.parse(raw),
