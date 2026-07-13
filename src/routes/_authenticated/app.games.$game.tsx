@@ -146,9 +146,11 @@ function GameRoute() {
       ) : game === "truth-or-dare" ? (
         <TruthOrDare me={me.id} session={session} patch={patch} />
       ) : game === "this-or-that" ? (
-        <PairPick me={me.id} session={session} patch={patch} options={THIS_OR_THAT} />
+        <PairPick game="this-or-that" me={me.id} session={session} patch={patch} fallback={THIS_OR_THAT} />
       ) : game === "would-you-rather" ? (
-        <PairPick me={me.id} session={session} patch={patch} options={WOULD_YOU_RATHER} />
+        <PairPick game="would-you-rather" me={me.id} session={session} patch={patch} fallback={WOULD_YOU_RATHER} />
+      ) : game === "never-have-i-ever" ? (
+        <NeverHaveIEver me={me.id} session={session} patch={patch} />
       ) : game === "tic-tac-toe" ? (
         <TicTacToe me={me.id} session={session} patch={patch} />
       ) : game === "rock-paper-scissors" ? (
@@ -161,14 +163,64 @@ function GameRoute() {
 }
 
 function initialState(game: GameKind) {
-  if (game === "truth-or-dare") return { index: 0 };
+  if (game === "truth-or-dare")
+    return { count: 0, card: null as null | { type: "truth" | "dare"; text: string }, intensity: "playful" as Intensity };
   if (game === "this-or-that" || game === "would-you-rather")
-    return { index: 0, picks: {} as Record<string, 0 | 1>, score: { matches: 0, total: 0 } };
+    return {
+      count: 0,
+      card: null as null | { a: string; b: string },
+      picks: {} as Record<string, 0 | 1>,
+      score: { matches: 0, total: 0 },
+      intensity: "playful" as Intensity,
+    };
+  if (game === "never-have-i-ever")
+    return {
+      count: 0,
+      card: null as null | { text: string },
+      picks: {} as Record<string, 0 | 1>,
+      tallies: { have: 0, havent: 0 },
+      intensity: "playful" as Intensity,
+    };
   if (game === "tic-tac-toe")
     return { board: Array(9).fill(null), turn: "X", wins: { X: 0, O: 0, draws: 0 } };
   if (game === "rock-paper-scissors")
     return { picks: {} as Record<string, RPSChoice>, round: 1, score: {} as Record<string, number> };
-  return { index: 0, answer: null as string | null, answeredBy: null as string | null, guess: null as string | null, revealed: false };
+  return {
+    count: 0,
+    card: null as null | { text: string },
+    answer: null as string | null,
+    answeredBy: null as string | null,
+    guess: null as string | null,
+    revealed: false,
+    intensity: "playful" as Intensity,
+  };
+}
+
+function IntensityBar({
+  value,
+  onChange,
+  disabled,
+}: {
+  value: Intensity;
+  onChange: (v: Intensity) => void;
+  disabled?: boolean;
+}) {
+  return (
+    <div className="flex gap-1 mb-4 p-1 rounded-full bg-surface border border-border">
+      {INTENSITIES.map((i) => (
+        <button
+          key={i.id}
+          onClick={() => !disabled && onChange(i.id)}
+          disabled={disabled}
+          className={`flex-1 py-1.5 text-xs rounded-full transition-all ${
+            value === i.id ? "bg-petal text-velvet font-semibold" : "text-candle-muted"
+          }`}
+        >
+          {i.emoji} {i.label}
+        </button>
+      ))}
+    </div>
+  );
 }
 
 function TicTacToe({ me, session, patch }: { me: string; session: Session; patch: (s: any) => void }) {
