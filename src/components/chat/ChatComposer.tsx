@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { Plus, X, Image as ImageIcon, Paperclip, Smile, Send, Clock, Film } from "lucide-react";
 import { toast } from "sonner";
-import { uploadChatMedia, STICKERS, DISAPPEAR_OPTIONS, type MessageRow } from "@/lib/chat";
+import { uploadChatMedia, DISAPPEAR_OPTIONS, type MessageRow } from "@/lib/chat";
 import { VoiceRecorder } from "./VoiceRecorder";
 import { WatchInvitePicker } from "./WatchInvitePicker";
+import { EmojiPicker } from "./EmojiPicker";
 import type { TmdbMovie } from "@/lib/tmdb.functions";
 
 
