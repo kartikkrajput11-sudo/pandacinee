@@ -834,18 +834,55 @@ function WatchMovie() {
             ))}
           </div>
 
-          {/* Watch Together — inline under the screen */}
-          {me && partner && movie && (
-            <div className="mt-3">
-              <WatchTogetherPanel
-                me={me}
-                partner={partner}
-                movieId={tmdbId}
-                movieTitle={movie.title}
-                moviePoster={movie.poster_path ? (/^https?:\/\//i.test(movie.poster_path) ? movie.poster_path : `https://image.tmdb.org/t/p/w154${movie.poster_path}`) : null}
-                mediaType={isTv ? "tv" : "movie"}
-                inline
-              />
+          {/* Together tools — right under the screen */}
+          {partner && (
+            <div className="mt-3 rounded-2xl border border-border bg-surface/40 backdrop-blur px-3 py-3">
+              <div className="flex items-center justify-between mb-2 gap-2">
+                <span className="text-[10px] uppercase tracking-[0.3em] text-candle-muted">Together</span>
+                <div className="flex items-center gap-1.5 text-[10px]">
+                  <Crown className={`size-3 ${hostId ? "text-petal" : "text-candle-muted/60"}`} />
+                  <span className="text-candle-muted">
+                    Host:{" "}
+                    <span className={hostId ? "text-petal font-semibold" : ""}>
+                      {iAmHost ? "You" : partnerIsHost ? partnerFirst : "no one"}
+                    </span>
+                  </span>
+                </div>
+              </div>
+
+              <div className="mb-2 flex items-center gap-2">
+                {!iAmHost ? (
+                  <button
+                    onClick={claimHost}
+                    className="flex-1 h-10 rounded-full bg-petal text-velvet text-xs font-semibold flex items-center justify-center gap-1.5 shadow-lg shadow-petal/30"
+                  >
+                    <Crown className="size-3.5" /> Take the reins
+                  </button>
+                ) : (
+                  <button
+                    onClick={releaseHost}
+                    className="flex-1 h-10 rounded-full bg-surface border border-petal/60 text-petal text-xs font-semibold flex items-center justify-center gap-1.5"
+                  >
+                    <Crown className="size-3.5 fill-petal" /> You're the host · release
+                  </button>
+                )}
+              </div>
+
+              {partnerIsHost && (
+                <div className="mb-2 rounded-xl bg-petal/10 border border-petal/30 px-3 py-2 text-[11px] text-candle flex items-center gap-2">
+                  <Crown className="size-3 text-petal shrink-0" />
+                  <span>Auto-following {partnerFirst} — their play, pause & skips control your screen.</span>
+                </div>
+              )}
+
+              <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
+                <button
+                  onClick={() => startCountdown(4)}
+                  className="shrink-0 h-9 px-4 rounded-full bg-surface border border-border text-xs text-candle flex items-center gap-1.5"
+                >
+                  <Timer className="size-3.5" /> Countdown together
+                </button>
+              </div>
             </div>
           )}
         </div>
