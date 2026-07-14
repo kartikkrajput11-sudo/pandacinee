@@ -24,37 +24,52 @@ import {
   Crown,
 } from "lucide-react";
 import { toast } from "sonner";
-import { tmdbMovie } from "@/lib/tmdb.functions";
+import { tmdbMovie, tmdbTvDetail, tmdbTvSeason } from "@/lib/tmdb.functions";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/integrations/supabase/client";
 import { WatchTogetherPanel } from "@/components/watch/WatchTogetherPanel";
 import { useWatchSync, fmtTime } from "@/hooks/useWatchSync";
 import { CustomMoviePlayer, type CustomPlayerHandle } from "@/components/CustomMoviePlayer";
 
-type Source = { id: string; label: string; url: (tmdb: number, startAt?: number) => string; hint: string };
+type Source = { id: string; label: string; url: (tmdb: number, startAt?: number, mediaType?: "movie" | "tv", season?: number, episode?: number) => string; hint: string };
+
 
 const SOURCES: Source[] = [
   {
     id: "vidking-auto",
     label: "Velvet HD",
     hint: "Autoplay enabled — recommended",
-    url: (id, t) =>
-      `https://www.vidking.net/embed/movie/${id}?color=9146ff&autoPlay=true${t ? `&progress=${Math.floor(t)}` : ""}`,
+    url: (id, t, mt, s, e) => {
+      const base = mt === "tv" && s != null && e != null
+        ? `https://www.vidking.net/embed/tv/${id}/${s}/${e}`
+        : `https://www.vidking.net/embed/movie/${id}`;
+      return `${base}?color=9146ff&autoPlay=true${t ? `&progress=${Math.floor(t)}` : ""}`;
+    },
   },
   {
     id: "vidking-manual",
     label: "Velvet Manual",
     hint: "Press play inside the player",
-    url: (id, t) =>
-      `https://www.vidking.net/embed/movie/${id}?color=9146ff${t ? `&progress=${Math.floor(t)}` : ""}`,
+    url: (id, t, mt, s, e) => {
+      const base = mt === "tv" && s != null && e != null
+        ? `https://www.vidking.net/embed/tv/${id}/${s}/${e}`
+        : `https://www.vidking.net/embed/movie/${id}`;
+      return `${base}?color=9146ff${t ? `&progress=${Math.floor(t)}` : ""}`;
+    },
   },
   {
     id: "vidking-clean",
     label: "Basic",
     hint: "Minimal fallback embed",
-    url: (id, t) => `https://www.vidking.net/embed/movie/${id}${t ? `?progress=${Math.floor(t)}` : ""}`,
+    url: (id, t, mt, s, e) => {
+      const base = mt === "tv" && s != null && e != null
+        ? `https://www.vidking.net/embed/tv/${id}/${s}/${e}`
+        : `https://www.vidking.net/embed/movie/${id}`;
+      return `${base}${t ? `?progress=${Math.floor(t)}` : ""}`;
+    },
   },
 ];
+
 
 const REACTIONS = ["❤️", "🔥", "😂", "😱", "🥰", "🍿"];
 
@@ -88,6 +103,18 @@ function WatchMovie() {
   const [floaties, setFloaties] = useState<{ id: number; emoji: string; x: number; from: "me" | "partner" }[]>([]);
   const lastPublishRef = useRef(0);
 
+  // TV series state (populated when the admin marked this TMDB id as media_type=tv)
+  const [isTv, setIsTv] = useState(false);
+  const [customMovieId, setCustomMovieId] = useState<string | null>(null);
+  const [tvSeasons, setTvSeasons] = useState<{ season_number: number; episode_count: number; name: string }[]>([]);
+  const [season, setSeason] = useState<number>(1);
+  const [episode, setEpisode] = useState<number>(1);
+  const [seasonEps, setSeasonEps] = useState<Array<{ episode_number: number; name: string; still_path: string | null }>>([]);
+  const [customEps, setCustomEps] = useState<Array<{ season: number; episode: number; title: string | null; video_url: string | null; video_storage_path: string | null; use_vidking: boolean }>>([]);
+  const tvDetailFn = useServerFn(tmdbTvDetail);
+  const tvSeasonFn = useServerFn(tmdbTvSeason);
+
+
   const {
     mine,
     peer,
@@ -119,15 +146,16 @@ function WatchMovie() {
         fetchMovie({ data: { id: tmdbId } }).catch(() => null),
         supabase
           .from("custom_movies")
-          .select("title, overview, poster_url, backdrop_url, runtime, video_url, video_storage_path")
+          .select("id, title, overview, poster_url, backdrop_url, runtime, video_url, video_storage_path, media_type, tmdb_id")
           .eq("tmdb_id", tmdbId)
           .maybeSingle(),
       ]);
       if (!alive) return;
       const ov = ovRes.data as {
-        title?: string; overview?: string | null;
+        id?: string; title?: string; overview?: string | null;
         poster_url?: string | null; backdrop_url?: string | null; runtime?: number | null;
         video_url?: string | null; video_storage_path?: string | null;
+        media_type?: "movie" | "tv" | null;
       } | null;
       if (m && ov) {
         if (ov.title) m.title = ov.title;
@@ -138,20 +166,90 @@ function WatchMovie() {
       }
       setMovie(m);
 
-      // Resolve a Pandacine (self-hosted) video source when the admin has one
-      if (ov?.video_storage_path) {
+      const tv = ov?.media_type === "tv";
+      setIsTv(tv);
+      setCustomMovieId(ov?.id ?? null);
+
+      if (tv) {
+        // Load season list + per-episode admin overrides in parallel
+        const [detail, epsRes] = await Promise.all([
+          tvDetailFn({ data: { id: tmdbId } }).catch(() => null),
+          ov?.id
+            ? supabase.from("custom_episodes")
+                .select("season, episode, title, video_url, video_storage_path, use_vidking")
+                .eq("movie_id", ov.id)
+            : Promise.resolve({ data: [] } as any),
+        ]);
+        if (!alive) return;
+        if (detail?.seasons) {
+          const s = detail.seasons.filter((x: any) => x.season_number > 0);
+          setTvSeasons(s);
+          if (s.length && !s.find((x: any) => x.season_number === season)) setSeason(s[0].season_number);
+        }
+        setCustomEps(((epsRes as any).data ?? []) as any);
+      } else {
+        setTvSeasons([]);
+        setCustomEps([]);
+        // Movie: resolve Pandacine source from show-level fields
+        if (ov?.video_storage_path) {
+          const { data: signed } = await supabase.storage
+            .from("custom-movies")
+            .createSignedUrl(ov.video_storage_path, 60 * 60 * 6);
+          if (signed?.signedUrl) setPandacine({ videoSrc: signed.signedUrl, title: ov.title ?? null });
+        } else if (ov?.video_url) {
+          setPandacine({ videoSrc: ov.video_url, title: ov.title ?? null });
+        } else {
+          setPandacine(null);
+        }
+      }
+    })();
+    return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tmdbId]);
+
+  // Load episodes for the selected season (TV only)
+  useEffect(() => {
+    if (!isTv) return;
+    let alive = true;
+    (async () => {
+      try {
+        const eps = await tvSeasonFn({ data: { id: tmdbId, season } });
+        if (!alive) return;
+        setSeasonEps(eps as any);
+        // Snap episode to the first available if current is out of range
+        if (eps.length && !eps.find((e: any) => e.episode_number === episode)) {
+          setEpisode(eps[0].episode_number);
+        }
+      } catch { /* ignore */ }
+    })();
+    return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isTv, tmdbId, season]);
+
+  // Resolve Pandacine source for the current episode override (TV only)
+  useEffect(() => {
+    if (!isTv) return;
+    let alive = true;
+    (async () => {
+      const ov = customEps.find((r) => r.season === season && r.episode === episode);
+      if (!ov) { setPandacine(null); return; }
+      if (ov.video_storage_path) {
         const { data: signed } = await supabase.storage
           .from("custom-movies")
           .createSignedUrl(ov.video_storage_path, 60 * 60 * 6);
+        if (!alive) return;
         if (signed?.signedUrl) setPandacine({ videoSrc: signed.signedUrl, title: ov.title ?? null });
-      } else if (ov?.video_url) {
+        else setPandacine(null);
+      } else if (ov.video_url) {
         setPandacine({ videoSrc: ov.video_url, title: ov.title ?? null });
       } else {
         setPandacine(null);
       }
     })();
     return () => { alive = false; };
-  }, [tmdbId]);
+  }, [isTv, season, episode, customEps]);
+
+
 
   // Capture VidKing events, publish to partner (throttled)
   useEffect(() => {
@@ -247,7 +345,7 @@ function WatchMovie() {
 
   // Merge Pandacine (self-hosted) as an extra source in front of the VidKing sources.
   const allSources = useMemo(() => {
-    const list: { id: string; label: string; hint: string; kind: "pandacine" | "vidking"; buildUrl?: (id: number, t?: number) => string }[] = [];
+    const list: { id: string; label: string; hint: string; kind: "pandacine" | "vidking"; buildUrl?: (id: number, t?: number, mt?: "movie" | "tv", s?: number, e?: number) => string }[] = [];
     if (pandacine) {
       list.push({
         id: "pandacine",
@@ -270,10 +368,22 @@ function WatchMovie() {
 
   const src = useMemo(() => {
     if (!currentSource || currentSource.kind === "pandacine") return "";
+    const mt = isTv ? "tv" : "movie";
+    const s = isTv ? season : undefined;
+    const e = isTv ? episode : undefined;
     // When host paused, force a manual (no-autoplay) URL so playback stops at that time.
-    if (pausedByHost) return SOURCES[1].url(tmdbId, startAt);
-    return currentSource.buildUrl!(tmdbId, startAt);
-  }, [currentSource, tmdbId, startAt, pausedByHost]);
+    if (pausedByHost) return SOURCES[1].url(tmdbId, startAt, mt, s, e);
+    return currentSource.buildUrl!(tmdbId, startAt, mt, s, e);
+  }, [currentSource, tmdbId, startAt, pausedByHost, isTv, season, episode]);
+
+  // Reload iframe when episode changes
+  useEffect(() => {
+    if (!isTv) return;
+    setIframeKey((k) => k + 1);
+    setStartAt(undefined);
+  }, [isTv, season, episode]);
+
+
 
 
   const applySeek = useCallback((time: number, opts?: { pause?: boolean }) => {
@@ -579,6 +689,51 @@ function WatchMovie() {
             )}
           </div>
         </div>
+
+        {/* Season / Episode picker (TV only) */}
+        {isTv && tvSeasons.length > 0 && (
+          <div className="mt-3 rounded-2xl bg-surface/70 border border-border p-2.5">
+            <div className="flex items-center gap-2 mb-2">
+              <MonitorPlay className="size-3.5 text-petal" />
+              <p className="text-[10px] uppercase tracking-widest text-candle-muted">Season</p>
+              <select
+                value={season}
+                onChange={(e) => setSeason(Number(e.target.value))}
+                className="ml-1 h-7 px-2 rounded-full bg-velvet border border-border text-xs text-candle focus:outline-none focus:border-petal/60"
+              >
+                {tvSeasons.map((s) => (
+                  <option key={s.season_number} value={s.season_number}>S{s.season_number} · {s.episode_count} ep</option>
+                ))}
+              </select>
+            </div>
+            <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-0.5 px-0.5 snap-x">
+              {seasonEps.map((ep) => {
+                const active = ep.episode_number === episode;
+                const hasOverride = customEps.some((r) => r.season === season && r.episode === ep.episode_number);
+                return (
+                  <button
+                    key={ep.episode_number}
+                    onClick={() => setEpisode(ep.episode_number)}
+                    className={`shrink-0 snap-start h-9 min-w-[3rem] px-3 rounded-full text-xs border transition-colors ${
+                      active
+                        ? "bg-petal text-velvet border-petal"
+                        : "bg-velvet border-border text-candle hover:border-petal/40"
+                    }`}
+                    title={ep.name}
+                  >
+                    E{ep.episode_number}{hasOverride ? " ✦" : ""}
+                  </button>
+                );
+              })}
+            </div>
+            {seasonEps.find((e) => e.episode_number === episode)?.name && (
+              <p className="mt-1.5 text-[11px] text-candle-muted truncate">
+                E{episode} · {seasonEps.find((e) => e.episode_number === episode)?.name}
+              </p>
+            )}
+          </div>
+        )}
+
 
         {/* Floating reaction bar */}
         <div className="mt-3 flex items-center justify-center gap-1.5">

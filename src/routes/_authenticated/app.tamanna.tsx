@@ -11,8 +11,12 @@ import {
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
-import { claimAdmin, createCustomMovie, updateCustomMovie, deleteCustomMovie } from "@/lib/admin.functions";
-import { tmdbSearch, tmdbMovie, type TmdbMovie } from "@/lib/tmdb.functions";
+import {
+  claimAdmin, createCustomMovie, updateCustomMovie, deleteCustomMovie,
+  listCustomEpisodes, upsertCustomEpisode, updateCustomEpisode, deleteCustomEpisode,
+} from "@/lib/admin.functions";
+import { tmdbSearch, tmdbMovie, tmdbTvDetail, tmdbTvSeason, type TmdbMovie } from "@/lib/tmdb.functions";
+
 import { getAdminStats, getRecentActivity, getAdminUsers, deleteAdminUser, type ActivityItem, type AdminUserRow } from "@/lib/admin-stats.functions";
 
 export const Route = createFileRoute("/_authenticated/app/tamanna")({
@@ -502,8 +506,10 @@ function LibraryTab() {
   const qc = useQueryClient();
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState<CustomMovie | null>(null);
+  const [episodesFor, setEpisodesFor] = useState<CustomMovie | null>(null);
   const [query, setQuery] = useState("");
   const del = useServerFn(deleteCustomMovie);
+
 
   const { data: movies, isLoading } = useQuery({
     queryKey: ["custom-movies"],
@@ -604,12 +610,21 @@ function LibraryTab() {
                 >
                   <Pencil className="size-3" /> Edit
                 </button>
+                {m.media_type === "tv" && (
+                  <button
+                    onClick={() => setEpisodesFor(m)}
+                    className="h-8 px-3 rounded-full bg-surface-elevated border border-border text-xs text-candle flex items-center gap-1 hover:border-petal/40"
+                  >
+                    <Clapperboard className="size-3" /> Episodes
+                  </button>
+                )}
                 <button
                   onClick={() => onDelete(m)}
                   className="h-8 px-3 rounded-full bg-surface-elevated border border-border text-xs text-rose-400 flex items-center gap-1 hover:border-rose-500/40"
                 >
                   <Trash2 className="size-3" /> Delete
                 </button>
+
               </div>
             </div>
           </div>
@@ -626,6 +641,13 @@ function LibraryTab() {
           }}
         />
       )}
+      {episodesFor && (
+        <EpisodesModal
+          movie={episodesFor}
+          onClose={() => setEpisodesFor(null)}
+        />
+      )}
+
     </div>
   );
 }
@@ -1090,8 +1112,295 @@ function MovieModal({ initial, onClose }: { initial?: CustomMovie | null; onClos
   );
 }
 
+// ─── Episodes manager (per-episode overrides for series) ─────────────────
+
+type EpisodeRow = {
+  id: string;
+  movie_id: string;
+  season: number;
+  episode: number;
+  title: string | null;
+  overview: string | null;
+  still_url: string | null;
+  runtime: number | null;
+  video_url: string | null;
+  video_storage_path: string | null;
+  use_vidking: boolean;
+};
+
+function EpisodesModal({ movie, onClose }: { movie: CustomMovie; onClose: () => void }) {
+  const listFn = useServerFn(listCustomEpisodes);
+  const upsertFn = useServerFn(upsertCustomEpisode);
+  const delFn = useServerFn(deleteCustomEpisode);
+  const tvDetail = useServerFn(tmdbTvDetail);
+  const tvSeason = useServerFn(tmdbTvSeason);
+
+  const [seasons, setSeasons] = useState<{ season_number: number; episode_count: number; name: string }[]>([]);
+  const [season, setSeason] = useState<number>(1);
+  const [tmdbEps, setTmdbEps] = useState<Array<{ episode_number: number; name: string; overview: string | null; still_path: string | null; runtime: number | null }>>([]);
+  const [customEps, setCustomEps] = useState<EpisodeRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [savingKey, setSavingKey] = useState<string | null>(null);
+
+  const tmdbId = movie.tmdb_id;
+
+  // Bootstrap: TV detail (for season list) + custom episodes for this movie
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      setLoading(true);
+      try {
+        const [detail, rows] = await Promise.all([
+          tmdbId ? tvDetail({ data: { id: tmdbId } }).catch(() => null) : Promise.resolve(null),
+          listFn({ data: { movie_id: movie.id } }),
+        ]);
+        if (!alive) return;
+        if (detail?.seasons) {
+          const s = detail.seasons.filter((x: any) => x.season_number > 0);
+          setSeasons(s);
+          if (s.length && !s.find((x) => x.season_number === season)) setSeason(s[0].season_number);
+        }
+        setCustomEps(rows as EpisodeRow[]);
+      } finally {
+        if (alive) setLoading(false);
+      }
+    })();
+    return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [movie.id, tmdbId]);
+
+  // Load episodes when season changes
+  useEffect(() => {
+    if (!tmdbId) { setTmdbEps([]); return; }
+    let alive = true;
+    (async () => {
+      try {
+        const eps = await tvSeason({ data: { id: tmdbId, season } });
+        if (!alive) return;
+        setTmdbEps(eps as any);
+      } catch {
+        if (alive) setTmdbEps([]);
+      }
+    })();
+    return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tmdbId, season]);
+
+  const overrideMap = useMemo(() => {
+    const m = new Map<string, EpisodeRow>();
+    for (const r of customEps) m.set(`${r.season}:${r.episode}`, r);
+    return m;
+  }, [customEps]);
+
+  async function saveOne(patch: Partial<EpisodeRow> & { season: number; episode: number }) {
+    const key = `${patch.season}:${patch.episode}`;
+    setSavingKey(key);
+    try {
+      const row = await upsertFn({
+        data: {
+          movie_id: movie.id,
+          season: patch.season,
+          episode: patch.episode,
+          title: patch.title ?? null,
+          overview: patch.overview ?? null,
+          still_url: patch.still_url ?? null,
+          runtime: patch.runtime ?? null,
+          video_url: patch.video_url ?? null,
+          video_storage_path: patch.video_storage_path ?? null,
+          use_vidking: patch.use_vidking ?? true,
+        },
+      });
+      setCustomEps((prev) => {
+        const next = prev.filter((r) => !(r.season === patch.season && r.episode === patch.episode));
+        next.push(row as EpisodeRow);
+        return next;
+      });
+      toast.success(`Saved S${patch.season}E${patch.episode}`);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Save failed");
+    } finally {
+      setSavingKey(null);
+    }
+  }
+
+  async function resetOne(row: EpisodeRow) {
+    if (!confirm(`Clear overrides for S${row.season}E${row.episode}?`)) return;
+    try {
+      await delFn({ data: { id: row.id } });
+      setCustomEps((prev) => prev.filter((r) => r.id !== row.id));
+      toast.success("Cleared");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Delete failed");
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 bg-velvet/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-3">
+      <div className="w-full max-w-2xl max-h-[92vh] overflow-y-auto rounded-3xl bg-surface border border-border p-5 animate-fade-up">
+        <div className="flex items-center justify-between mb-1 gap-3">
+          <div className="min-w-0">
+            <p className="text-[10px] uppercase tracking-widest text-petal">Episodes · {movie.title}</p>
+            <p className="text-xs text-candle-muted truncate">
+              {tmdbId ? `TMDB TV ${tmdbId}` : "No TMDB link — set a TMDB ID on the show to auto-load seasons"}
+            </p>
+          </div>
+          <button onClick={onClose} className="size-9 shrink-0 rounded-full bg-surface-elevated flex items-center justify-center"><X className="size-4" /></button>
+        </div>
+
+        {seasons.length > 0 && (
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            {seasons.map((s) => (
+              <button
+                key={s.season_number}
+                onClick={() => setSeason(s.season_number)}
+                className={`h-8 px-3 rounded-full text-xs border transition-colors ${
+                  season === s.season_number
+                    ? "bg-petal text-velvet border-petal"
+                    : "bg-surface-elevated border-border text-candle hover:border-petal/40"
+                }`}
+              >
+                S{s.season_number} <span className="opacity-60">· {s.episode_count}</span>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {loading && <div className="py-8 text-center text-xs text-candle-muted"><Loader2 className="size-4 animate-spin inline mr-1" /> Loading…</div>}
+
+        {!loading && tmdbEps.length === 0 && (
+          <div className="mt-4 p-4 rounded-2xl border border-dashed border-border text-center">
+            <p className="text-sm text-candle-muted">
+              {tmdbId ? "No episodes found for this season." : "Add a TMDB TV ID on this title to load episode metadata automatically."}
+            </p>
+          </div>
+        )}
+
+        <div className="mt-3 space-y-2">
+          {tmdbEps.map((ep) => {
+            const ov = overrideMap.get(`${season}:${ep.episode_number}`);
+            const key = `${season}:${ep.episode_number}`;
+            const busy = savingKey === key;
+            return (
+              <EpisodeEditor
+                key={key}
+                season={season}
+                episode={ep.episode_number}
+                tmdbName={ep.name}
+                tmdbOverview={ep.overview}
+                tmdbStill={ep.still_path ? `https://image.tmdb.org/t/p/w300${ep.still_path}` : null}
+                tmdbRuntime={ep.runtime}
+                override={ov ?? null}
+                busy={busy}
+                onSave={saveOne}
+                onReset={ov ? () => resetOne(ov) : undefined}
+              />
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function EpisodeEditor({
+  season, episode, tmdbName, tmdbOverview, tmdbStill, tmdbRuntime,
+  override, busy, onSave, onReset,
+}: {
+  season: number; episode: number;
+  tmdbName: string; tmdbOverview: string | null; tmdbStill: string | null; tmdbRuntime: number | null;
+  override: EpisodeRow | null;
+  busy: boolean;
+  onSave: (patch: { season: number; episode: number; title: string | null; overview: string | null; still_url: string | null; runtime: number | null; video_url: string | null; use_vidking: boolean }) => Promise<void>;
+  onReset?: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [title, setTitle] = useState(override?.title ?? "");
+  const [overview, setOverview] = useState(override?.overview ?? "");
+  const [still, setStill] = useState(override?.still_url ?? "");
+  const [runtime, setRuntime] = useState<string>(override?.runtime != null ? String(override.runtime) : "");
+  const [videoUrl, setVideoUrl] = useState(override?.video_url ?? "");
+  const [useVidking, setUseVidking] = useState<boolean>(override?.use_vidking ?? true);
+
+  useEffect(() => {
+    setTitle(override?.title ?? "");
+    setOverview(override?.overview ?? "");
+    setStill(override?.still_url ?? "");
+    setRuntime(override?.runtime != null ? String(override.runtime) : "");
+    setVideoUrl(override?.video_url ?? "");
+    setUseVidking(override?.use_vidking ?? true);
+  }, [override?.id]);
+
+  const displayTitle = override?.title || tmdbName;
+  const stillSrc = override?.still_url || tmdbStill;
+
+  return (
+    <div className="rounded-2xl border border-border bg-surface-elevated">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center gap-3 p-2 text-left"
+      >
+        <div className="w-20 h-12 shrink-0 rounded-lg overflow-hidden bg-velvet">
+          {stillSrc ? <img src={stillSrc} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><Film className="size-4 text-candle-muted" /></div>}
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-xs text-candle-muted">S{season}E{episode}{override ? " · edited" : ""}</p>
+          <p className="text-sm text-candle truncate">{displayTitle}</p>
+        </div>
+        <div className="text-[10px] text-candle-muted">{open ? "Close" : "Edit"}</div>
+      </button>
+
+      {open && (
+        <div className="border-t border-border p-3 space-y-2">
+          <TextField label="Title override" value={title} onChange={setTitle} placeholder={tmdbName} />
+          <TextField label="Overview override" value={overview} onChange={setOverview} placeholder={tmdbOverview ?? "TMDB overview"} multiline />
+          <div className="grid grid-cols-2 gap-2">
+            <TextField label="Still URL" value={still} onChange={setStill} placeholder="https://..." />
+            <TextField label="Runtime (min)" value={runtime} onChange={setRuntime} type="number" placeholder={tmdbRuntime ? String(tmdbRuntime) : ""} />
+          </div>
+          <TextField label="Video URL (self-hosted)" value={videoUrl} onChange={setVideoUrl} placeholder="https://... .mp4 or .m3u8" />
+          <label className="flex items-center gap-2 text-xs text-candle cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={useVidking}
+              onChange={(e) => setUseVidking(e.target.checked)}
+              className="accent-petal size-4"
+            />
+            Play via VidKing when no video URL is set
+          </label>
+          <div className="flex gap-2 pt-1">
+            <button
+              onClick={() => onSave({
+                season, episode,
+                title: title.trim() || null,
+                overview: overview.trim() || null,
+                still_url: still.trim() || null,
+                runtime: runtime ? Number(runtime) : null,
+                video_url: videoUrl.trim() || null,
+                use_vidking: useVidking,
+              })}
+              disabled={busy}
+              className="flex-1 h-9 rounded-full bg-petal text-velvet text-xs font-semibold disabled:opacity-50"
+            >
+              {busy ? <Loader2 className="size-3 animate-spin inline" /> : "Save"}
+            </button>
+            {onReset && (
+              <button
+                onClick={onReset}
+                className="h-9 px-3 rounded-full bg-surface border border-border text-xs text-rose-400 hover:border-rose-500/40"
+              >
+                Clear overrides
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function TextField({
   label, value, onChange, placeholder, type = "text", multiline = false,
+
 }: {
   label: string; value: string; onChange: (v: string) => void;
   placeholder?: string; type?: string; multiline?: boolean;

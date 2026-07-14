@@ -86,3 +86,33 @@ export const tmdbMoviesBatch = createServerFn({ method: "GET" })
     return results.filter((m): m is TmdbMovie => !!m);
   });
 
+export type TmdbEpisode = {
+  id: number;
+  name: string;
+  overview: string | null;
+  season_number: number;
+  episode_number: number;
+  still_path: string | null;
+  runtime: number | null;
+  air_date: string | null;
+};
+
+export const tmdbTvDetail = createServerFn({ method: "GET" })
+  .inputValidator((d: { id: number }) => d)
+  .handler(async ({ data }) => {
+    const r = await tmdb<{
+      id: number; name: string;
+      number_of_seasons: number;
+      seasons: { season_number: number; episode_count: number; name: string }[];
+    }>(`/tv/${data.id}`);
+    return r;
+  });
+
+export const tmdbTvSeason = createServerFn({ method: "GET" })
+  .inputValidator((d: { id: number; season: number }) => d)
+  .handler(async ({ data }) => {
+    const r = await tmdb<{ episodes: TmdbEpisode[] }>(`/tv/${data.id}/season/${data.season}`);
+    return r.episodes ?? [];
+  });
+
+
