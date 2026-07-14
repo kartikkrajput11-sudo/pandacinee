@@ -61,16 +61,20 @@ const GENRE = {
 } as const;
 
 function Movies() {
-  const { q } = Route.useSearch();
+  const { q, type, minRating } = Route.useSearch();
   const navigate = useNavigate();
   const trending = useServerFn(tmdbTrending);
-  const search = useServerFn(tmdbSearch);
+  const multi = useServerFn(tmdbMulti);
   const category = useServerFn(tmdbCategory);
   const discover = useServerFn(tmdbDiscover);
   const batch = useServerFn(tmdbMoviesBatch);
+  const tvTrending = useServerFn(tmdbTvTrending);
+  const tvCategory = useServerFn(tmdbTvCategory);
+  const tvDiscover = useServerFn(tmdbTvDiscover);
 
   const [input, setInput] = useState(q);
-  const [searchResults, setSearchResults] = useState<TmdbMovie[] | null>(null);
+  type MultiItem = TmdbMovie & { media_type?: "movie" | "tv" };
+  const [searchResults, setSearchResults] = useState<MultiItem[] | null>(null);
   const [searchLoading, setSearchLoading] = useState(false);
 
   const [trendingList, setTrendingList] = useState<TmdbMovie[]>([]);
@@ -81,19 +85,34 @@ function Movies() {
   const [dateNight, setDateNight] = useState<TmdbMovie[]>([]);
   const [thrillers, setThrillers] = useState<TmdbMovie[]>([]);
   const [feelGood, setFeelGood] = useState<TmdbMovie[]>([]);
+  const [tvTrend, setTvTrend] = useState<TmdbMovie[]>([]);
+  const [tvPopular, setTvPopular] = useState<TmdbMovie[]>([]);
+  const [tvTop, setTvTop] = useState<TmdbMovie[]>([]);
+  const [tvOnAir, setTvOnAir] = useState<TmdbMovie[]>([]);
+  const [tvRomance, setTvRomance] = useState<TmdbMovie[]>([]);
   const [recent, setRecent] = useState<TmdbMovie[]>([]);
   const [custom, setCustom] = useState<CustomMovieRow[]>([]);
   const [overrides, setOverrides] = useState<Map<number, CustomMovieRow>>(new Map());
   const [loading, setLoading] = useState(true);
 
   const overlay = useMemo(
-    () => (list: TmdbMovie[]) => list.map((m) => applyOverride(m, overrides.get(m.id))),
-    [overrides],
+    () => (list: TmdbMovie[]) =>
+      list
+        .map((m) => applyOverride(m, overrides.get(m.id)))
+        .filter((m) => (m.vote_average ?? 0) >= minRating),
+    [overrides, minRating],
   );
 
   useEffect(() => { setInput(q); }, [q]);
 
-  // Search mode
+  function updateSearch(patch: Partial<{ q: string; type: "all" | "movie" | "tv"; minRating: number }>) {
+    navigate({
+      to: "/app/movies",
+      search: (prev) => ({ ...prev, ...patch }),
+    });
+  }
+
+  // Search mode — multi so it can return both movies and TV
   useEffect(() => {
     if (!q.trim()) {
       setSearchResults(null);
@@ -101,27 +120,32 @@ function Movies() {
     }
     let alive = true;
     setSearchLoading(true);
-    search({ data: { q } })
-      .then((r) => alive && setSearchResults(r))
+    multi({ data: { q } })
+      .then((r) => alive && setSearchResults(r as MultiItem[]))
       .catch(() => alive && setSearchResults([]))
       .finally(() => alive && setSearchLoading(false));
     return () => { alive = false; };
   }, [q]);
 
-  // Browse mode — load all rails in parallel
+  // Browse mode — load all rails (movies + tv) in parallel
   useEffect(() => {
     let alive = true;
     setLoading(true);
     Promise.all([
-      trending({ data: { window: "week" } }).catch(() => []),
-      category({ data: { kind: "popular" } }).catch(() => []),
-      category({ data: { kind: "top_rated" } }).catch(() => []),
-      category({ data: { kind: "now_playing" } }).catch(() => []),
-      category({ data: { kind: "upcoming" } }).catch(() => []),
-      discover({ data: { genre: GENRE.romance, sort: "popularity.desc" } }).catch(() => []),
-      discover({ data: { genre: GENRE.thriller, sort: "popularity.desc" } }).catch(() => []),
-      discover({ data: { genre: GENRE.comedy, sort: "popularity.desc" } }).catch(() => []),
-    ]).then(([tr, pop, top, now, up, rom, thr, com]) => {
+      trending({ data: { window: "week" } }).catch(() => [] as TmdbMovie[]),
+      category({ data: { kind: "popular" } }).catch(() => [] as TmdbMovie[]),
+      category({ data: { kind: "top_rated" } }).catch(() => [] as TmdbMovie[]),
+      category({ data: { kind: "now_playing" } }).catch(() => [] as TmdbMovie[]),
+      category({ data: { kind: "upcoming" } }).catch(() => [] as TmdbMovie[]),
+      discover({ data: { genre: GENRE.romance, sort: "popularity.desc" } }).catch(() => [] as TmdbMovie[]),
+      discover({ data: { genre: GENRE.thriller, sort: "popularity.desc" } }).catch(() => [] as TmdbMovie[]),
+      discover({ data: { genre: GENRE.comedy, sort: "popularity.desc" } }).catch(() => [] as TmdbMovie[]),
+      tvTrending({ data: { window: "week" } }).catch(() => [] as TmdbMovie[]),
+      tvCategory({ data: { kind: "popular" } }).catch(() => [] as TmdbMovie[]),
+      tvCategory({ data: { kind: "top_rated" } }).catch(() => [] as TmdbMovie[]),
+      tvCategory({ data: { kind: "on_the_air" } }).catch(() => [] as TmdbMovie[]),
+      tvDiscover({ data: { genre: GENRE.romance, sort: "popularity.desc" } }).catch(() => [] as TmdbMovie[]),
+    ]).then(([tr, pop, top, now, up, rom, thr, com, ttr, tpop, ttop, tonair, trom]) => {
       if (!alive) return;
       setTrendingList(tr);
       setPopular(pop);
@@ -131,6 +155,11 @@ function Movies() {
       setDateNight(rom);
       setThrillers(thr);
       setFeelGood(com);
+      setTvTrend(ttr);
+      setTvPopular(tpop);
+      setTvTop(ttop);
+      setTvOnAir(tonair);
+      setTvRomance(trom);
       setLoading(false);
     });
 
@@ -139,8 +168,6 @@ function Movies() {
       batch({ data: { ids } }).then((r) => alive && setRecent(r)).catch(() => {});
     }
 
-    // Custom (admin-uploaded) movies from our library — shown as normal movies.
-    // Plus, any row with a tmdb_id becomes an override for that TMDB entry.
     supabase
       .from("custom_movies")
       .select("id, title, year, poster_url, backdrop_url, overview, runtime, tmdb_id")
@@ -148,7 +175,7 @@ function Movies() {
       .then(({ data }) => {
         if (!alive || !data) return;
         const rows = data as CustomMovieRow[];
-        setCustom(rows.filter((r) => !r.tmdb_id)); // only truly-custom titles in the "Fresh Arrivals" rail
+        setCustom(rows.filter((r) => !r.tmdb_id));
         const map = new Map<number, CustomMovieRow>();
         for (const r of rows) if (r.tmdb_id) map.set(r.tmdb_id, r);
         setOverrides(map);
@@ -159,13 +186,17 @@ function Movies() {
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    navigate({ to: "/app/movies", search: { q: input.trim() } });
+    updateSearch({ q: input.trim() });
   }
 
   const featured = useMemo(() => {
-    const m = trendingList[0];
+    const source = type === "tv" ? tvTrend : trendingList;
+    const m = source[0];
     return m ? applyOverride(m, overrides.get(m.id)) : undefined;
-  }, [trendingList, overrides]);
+  }, [type, trendingList, tvTrend, overrides]);
+
+  const showMovies = type !== "tv";
+  const showShows = type !== "movie";
 
   // Search results view
   if (q.trim()) {
