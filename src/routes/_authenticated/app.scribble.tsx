@@ -371,28 +371,40 @@ function Scribble() {
     };
   }, [me?.id, partner?.id]);
 
+  function resolveTimeout(w: string) {
+    if (roundResolvedRef.current) return;
+    roundResolvedRef.current = true;
+    wordRef.current = w;
+    setWord(w);
+    setHintMask(w);
+    setRevealed(new Set(w.split("").map((_, i) => i)));
+    setPhase("over");
+    setLastDrawerId(drawerIdRef.current);
+    setEndsAt(null);
+    setMessages((m) => [
+      ...m,
+      { id: crypto.randomUUID(), by: "sys", name: "System", text: `⏰ Time's up! The word was: ${w.toUpperCase()}` },
+    ]);
+    toast(`⏰ Time's up! The word was: ${w.toUpperCase()}`);
+  }
+
   // Time out
   useEffect(() => {
     if (phase !== "playing" || !endsAt) return;
     if (now >= endsAt) {
       if (roundResolvedRef.current) return;
-      roundResolvedRef.current = true;
-      setPhase("over");
-      setLastDrawerId(drawerId);
-      // Only the drawer knows the word — broadcast it so the guesser also sees it.
+      // Only the drawer knows the word — broadcast it so the guesser sees it too.
       if (iAmDrawer && word) {
         chRef.current?.send({
           type: "broadcast",
           event: "timeout",
           payload: { word },
         });
+        resolveTimeout(word);
       }
-      setMessages((m) => [
-        ...m,
-        { id: crypto.randomUUID(), by: "sys", name: "System", text: `Time! The word was “${word ?? "…"}”` },
-      ]);
+      // Guesser side: wait for the "timeout" broadcast which carries the word.
     }
-  }, [now, endsAt, phase, word, drawerId, iAmDrawer]);
+  }, [now, endsAt, phase, word, iAmDrawer]);
 
 
   // Auto letter reveals — drawer broadcasts every ~ (roundSeconds/4) seconds
