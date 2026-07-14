@@ -375,6 +375,7 @@ function Scribble() {
     strokes.current.push(s);
     chRef.current?.send({ type: "broadcast", event: "stroke", payload: s });
     redraw();
+    persist();
   }
 
   function openChoices() {
