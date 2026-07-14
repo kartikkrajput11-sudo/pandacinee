@@ -1260,6 +1260,51 @@ function WatchMovie() {
         />
       )}
 
+      {/* Waiting-for-friend overlay */}
+      {waitingFor && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-velvet/85 backdrop-blur-lg p-6" onClick={() => setWaitingFor(null)}>
+          <div
+            className="w-full max-w-sm rounded-3xl bg-surface border border-petal/30 shadow-2xl p-6 text-center relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setWaitingFor(null)}
+              className="absolute top-3 right-3 size-8 rounded-full bg-velvet/60 flex items-center justify-center text-candle-muted hover:text-candle"
+              aria-label="Close"
+            >
+              <X className="size-4" />
+            </button>
+            <div className="mx-auto mb-4 relative w-20 h-20">
+              <div className="absolute inset-0 rounded-full border-2 border-petal/30" />
+              <div className="absolute inset-0 rounded-full border-2 border-petal border-t-transparent animate-spin" />
+              <div className="absolute inset-2 rounded-full bg-petal/20 flex items-center justify-center text-2xl">
+                🍿
+              </div>
+            </div>
+            <p className="text-[10px] uppercase tracking-widest text-petal mb-1">Invite sent</p>
+            <h3 className="font-serif italic text-xl text-candle mb-2">Waiting for {waitingFor.name}…</h3>
+            <p className="text-xs text-candle-muted mb-5 leading-relaxed">
+              We whispered the invite in their chat. When they open the movie, you'll watch it together in perfect sync 💞
+            </p>
+            <div className="flex gap-2">
+              <Link
+                to="/app/chat/$peerId"
+                params={{ peerId: waitingFor.id }}
+                className="flex-1 h-10 rounded-full bg-surface-elevated border border-border text-xs font-semibold text-candle flex items-center justify-center gap-1.5"
+              >
+                <MessageCircle className="size-3.5" /> Open chat
+              </Link>
+              <button
+                onClick={() => setWaitingFor(null)}
+                className="flex-1 h-10 rounded-full bg-petal text-velvet text-xs font-semibold"
+              >
+                Keep watching
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Friend invite picker */}
       {friendPickerOpen && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm p-3" onClick={() => setFriendPickerOpen(false)}>
