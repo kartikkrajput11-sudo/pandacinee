@@ -113,7 +113,44 @@ function WatchMovie() {
   const lastAppliedPeerEventRef = useRef<number>(0);
 
   useEffect(() => {
-    fetchMovie({ data: { id: tmdbId } }).then(setMovie).catch(() => setMovie(null));
+    let alive = true;
+    (async () => {
+      const [m, ovRes] = await Promise.all([
+        fetchMovie({ data: { id: tmdbId } }).catch(() => null),
+        supabase
+          .from("custom_movies")
+          .select("title, overview, poster_url, backdrop_url, runtime, video_url, video_storage_path")
+          .eq("tmdb_id", tmdbId)
+          .maybeSingle(),
+      ]);
+      if (!alive) return;
+      const ov = ovRes.data as {
+        title?: string; overview?: string | null;
+        poster_url?: string | null; backdrop_url?: string | null; runtime?: number | null;
+        video_url?: string | null; video_storage_path?: string | null;
+      } | null;
+      if (m && ov) {
+        if (ov.title) m.title = ov.title;
+        if (ov.overview != null) m.overview = ov.overview;
+        if (ov.poster_url) m.poster_path = ov.poster_url;
+        if (ov.backdrop_url) m.backdrop_path = ov.backdrop_url;
+        if (ov.runtime) m.runtime = ov.runtime;
+      }
+      setMovie(m);
+
+      // Resolve a Pandacine (self-hosted) video source when the admin has one
+      if (ov?.video_storage_path) {
+        const { data: signed } = await supabase.storage
+          .from("custom-movies")
+          .createSignedUrl(ov.video_storage_path, 60 * 60 * 6);
+        if (signed?.signedUrl) setPandacine({ videoSrc: signed.signedUrl, title: ov.title ?? null });
+      } else if (ov?.video_url) {
+        setPandacine({ videoSrc: ov.video_url, title: ov.title ?? null });
+      } else {
+        setPandacine(null);
+      }
+    })();
+    return () => { alive = false; };
   }, [tmdbId]);
 
   // Capture VidKing events, publish to partner (throttled)
