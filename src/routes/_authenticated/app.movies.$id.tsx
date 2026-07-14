@@ -92,7 +92,7 @@ function MovieDetail() {
       <div className="relative h-[340px] w-full">
         {movie.backdrop_path && (
           <img
-            src={poster(movie.backdrop_path, "w780")!}
+            src={poster(movie.backdrop_path, "w500")!}
             alt=""
             className="absolute inset-0 w-full h-full object-cover opacity-70"
           />
