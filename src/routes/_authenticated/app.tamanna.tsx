@@ -822,6 +822,9 @@ function MovieModal({ initial, onClose }: { initial?: CustomMovie | null; onClos
         genres: genres.split(",").map((g) => g.trim()).filter(Boolean).slice(0, 20),
         video_url: videoUrl.trim() || null,
         video_storage_path: videoPath,
+        tmdb_id: tmdbId,
+        media_type: mediaType,
+        use_vidking: useVidking,
       };
       if (isEdit && initial) {
         await update({ data: { id: initial.id, ...payload } });
