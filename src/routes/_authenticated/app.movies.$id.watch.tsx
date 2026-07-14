@@ -345,7 +345,7 @@ function WatchMovie() {
 
   // Merge Pandacine (self-hosted) as an extra source in front of the VidKing sources.
   const allSources = useMemo(() => {
-    const list: { id: string; label: string; hint: string; kind: "pandacine" | "vidking"; buildUrl?: (id: number, t?: number) => string }[] = [];
+    const list: { id: string; label: string; hint: string; kind: "pandacine" | "vidking"; buildUrl?: (id: number, t?: number, mt?: "movie" | "tv", s?: number, e?: number) => string }[] = [];
     if (pandacine) {
       list.push({
         id: "pandacine",
@@ -368,10 +368,22 @@ function WatchMovie() {
 
   const src = useMemo(() => {
     if (!currentSource || currentSource.kind === "pandacine") return "";
+    const mt = isTv ? "tv" : "movie";
+    const s = isTv ? season : undefined;
+    const e = isTv ? episode : undefined;
     // When host paused, force a manual (no-autoplay) URL so playback stops at that time.
-    if (pausedByHost) return SOURCES[1].url(tmdbId, startAt);
-    return currentSource.buildUrl!(tmdbId, startAt);
-  }, [currentSource, tmdbId, startAt, pausedByHost]);
+    if (pausedByHost) return SOURCES[1].url(tmdbId, startAt, mt, s, e);
+    return currentSource.buildUrl!(tmdbId, startAt, mt, s, e);
+  }, [currentSource, tmdbId, startAt, pausedByHost, isTv, season, episode]);
+
+  // Reload iframe when episode changes
+  useEffect(() => {
+    if (!isTv) return;
+    setIframeKey((k) => k + 1);
+    setStartAt(undefined);
+  }, [isTv, season, episode]);
+
+
 
 
   const applySeek = useCallback((time: number, opts?: { pause?: boolean }) => {
