@@ -868,6 +868,36 @@ export type Database = {
           },
         ]
       }
+      scribble_stats: {
+        Row: {
+          correct_guesses: number
+          created_at: string
+          games_played: number
+          rounds_drawn: number
+          updated_at: string
+          user_id: string
+          wins: number
+        }
+        Insert: {
+          correct_guesses?: number
+          created_at?: string
+          games_played?: number
+          rounds_drawn?: number
+          updated_at?: string
+          user_id: string
+          wins?: number
+        }
+        Update: {
+          correct_guesses?: number
+          created_at?: string
+          games_played?: number
+          rounds_drawn?: number
+          updated_at?: string
+          user_id?: string
+          wins?: number
+        }
+        Relationships: []
+      }
       suppressed_emails: {
         Row: {
           created_at: string
