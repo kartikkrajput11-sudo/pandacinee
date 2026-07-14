@@ -15,7 +15,8 @@ function AppShell() {
   const hideNav =
     /^\/app\/chat\/[^/]+/.test(pathname) ||
     /^\/app\/call\/[^/]+/.test(pathname) ||
-    /^\/app\/movies\//.test(pathname);
+    /^\/app\/movies\//.test(pathname) ||
+    /^\/app\/tamanna/.test(pathname);
 
   return (
     <div className={`min-h-screen velvet-bg ${hideNav ? "" : "pb-28"}`}>
