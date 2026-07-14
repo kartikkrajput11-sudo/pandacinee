@@ -1527,16 +1527,26 @@ function CustomWatch({ customId }: { customId: string }) {
       <div className="px-3 md:px-5">
         <div className="relative aspect-video">
           {movie?.use_vidking && movie?.tmdb_id ? (
-            <iframe
-              src={`https://www.vidking.net/embed/${movie.media_type ?? "movie"}/${movie.tmdb_id}?color=9146ff&autoPlay=true`}
-              className="w-full h-full rounded-2xl bg-black"
-              allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
-              allowFullScreen
-            />
+            <>
+              <iframe
+                src={`https://www.vidking.net/embed/${movie.media_type ?? "movie"}/${movie.tmdb_id}?color=9146ff&autoPlay=true`}
+                className="w-full h-full rounded-2xl bg-black"
+                allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
+                allowFullScreen
+              />
+              {!!hostId && !iAmHost && (
+                <div className="absolute inset-0 z-10 flex items-end justify-center pb-6 pointer-events-auto">
+                  <div className="px-4 py-2 rounded-full bg-black/70 border border-white/10 text-white/90 text-xs tracking-wide backdrop-blur">
+                    Host controls playback
+                  </div>
+                </div>
+              )}
+            </>
           ) : videoSrc ? (
             <CustomMoviePlayer
               src={videoSrc}
               poster={movie?.backdrop_url ?? movie?.poster_url ?? null}
+              locked={!!hostId && !iAmHost}
               onReady={(h) => (handleRef.current = h)}
               onEvent={handleEvent}
             />
