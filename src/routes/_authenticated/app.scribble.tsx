@@ -272,7 +272,11 @@ function Scribble() {
         const pickIdx = hidden[Math.floor(Math.random() * hidden.length)];
         const next = new Set(cur);
         next.add(pickIdx);
-        chRef.current?.send({ type: "broadcast", event: "reveal", payload: { indices: [...next] } });
+        const mask = word
+          .split("")
+          .map((ch, i) => (ch === " " ? " " : next.has(i) ? ch : "•"))
+          .join("");
+        chRef.current?.send({ type: "broadcast", event: "reveal", payload: { indices: [...next], mask } });
         return next;
       });
     }, 1000);
