@@ -145,6 +145,26 @@ export function useWatchSync(
     chRef.current?.send({ type: "broadcast", event: "reaction", payload: { emoji } });
   }, []);
 
+  const claimHost = useCallback(() => {
+    if (!meId) return;
+    setHostId(meId);
+    chRef.current?.send({
+      type: "broadcast",
+      event: "cmd",
+      payload: { kind: "claimHost", from: meId } satisfies SyncCommand,
+    });
+  }, [meId]);
+
+  const releaseHost = useCallback(() => {
+    if (!meId) return;
+    setHostId((prev) => (prev === meId ? null : prev));
+    chRef.current?.send({
+      type: "broadcast",
+      event: "cmd",
+      payload: { kind: "releaseHost", from: meId } satisfies SyncCommand,
+    });
+  }, [meId]);
+
   // drift (positive => I'm ahead of partner)
   const drift =
     peer && mine.duration > 0
@@ -165,6 +185,9 @@ export function useWatchSync(
     incomingReaction,
     clearIncomingReaction,
     sendReaction,
+    hostId,
+    claimHost,
+    releaseHost,
     drift,
   };
 }
