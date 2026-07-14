@@ -182,9 +182,12 @@ function Call() {
     return () => clearTimeout(t);
   }, [status, navigate, role, peerId, mode]);
 
-  // Speaker toggle: mute the remote audio locally
+  // Speaker toggle: mute the dedicated remote audio element. The video
+  // element is always muted (audio comes from the <audio> tag) to avoid
+  // double playback.
   useEffect(() => {
-    if (remoteRef.current) remoteRef.current.muted = !speakerOn;
+    if (remoteRef.current) remoteRef.current.muted = true;
+    if (remoteAudioRef.current) remoteAudioRef.current.muted = !speakerOn;
   }, [speakerOn, remoteStream]);
 
   const statusLabel = useMemo(() => {
