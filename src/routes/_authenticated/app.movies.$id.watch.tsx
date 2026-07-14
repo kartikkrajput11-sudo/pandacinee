@@ -839,7 +839,9 @@ function WatchMovie() {
                 <span className="size-20 md:size-24 rounded-full bg-petal text-velvet flex items-center justify-center shadow-2xl shadow-petal/50 group-hover:scale-105 transition ring-4 ring-petal/20">
                   <Play className="size-8 md:size-10 fill-velvet ml-1" />
                 </span>
-                <span className="text-candle font-serif italic text-lg md:text-xl">Raise the curtain</span>
+                <span className="text-candle font-serif italic text-lg md:text-xl">
+                  {partnerIsHost && peer ? `Join ${partnerFirst} at ${fmtTime(peer.currentTime)}` : "Raise the curtain"}
+                </span>
                 <span className="text-candle-muted text-[11px] uppercase tracking-[0.25em]">{currentSource?.label ?? "Loading"}</span>
               </button>
             )}
