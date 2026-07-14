@@ -394,9 +394,20 @@ function Scribble() {
     });
 
     ch.subscribe((status) => {
-      if (status === "SUBSCRIBED") {
-        // Request current state in case a round is already in progress.
-        ch.send({ type: "broadcast", event: "sync-request", payload: {} });
+      if (status !== "SUBSCRIBED") return;
+      // Request current state in case a round is already in progress.
+      ch.send({ type: "broadcast", event: "sync-request", payload: {} });
+      // If I'm the drawer of an active round, proactively push round state
+      // to any peer that just came online.
+      if (drawerIdRef.current === me.id && wordRef.current && endsAtRef.current) {
+        const w = wordRef.current;
+        const rev = revealedRef.current;
+        const mask = w.split("").map((ch2, i) => (ch2 === " " ? " " : rev.has(i) ? ch2 : "•")).join("");
+        ch.send({
+          type: "broadcast",
+          event: "round",
+          payload: { drawerId: me.id, endsAt: endsAtRef.current, wordLen: w.length, seconds: roundSecondsRef.current, mask, word: w },
+        });
       }
     });
     chRef.current = ch;
@@ -405,6 +416,20 @@ function Scribble() {
       chRef.current = null;
     };
   }, [me?.id, partner?.id]);
+
+  // Guesser retry: if we think a round is playing but have no secret word,
+  // keep asking the drawer to resend the round state.
+  useEffect(() => {
+    if (iAmDrawer || phase !== "playing" || word) return;
+    const send = () => {
+      // eslint-disable-next-line no-console
+      console.log("[scribble] guesser requesting round sync (no secret word yet)");
+      chRef.current?.send({ type: "broadcast", event: "sync-request", payload: {} });
+    };
+    send();
+    const t = window.setInterval(send, 1500);
+    return () => window.clearInterval(t);
+  }, [iAmDrawer, phase, word]);
 
   function resolveTimeout(w: string) {
     if (roundResolvedRef.current) return;
