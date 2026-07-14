@@ -873,6 +873,13 @@ function Scribble() {
                 : "Waiting for partner…"
               : "Start round"}
           </button>
+
+          {/* All-time leaderboard */}
+          <Leaderboard
+            me={me}
+            partner={partner}
+            leaderboard={leaderboard}
+          />
         </div>
       )}
 
