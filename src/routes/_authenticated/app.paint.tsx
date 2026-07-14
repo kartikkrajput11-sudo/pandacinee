@@ -26,6 +26,8 @@ export const Route = createFileRoute("/_authenticated/app/paint")({
   component: PaintTogether,
 });
 
+type ShapeKind = "line" | "rect" | "oval" | "triangle" | "heart" | "star";
+
 type Stroke = {
   id: string;
   by: string;
@@ -34,12 +36,22 @@ type Stroke = {
   erase: boolean;
   pts: { x: number; y: number }[];
   stamp?: string; // emoji stamp, if this is a stamp stroke
+  shape?: ShapeKind; // shape kind, if this is a shape stroke
+  fill?: boolean;    // shape fill vs outline
   ts?: number;    // draw timestamp (ms) for replay ordering
 };
 
 const COLORS = ["#1f1f1f", "#8b5cf6", "#ec4899", "#22c55e", "#f59e0b", "#0ea5e9", "#ffffff"];
 const SIZES = [3, 6, 12, 22];
 const STAMPS = ["💜", "💗", "✨", "🌸", "🦋", "🐼", "⭐", "🌙", "🍓", "☁️"];
+const SHAPES: { key: ShapeKind; label: string }[] = [
+  { key: "line", label: "Line" },
+  { key: "rect", label: "Rect" },
+  { key: "oval", label: "Oval" },
+  { key: "triangle", label: "Triangle" },
+  { key: "heart", label: "Heart" },
+  { key: "star", label: "Star" },
+];
 
 type Bg = {
   key: string;
