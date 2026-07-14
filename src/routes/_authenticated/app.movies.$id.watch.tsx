@@ -996,19 +996,6 @@ function WatchMovie() {
                 >
                   <Timer className="size-3.5" /> Countdown together
                 </button>
-                <button
-                  onClick={syncToPartner}
-                  disabled={!peer}
-                  className="shrink-0 h-9 px-3 rounded-full bg-surface border border-border text-xs text-candle flex items-center gap-1.5 disabled:opacity-40"
-                >
-                  <Rewind className="size-3.5" /> Jump to {partnerFirst}
-                </button>
-                <button
-                  onClick={pullPartnerHere}
-                  className="shrink-0 h-9 px-3 rounded-full bg-surface border border-border text-xs text-candle flex items-center gap-1.5"
-                >
-                  <FastForward className="size-3.5" /> Pull them here
-                </button>
               </div>
             </div>
           )}
