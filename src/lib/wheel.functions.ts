@@ -56,16 +56,16 @@ export const wheelAiSuggest = createServerFn({ method: "POST" })
       model: gateway("google/gemini-2.5-flash"),
       output: Output.object({
         schema: z.object({
-          titles: z.array(z.string().min(1).max(80)).min(4).max(8),
+          titles: z.array(z.string()),
         }),
       }),
       prompt:
-        `Pick ${data.count} real, well-known movies for two partners to spin a wheel and watch tonight. ` +
+        `Pick exactly ${data.count} real, well-known movies for two partners to spin a wheel and watch tonight. ` +
         vibePrompt +
-        ` Return only real movie titles (no years, no punctuation, English titles preferred). Avoid duplicates.`,
+        ` Return an object with a "titles" array of ${data.count} strings. Use only real movie titles (no years, no punctuation, English titles preferred). No duplicates.`,
     });
 
-    const titles = (output?.titles ?? []).slice(0, data.count);
+    const titles = (output?.titles ?? []).map((t) => String(t).trim()).filter(Boolean).slice(0, data.count);
     const results = await Promise.all(titles.map((t) => searchOne(t)));
     const seen = new Set<number>();
     const movies: TmdbLite[] = [];
