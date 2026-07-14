@@ -121,44 +121,57 @@ function PuzzleTogether() {
         toast.success("Solved! 🧩");
         return prev;
       });
+      // Race: announce our finish time. If partner hasn't finished yet, we win.
+      chRef.current?.send({
+        type: "broadcast",
+        event: "solved",
+        payload: { by: me?.id, time: t, difficulty: total },
+      });
+      if (partner) {
+        if (outcomeRef.current === null) {
+          setOutcome("winner");
+          toast.success("🏆 You finished first! Send them a dare 💌");
+        }
+      }
     }
-  }, [slots, solved, startedAt, total]);
+  }, [slots, solved, startedAt, total, me?.id, partner]);
 
-  // Realtime pair channel
+  // Realtime pair channel — race + dare only, no piece sync.
   useEffect(() => {
     if (!me) return;
     const key = partner ? [me.id, partner.id].sort().join(":") : me.id;
     const ch = supabase.channel(`puzzle:${key}`, { config: { broadcast: { self: false } } });
-    ch.on("broadcast", { event: "state" }, ({ payload }) => {
-      const p = payload as { slots: number[]; grid: number };
-      if (p.slots.length !== slots.length) {
-        // difficulty mismatch — snap to partner's difficulty
-        const match = DIFFICULTIES.findIndex((d) => d.pieces === p.slots.length);
-        if (match >= 0) setDiffIdx(match);
-      }
-      applyingRemote.current = true;
-      setSlots(p.slots);
-      setSelected(null);
-      applyingRemote.current = false;
-    });
-    ch.subscribe(async (status) => {
-      if (status === "SUBSCRIBED") {
-        // announce our state on join so late joiner can adopt
-        ch.send({ type: "broadcast", event: "state", payload: { slots, grid } });
+    ch.on("broadcast", { event: "solved" }, ({ payload }) => {
+      const p = payload as { by: string; time: number; difficulty: number };
+      setPartnerTime(p.time);
+      // If I haven't solved yet, partner won this round.
+      if (outcomeRef.current === null) {
+        setOutcome("loser");
+        toast(`💐 Your partner finished in ${Math.floor(p.time / 60)}:${String(p.time % 60).padStart(2, "0")} — waiting for their dare…`);
       }
     });
+    ch.on("broadcast", { event: "dare" }, ({ payload }) => {
+      const p = payload as { text: string };
+      setDareReceived(p.text);
+      toast("💌 New dare from your partner!");
+    });
+    ch.on("broadcast", { event: "dare-done" }, () => {
+      toast.success("✅ Your partner completed the dare!");
+      setDareSent((prev) => prev); // keep displayed
+      setDareDone(true);
+    });
+    ch.on("broadcast", { event: "rematch" }, () => {
+      toast("🔄 Partner started a rematch");
+      resetLocal();
+    });
+    ch.subscribe();
     chRef.current = ch;
     return () => {
       supabase.removeChannel(ch);
       chRef.current = null;
     };
-    // Intentionally only bind to peer identity — we broadcast changes elsewhere.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [me?.id, partner?.id]);
-
-  function broadcast(next: number[]) {
-    chRef.current?.send({ type: "broadcast", event: "state", payload: { slots: next, grid } });
-  }
 
   function tapSlot(i: number) {
     if (solved) return;
@@ -175,18 +188,43 @@ function PuzzleTogether() {
     setSlots(next);
     setSelected(null);
     setMoves((m) => m + 1);
-    broadcast(next);
   }
 
-  function reshuffle() {
+  function resetLocal() {
     const next = shuffled(total);
     setSlots(next);
     setSelected(null);
     setMoves(0);
     setSolved(false);
     setStartedAt(Date.now());
-    broadcast(next);
+    setOutcome(null);
+    setPartnerTime(null);
+    setDareText("");
+    setDareSent(null);
+    setDareReceived(null);
+    setDareDone(false);
   }
+
+  function reshuffle() {
+    resetLocal();
+    chRef.current?.send({ type: "broadcast", event: "rematch", payload: {} });
+  }
+
+  function sendDare() {
+    const text = dareText.trim();
+    if (!text) return;
+    chRef.current?.send({ type: "broadcast", event: "dare", payload: { text } });
+    setDareSent(text);
+    setDareText("");
+    toast.success("Dare sent! 💌");
+  }
+
+  function markDareDone() {
+    chRef.current?.send({ type: "broadcast", event: "dare-done", payload: {} });
+    setDareDone(true);
+    toast.success("Marked as done ✨");
+  }
+
 
   async function onPickImage(file: File) {
     if (!file.type.startsWith("image/")) {
