@@ -8,6 +8,7 @@ import { useChat } from "@/hooks/useChat";
 import { usePunishmentLock } from "@/hooks/usePunishmentLock";
 import { ChatBubble } from "@/components/chat/ChatBubble";
 import { ChatComposer } from "@/components/chat/ChatComposer";
+import { formatLastSeen } from "@/hooks/usePresenceHeartbeat";
 import { ChatSearch } from "@/components/chat/ChatSearch";
 import { MoodBar } from "@/components/chat/MoodBar";
 import { KissOverlay } from "@/components/chat/KissOverlay";
@@ -31,6 +32,8 @@ function ChatPeer() {
   const peerQ = useQuery({
     enabled: !!peerId,
     queryKey: ["peer", peerId],
+    refetchInterval: 30_000,
+    refetchOnWindowFocus: true,
     queryFn: async () => {
       const { data: p } = await supabase
         .from("profiles")
@@ -149,7 +152,7 @@ function ChatPeer() {
             <h1 className="font-serif italic text-lg leading-tight truncate">{peerDisplay}</h1>
             <p className="text-[10px] text-petal flex items-center gap-1">
               <span className={`size-1.5 rounded-full ${partnerOnline ? "bg-green-400" : "bg-candle-muted"}`} />
-              {partnerTyping ? "typing…" : partnerOnline ? "online" : "offline"}
+              {partnerTyping ? "typing…" : formatLastSeen(peer.last_seen_at, partnerOnline)}
               {isPartner && <span className="text-candle-muted">· 💜 partner</span>}
             </p>
           </div>

@@ -555,6 +555,7 @@ export type Database = {
           id: string
           invite_code: string
           is_admin: boolean
+          last_seen_at: string | null
           last_seen_visible: boolean
           mood: string | null
           mood_emoji: string | null
@@ -586,6 +587,7 @@ export type Database = {
           id: string
           invite_code?: string
           is_admin?: boolean
+          last_seen_at?: string | null
           last_seen_visible?: boolean
           mood?: string | null
           mood_emoji?: string | null
@@ -617,6 +619,7 @@ export type Database = {
           id?: string
           invite_code?: string
           is_admin?: boolean
+          last_seen_at?: string | null
           last_seen_visible?: boolean
           mood?: string | null
           mood_emoji?: string | null
@@ -966,6 +969,7 @@ export type Database = {
           id: string
           invite_code: string
           is_admin: boolean
+          last_seen_at: string | null
           last_seen_visible: boolean
           mood: string | null
           mood_emoji: string | null

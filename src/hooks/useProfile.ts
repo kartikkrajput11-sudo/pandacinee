@@ -17,6 +17,7 @@ export type Profile = {
   mood: string | null;
   mood_emoji: string | null;
   mood_updated_at: string | null;
+  last_seen_at?: string | null;
 };
 
 export function useProfile() {
