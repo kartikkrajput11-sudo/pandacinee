@@ -120,6 +120,7 @@ function WatchMovie() {
   const [floaties, setFloaties] = useState<{ id: number; emoji: string; x: number; from: "me" | "partner" }[]>([]);
   const [viewersOpen, setViewersOpen] = useState(false);
   const [friendPickerOpen, setFriendPickerOpen] = useState(false);
+  const [waitingFor, setWaitingFor] = useState<{ id: string; name: string } | null>(null);
   const friendsQuery = useFriendships();
   const lastPublishRef = useRef(0);
 
@@ -436,32 +437,43 @@ function WatchMovie() {
     }
   }, [peer, partnerIsHost, me, mine.currentTime, applySeek, partner]);
 
+  async function sendWatchInviteMessage(receiverId: string) {
+    if (!me || !movie) return { error: new Error("Missing data") };
+    const media_meta = {
+      tmdb_id: Number(tmdbId),
+      media_type: isTv ? "tv" : "movie",
+      poster_path: movie.poster_path ?? null,
+      release_date: movie.release_date ?? movie.first_air_date ?? null,
+      vote_average: movie.vote_average ?? null,
+      overview: movie.overview ?? null,
+    };
+    return await supabase.from("messages").insert({
+      sender_id: me.id,
+      receiver_id: receiverId,
+      content: movie.title,
+      type: "watch_invite",
+      media_meta: media_meta as never,
+    });
+  }
+
   async function inviteToWatch() {
     if (!me || !partner || !movie) return;
-    const link = `${window.location.origin}/app/movies/${tmdbId}/watch`;
-    const content = `🎬 Let's watch *${movie.title}* together 💞\n${link}`;
-    const { error } = await supabase.from("messages").insert({
-      sender_id: me.id, receiver_id: partner.id, content, type: "text",
-    });
-    if (error) toast.error(error.message);
-    else {
-      toast.success("Invite sent — press play together 🍿");
-      navigate({ to: "/app/chat/$peerId", params: { peerId: partner.id } });
-    }
+    const { error } = await sendWatchInviteMessage(partner.id);
+    if (error) { toast.error(error.message); return; }
+    toast.success(`Invite sent — waiting for ${partnerFirst} 🍿`);
+    setWaitingFor({ id: partner.id, name: partnerFirst });
   }
 
   async function inviteFriend(friendId: string, friendName: string) {
     if (!me || !movie) return;
-    const link = `${window.location.origin}/app/movies/${tmdbId}/watch`;
-    const content = `🎬 Let's watch *${movie.title}* together 🍿\n${link}`;
-    const { error } = await supabase.from("messages").insert({
-      sender_id: me.id, receiver_id: friendId, content, type: "text",
-    });
+    const { error } = await sendWatchInviteMessage(friendId);
     if (error) { toast.error(error.message); return; }
-    toast.success(`Invite sent to ${friendName} 🍿`);
+    const first = friendName.split(" ")[0];
+    toast.success(`Invite sent — waiting for ${first} 🍿`);
     setFriendPickerOpen(false);
-    navigate({ to: "/app/chat/$peerId", params: { peerId: friendId } });
+    setWaitingFor({ id: friendId, name: first });
   }
+
 
 
   function openFullscreen() {
@@ -1246,6 +1258,51 @@ function WatchMovie() {
           moviePoster={movie.poster_path ? (/^https?:\/\//i.test(movie.poster_path) ? movie.poster_path : `https://image.tmdb.org/t/p/w154${movie.poster_path}`) : null}
           mediaType={isTv ? "tv" : "movie"}
         />
+      )}
+
+      {/* Waiting-for-friend overlay */}
+      {waitingFor && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-velvet/85 backdrop-blur-lg p-6" onClick={() => setWaitingFor(null)}>
+          <div
+            className="w-full max-w-sm rounded-3xl bg-surface border border-petal/30 shadow-2xl p-6 text-center relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setWaitingFor(null)}
+              className="absolute top-3 right-3 size-8 rounded-full bg-velvet/60 flex items-center justify-center text-candle-muted hover:text-candle"
+              aria-label="Close"
+            >
+              <X className="size-4" />
+            </button>
+            <div className="mx-auto mb-4 relative w-20 h-20">
+              <div className="absolute inset-0 rounded-full border-2 border-petal/30" />
+              <div className="absolute inset-0 rounded-full border-2 border-petal border-t-transparent animate-spin" />
+              <div className="absolute inset-2 rounded-full bg-petal/20 flex items-center justify-center text-2xl">
+                🍿
+              </div>
+            </div>
+            <p className="text-[10px] uppercase tracking-widest text-petal mb-1">Invite sent</p>
+            <h3 className="font-serif italic text-xl text-candle mb-2">Waiting for {waitingFor.name}…</h3>
+            <p className="text-xs text-candle-muted mb-5 leading-relaxed">
+              We whispered the invite in their chat. When they open the movie, you'll watch it together in perfect sync 💞
+            </p>
+            <div className="flex gap-2">
+              <Link
+                to="/app/chat/$peerId"
+                params={{ peerId: waitingFor.id }}
+                className="flex-1 h-10 rounded-full bg-surface-elevated border border-border text-xs font-semibold text-candle flex items-center justify-center gap-1.5"
+              >
+                <MessageCircle className="size-3.5" /> Open chat
+              </Link>
+              <button
+                onClick={() => setWaitingFor(null)}
+                className="flex-1 h-10 rounded-full bg-petal text-velvet text-xs font-semibold"
+              >
+                Keep watching
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Friend invite picker */}
