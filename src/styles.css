@@ -250,6 +250,18 @@ html.theme-anim * {
   70% { transform: scale(1.1); opacity: 1; }
   100% { transform: scale(1.6); opacity: 0; }
 }
+@keyframes partner-glow {
+  0%, 100% {
+    box-shadow:
+      0 0 0 1px color-mix(in oklab, var(--petal) 40%, transparent),
+      0 0 14px -2px color-mix(in oklab, var(--petal) 45%, transparent);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px color-mix(in oklab, var(--petal) 70%, transparent),
+      0 0 26px 2px color-mix(in oklab, var(--petal) 65%, transparent);
+  }
+}
 
 
 .animate-petal { animation: float-petal 12s linear infinite; }
