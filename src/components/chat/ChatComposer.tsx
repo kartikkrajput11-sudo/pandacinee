@@ -263,6 +263,7 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
 
       <form onSubmit={sendText} className="px-3 py-3 flex items-center gap-2">
         <input ref={imgRef} type="file" accept="image/*" className="hidden" onChange={handleImage} />
+        <input ref={vidRef} type="file" accept="video/*" className="hidden" onChange={handleVideo} />
         <input ref={fileRef} type="file" className="hidden" onChange={handleFile} />
         <button
           type="button"
