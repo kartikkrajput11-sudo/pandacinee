@@ -35,7 +35,7 @@ export type SyncCommand =
 export function useWatchSync(
   meId: string | null,
   partnerId: string | null,
-  movieId: number,
+  movieId: number | string,
   mediaType: "movie" | "tv" = "movie",
 ) {
   const [mine, setMine] = useState<PeerState>({
