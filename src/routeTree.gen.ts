@@ -17,6 +17,7 @@ import { Route as AuthenticatedAppIndexRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedAppWishlistRouteImport } from './routes/_authenticated/app.wishlist'
 import { Route as AuthenticatedAppWatchRouteImport } from './routes/_authenticated/app.watch'
 import { Route as AuthenticatedAppScribbleRouteImport } from './routes/_authenticated/app.scribble'
+import { Route as AuthenticatedAppPuzzleRouteImport } from './routes/_authenticated/app.puzzle'
 import { Route as AuthenticatedAppPlayRouteImport } from './routes/_authenticated/app.play'
 import { Route as AuthenticatedAppPartnerRouteImport } from './routes/_authenticated/app.partner'
 import { Route as AuthenticatedAppPaintRouteImport } from './routes/_authenticated/app.paint'
@@ -82,6 +83,11 @@ const AuthenticatedAppScribbleRoute =
     path: '/scribble',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppPuzzleRoute = AuthenticatedAppPuzzleRouteImport.update({
+  id: '/puzzle',
+  path: '/puzzle',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
 const AuthenticatedAppPlayRoute = AuthenticatedAppPlayRouteImport.update({
   id: '/play',
   path: '/play',
@@ -230,6 +236,7 @@ export interface FileRoutesByFullPath {
   '/app/paint': typeof AuthenticatedAppPaintRoute
   '/app/partner': typeof AuthenticatedAppPartnerRoute
   '/app/play': typeof AuthenticatedAppPlayRoute
+  '/app/puzzle': typeof AuthenticatedAppPuzzleRoute
   '/app/scribble': typeof AuthenticatedAppScribbleRoute
   '/app/watch': typeof AuthenticatedAppWatchRoute
   '/app/wishlist': typeof AuthenticatedAppWishlistRoute
@@ -260,6 +267,7 @@ export interface FileRoutesByTo {
   '/app/paint': typeof AuthenticatedAppPaintRoute
   '/app/partner': typeof AuthenticatedAppPartnerRoute
   '/app/play': typeof AuthenticatedAppPlayRoute
+  '/app/puzzle': typeof AuthenticatedAppPuzzleRoute
   '/app/scribble': typeof AuthenticatedAppScribbleRoute
   '/app/watch': typeof AuthenticatedAppWatchRoute
   '/app/wishlist': typeof AuthenticatedAppWishlistRoute
@@ -294,6 +302,7 @@ export interface FileRoutesById {
   '/_authenticated/app/paint': typeof AuthenticatedAppPaintRoute
   '/_authenticated/app/partner': typeof AuthenticatedAppPartnerRoute
   '/_authenticated/app/play': typeof AuthenticatedAppPlayRoute
+  '/_authenticated/app/puzzle': typeof AuthenticatedAppPuzzleRoute
   '/_authenticated/app/scribble': typeof AuthenticatedAppScribbleRoute
   '/_authenticated/app/watch': typeof AuthenticatedAppWatchRoute
   '/_authenticated/app/wishlist': typeof AuthenticatedAppWishlistRoute
@@ -328,6 +337,7 @@ export interface FileRouteTypes {
     | '/app/paint'
     | '/app/partner'
     | '/app/play'
+    | '/app/puzzle'
     | '/app/scribble'
     | '/app/watch'
     | '/app/wishlist'
@@ -358,6 +368,7 @@ export interface FileRouteTypes {
     | '/app/paint'
     | '/app/partner'
     | '/app/play'
+    | '/app/puzzle'
     | '/app/scribble'
     | '/app/watch'
     | '/app/wishlist'
@@ -391,6 +402,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/paint'
     | '/_authenticated/app/partner'
     | '/_authenticated/app/play'
+    | '/_authenticated/app/puzzle'
     | '/_authenticated/app/scribble'
     | '/_authenticated/app/watch'
     | '/_authenticated/app/wishlist'
@@ -468,6 +480,13 @@ declare module '@tanstack/react-router' {
       path: '/scribble'
       fullPath: '/app/scribble'
       preLoaderRoute: typeof AuthenticatedAppScribbleRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/puzzle': {
+      id: '/_authenticated/app/puzzle'
+      path: '/puzzle'
+      fullPath: '/app/puzzle'
+      preLoaderRoute: typeof AuthenticatedAppPuzzleRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/play': {
@@ -680,6 +699,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppPaintRoute: typeof AuthenticatedAppPaintRoute
   AuthenticatedAppPartnerRoute: typeof AuthenticatedAppPartnerRoute
   AuthenticatedAppPlayRoute: typeof AuthenticatedAppPlayRoute
+  AuthenticatedAppPuzzleRoute: typeof AuthenticatedAppPuzzleRoute
   AuthenticatedAppScribbleRoute: typeof AuthenticatedAppScribbleRoute
   AuthenticatedAppWatchRoute: typeof AuthenticatedAppWatchRoute
   AuthenticatedAppWishlistRoute: typeof AuthenticatedAppWishlistRoute
@@ -706,6 +726,7 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppPaintRoute: AuthenticatedAppPaintRoute,
   AuthenticatedAppPartnerRoute: AuthenticatedAppPartnerRoute,
   AuthenticatedAppPlayRoute: AuthenticatedAppPlayRoute,
+  AuthenticatedAppPuzzleRoute: AuthenticatedAppPuzzleRoute,
   AuthenticatedAppScribbleRoute: AuthenticatedAppScribbleRoute,
   AuthenticatedAppWatchRoute: AuthenticatedAppWatchRoute,
   AuthenticatedAppWishlistRoute: AuthenticatedAppWishlistRoute,

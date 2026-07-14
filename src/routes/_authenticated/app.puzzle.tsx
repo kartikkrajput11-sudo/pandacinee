@@ -165,13 +165,15 @@ function PuzzleTogether() {
   const backgroundSize = `calc(${pieceSize} * ${grid}) calc(${pieceSize} * ${grid})`;
 
   const pieces = useMemo(() => {
+    const denom = Math.max(1, grid - 1);
     return slots.map((pieceId, slotIdx) => {
       const px = pieceId % grid;
       const py = Math.floor(pieceId / grid);
-      const bx = grid === 1 ? "0%" : `${(px / (grid - 1)) * 100}%`;
-      const by = grid === 1 ? "0%" : `${(py / (grid - 1)) * 100}%`;
+      const bx = `${(px / denom) * 100}%`;
+      const by = `${(py / denom) * 100}%`;
       return { slotIdx, pieceId, bx, by, correct: pieceId === slotIdx };
     });
+  }, [slots, grid]);
   }, [slots, grid]);
 
   return (
