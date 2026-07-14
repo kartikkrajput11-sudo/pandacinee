@@ -178,6 +178,39 @@ function Scribble() {
     return () => clearInterval(t);
   }, []);
 
+  // Restore state from localStorage on mount / partner change.
+  useEffect(() => {
+    if (!storageKey || typeof window === "undefined") return;
+    try {
+      const raw = localStorage.getItem(storageKey);
+      if (!raw) return;
+      const s = JSON.parse(raw);
+      if (Array.isArray(s.strokes)) strokes.current = s.strokes;
+      if (typeof s.drawerId === "string" || s.drawerId === null) setDrawerId(s.drawerId ?? null);
+      if (typeof s.lastDrawerId === "string" || s.lastDrawerId === null) setLastDrawerId(s.lastDrawerId ?? null);
+      // Only the drawer stored the word; partner side won't have it.
+      if (typeof s.word === "string" && s.drawerId === me?.id) setWord(s.word);
+      if (typeof s.wordLen === "number") setWordLen(s.wordLen);
+      if (typeof s.phase === "string") {
+        // If the timer already expired, downgrade to "over".
+        if (s.phase === "playing" && typeof s.endsAt === "number" && s.endsAt < Date.now()) {
+          setPhase("over");
+        } else {
+          setPhase(s.phase);
+        }
+      }
+      if (typeof s.roundSeconds === "number") setRoundSeconds(s.roundSeconds);
+      if (typeof s.endsAt === "number" || s.endsAt === null) setEndsAt(s.endsAt);
+      if (typeof s.hintMask === "string") setHintMask(s.hintMask);
+      if (Array.isArray(s.messages)) setMessages(s.messages);
+      if (s.scores && typeof s.scores === "object") setScores(s.scores);
+      if (typeof s.targetScore === "number") setTargetScore(s.targetScore);
+      if (typeof s.winnerId === "string" || s.winnerId === null) setWinnerId(s.winnerId ?? null);
+      redraw();
+    } catch { /* ignore */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [storageKey]);
+
   // Realtime channel
   useEffect(() => {
     if (!me) return;
@@ -186,10 +219,12 @@ function Scribble() {
     ch.on("broadcast", { event: "stroke" }, ({ payload }) => {
       strokes.current.push(payload as Stroke);
       redraw();
+      persist();
     });
     ch.on("broadcast", { event: "clear" }, () => {
       strokes.current = [];
       redraw();
+      persist();
     });
     ch.on("broadcast", { event: "round" }, ({ payload }) => {
       const p = payload as { drawerId: string; endsAt: number; wordLen: number; seconds: number; mask: string };
