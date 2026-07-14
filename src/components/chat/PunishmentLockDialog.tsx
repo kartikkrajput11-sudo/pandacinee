@@ -13,6 +13,8 @@ type Props = {
   open: boolean;
   onClose: () => void;
   targetName: string;
+  mePrefs?: Record<string, boolean> | null;
+  peerPrefs?: Record<string, boolean> | null;
   onCreate: (input: {
     type: PunishmentType;
     prompt: string;
@@ -21,7 +23,7 @@ type Props = {
   }) => Promise<void>;
 };
 
-export function PunishmentLockDialog({ open, onClose, targetName, onCreate }: Props) {
+export function PunishmentLockDialog({ open, onClose, targetName, mePrefs, peerPrefs, onCreate }: Props) {
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [type, setType] = useState<PunishmentType>("write");
   const [prompt, setPrompt] = useState("Sorry ❤️");
