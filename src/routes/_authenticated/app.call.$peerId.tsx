@@ -395,7 +395,7 @@ function ControlButton({
 }
 
 function InCallChat({ meId, partnerId, partnerName, onClose }: { meId: string; partnerId: string; partnerName: string; onClose: () => void }) {
-  const { messages, send, react, togglePin, remove, sendTyping } = useChat(meId, partnerId);
+  const { messages, send, react, togglePin, remove, setVanish, sendTyping } = useChat(meId, partnerId);
   const [replyTo, setReplyTo] = useState<MessageRow | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   useEffect(() => { scrollRef.current?.scrollTo({ top: 9e9 }); }, [messages.length]);
@@ -419,6 +419,7 @@ function InCallChat({ meId, partnerId, partnerName, onClose }: { meId: string; p
             onReply={setReplyTo}
             onPin={togglePin}
             onDelete={remove}
+            onVanish={setVanish}
           />
         ))}
       </div>

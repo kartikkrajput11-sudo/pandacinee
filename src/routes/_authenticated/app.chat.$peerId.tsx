@@ -35,7 +35,7 @@ function ChatPeer() {
   });
   const peer = peerQ.data ?? null;
 
-  const { messages, loading, partnerTyping, partnerOnline, send, react, togglePin, remove, sendTyping } =
+  const { messages, loading, partnerTyping, partnerOnline, send, react, togglePin, remove, setVanish, sendTyping } =
     useChat(me?.id ?? null, peer?.id ?? null);
   const [replyTo, setReplyTo] = useState<MessageRow | null>(null);
   const [showPinned, setShowPinned] = useState(false);
@@ -183,6 +183,7 @@ function ChatPeer() {
                 onReply={setReplyTo}
                 onPin={togglePin}
                 onDelete={remove}
+                onVanish={setVanish}
               />
             </div>
           );

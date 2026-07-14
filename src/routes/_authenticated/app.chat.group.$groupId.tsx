@@ -21,7 +21,7 @@ function GroupChat() {
   const partnerId = me?.partner_id ?? null;
 
   const { data: groupData, isLoading: groupLoading } = useGroup(groupId);
-  const { messages, loading, send, sendTyping, react, togglePin, remove, typingUsers, onlineIds } =
+  const { messages, loading, send, sendTyping, react, togglePin, remove, setVanish, typingUsers, onlineIds } =
     useGroupChat(me?.id ?? null, groupId);
   const leave = useLeaveGroup();
 
@@ -184,6 +184,7 @@ function GroupChat() {
                 onReply={setReplyTo}
                 onPin={togglePin}
                 onDelete={remove}
+                onVanish={setVanish}
               />
             </div>
           );
