@@ -858,8 +858,8 @@ function MovieModal({ initial, onClose }: { initial?: CustomMovie | null; onClos
         media_type: mediaType,
         use_vidking: useVidking,
       };
-      if (isEdit && initial) {
-        await update({ data: { id: initial.id, ...payload } });
+      if (isEdit && existingId) {
+        await update({ data: { id: existingId, ...payload } });
         toast.success("Updated");
       } else {
         await create({ data: payload });
