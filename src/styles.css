@@ -101,19 +101,19 @@
 }
 
 .light {
-  /* Light Purple + Pink — soft dreamy daylight */
-  --velvet: #f3e6ff;
-  --background: #f6e9ff;
-  --surface: #ffffff;
-  --surface-elevated: #fdf2fb;
+  /* Soft lavender daylight — purple-tinted, easy on the eyes */
+  --velvet: #ead9f7;
+  --background: #ecdcf7;
+  --surface: #f5eafb;
+  --surface-elevated: #efe0f7;
   --foreground: #3d1f4f;
   --candle: #3d1f4f;
   --candle-muted: #7a5a8f;
   --petal: #ec4899;
   --petal-soft: #fce7f3;
   --lavender: #c4a3ff;
-  --border: #f0d9f2;
-  --input: #faecf7;
+  --border: #e2ccee;
+  --input: #ede0f5;
 }
 
 
