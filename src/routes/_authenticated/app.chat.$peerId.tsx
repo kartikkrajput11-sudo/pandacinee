@@ -20,7 +20,7 @@ import { usePunishmentVerification } from "@/hooks/usePunishmentVerification";
 import { UnlockCelebration } from "@/components/chat/UnlockCelebration";
 import { typeMeta } from "@/lib/punishment";
 
-const LOCKED_MSG_LIMIT = 10;
+
 
 import type { MessageRow } from "@/lib/chat";
 
