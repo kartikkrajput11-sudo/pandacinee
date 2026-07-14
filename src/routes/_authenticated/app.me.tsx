@@ -260,6 +260,31 @@ function Me() {
             </Link>
           )}
 
+          <Link to="/app/help" className="p-5 mb-4 rounded-3xl border border-border bg-surface flex items-center gap-3 hover:border-petal/40 transition-colors">
+            <span className="text-xl">📖</span>
+            <div className="flex-1">
+              <p className="text-[10px] uppercase tracking-widest text-candle-muted">Help & guide</p>
+              <p className="text-sm text-candle">How everything works · FAQ · Contact</p>
+            </div>
+            <ChevronRight className="size-4 text-candle-muted" />
+          </Link>
+
+          <button
+            onClick={() => {
+              window.localStorage.removeItem("pandacine-onboarded-v1");
+              window.location.reload();
+            }}
+            className="w-full p-5 mb-4 rounded-3xl border border-border bg-surface flex items-center gap-3 text-left hover:border-petal/40 transition-colors"
+          >
+            <span className="text-xl">🐼</span>
+            <div className="flex-1">
+              <p className="text-[10px] uppercase tracking-widest text-candle-muted">Onboarding</p>
+              <p className="text-sm text-candle">Replay the intro tour</p>
+            </div>
+            <ChevronRight className="size-4 text-candle-muted" />
+          </button>
+
+
           <div className="p-5 rounded-3xl border border-border bg-surface mb-4">
             <p className="text-[10px] uppercase tracking-widest text-petal mb-2">Your invite code</p>
             <div className="flex items-center justify-between gap-3">
