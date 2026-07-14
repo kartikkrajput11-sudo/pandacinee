@@ -1,9 +1,9 @@
 import { createFileRoute, Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { ArrowLeft, Send, Film, Play, ExternalLink } from "lucide-react";
+import { ArrowLeft, Send, Film, Play, ExternalLink, Tv } from "lucide-react";
 import { toast } from "sonner";
-import { tmdbMovie } from "@/lib/tmdb.functions";
+import { tmdbMovie, tmdbTvFull } from "@/lib/tmdb.functions";
 import { watchmodeSources, type WatchSource } from "@/lib/watchmode.functions";
 import { poster } from "./app.movies";
 import { useProfile } from "@/hooks/useProfile";
@@ -30,38 +30,62 @@ function MovieDetail() {
   if (isCustom) return <CustomMovieDetail customId={id.slice("custom:".length)} />;
 
   const fetchMovie = useServerFn(tmdbMovie);
+  const fetchTv = useServerFn(tmdbTvFull);
   const fetchSources = useServerFn(watchmodeSources);
   const { data: prof } = useProfile();
   const me = prof?.profile;
   const partner = prof?.partner;
   const [movie, setMovie] = useState<any>(null);
+  const [isTv, setIsTv] = useState(false);
   const [sources, setSources] = useState<WatchSource[]>([]);
   const [region, setRegion] = useState<string>("US");
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchMovie({ data: { id: Number(id) } })
-      .then(async (m) => {
-        // Overlay admin-edited fields from custom_movies
-        const { data: ov } = await supabase
-          .from("custom_movies")
-          .select("title, overview, poster_url, backdrop_url, runtime")
-          .eq("tmdb_id", Number(id))
-          .maybeSingle();
-        if (ov && m) {
-          if (ov.title) m.title = ov.title;
-          if (ov.overview != null) m.overview = ov.overview;
-          if (ov.poster_url) m.poster_path = ov.poster_url;
-          if (ov.backdrop_url) m.backdrop_path = ov.backdrop_url;
-          if (ov.runtime) m.runtime = ov.runtime;
-        }
-        setMovie(m);
-        if (m?.id) trackRecentMovie(m.id);
-      })
-      .catch(() => setMovie(null));
+    let alive = true;
+    (async () => {
+      // 1) Check admin override to know if this is a series (media_type=tv)
+      const { data: ov } = await supabase
+        .from("custom_movies")
+        .select("title, overview, poster_url, backdrop_url, runtime, media_type")
+        .eq("tmdb_id", Number(id))
+        .maybeSingle();
+      const tv = ov?.media_type === "tv";
+      if (!alive) return;
+      setIsTv(tv);
+
+      // 2) Fetch the right TMDB endpoint. Fall back to movie if TV 404s.
+      let m: any = null;
+      if (tv) {
+        m = await fetchTv({ data: { id: Number(id) } }).catch(() => null);
+      }
+      if (!m) {
+        m = await fetchMovie({ data: { id: Number(id) } }).catch(() => null);
+        if (m && !tv) setIsTv(false);
+      } else {
+        // Normalise TV shape → the rest of the JSX reads `title` / `release_date`.
+        m.title = m.name ?? m.original_name ?? m.title;
+        m.release_date = m.first_air_date ?? m.release_date ?? null;
+        // First episode runtime as an approximation
+        m.runtime = Array.isArray(m.episode_run_time) && m.episode_run_time[0] ? m.episode_run_time[0] : null;
+      }
+
+      // 3) Overlay admin edits
+      if (ov && m) {
+        if (ov.title) m.title = ov.title;
+        if (ov.overview != null) m.overview = ov.overview;
+        if (ov.poster_url) m.poster_path = ov.poster_url;
+        if (ov.backdrop_url) m.backdrop_path = ov.backdrop_url;
+        if (ov.runtime) m.runtime = ov.runtime;
+      }
+      if (!alive) return;
+      setMovie(m);
+      if (m?.id) trackRecentMovie(m.id);
+    })();
     fetchSources({ data: { tmdbId: Number(id) } })
-      .then((r) => setSources(r.sources))
-      .catch(() => setSources([]));
+      .then((r) => alive && setSources(r.sources))
+      .catch(() => alive && setSources([]));
+    return () => { alive = false; };
   }, [id]);
 
 
@@ -138,13 +162,28 @@ function MovieDetail() {
             )}
           </div>
           <div className="pb-2 min-w-0">
+            {isTv && (
+              <span className="inline-flex items-center gap-1 h-5 px-2 rounded-full bg-petal/15 border border-petal/30 text-petal text-[9px] uppercase tracking-widest mb-2">
+                <Tv className="size-2.5" /> Series
+              </span>
+            )}
             <h1 className="font-serif font-semibold tracking-tight leading-[0.95] text-4xl text-candle mb-3">
               {movie.title}
             </h1>
             <div className="flex flex-wrap items-center gap-2 text-[10px] uppercase tracking-widest text-petal font-semibold">
               {movie.release_date && <span>{movie.release_date.slice(0, 4)}</span>}
-              {movie.release_date && movie.runtime ? <span className="opacity-30">•</span> : null}
-              {movie.runtime ? <span>{Math.floor(movie.runtime / 60)}h {movie.runtime % 60}m</span> : null}
+              {isTv && movie.number_of_seasons ? (
+                <>
+                  <span className="opacity-30">•</span>
+                  <span>{movie.number_of_seasons} {movie.number_of_seasons === 1 ? "season" : "seasons"}</span>
+                </>
+              ) : null}
+              {!isTv && movie.runtime ? (
+                <>
+                  {movie.release_date && <span className="opacity-30">•</span>}
+                  <span>{Math.floor(movie.runtime / 60)}h {movie.runtime % 60}m</span>
+                </>
+              ) : null}
               {movie.vote_average ? (
                 <>
                   <span className="opacity-30">•</span>
@@ -174,7 +213,7 @@ function MovieDetail() {
           className="w-full flex items-center justify-center gap-3 py-4 rounded-2xl bg-petal text-velvet font-bold text-sm tracking-wide shadow-[0_20px_60px_-20px] shadow-petal/60 active:scale-[0.98] transition-transform"
         >
           <Play className="size-4 fill-velvet" />
-          PLAY MOVIE
+          {isTv ? "WATCH SERIES" : "PLAY MOVIE"}
         </Link>
 
         {/* Synopsis */}
@@ -330,10 +369,10 @@ function MovieDetail() {
                 >
                   <div className="aspect-[2/3] rounded-lg overflow-hidden bg-velvet border border-border shadow-xl">
                     {s.poster_path && (
-                      <img src={poster(s.poster_path, "w342")!} alt={s.title} className="w-full h-full object-cover" />
+                      <img src={poster(s.poster_path, "w342")!} alt={s.title ?? s.name} className="w-full h-full object-cover" />
                     )}
                   </div>
-                  <p className="text-[10px] text-candle truncate mt-2 font-medium">{s.title}</p>
+                  <p className="text-[10px] text-candle truncate mt-2 font-medium">{s.title ?? s.name}</p>
                 </Link>
               ))}
             </div>

@@ -1,13 +1,17 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { ArrowLeft, Search, Play, Flame, Sparkles, Heart, Star, Clock, Calendar, Ghost, Rocket } from "lucide-react";
+import { ArrowLeft, Search, Play, Flame, Sparkles, Heart, Star, Clock, Calendar, Ghost, Rocket, Tv, Film } from "lucide-react";
 import {
   tmdbTrending,
-  tmdbSearch,
+  
   tmdbCategory,
   tmdbDiscover,
   tmdbMoviesBatch,
+  tmdbTvTrending,
+  tmdbTvCategory,
+  tmdbTvDiscover,
+  tmdbMulti,
   type TmdbMovie,
 } from "@/lib/tmdb.functions";
 import { MovieCard, poster } from "./app.movies";
@@ -39,7 +43,11 @@ function applyOverride(m: TmdbMovie, ov: CustomMovieRow | undefined): TmdbMovie 
 
 export const Route = createFileRoute("/_authenticated/app/movies/")({
   component: Movies,
-  validateSearch: (s: Record<string, unknown>) => ({ q: typeof s.q === "string" ? s.q : "" }),
+  validateSearch: (s: Record<string, unknown>) => ({
+    q: typeof s.q === "string" ? s.q : "",
+    type: (s.type === "movie" || s.type === "tv" ? s.type : "all") as "all" | "movie" | "tv",
+    minRating: typeof s.minRating === "number" ? s.minRating : 0,
+  }),
 });
 
 // TMDB genre IDs
@@ -53,16 +61,20 @@ const GENRE = {
 } as const;
 
 function Movies() {
-  const { q } = Route.useSearch();
+  const { q, type, minRating } = Route.useSearch();
   const navigate = useNavigate();
   const trending = useServerFn(tmdbTrending);
-  const search = useServerFn(tmdbSearch);
+  const multi = useServerFn(tmdbMulti);
   const category = useServerFn(tmdbCategory);
   const discover = useServerFn(tmdbDiscover);
   const batch = useServerFn(tmdbMoviesBatch);
+  const tvTrending = useServerFn(tmdbTvTrending);
+  const tvCategory = useServerFn(tmdbTvCategory);
+  const tvDiscover = useServerFn(tmdbTvDiscover);
 
   const [input, setInput] = useState(q);
-  const [searchResults, setSearchResults] = useState<TmdbMovie[] | null>(null);
+  type MultiItem = TmdbMovie & { media_type?: "movie" | "tv" };
+  const [searchResults, setSearchResults] = useState<MultiItem[] | null>(null);
   const [searchLoading, setSearchLoading] = useState(false);
 
   const [trendingList, setTrendingList] = useState<TmdbMovie[]>([]);
@@ -73,19 +85,34 @@ function Movies() {
   const [dateNight, setDateNight] = useState<TmdbMovie[]>([]);
   const [thrillers, setThrillers] = useState<TmdbMovie[]>([]);
   const [feelGood, setFeelGood] = useState<TmdbMovie[]>([]);
+  const [tvTrend, setTvTrend] = useState<TmdbMovie[]>([]);
+  const [tvPopular, setTvPopular] = useState<TmdbMovie[]>([]);
+  const [tvTop, setTvTop] = useState<TmdbMovie[]>([]);
+  const [tvOnAir, setTvOnAir] = useState<TmdbMovie[]>([]);
+  const [tvRomance, setTvRomance] = useState<TmdbMovie[]>([]);
   const [recent, setRecent] = useState<TmdbMovie[]>([]);
   const [custom, setCustom] = useState<CustomMovieRow[]>([]);
   const [overrides, setOverrides] = useState<Map<number, CustomMovieRow>>(new Map());
   const [loading, setLoading] = useState(true);
 
   const overlay = useMemo(
-    () => (list: TmdbMovie[]) => list.map((m) => applyOverride(m, overrides.get(m.id))),
-    [overrides],
+    () => (list: TmdbMovie[]) =>
+      list
+        .map((m) => applyOverride(m, overrides.get(m.id)))
+        .filter((m) => (m.vote_average ?? 0) >= minRating),
+    [overrides, minRating],
   );
 
   useEffect(() => { setInput(q); }, [q]);
 
-  // Search mode
+  function updateSearch(patch: Partial<{ q: string; type: "all" | "movie" | "tv"; minRating: number }>) {
+    navigate({
+      to: "/app/movies",
+      search: (prev: { q: string; type: "all" | "movie" | "tv"; minRating: number }) => ({ ...prev, ...patch }),
+    });
+  }
+
+  // Search mode — multi so it can return both movies and TV
   useEffect(() => {
     if (!q.trim()) {
       setSearchResults(null);
@@ -93,27 +120,32 @@ function Movies() {
     }
     let alive = true;
     setSearchLoading(true);
-    search({ data: { q } })
-      .then((r) => alive && setSearchResults(r))
+    multi({ data: { q } })
+      .then((r) => alive && setSearchResults(r as MultiItem[]))
       .catch(() => alive && setSearchResults([]))
       .finally(() => alive && setSearchLoading(false));
     return () => { alive = false; };
   }, [q]);
 
-  // Browse mode — load all rails in parallel
+  // Browse mode — load all rails (movies + tv) in parallel
   useEffect(() => {
     let alive = true;
     setLoading(true);
     Promise.all([
-      trending({ data: { window: "week" } }).catch(() => []),
-      category({ data: { kind: "popular" } }).catch(() => []),
-      category({ data: { kind: "top_rated" } }).catch(() => []),
-      category({ data: { kind: "now_playing" } }).catch(() => []),
-      category({ data: { kind: "upcoming" } }).catch(() => []),
-      discover({ data: { genre: GENRE.romance, sort: "popularity.desc" } }).catch(() => []),
-      discover({ data: { genre: GENRE.thriller, sort: "popularity.desc" } }).catch(() => []),
-      discover({ data: { genre: GENRE.comedy, sort: "popularity.desc" } }).catch(() => []),
-    ]).then(([tr, pop, top, now, up, rom, thr, com]) => {
+      trending({ data: { window: "week" } }).catch(() => [] as TmdbMovie[]),
+      category({ data: { kind: "popular" } }).catch(() => [] as TmdbMovie[]),
+      category({ data: { kind: "top_rated" } }).catch(() => [] as TmdbMovie[]),
+      category({ data: { kind: "now_playing" } }).catch(() => [] as TmdbMovie[]),
+      category({ data: { kind: "upcoming" } }).catch(() => [] as TmdbMovie[]),
+      discover({ data: { genre: GENRE.romance, sort: "popularity.desc" } }).catch(() => [] as TmdbMovie[]),
+      discover({ data: { genre: GENRE.thriller, sort: "popularity.desc" } }).catch(() => [] as TmdbMovie[]),
+      discover({ data: { genre: GENRE.comedy, sort: "popularity.desc" } }).catch(() => [] as TmdbMovie[]),
+      tvTrending({ data: { window: "week" } }).catch(() => [] as TmdbMovie[]),
+      tvCategory({ data: { kind: "popular" } }).catch(() => [] as TmdbMovie[]),
+      tvCategory({ data: { kind: "top_rated" } }).catch(() => [] as TmdbMovie[]),
+      tvCategory({ data: { kind: "on_the_air" } }).catch(() => [] as TmdbMovie[]),
+      tvDiscover({ data: { genre: GENRE.romance, sort: "popularity.desc" } }).catch(() => [] as TmdbMovie[]),
+    ]).then(([tr, pop, top, now, up, rom, thr, com, ttr, tpop, ttop, tonair, trom]) => {
       if (!alive) return;
       setTrendingList(tr);
       setPopular(pop);
@@ -123,6 +155,11 @@ function Movies() {
       setDateNight(rom);
       setThrillers(thr);
       setFeelGood(com);
+      setTvTrend(ttr);
+      setTvPopular(tpop);
+      setTvTop(ttop);
+      setTvOnAir(tonair);
+      setTvRomance(trom);
       setLoading(false);
     });
 
@@ -131,8 +168,6 @@ function Movies() {
       batch({ data: { ids } }).then((r) => alive && setRecent(r)).catch(() => {});
     }
 
-    // Custom (admin-uploaded) movies from our library — shown as normal movies.
-    // Plus, any row with a tmdb_id becomes an override for that TMDB entry.
     supabase
       .from("custom_movies")
       .select("id, title, year, poster_url, backdrop_url, overview, runtime, tmdb_id")
@@ -140,7 +175,7 @@ function Movies() {
       .then(({ data }) => {
         if (!alive || !data) return;
         const rows = data as CustomMovieRow[];
-        setCustom(rows.filter((r) => !r.tmdb_id)); // only truly-custom titles in the "Fresh Arrivals" rail
+        setCustom(rows.filter((r) => !r.tmdb_id));
         const map = new Map<number, CustomMovieRow>();
         for (const r of rows) if (r.tmdb_id) map.set(r.tmdb_id, r);
         setOverrides(map);
@@ -151,32 +186,64 @@ function Movies() {
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    navigate({ to: "/app/movies", search: { q: input.trim() } });
+    updateSearch({ q: input.trim() });
   }
 
   const featured = useMemo(() => {
-    const m = trendingList[0];
+    const source = type === "tv" ? tvTrend : trendingList;
+    const m = source[0];
     return m ? applyOverride(m, overrides.get(m.id)) : undefined;
-  }, [trendingList, overrides]);
+  }, [type, trendingList, tvTrend, overrides]);
+
+  const showMovies = type !== "tv";
+  const showShows = type !== "movie";
+
+  // Filter bar reused in browse and search
+  const filterBar = (
+    <FilterBar
+      type={type}
+      minRating={minRating}
+      onType={(t) => updateSearch({ type: t })}
+      onMinRating={(r) => updateSearch({ minRating: r })}
+    />
+  );
 
   // Search results view
   if (q.trim()) {
+    const filtered = (searchResults ?? [])
+      .filter((m) => (type === "all" ? true : (m.media_type ?? "movie") === type))
+      .filter((m) => (m.vote_average ?? 0) >= minRating);
     return (
       <div className="pt-10 px-5 pb-24">
-        <SearchHeader input={input} setInput={setInput} onSubmit={onSubmit} onClear={() => { setInput(""); navigate({ to: "/app/movies", search: { q: "" } }); }} />
-        <p className="text-[10px] uppercase tracking-widest text-candle-muted mb-3">Results for “{q}”</p>
+        <SearchHeader
+          input={input}
+          setInput={setInput}
+          onSubmit={onSubmit}
+          onClear={() => { setInput(""); updateSearch({ q: "" }); }}
+        />
+        {filterBar}
+        <p className="text-[10px] uppercase tracking-widest text-candle-muted mb-3 mt-4">
+          Results for “{q}” · {filtered.length}
+        </p>
         {searchLoading ? (
           <div className="grid grid-cols-3 gap-3">
             {Array.from({ length: 9 }).map((_, i) => (
               <div key={i} className="aspect-[2/3] rounded-2xl bg-velvet animate-pulse" />
             ))}
           </div>
-        ) : !searchResults?.length ? (
-          <p className="text-sm text-candle-muted text-center mt-10">No movies found.</p>
+        ) : !filtered.length ? (
+          <p className="text-sm text-candle-muted text-center mt-10">Nothing matches those filters.</p>
         ) : (
           <div className="grid grid-cols-3 gap-3">
-            {overlay(searchResults).map((m) => (
-              <MovieCard key={m.id} id={m.id} title={m.title} poster_path={m.poster_path} vote_average={m.vote_average} />
+            {overlay(filtered).map((m) => (
+              <div key={m.id} className="relative">
+                <MovieCard id={m.id} title={m.title} poster_path={m.poster_path} vote_average={m.vote_average} />
+                {(m as MultiItem).media_type === "tv" && (
+                  <span className="absolute top-1.5 left-1.5 inline-flex items-center gap-0.5 h-5 px-1.5 rounded-full bg-velvet/85 backdrop-blur border border-petal/30 text-petal text-[9px] uppercase tracking-widest">
+                    <Tv className="size-2.5" /> TV
+                  </span>
+                )}
+              </div>
             ))}
           </div>
         )}
@@ -189,7 +256,7 @@ function Movies() {
     <div className="pb-28 min-h-screen bg-background">
       {/* Featured hero */}
       {featured && (
-        <FeaturedHero movie={featured} />
+        <FeaturedHero movie={featured} isTv={type === "tv"} />
       )}
 
       <div className="px-5">
@@ -201,7 +268,9 @@ function Movies() {
           inline
         />
 
-        {custom.length > 0 && (
+        {filterBar}
+
+        {custom.length > 0 && showMovies && (
           <CustomRail title="Fresh Arrivals" movies={custom} />
         )}
 
@@ -214,61 +283,98 @@ function Movies() {
           />
         )}
 
-        <Rail
-          title="Trending This Week"
-          icon={<Flame className="size-3.5 text-petal" />}
-          movies={overlay(trendingList.slice(1))}
-          loading={loading}
-        />
+        {showMovies && (
+          <>
+            <Rail
+              title="Trending Movies"
+              icon={<Flame className="size-3.5 text-petal" />}
+              movies={overlay(trendingList.slice(type === "movie" ? 0 : 1))}
+              loading={loading}
+            />
+            <Rail
+              title="Date Night · Romance"
+              icon={<Heart className="size-3.5 text-petal" />}
+              movies={overlay(dateNight)}
+              loading={loading}
+            />
+            <Rail
+              title="In Theaters Now"
+              icon={<Play className="size-3.5 text-petal" />}
+              movies={overlay(nowPlaying)}
+              loading={loading}
+            />
+            <Rail
+              title="Feel-Good · Comedy"
+              icon={<Sparkles className="size-3.5 text-petal" />}
+              movies={overlay(feelGood)}
+              loading={loading}
+            />
+            <Rail
+              title="Popular Movies"
+              icon={<Star className="size-3.5 text-petal" />}
+              movies={overlay(popular)}
+              loading={loading}
+            />
+            <Rail
+              title="Edge of Your Seat · Thrillers"
+              icon={<Ghost className="size-3.5 text-petal" />}
+              movies={overlay(thrillers)}
+              loading={loading}
+            />
+            <Rail
+              title="Top Rated Movies"
+              icon={<Star className="size-3.5 text-petal" />}
+              movies={overlay(topRated)}
+              loading={loading}
+            />
+            <Rail
+              title="Coming Soon"
+              icon={<Calendar className="size-3.5 text-petal" />}
+              movies={overlay(upcoming)}
+              loading={loading}
+            />
+          </>
+        )}
 
-        <Rail
-          title="Date Night · Romance"
-          icon={<Heart className="size-3.5 text-petal" />}
-          movies={overlay(dateNight)}
-          loading={loading}
-        />
-
-        <Rail
-          title="In Theaters Now"
-          icon={<Play className="size-3.5 text-petal" />}
-          movies={overlay(nowPlaying)}
-          loading={loading}
-        />
-
-        <Rail
-          title="Feel-Good · Comedy"
-          icon={<Sparkles className="size-3.5 text-petal" />}
-          movies={overlay(feelGood)}
-          loading={loading}
-        />
-
-        <Rail
-          title="Popular"
-          icon={<Star className="size-3.5 text-petal" />}
-          movies={overlay(popular)}
-          loading={loading}
-        />
-
-        <Rail
-          title="Edge of Your Seat · Thrillers"
-          icon={<Ghost className="size-3.5 text-petal" />}
-          movies={overlay(thrillers)}
-          loading={loading}
-        />
-
-        <Rail
-          title="Top Rated of All Time"
-          icon={<Star className="size-3.5 text-petal" />}
-          movies={overlay(topRated)}
-          loading={loading}
-        />
-
-        <Rail
-          title="Coming Soon"
-          icon={<Calendar className="size-3.5 text-petal" />}
-          movies={overlay(upcoming)}
-          loading={loading}
-        />
+        {showShows && (
+          <>
+            <Rail
+              title="Trending Shows"
+              icon={<Tv className="size-3.5 text-petal" />}
+              movies={overlay(tvTrend)}
+              loading={loading}
+              tvBadge
+            />
+            <Rail
+              title="Popular Shows"
+              icon={<Star className="size-3.5 text-petal" />}
+              movies={overlay(tvPopular)}
+              loading={loading}
+              tvBadge
+            />
+            <Rail
+              title="On Air Tonight"
+              icon={<Play className="size-3.5 text-petal" />}
+              movies={overlay(tvOnAir)}
+              loading={loading}
+              tvBadge
+            />
+            <Rail
+              title="Romance Series"
+              icon={<Heart className="size-3.5 text-petal" />}
+              movies={overlay(tvRomance)}
+              loading={loading}
+              tvBadge
+            />
+            <Rail
+              title="Top Rated Series"
+              icon={<Star className="size-3.5 text-petal" />}
+              movies={overlay(tvTop)}
+              loading={loading}
+              tvBadge
+            />
+          </>
+        )}
 
         <div className="mt-8 grid grid-cols-2 gap-3">
           <GenreChip label="Sci-Fi" icon={<Rocket className="size-4" />} genre={GENRE.scifi} />
@@ -276,6 +382,64 @@ function Movies() {
           <GenreChip label="Horror" icon={<Ghost className="size-4" />} genre={GENRE.horror} />
           <GenreChip label="Romance" icon={<Heart className="size-4" />} genre={GENRE.romance} />
         </div>
+      </div>
+    </div>
+  );
+}
+
+function FilterBar({
+  type, minRating, onType, onMinRating,
+}: {
+  type: "all" | "movie" | "tv";
+  minRating: number;
+  onType: (t: "all" | "movie" | "tv") => void;
+  onMinRating: (r: number) => void;
+}) {
+  const typeOptions: { id: "all" | "movie" | "tv"; label: string; icon: React.ReactNode }[] = [
+    { id: "all", label: "All", icon: <Sparkles className="size-3" /> },
+    { id: "movie", label: "Movies", icon: <Film className="size-3" /> },
+    { id: "tv", label: "Shows", icon: <Tv className="size-3" /> },
+  ];
+  const ratingOptions = [0, 6, 7, 8, 9];
+  return (
+    <div className="mb-2 space-y-2">
+      <div className="flex items-center gap-1.5">
+        {typeOptions.map((opt) => {
+          const active = type === opt.id;
+          return (
+            <button
+              key={opt.id}
+              onClick={() => onType(opt.id)}
+              className={`inline-flex items-center gap-1.5 h-8 px-3 rounded-full text-[11px] font-semibold uppercase tracking-widest border transition-all ${
+                active
+                  ? "bg-petal text-velvet border-petal shadow-[0_6px_18px_-6px_rgba(238,130,175,0.55)]"
+                  : "bg-surface border-border text-candle-muted hover:text-candle hover:border-petal/40"
+              }`}
+            >
+              {opt.icon}
+              {opt.label}
+            </button>
+          );
+        })}
+      </div>
+      <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+        <span className="text-[10px] uppercase tracking-widest text-candle-muted shrink-0">Rating</span>
+        {ratingOptions.map((r) => {
+          const active = minRating === r;
+          return (
+            <button
+              key={r}
+              onClick={() => onMinRating(r)}
+              className={`shrink-0 inline-flex items-center gap-0.5 h-7 px-2.5 rounded-full text-[11px] border transition-all ${
+                active
+                  ? "bg-petal/15 border-petal text-petal"
+                  : "bg-surface border-border text-candle-muted hover:text-candle hover:border-petal/40"
+              }`}
+            >
+              {r === 0 ? "Any" : (<><Star className="size-2.5 fill-petal text-petal" />{r}+</>)}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
@@ -317,7 +481,7 @@ function SearchHeader({
   );
 }
 
-function FeaturedHero({ movie }: { movie: TmdbMovie }) {
+function FeaturedHero({ movie, isTv = false }: { movie: TmdbMovie; isTv?: boolean }) {
   return (
     <div className="relative h-[380px] w-full overflow-hidden">
       {movie.backdrop_path && (
@@ -368,13 +532,14 @@ function FeaturedHero({ movie }: { movie: TmdbMovie }) {
 }
 
 function Rail({
-  title, icon, movies, loading = false, variant = "poster",
+  title, icon, movies, loading = false, variant = "poster", tvBadge = false,
 }: {
   title: string;
   icon: React.ReactNode;
   movies: TmdbMovie[];
   loading?: boolean;
   variant?: "poster" | "wide";
+  tvBadge?: boolean;
 }) {
   if (!loading && movies.length === 0) return null;
   return (
@@ -423,13 +588,18 @@ function Rail({
                   </div>
                 </Link>
               ) : (
-                <div key={m.id} className="w-28 shrink-0">
+                <div key={m.id} className="w-28 shrink-0 relative">
                   <MovieCard
                     id={m.id}
                     title={m.title}
                     poster_path={m.poster_path}
                     vote_average={m.vote_average}
                   />
+                  {tvBadge && (
+                    <span className="absolute top-1.5 left-1.5 inline-flex items-center gap-0.5 h-4 px-1.5 rounded-full bg-velvet/85 backdrop-blur border border-petal/30 text-petal text-[8px] uppercase tracking-widest">
+                      TV
+                    </span>
+                  )}
                 </div>
               ),
             )}
