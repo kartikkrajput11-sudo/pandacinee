@@ -201,14 +201,43 @@ function WatchMovie() {
     return () => window.clearInterval(iv);
   }, [countdown, clearCountdown]);
 
-  const src = useMemo(() => SOURCES[sourceIdx].url(tmdbId, startAt), [sourceIdx, tmdbId, startAt]);
+  const [pausedByHost, setPausedByHost] = useState(false);
 
-  const applySeek = useCallback((time: number) => {
+  const src = useMemo(() => {
+    // When host paused, force a manual (no-autoplay) URL so playback stops at that time.
+    if (pausedByHost) return SOURCES[1].url(tmdbId, startAt);
+    return SOURCES[sourceIdx].url(tmdbId, startAt);
+  }, [sourceIdx, tmdbId, startAt, pausedByHost]);
+
+  const applySeek = useCallback((time: number, opts?: { pause?: boolean }) => {
     setStartAt(time);
+    setPausedByHost(!!opts?.pause);
     setStarted(true);
     setPlayerLoading(true);
     setIframeKey((k) => k + 1);
   }, []);
+
+  // Follower auto-sync: when partner is host, mirror their play/pause/seek
+  useEffect(() => {
+    if (!peer || !partnerIsHost || !me) return;
+    if (peer.updatedAt <= lastAppliedPeerEventRef.current) return;
+    const evt = peer.event;
+    // Only react to discrete transport events
+    if (evt !== "play" && evt !== "pause" && evt !== "seeked" && evt !== "timeupdate") return;
+    // For timeupdate, only re-sync if drift is significant
+    if (evt === "timeupdate") {
+      const d = Math.abs(mine.currentTime - peer.currentTime);
+      if (d < 6) return;
+    }
+    lastAppliedPeerEventRef.current = peer.updatedAt;
+    if (evt === "pause") {
+      applySeek(peer.currentTime, { pause: true });
+      toast.info(`${partner?.display_name.split(" ")[0]} paused`);
+    } else {
+      applySeek(peer.currentTime, { pause: false });
+      if (evt === "seeked") toast.info(`${partner?.display_name.split(" ")[0]} skipped`);
+    }
+  }, [peer, partnerIsHost, me, mine.currentTime, applySeek, partner]);
 
   async function inviteToWatch() {
     if (!me || !partner || !movie) return;
