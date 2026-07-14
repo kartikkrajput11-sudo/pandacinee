@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowLeft, RefreshCw, Send, Sparkles } from "lucide-react";
+import { ArrowLeft, History, RefreshCw, Send, SkipForward, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
@@ -164,7 +164,7 @@ function GameRoute() {
 
 function initialState(game: GameKind) {
   if (game === "truth-or-dare")
-    return { count: 0, card: null as null | { type: "truth" | "dare"; text: string }, intensity: "playful" as Intensity };
+    return { count: 0, card: null as null | { type: "truth" | "dare"; text: string }, intensity: "playful" as Intensity, history: [] as { type: "truth" | "dare"; text: string }[] };
   if (game === "this-or-that" || game === "would-you-rather")
     return {
       count: 0,
@@ -172,6 +172,7 @@ function initialState(game: GameKind) {
       picks: {} as Record<string, 0 | 1>,
       score: { matches: 0, total: 0 },
       intensity: "playful" as Intensity,
+      history: [] as { a: string; b: string }[],
     };
   if (game === "never-have-i-ever")
     return {
@@ -180,6 +181,7 @@ function initialState(game: GameKind) {
       picks: {} as Record<string, 0 | 1>,
       tallies: { have: 0, havent: 0 },
       intensity: "playful" as Intensity,
+      history: [] as { text: string }[],
     };
   if (game === "tic-tac-toe")
     return { board: Array(9).fill(null), turn: "X", wins: { X: 0, O: 0, draws: 0 } };
@@ -194,6 +196,22 @@ function initialState(game: GameKind) {
     revealed: false,
     intensity: "playful" as Intensity,
   };
+}
+
+function HistoryStrip({ items }: { items: string[] }) {
+  if (!items.length) return null;
+  return (
+    <details className="mt-4 rounded-2xl border border-border bg-surface/50">
+      <summary className="cursor-pointer px-4 py-2.5 text-xs text-candle-muted flex items-center gap-2">
+        <History className="size-3.5" /> Recent cards ({items.length})
+      </summary>
+      <div className="px-4 pb-3 space-y-1.5 max-h-40 overflow-y-auto">
+        {items.slice(-8).reverse().map((t, i) => (
+          <p key={i} className="text-xs text-candle-muted italic">· {t}</p>
+        ))}
+      </div>
+    </details>
+  );
 }
 
 function IntensityBar({
