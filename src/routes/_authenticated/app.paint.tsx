@@ -465,7 +465,7 @@ function RevealOverlay({
             {fromPartner ? "They revealed the final canvas ✨" : "A little something you made together 🎨"}
           </p>
         </div>
-        <div className="rounded-2xl overflow-hidden border border-border shadow-inner bg-white">
+        <div className="rounded-2xl overflow-hidden border-2 shadow-inner bg-white" style={{ borderColor: "#8b5cf6", boxShadow: "0 0 0 4px rgba(139,92,246,0.15)" }}>
           <img src={image} alt="Final painting" className="w-full h-auto block" />
         </div>
         <div className="mt-4 flex gap-2">
