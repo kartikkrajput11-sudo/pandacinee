@@ -800,8 +800,49 @@ function WatchMovie() {
                 <p className="mt-3 text-xs text-candle-muted">with {partnerFirst} 💞</p>
               </div>
             )}
+
+            {/* Floating reactions over the player */}
+            <div className="absolute inset-0 pointer-events-none overflow-hidden z-20">
+              {floaties.map((f) => (
+                <span
+                  key={f.id}
+                  className="absolute text-3xl md:text-4xl select-none"
+                  style={{
+                    left: `${f.x}%`,
+                    bottom: "8%",
+                    animation: "floaty-rise 2.4s ease-out forwards",
+                    filter: "drop-shadow(0 4px 12px rgba(238,130,175,0.6))",
+                  }}
+                >
+                  {f.emoji}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* Reaction bar */}
+          <div className="mt-2 flex items-center justify-center gap-1.5 flex-wrap">
+            {REACTIONS.map((emoji) => (
+              <button
+                key={emoji}
+                onClick={() => fireReaction(emoji)}
+                className="size-10 rounded-full bg-surface/60 backdrop-blur border border-border hover:border-petal/60 hover:bg-petal/10 hover:scale-110 active:scale-95 transition text-xl flex items-center justify-center shadow-lg shadow-black/20"
+                aria-label={`React ${emoji}`}
+              >
+                {emoji}
+              </button>
+            ))}
           </div>
         </div>
+
+        <style>{`
+          @keyframes floaty-rise {
+            0% { transform: translateY(0) scale(0.6) rotate(0deg); opacity: 0; }
+            15% { transform: translateY(-20px) scale(1.1) rotate(-6deg); opacity: 1; }
+            100% { transform: translateY(-260px) scale(1) rotate(8deg); opacity: 0; }
+          }
+        `}</style>
+
 
         {/* Series — luxurious season & episode gallery */}
         {isTv && tvSeasons.length > 0 && (() => {
