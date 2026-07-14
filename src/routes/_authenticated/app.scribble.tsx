@@ -163,6 +163,9 @@ function Scribble() {
       setPhase("over");
       setLastDrawerId((prev) => drawerId ?? prev);
       setEndsAt(null);
+      // Reveal the word to the drawer's UI too
+      setWord(p.word);
+      if (p.by !== me.id) toast.success(`${p.name} guessed “${p.word}”! Their turn to draw.`);
     });
     ch.on("broadcast", { event: "reveal" }, ({ payload }) => {
       const p = payload as { indices: number[] };
