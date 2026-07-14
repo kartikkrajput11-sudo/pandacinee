@@ -1,0 +1,1 @@
+CREATE POLICY "Creator can view group" ON public.chat_groups FOR SELECT TO authenticated USING (created_by = auth.uid());
