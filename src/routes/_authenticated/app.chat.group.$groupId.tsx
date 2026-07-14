@@ -52,7 +52,7 @@ function GroupChat() {
   }, [messages.length]);
 
   if (groupLoading || !me) {
-    return <div className="flex h-[calc(100vh-7rem)] items-center justify-center text-candle-muted">Loading…</div>;
+    return <div className="flex h-screen items-center justify-center text-candle-muted">Loading…</div>;
   }
   if (!groupData) {
     return (
@@ -90,7 +90,7 @@ function GroupChat() {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-7rem)]">
+    <div className="flex flex-col h-screen">
       <header className="px-4 pt-6 pb-3 border-b border-border bg-velvet/80 backdrop-blur sticky top-0 z-10">
         <div className="flex items-center gap-2">
           <Link to="/app/chat" className="text-candle-muted"><ArrowLeft className="size-5" /></Link>
