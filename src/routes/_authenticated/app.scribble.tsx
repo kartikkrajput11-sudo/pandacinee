@@ -303,6 +303,18 @@ function Scribble() {
       setRevealed(new Set(p.indices));
       if (p.mask) setHintMask(p.mask);
     });
+    ch.on("broadcast", { event: "timeout" }, ({ payload }) => {
+      const p = payload as { word: string };
+      setWord(p.word);
+      setHintMask(p.word);
+      setPhase("over");
+      setEndsAt(null);
+      setMessages((m) => [
+        ...m,
+        { id: crypto.randomUUID(), by: "sys", name: "System", text: `Time! The word was “${p.word}”` },
+      ]);
+    });
+
     ch.subscribe();
     chRef.current = ch;
     return () => {
