@@ -120,7 +120,7 @@ export function PunishmentVerificationChat({ lock, meId, partnerName, iAmLocked,
 
   async function handleVoice(path: string, ms: number) {
     setVoiceOpen(false);
-    if (iAmLocked && lockedOut) return toast.error(`You've used all ${LOCKED_MSG_LIMIT} notes.`);
+    if (iAmLocked && lockedOut) { toast.error(`You've used all ${LOCKED_MSG_LIMIT} notes.`); return; }
     try {
       await sendMessage({
         kind: "voice",
