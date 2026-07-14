@@ -611,6 +611,30 @@ export type Database = {
         }
         Relationships: []
       }
+      paint_strokes: {
+        Row: {
+          by_user: string
+          created_at: string
+          id: string
+          pair_key: string
+          stroke: Json
+        }
+        Insert: {
+          by_user: string
+          created_at?: string
+          id: string
+          pair_key: string
+          stroke: Json
+        }
+        Update: {
+          by_user?: string
+          created_at?: string
+          id?: string
+          pair_key?: string
+          stroke?: Json
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           anniversary_date: string | null

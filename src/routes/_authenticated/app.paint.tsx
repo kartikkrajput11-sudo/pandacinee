@@ -69,6 +69,24 @@ function PaintTogether() {
   useEffect(() => {
     if (!me) return;
     const key = partner ? [me.id, partner.id].sort().join(":") : me.id;
+
+    // Load any previously saved strokes for this pair so the canvas is never blank.
+    (async () => {
+      const { data: rows, error } = await supabase
+        .from("paint_strokes")
+        .select("stroke, created_at")
+        .eq("pair_key", key)
+        .order("created_at", { ascending: true });
+      if (!error && rows) {
+        const existing = new Set(strokes.current.map((s) => s.id));
+        for (const r of rows) {
+          const s = r.stroke as Stroke;
+          if (!existing.has(s.id)) strokes.current.push(s);
+        }
+        redraw();
+      }
+    })();
+
     const ch = supabase.channel(`paint:${key}`, { config: { broadcast: { self: false } } });
     ch.on("broadcast", { event: "stroke-start" }, ({ payload }) => {
       const s = payload as Stroke;
@@ -86,7 +104,6 @@ function PaintTogether() {
     ch.on("broadcast", { event: "stroke" }, ({ payload }) => {
       const s = payload as Stroke;
       liveRemote.current.delete(s.id);
-      // Avoid duplicates if we already committed via live points
       if (!strokes.current.some((x) => x.id === s.id)) strokes.current.push(s);
       redraw();
     });
@@ -106,17 +123,7 @@ function PaintTogether() {
       const p = payload as { image: string; by: string };
       setReveal(p);
     });
-    // When a peer joins, they announce presence and we resend our committed strokes.
-    ch.on("broadcast", { event: "sync-request" }, () => {
-      for (const s of strokes.current) {
-        if (s.by === me.id) ch.send({ type: "broadcast", event: "stroke", payload: s });
-      }
-    });
-    ch.subscribe((status) => {
-      if (status === "SUBSCRIBED") {
-        ch.send({ type: "broadcast", event: "sync-request", payload: {} });
-      }
-    });
+    ch.subscribe();
     chRef.current = ch;
     return () => {
       supabase.removeChannel(ch);
@@ -188,6 +195,11 @@ function PaintTogether() {
       });
     }
   }
+  function pairKey() {
+    if (!me) return "";
+    return partner ? [me.id, partner.id].sort().join(":") : me.id;
+  }
+
   function onUp() {
     if (!drawing.current) return;
     const s = drawing.current;
@@ -196,6 +208,11 @@ function PaintTogether() {
     undone.current = [];
     // Send the complete stroke so late/dropped points reconcile on the peer.
     chRef.current?.send({ type: "broadcast", event: "stroke", payload: s });
+    // Persist so the partner sees it even when they open the page later.
+    supabase
+      .from("paint_strokes")
+      .insert({ id: s.id, pair_key: pairKey(), by_user: s.by, stroke: s })
+      .then(({ error }) => { if (error) console.warn("paint save:", error.message); });
     redraw();
   }
 
@@ -206,6 +223,7 @@ function PaintTogether() {
         const [s] = strokes.current.splice(i, 1);
         undone.current.push(s);
         chRef.current?.send({ type: "broadcast", event: "undo", payload: { id: s.id } });
+        supabase.from("paint_strokes").delete().eq("id", s.id).then(() => {});
         redraw();
         return;
       }
@@ -217,6 +235,10 @@ function PaintTogether() {
     if (s) {
       strokes.current.push(s);
       chRef.current?.send({ type: "broadcast", event: "stroke", payload: s });
+      supabase
+        .from("paint_strokes")
+        .insert({ id: s.id, pair_key: pairKey(), by_user: s.by, stroke: s })
+        .then(({ error }) => { if (error) console.warn("paint save:", error.message); });
     }
     redraw();
   }
@@ -229,9 +251,11 @@ function PaintTogether() {
     }
     strokes.current = strokes.current.filter((s) => s.by !== me?.id);
     undone.current = [...undone.current, ...mine];
+    const ids = mine.map((s) => s.id);
     for (const s of mine) {
       chRef.current?.send({ type: "broadcast", event: "undo", payload: { id: s.id } });
     }
+    supabase.from("paint_strokes").delete().in("id", ids).then(() => {});
     redraw();
   }
   function download() {
