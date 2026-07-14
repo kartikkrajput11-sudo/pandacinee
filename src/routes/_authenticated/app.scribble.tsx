@@ -359,17 +359,8 @@ function Scribble() {
     });
     ch.on("broadcast", { event: "timeout" }, ({ payload }) => {
       if (roundResolvedRef.current) return;
-      roundResolvedRef.current = true;
       const p = payload as { word: string };
-      wordRef.current = p.word;
-      setWord(p.word);
-      setHintMask(p.word);
-      setPhase("over");
-      setEndsAt(null);
-      setMessages((m) => [
-        ...m,
-        { id: crypto.randomUUID(), by: "sys", name: "System", text: `Time! The word was “${p.word}”` },
-      ]);
+      resolveTimeout(p.word);
     });
 
     ch.subscribe();
