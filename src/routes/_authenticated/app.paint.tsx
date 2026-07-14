@@ -392,14 +392,16 @@ function PaintTogether() {
       return;
     }
     (e.target as Element).setPointerCapture(e.pointerId);
+    const start = pt(e);
     const s: Stroke = {
       id: crypto.randomUUID(),
       by: me.id,
       color,
       size,
       erase,
-      pts: [pt(e)],
+      pts: shapeMode ? [start, start] : [start],
       ts: Date.now(),
+      ...(shapeMode ? { shape: shapeMode, fill: fillShape } : {}),
     };
     drawing.current = s;
     chRef.current?.send({ type: "broadcast", event: "stroke-start", payload: s });
