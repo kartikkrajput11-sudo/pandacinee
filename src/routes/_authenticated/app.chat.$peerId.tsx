@@ -81,6 +81,18 @@ function ChatPeer() {
     return null;
   }, [messages, me?.id]);
 
+  // Locked chat: the locked party can still whisper — but only 10 messages
+  // during a lock, so it actually feels locked. Count messages they've sent
+  // since the lock started.
+  const lockedMsgsUsed = useMemo(() => {
+    if (!activeLock || !iAmLocked || !me?.id) return 0;
+    const t0 = new Date(activeLock.created_at).getTime();
+    return messages.filter(
+      (m) => m.sender_id === me.id && new Date(m.created_at).getTime() >= t0,
+    ).length;
+  }, [activeLock, iAmLocked, messages, me?.id]);
+
+
   const [kissTick, setKissTick] = useState(0);
   const [kissEmoji, setKissEmoji] = useState("💜");
   const [shake, setShake] = useState(false);
