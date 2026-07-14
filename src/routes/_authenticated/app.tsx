@@ -18,7 +18,7 @@ function AppShell() {
     <div className={`min-h-screen velvet-bg ${hideNav ? "" : "pb-28"}`}>
       <OnboardingFlow />
       <IncomingCallListener />
-      <div className={hideNav ? "w-full" : "max-w-[440px] md:max-w-3xl lg:max-w-5xl xl:max-w-6xl mx-auto"}>
+      <div className={hideNav ? "w-full max-w-[900px] mx-auto" : "max-w-[440px] md:max-w-3xl lg:max-w-5xl xl:max-w-6xl mx-auto"}>
         <Outlet />
       </div>
       {!hideNav && <BottomNav />}
