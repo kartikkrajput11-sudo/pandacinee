@@ -540,7 +540,7 @@ function Scribble() {
             </button>
           ))}
           <button
-            onClick={() => { strokes.current = []; redraw(); chRef.current?.send({ type: "broadcast", event: "clear", payload: {} }); }}
+            onClick={() => { strokes.current = []; redraw(); chRef.current?.send({ type: "broadcast", event: "clear", payload: {} }); persist(); }}
             className="ml-auto rounded-full bg-surface border border-border px-3 py-1.5 text-xs flex items-center gap-1 text-candle"
           >
             <RotateCcw className="size-3" /> Clear
