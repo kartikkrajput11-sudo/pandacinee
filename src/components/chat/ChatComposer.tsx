@@ -10,6 +10,8 @@ import { WatchInvitePicker } from "./WatchInvitePicker";
 import { EmojiPicker } from "./EmojiPicker";
 import { GameInvitePicker, type GamePick } from "./GameInvitePicker";
 import { MovieWheelPicker, type WheelEntry } from "./MovieWheelPicker";
+import { PandaStickerPicker } from "./PandaStickerPicker";
+import { pandaStickerContent, type PandaStickerId } from "@/lib/panda-stickers";
 import type { TmdbMovie } from "@/lib/tmdb.functions";
 
 const KISS_EMOJIS = ["💋", "💜", "🌸", "🫧", "💫", "🐼", "🌷", "🫶"];
@@ -41,6 +43,7 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
   const [watchPickerOpen, setWatchPickerOpen] = useState(false);
   const [gamePickerOpen, setGamePickerOpen] = useState(false);
   const [wheelOpen, setWheelOpen] = useState(false);
+  const [pandaOpen, setPandaOpen] = useState(false);
   const [whisper, setWhisper] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const imgRef = useRef<HTMLInputElement>(null);
@@ -170,6 +173,20 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
       }
     } else {
       setText((t) => t + emoji);
+    }
+  }
+
+  async function sendPandaSticker(id: PandaStickerId) {
+    try {
+      await onSend({
+        content: pandaStickerContent(id),
+        type: "sticker",
+        reply_to_id: replyTo?.id ?? null,
+        disappear_seconds: disappearSecs,
+      });
+      onClearReply();
+    } catch (err: any) {
+      toast.error(err?.message ?? "Failed");
     }
   }
 
@@ -314,6 +331,13 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
             <span className="text-[11px]">Game</span>
           </button>
           <button
+            onClick={() => { setPandaOpen(true); setMenuOpen(false); }}
+            className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-gradient-to-br from-petal/25 to-petal-soft/50 border border-petal/40 text-candle hover:from-petal/40 transition-colors"
+          >
+            <span className="text-2xl leading-none">🐼</span>
+            <span className="text-[11px]">Panda</span>
+          </button>
+          <button
             onClick={() => { setWheelOpen(true); setMenuOpen(false); }}
             className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-gradient-to-br from-petal/30 to-petal-soft/40 border border-petal/40 text-candle hover:from-petal/50 transition-colors"
           >
@@ -357,6 +381,7 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
       <WatchInvitePicker open={watchPickerOpen} onClose={() => setWatchPickerOpen(false)} onPick={sendWatchInvite} />
       <GameInvitePicker open={gamePickerOpen} onClose={() => setGamePickerOpen(false)} onPick={sendGameInvite} />
       <MovieWheelPicker open={wheelOpen} onClose={() => setWheelOpen(false)} onSend={sendMovieWheel} />
+      <PandaStickerPicker open={pandaOpen} onClose={() => setPandaOpen(false)} onPick={sendPandaSticker} />
 
 
 

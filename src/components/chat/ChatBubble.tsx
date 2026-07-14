@@ -7,6 +7,7 @@ import { SignedVideo } from "./SignedVideo";
 import { WatchInviteCard } from "./WatchInviteCard";
 import { GameInviteCard } from "./GameInviteCard";
 import { MovieWheelCard } from "./MovieWheelCard";
+import { isPandaStickerContent, pandaStickerUrl } from "@/lib/panda-stickers";
 
 
 const QUICK_REACTIONS = ["❤️", "😂", "🥺", "🔥", "🐼", "👍"];
@@ -43,6 +44,8 @@ export function ChatBubble({
   const reactionsEntries = Object.entries(m.reactions ?? {}).filter(([, ids]) => ids.length > 0);
 
   const isSticker = m.type === "sticker";
+  const pandaUrl = isSticker ? pandaStickerUrl(m.content ?? "") : null;
+  const isPandaSticker = !!pandaUrl;
   const isWatchInvite = m.type === "watch_invite";
   const isGameInvite = m.type === "game_invite";
   const isMovieWheel = m.type === "movie_wheel";
@@ -68,7 +71,9 @@ export function ChatBubble({
             setActionsOpen((o) => !o);
           }}
           className={`relative text-left rounded-2xl text-sm leading-relaxed transition-colors ${
-            isSticker
+            isPandaSticker
+              ? "bg-transparent p-0"
+              : isSticker
               ? "bg-transparent p-0 text-6xl leading-none"
               : bare
               ? "bg-transparent p-0"
@@ -88,13 +93,28 @@ export function ChatBubble({
                  replyTo.type === "movie_wheel" ? "🎡 Movie wheel" :
                  replyTo.type === "kiss" ? "💋 kiss" :
                  replyTo.type === "whisper" ? "🤫 whisper" :
+                 replyTo.type === "sticker" && isPandaStickerContent(replyTo.content) ? "🐼 Sticker" :
                  replyTo.content}
               </p>
             </div>
           )}
 
           {m.type === "text" && <p className="whitespace-pre-wrap break-words">{m.content}</p>}
-          {m.type === "sticker" && <span>{m.content}</span>}
+          {m.type === "sticker" && (
+            isPandaSticker ? (
+              <img
+                src={pandaUrl!}
+                alt="Panda sticker"
+                loading="lazy"
+                width={512}
+                height={512}
+                className="w-40 h-40 sm:w-48 sm:h-48 object-contain drop-shadow-[0_6px_16px_rgba(0,0,0,0.35)] select-none"
+                draggable={false}
+              />
+            ) : (
+              <span>{m.content}</span>
+            )
+          )}
           {isWatchInvite && <WatchInviteCard m={m} mine={mine} />}
           {isGameInvite && <GameInviteCard m={m} mine={mine} />}
           {isMovieWheel && <MovieWheelCard m={m} mine={mine} />}
