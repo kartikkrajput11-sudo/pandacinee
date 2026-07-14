@@ -695,49 +695,174 @@ function WatchMovie() {
           </div>
         </div>
 
-        {/* Season / Episode picker (TV only) */}
-        {isTv && tvSeasons.length > 0 && (
-          <div className="mt-3 rounded-2xl bg-surface/70 border border-border p-2.5">
-            <div className="flex items-center gap-2 mb-2">
-              <MonitorPlay className="size-3.5 text-petal" />
-              <p className="text-[10px] uppercase tracking-widest text-candle-muted">Season</p>
-              <select
-                value={season}
-                onChange={(e) => setSeason(Number(e.target.value))}
-                className="ml-1 h-7 px-2 rounded-full bg-velvet border border-border text-xs text-candle focus:outline-none focus:border-petal/60"
-              >
-                {tvSeasons.map((s) => (
-                  <option key={s.season_number} value={s.season_number}>S{s.season_number} · {s.episode_count} ep</option>
-                ))}
-              </select>
+        {/* Series — luxurious season & episode gallery */}
+        {isTv && tvSeasons.length > 0 && (() => {
+          const currentEp = seasonEps.find((e) => e.episode_number === episode);
+          const currentIdx = seasonEps.findIndex((e) => e.episode_number === episode);
+          const prevEp = currentIdx > 0 ? seasonEps[currentIdx - 1] : null;
+          const nextEp = currentIdx >= 0 && currentIdx < seasonEps.length - 1 ? seasonEps[currentIdx + 1] : null;
+          const totalEps = seasonEps.length;
+          const fmtRuntime = (m: number | null) => (m && m > 0 ? `${m}m` : null);
+          const stillUrl = (p: string | null) => (p ? `https://image.tmdb.org/t/p/w780${p}` : null);
+          return (
+            <div className="mt-3 rounded-2xl bg-gradient-to-b from-surface/80 to-velvet/40 border border-border overflow-hidden">
+              {/* Header: series badge + seasons */}
+              <div className="px-3 pt-3 pb-2 flex items-center gap-2 flex-wrap">
+                <span className="inline-flex items-center gap-1 h-6 px-2 rounded-full bg-petal/15 border border-petal/30 text-petal text-[10px] uppercase tracking-widest">
+                  <Tv className="size-3" /> Series
+                </span>
+                <span className="text-[10px] uppercase tracking-widest text-candle-muted">
+                  {totalEps} {totalEps === 1 ? "episode" : "episodes"} this season
+                </span>
+                <div className="ml-auto flex items-center gap-1.5 overflow-x-auto max-w-full">
+                  {tvSeasons.map((s) => {
+                    const active = s.season_number === season;
+                    return (
+                      <button
+                        key={s.season_number}
+                        onClick={() => setSeason(s.season_number)}
+                        className={`shrink-0 h-7 px-3 rounded-full text-[11px] font-medium transition-all border ${
+                          active
+                            ? "bg-petal text-velvet border-petal shadow-[0_4px_18px_-4px_rgba(238,130,175,0.55)]"
+                            : "bg-velvet/70 border-border text-candle-muted hover:border-petal/40 hover:text-candle"
+                        }`}
+                        title={s.name}
+                      >
+                        S{s.season_number}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Current episode spotlight card */}
+              {currentEp && (
+                <div className="mx-3 mb-3 rounded-xl bg-velvet/70 border border-petal/25 overflow-hidden shadow-[0_10px_30px_-18px_rgba(238,130,175,0.55)]">
+                  <div className="flex gap-3">
+                    <div className="relative shrink-0 w-28 sm:w-40 aspect-video bg-surface overflow-hidden">
+                      {stillUrl(currentEp.still_path) ? (
+                        <img
+                          src={stillUrl(currentEp.still_path)!}
+                          alt={currentEp.name}
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-candle-muted">
+                          <Tv className="size-6 opacity-40" />
+                        </div>
+                      )}
+                      <div className="absolute top-1 left-1 h-5 px-1.5 rounded-md bg-velvet/85 text-petal text-[10px] font-semibold tracking-wide flex items-center">
+                        S{season}·E{currentEp.episode_number}
+                      </div>
+                      {customEps.some((r) => r.season === season && r.episode === currentEp.episode_number) && (
+                        <div className="absolute top-1 right-1 h-5 w-5 rounded-full bg-petal/90 text-velvet text-[10px] font-bold flex items-center justify-center">✦</div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0 py-2 pr-2.5">
+                      <p className="text-[10px] uppercase tracking-[0.2em] text-petal/80">Now playing</p>
+                      <h3 className="mt-0.5 text-sm sm:text-base font-serif italic text-candle truncate">
+                        {currentEp.name || `Episode ${currentEp.episode_number}`}
+                      </h3>
+                      <div className="mt-1 flex items-center gap-2 flex-wrap text-[10px] text-candle-muted">
+                        {fmtRuntime(currentEp.runtime) && (
+                          <span className="inline-flex items-center gap-0.5"><Clock className="size-3" />{fmtRuntime(currentEp.runtime)}</span>
+                        )}
+                        {currentEp.air_date && (
+                          <span className="inline-flex items-center gap-0.5"><CalendarDays className="size-3" />{currentEp.air_date}</span>
+                        )}
+                      </div>
+                      {currentEp.overview && (
+                        <p className="mt-1 text-[11px] text-candle-muted line-clamp-2 sm:line-clamp-3">{currentEp.overview}</p>
+                      )}
+                    </div>
+                  </div>
+                  {/* Prev / Next controls */}
+                  <div className="flex items-center justify-between border-t border-border/60 px-2 py-1.5 bg-velvet/40">
+                    <button
+                      disabled={!prevEp}
+                      onClick={() => prevEp && setEpisode(prevEp.episode_number)}
+                      className="inline-flex items-center gap-1 h-7 px-2 rounded-full text-[11px] text-candle disabled:opacity-30 disabled:cursor-not-allowed hover:text-petal transition"
+                    >
+                      <ChevronLeft className="size-3.5" />
+                      {prevEp ? `E${prevEp.episode_number}` : "Start"}
+                    </button>
+                    <span className="text-[10px] uppercase tracking-widest text-candle-muted">
+                      {currentIdx + 1} / {totalEps}
+                    </span>
+                    <button
+                      disabled={!nextEp}
+                      onClick={() => nextEp && setEpisode(nextEp.episode_number)}
+                      className="inline-flex items-center gap-1 h-7 px-2 rounded-full text-[11px] text-candle disabled:opacity-30 disabled:cursor-not-allowed hover:text-petal transition"
+                    >
+                      {nextEp ? `E${nextEp.episode_number}` : "End"}
+                      <ChevronRight className="size-3.5" />
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Episode gallery */}
+              <div className="px-3 pb-3">
+                <p className="text-[10px] uppercase tracking-widest text-candle-muted mb-1.5">All episodes</p>
+                <div className="flex gap-2 overflow-x-auto pb-1 -mx-0.5 px-0.5 snap-x snap-mandatory scroll-smooth">
+                  {seasonEps.map((ep) => {
+                    const active = ep.episode_number === episode;
+                    const hasOverride = customEps.some((r) => r.season === season && r.episode === ep.episode_number);
+                    const img = stillUrl(ep.still_path);
+                    return (
+                      <button
+                        key={ep.episode_number}
+                        onClick={() => setEpisode(ep.episode_number)}
+                        className={`group shrink-0 snap-start w-40 sm:w-44 text-left rounded-xl overflow-hidden border transition-all ${
+                          active
+                            ? "border-petal bg-velvet/80 shadow-[0_8px_24px_-10px_rgba(238,130,175,0.6)] scale-[1.01]"
+                            : "border-border bg-velvet/40 hover:border-petal/40 hover:bg-velvet/60"
+                        }`}
+                        title={ep.name}
+                      >
+                        <div className="relative aspect-video bg-surface overflow-hidden">
+                          {img ? (
+                            <img
+                              src={img}
+                              alt={ep.name}
+                              className={`w-full h-full object-cover transition-transform duration-300 ${active ? "" : "group-hover:scale-105"}`}
+                              loading="lazy"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-candle-muted">
+                              <Tv className="size-5 opacity-40" />
+                            </div>
+                          )}
+                          <div className="absolute inset-0 bg-gradient-to-t from-velvet/90 via-velvet/10 to-transparent" />
+                          <div className="absolute top-1 left-1 h-5 px-1.5 rounded-md bg-velvet/85 text-petal text-[10px] font-semibold flex items-center">
+                            E{ep.episode_number}
+                          </div>
+                          {hasOverride && (
+                            <div className="absolute top-1 right-1 h-5 w-5 rounded-full bg-petal/90 text-velvet text-[10px] font-bold flex items-center justify-center">✦</div>
+                          )}
+                          {active && (
+                            <div className="absolute bottom-1 right-1 h-5 px-1.5 rounded-full bg-petal text-velvet text-[9px] font-bold uppercase tracking-widest flex items-center gap-0.5">
+                              <Play className="size-2.5 fill-velvet" /> Now
+                            </div>
+                          )}
+                        </div>
+                        <div className="p-1.5">
+                          <p className={`text-[11px] truncate ${active ? "text-candle" : "text-candle-muted group-hover:text-candle"}`}>
+                            {ep.name || `Episode ${ep.episode_number}`}
+                          </p>
+                          {fmtRuntime(ep.runtime) && (
+                            <p className="text-[9px] text-candle-muted mt-0.5">{fmtRuntime(ep.runtime)}</p>
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
-            <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-0.5 px-0.5 snap-x">
-              {seasonEps.map((ep) => {
-                const active = ep.episode_number === episode;
-                const hasOverride = customEps.some((r) => r.season === season && r.episode === ep.episode_number);
-                return (
-                  <button
-                    key={ep.episode_number}
-                    onClick={() => setEpisode(ep.episode_number)}
-                    className={`shrink-0 snap-start h-9 min-w-[3rem] px-3 rounded-full text-xs border transition-colors ${
-                      active
-                        ? "bg-petal text-velvet border-petal"
-                        : "bg-velvet border-border text-candle hover:border-petal/40"
-                    }`}
-                    title={ep.name}
-                  >
-                    E{ep.episode_number}{hasOverride ? " ✦" : ""}
-                  </button>
-                );
-              })}
-            </div>
-            {seasonEps.find((e) => e.episode_number === episode)?.name && (
-              <p className="mt-1.5 text-[11px] text-candle-muted truncate">
-                E{episode} · {seasonEps.find((e) => e.episode_number === episode)?.name}
-              </p>
-            )}
-          </div>
-        )}
+          );
+        })()}
 
 
         {/* Floating reaction bar */}
