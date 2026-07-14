@@ -10,6 +10,7 @@ type InviteMeta = {
   release_date?: string | null;
   vote_average?: number;
   overview?: string;
+  with?: string;
 };
 
 export function WatchInviteCard({ m, mine }: { m: MessageRow; mine: boolean }) {
