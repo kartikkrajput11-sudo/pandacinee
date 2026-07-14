@@ -326,14 +326,13 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 function ThemeSection() {
   const { mode, setMode } = useTheme();
   const options: { id: ThemeMode; label: string; Icon: typeof Sun }[] = [
+    { id: "dark", label: "Default", Icon: Moon },
     { id: "light", label: "Light", Icon: Sun },
-    { id: "dark", label: "Dark", Icon: Moon },
-    { id: "system", label: "System", Icon: Monitor },
   ];
   return (
     <div className="p-5 mb-4 rounded-3xl border border-border bg-surface">
       <p className="text-[10px] uppercase tracking-widest text-petal mb-3">Appearance</p>
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-2 gap-2">
         {options.map(({ id, label, Icon }) => (
           <button
             key={id}
@@ -350,6 +349,7 @@ function ThemeSection() {
     </div>
   );
 }
+
 
 function PunishmentLockToggle({ me, onSaved }: { me: any; onSaved: () => void }) {
   const enabled = me?.punishment_lock_enabled ?? true;

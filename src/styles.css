@@ -101,21 +101,20 @@
 
 .light {
   /* Light Purple — soft lavender aesthetic (never plain white) */
-  /* bg #F8F4FF, surface #F2ECFF, cards #FFFFFF, primary #8B5CF6, */
-  /* secondary #C4B5FD, hover #E9DFFF, border #E6DFFF, text #1F1F1F, muted #6B7280 */
-  --velvet: #f8f4ff;
-  --background: #f8f4ff;
-  --surface: #ffffff;
-  --surface-elevated: #f2ecff;
-  --foreground: #1f1f1f;
-  --candle: #1f1f1f;
-  --candle-muted: #6b7280;
+  --velvet: #f1e9ff;
+  --background: #f1e9ff;
+  --surface: #ede2ff;
+  --surface-elevated: #e4d5ff;
+  --foreground: #2a1a4a;
+  --candle: #2a1a4a;
+  --candle-muted: #6b5b8a;
   --petal: #8b5cf6;
-  --petal-soft: #e9dfff;
+  --petal-soft: #d9c7ff;
   --lavender: #c4b5fd;
-  --border: #e6dfff;
-  --input: #e6dfff;
+  --border: #d9c7ff;
+  --input: #e4d5ff;
 }
+
 
 /* Smooth 300ms theme transitions across the app */
 html.theme-anim,
