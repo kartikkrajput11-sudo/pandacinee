@@ -27,6 +27,8 @@ import {
   Tv,
   Clock,
   CalendarDays,
+  Users,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { tmdbMovie, tmdbTvDetail, tmdbTvSeason } from "@/lib/tmdb.functions";
@@ -35,6 +37,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { WatchTogetherPanel } from "@/components/watch/WatchTogetherPanel";
 import { useWatchSync, fmtTime } from "@/hooks/useWatchSync";
 import { CustomMoviePlayer, type CustomPlayerHandle } from "@/components/CustomMoviePlayer";
+import { useFriendships } from "@/hooks/useFriends";
 
 type Source = { id: string; label: string; url: (tmdb: number, startAt?: number, mediaType?: "movie" | "tv", season?: number, episode?: number) => string; hint: string };
 
@@ -116,6 +119,8 @@ function WatchMovie() {
   const [sleepAt, setSleepAt] = useState<number | null>(null);
   const [floaties, setFloaties] = useState<{ id: number; emoji: string; x: number; from: "me" | "partner" }[]>([]);
   const [viewersOpen, setViewersOpen] = useState(false);
+  const [friendPickerOpen, setFriendPickerOpen] = useState(false);
+  const friendsQuery = useFriendships();
   const lastPublishRef = useRef(0);
 
   // TV series state (populated when the admin marked this TMDB id as media_type=tv)
@@ -444,6 +449,20 @@ function WatchMovie() {
       navigate({ to: "/app/chat/$peerId", params: { peerId: partner.id } });
     }
   }
+
+  async function inviteFriend(friendId: string, friendName: string) {
+    if (!me || !movie) return;
+    const link = `${window.location.origin}/app/movies/${tmdbId}/watch`;
+    const content = `🎬 Let's watch *${movie.title}* together 🍿\n${link}`;
+    const { error } = await supabase.from("messages").insert({
+      sender_id: me.id, receiver_id: friendId, content, type: "text",
+    });
+    if (error) { toast.error(error.message); return; }
+    toast.success(`Invite sent to ${friendName} 🍿`);
+    setFriendPickerOpen(false);
+    navigate({ to: "/app/chat/$peerId", params: { peerId: friendId } });
+  }
+
 
   function openFullscreen() {
     const el = document.getElementById("movie-frame");
@@ -935,22 +954,33 @@ function WatchMovie() {
                 )}
               </div>
 
-              {/* Invite — same size & color as Take the reins, placed under trio */}
-              {partner ? (
+              {/* Invite row — partner + friends */}
+              <div className="grid grid-cols-2 gap-1.5">
+                {partner ? (
+                  <button
+                    onClick={inviteToWatch}
+                    className="h-10 rounded-full bg-petal text-velvet text-xs font-semibold flex items-center justify-center gap-1.5 shadow-lg shadow-petal/30 min-w-0 px-2"
+                  >
+                    <Send className="size-3.5 shrink-0" />
+                    <span className="truncate">Invite {partnerFirst}</span>
+                  </button>
+                ) : (
+                  <Link
+                    to="/app/invite"
+                    className="h-10 rounded-full bg-petal text-velvet text-xs font-semibold flex items-center justify-center gap-1.5 shadow-lg shadow-petal/30 min-w-0 px-2"
+                  >
+                    <Send className="size-3.5 shrink-0" />
+                    <span className="truncate">Invite partner</span>
+                  </Link>
+                )}
                 <button
-                  onClick={inviteToWatch}
-                  className="w-full h-10 rounded-full bg-petal text-velvet text-xs font-semibold flex items-center justify-center gap-1.5 shadow-lg shadow-petal/30"
+                  onClick={() => setFriendPickerOpen(true)}
+                  className="h-10 rounded-full bg-surface border border-petal/40 text-petal text-xs font-semibold flex items-center justify-center gap-1.5 min-w-0 px-2 hover:bg-petal/10"
                 >
-                  <Send className="size-3.5" /> Invite {partnerFirst}
+                  <Users className="size-3.5 shrink-0" />
+                  <span className="truncate">Invite a friend</span>
                 </button>
-              ) : (
-                <Link
-                  to="/app/invite"
-                  className="w-full h-10 rounded-full bg-petal text-velvet text-xs font-semibold flex items-center justify-center gap-1.5 shadow-lg shadow-petal/30"
-                >
-                  <Send className="size-3.5" /> Invite partner
-                </Link>
-              )}
+              </div>
             </div>
           )}
 
@@ -1217,6 +1247,84 @@ function WatchMovie() {
           mediaType={isTv ? "tv" : "movie"}
         />
       )}
+
+      {/* Friend invite picker */}
+      {friendPickerOpen && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm p-3" onClick={() => setFriendPickerOpen(false)}>
+          <div
+            className="w-full max-w-sm rounded-3xl bg-velvet border border-border shadow-2xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+              <div>
+                <p className="text-[10px] uppercase tracking-widest text-petal">Invite a friend</p>
+                <h3 className="font-serif italic text-lg text-candle">Pick a panda 🍿</h3>
+              </div>
+              <button
+                onClick={() => setFriendPickerOpen(false)}
+                className="size-8 rounded-full bg-surface flex items-center justify-center text-candle-muted hover:text-candle"
+                aria-label="Close"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+            <div className="max-h-[60vh] overflow-y-auto p-2">
+              {(() => {
+                const meId = friendsQuery.data?.me;
+                const profiles = friendsQuery.data?.profiles ?? {};
+                const accepted = (friendsQuery.data?.friendships ?? []).filter((f) => f.status === "accepted");
+                const friends = accepted
+                  .map((f) => (f.requester_id === meId ? f.addressee_id : f.requester_id))
+                  .filter((id): id is string => !!id && id !== partner?.id)
+                  .map((id) => profiles[id])
+                  .filter(Boolean);
+                if (friendsQuery.isLoading) {
+                  return <p className="text-center text-sm text-candle-muted py-8">Loading…</p>;
+                }
+                if (friends.length === 0) {
+                  return (
+                    <div className="py-8 px-4 text-center">
+                      <p className="text-sm text-candle-muted mb-3">No friends yet 🥺</p>
+                      <Link
+                        to="/app/friends"
+                        onClick={() => setFriendPickerOpen(false)}
+                        className="inline-block px-5 py-2.5 bg-petal text-velvet rounded-full text-xs font-semibold"
+                      >
+                        Find friends
+                      </Link>
+                    </div>
+                  );
+                }
+                return (
+                  <ul className="space-y-1">
+                    {friends.map((f) => (
+                      <li key={f.id}>
+                        <button
+                          onClick={() => inviteFriend(f.id, f.display_name || f.username)}
+                          className="w-full flex items-center gap-3 p-2.5 rounded-2xl hover:bg-surface transition text-left"
+                        >
+                          {f.avatar_url ? (
+                            <img src={f.avatar_url} alt="" className="size-10 rounded-full object-cover" />
+                          ) : (
+                            <div className="size-10 rounded-full bg-petal/20 text-petal flex items-center justify-center font-serif text-sm">
+                              {(f.display_name || f.username || "?").slice(0, 1).toUpperCase()}
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-candle truncate">{f.display_name || f.username}</p>
+                            <p className="text-[11px] text-candle-muted truncate">@{f.username}</p>
+                          </div>
+                          <Send className="size-4 text-petal shrink-0" />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                );
+              })()}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1447,4 +1555,6 @@ function CustomWatch({ customId }: { customId: string }) {
     </div>
   );
 }
+
+
 
