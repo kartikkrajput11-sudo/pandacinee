@@ -140,6 +140,12 @@ function CatalogWatch({ id }: { id: string }) {
   const tvDetailFn = useServerFn(tmdbTvDetail);
   const tvSeasonFn = useServerFn(tmdbTvSeason);
 
+  const syncRoomId = customMovieId
+    ? `custom:${customMovieId}${isTv ? `:s${season}:e${episode}` : ""}`
+    : isTv
+      ? `tmdb:${tmdbId}:s${season}:e${episode}`
+      : `tmdb:${tmdbId}`;
+
 
   const {
     mine,
@@ -159,7 +165,7 @@ function CatalogWatch({ id }: { id: string }) {
     claimHost,
     releaseHost,
     drift,
-  } = useWatchSync(me?.id ?? null, partner?.id ?? null, tmdbId, "movie");
+  } = useWatchSync(me?.id ?? null, partner?.id ?? null, syncRoomId, isTv ? "tv" : "movie");
 
   const iAmHost = !!me && hostId === me.id;
   const partnerIsHost = !!partner && hostId === partner.id;
@@ -806,7 +812,11 @@ function CatalogWatch({ id }: { id: string }) {
                   poster={backdropUrl}
                   startAt={startAt}
                   locked={!!hostId && !iAmHost}
-                  onReady={(h) => { customPlayerRef.current = h; setCustomPlayerReady((n) => n + 1); setPlayerLoading(false); }}
+                  onReady={(h) => {
+                    customPlayerRef.current = h;
+                    setCustomPlayerReady((n) => n + 1);
+                    setPlayerLoading(false);
+                  }}
                   onEvent={(evt) => {
                     if (suppressPlayerEventRef.current) return;
                     const now = Date.now();
@@ -1461,6 +1471,11 @@ function CustomWatch({ customId }: { customId: string }) {
   const iAmHost = !!me && hostId === me.id;
   const partnerIsHost = !!partner && hostId === partner.id;
 
+  const handlePlayerReady = useCallback((h: CustomPlayerHandle) => {
+    handleRef.current = h;
+    setPlayerReady((n) => n + 1);
+  }, []);
+
   useEffect(() => {
     let alive = true;
     (async () => {
@@ -1488,9 +1503,10 @@ function CustomWatch({ customId }: { customId: string }) {
   // Manual seek request
   useEffect(() => {
     if (!incomingSeek) return;
+    if (!handleRef.current) return;
     runSuppressed(() => handleRef.current?.seek(incomingSeek.time));
     clearIncomingSeek();
-  }, [incomingSeek, clearIncomingSeek, runSuppressed]);
+  }, [incomingSeek, clearIncomingSeek, playerReady, runSuppressed]);
 
   // Follower: mirror host's discrete events + drift correction
   useEffect(() => {
@@ -1611,7 +1627,7 @@ function CustomWatch({ customId }: { customId: string }) {
               src={videoSrc}
               poster={movie?.backdrop_url ?? movie?.poster_url ?? null}
               locked={!!hostId && !iAmHost}
-              onReady={(h) => { handleRef.current = h; setPlayerReady((n) => n + 1); }}
+              onReady={handlePlayerReady}
               onEvent={handleEvent}
             />
           ) : (

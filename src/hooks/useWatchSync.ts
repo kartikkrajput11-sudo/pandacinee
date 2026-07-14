@@ -61,6 +61,12 @@ export function useWatchSync(
   useEffect(() => {
     if (!meId || !partnerId || movieId === 0 || movieId === "" || movieId == null) return;
     const topic = `watch-sync:${mediaType}:${movieId}:${[meId, partnerId].sort().join(":")}`;
+    setPeer(null);
+    setPartnerOnline(false);
+    setCountdown(null);
+    setIncomingSeek(null);
+    setHostId(null);
+    hostRef.current = null;
     const ch = supabase.channel(topic, {
       config: { presence: { key: meId }, broadcast: { self: false } },
     });
@@ -118,6 +124,9 @@ export function useWatchSync(
       setPeer(null);
       setPartnerOnline(false);
       setCountdown(null);
+      setIncomingSeek(null);
+      setHostId(null);
+      hostRef.current = null;
     };
   }, [meId, partnerId, movieId, mediaType]);
 
