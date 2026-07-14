@@ -343,6 +343,9 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady }: Pr
             {volume > 1 && (
               <span className="text-[10px] text-petal font-semibold">{Math.round(volume * 100)}%</span>
             )}
+          </div>
+
+
 
           <div className="ml-auto flex items-center gap-2">
             <span className="tabular-nums text-white/90">
