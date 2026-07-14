@@ -46,14 +46,31 @@ export function useFriendships() {
   });
 
   useEffect(() => {
-    const ch = supabase
-      .channel("friendships-rt")
-      .on("postgres_changes", { event: "*", schema: "public", table: "friendships" }, () => {
-        qc.invalidateQueries({ queryKey: ["friendships"] });
-      })
-      .subscribe();
+    let cancelled = false;
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+
+    (async () => {
+      const { data: u } = await supabase.auth.getUser();
+      if (cancelled || !u.user) return;
+      const uid = u.user.id;
+      channel = supabase
+        .channel(`friendships-rt:${uid}:${crypto.randomUUID()}`)
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "friendships", filter: `requester_id=eq.${uid}` },
+          () => qc.invalidateQueries({ queryKey: ["friendships"] })
+        )
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "friendships", filter: `addressee_id=eq.${uid}` },
+          () => qc.invalidateQueries({ queryKey: ["friendships"] })
+        )
+        .subscribe();
+    })();
+
     return () => {
-      supabase.removeChannel(ch);
+      cancelled = true;
+      if (channel) supabase.removeChannel(channel);
     };
   }, [qc]);
 
