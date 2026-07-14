@@ -467,6 +467,15 @@ function CatalogWatch({ id }: { id: string }) {
     window.setTimeout(() => { suppressPlayerEventRef.current = false; }, ms);
   }, []);
 
+  // Follower: mirror host's source selection so both are watching the same stream
+  useEffect(() => {
+    if (!partnerIsHost || !peer) return;
+    if (typeof peer.sourceIdx !== "number") return;
+    if (peer.sourceIdx === sourceIdx) return;
+    if (peer.sourceIdx < 0 || peer.sourceIdx >= allSources.length) return;
+    setSourceIdx(peer.sourceIdx);
+  }, [partnerIsHost, peer, sourceIdx, allSources.length]);
+
   // Follower auto-sync: when partner is host, mirror their play/pause/seek
   useEffect(() => {
     if (!peer || !partnerIsHost || !me) return;
@@ -474,10 +483,12 @@ function CatalogWatch({ id }: { id: string }) {
     const evt = peer.event;
     // Only react to discrete transport events
     if (evt !== "play" && evt !== "pause" && evt !== "seeked" && evt !== "timeupdate") return;
-    // For timeupdate, only re-sync if drift is significant
+    // For timeupdate, only re-sync if drift is significant. Pandacine (our own
+    // <video>) can be nudged smoothly, so use a tighter threshold there.
     if (evt === "timeupdate") {
       const d = Math.abs(mine.currentTime - peer.currentTime);
-      if (d < 6) return;
+      const threshold = isPandacine ? 2 : 6;
+      if (d < threshold) return;
     }
     lastAppliedPeerEventRef.current = peer.updatedAt;
 
