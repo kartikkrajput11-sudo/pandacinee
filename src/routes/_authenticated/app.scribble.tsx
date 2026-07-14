@@ -487,7 +487,7 @@ function Scribble() {
         <div className="mt-3 flex gap-2">
           <input
             value={guess}
-            onChange={(e) => setGuess(e.target.value)}
+            onChange={(e) => onGuessChange(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && sendGuess()}
             placeholder="Type your guess…"
             className="flex-1 rounded-full bg-surface border border-border px-4 py-2.5 text-sm text-candle focus:outline-none focus:border-petal/50"
