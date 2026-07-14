@@ -24,6 +24,8 @@ type Props = {
   onClearReply: () => void;
   onTyping: (v: boolean) => void;
   locked?: { reason: string } | null;
+  lockedHint?: string | null;
+
   onSend: (input: {
     content?: string;
     type?: "text" | "voice" | "image" | "video" | "file" | "sticker" | "watch_invite" | "game_invite" | "kiss" | "nudge" | "whisper" | "movie_wheel";
@@ -34,7 +36,7 @@ type Props = {
   }) => Promise<void>;
 };
 
-export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTyping, onSend, locked }: Props) {
+export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTyping, onSend, locked, lockedHint }: Props) {
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -293,6 +295,13 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
 
   return (
     <div className="border-t border-border bg-velvet/90 backdrop-blur">
+      {lockedHint && (
+        <div className="px-4 pt-2 flex items-center gap-2 text-[11px] text-petal">
+          <span>🔒</span>
+          <span className="uppercase tracking-widest">{lockedHint}</span>
+        </div>
+      )}
+
       {replyTo && (
         <div className="px-4 py-2 flex items-center gap-2 border-b border-border/60 bg-surface/40">
           <div className="flex-1 min-w-0 border-l-2 border-petal pl-2">
