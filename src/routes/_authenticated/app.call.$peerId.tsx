@@ -21,6 +21,7 @@ import { useChat } from "@/hooks/useChat";
 import { ChatBubble } from "@/components/chat/ChatBubble";
 import { ChatComposer } from "@/components/chat/ChatComposer";
 import type { MessageRow } from "@/lib/chat";
+import { playDialTone } from "@/lib/ringtone";
 
 function CallAvatar({ path, name }: { path: string | null; name: string }) {
   const [url, setUrl] = useState<string | null>(null);
@@ -127,6 +128,15 @@ function Call() {
     }, 500);
     return () => window.clearInterval(id);
   }, [status]);
+
+  // Dial tone for the caller until the call connects (or ends)
+  useEffect(() => {
+    if (role !== "caller") return;
+    if (status === "connected" || status === "ended" || status === "error") return;
+    const handle = playDialTone();
+    return () => handle.stop();
+  }, [role, status]);
+
 
   const loggedRef = useRef(false);
   useEffect(() => {
