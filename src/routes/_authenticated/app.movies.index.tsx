@@ -266,7 +266,7 @@ function Movies() {
         <Rail
           title="Coming Soon"
           icon={<Calendar className="size-3.5 text-petal" />}
-          movies={upcoming}
+          movies={overlay(upcoming)}
           loading={loading}
         />
 
