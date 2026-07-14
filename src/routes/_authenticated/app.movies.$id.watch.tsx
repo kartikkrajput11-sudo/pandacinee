@@ -430,9 +430,18 @@ function WatchMovie() {
     }
     lastAppliedPeerEventRef.current = peer.updatedAt;
 
+    // Follower hasn't tapped "Raise the curtain" yet — browsers block
+    // cross-origin autoplay-with-sound, so remounting the iframe here would
+    // just show a black screen. Instead, remember the host's timestamp so
+    // that when the follower taps, they jump straight to the host's spot.
+    if (!started) {
+      if (evt !== "pause") setStartAt(peer.currentTime);
+      return;
+    }
+
     // Pandacine (our own server): control the <video> directly through the
     // player handle so the follower keeps watching without a full remount.
-    if (isPandacine && customPlayerRef.current && started) {
+    if (isPandacine && customPlayerRef.current) {
       const h = customPlayerRef.current;
       if (Math.abs(h.currentTime() - peer.currentTime) > 1.5) h.seek(peer.currentTime);
       if (evt === "pause") h.pause();
@@ -830,7 +839,9 @@ function WatchMovie() {
                 <span className="size-20 md:size-24 rounded-full bg-petal text-velvet flex items-center justify-center shadow-2xl shadow-petal/50 group-hover:scale-105 transition ring-4 ring-petal/20">
                   <Play className="size-8 md:size-10 fill-velvet ml-1" />
                 </span>
-                <span className="text-candle font-serif italic text-lg md:text-xl">Raise the curtain</span>
+                <span className="text-candle font-serif italic text-lg md:text-xl">
+                  {partnerIsHost && peer ? `Join ${partnerFirst} at ${fmtTime(peer.currentTime)}` : "Raise the curtain"}
+                </span>
                 <span className="text-candle-muted text-[11px] uppercase tracking-[0.25em]">{currentSource?.label ?? "Loading"}</span>
               </button>
             )}
