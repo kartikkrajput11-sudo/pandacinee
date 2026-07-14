@@ -33,18 +33,19 @@ const AUDIO_CONSTRAINTS: MediaTrackConstraints = {
   echoCancellation: true,
   noiseSuppression: true,
   autoGainControl: true,
-  channelCount: { ideal: 2 },
+  channelCount: { ideal: 1 },
   sampleRate: { ideal: 48000 },
 };
 
 function videoConstraints(facing: FacingMode): MediaTrackConstraints {
   return {
-    width: { ideal: 1280, max: 1920 },
-    height: { ideal: 720, max: 1080 },
-    frameRate: { ideal: 30, max: 30 },
+    width: { ideal: 960, max: 1280 },
+    height: { ideal: 540, max: 720 },
+    frameRate: { ideal: 24, max: 30 },
     facingMode: { ideal: facing },
   };
 }
+
 
 export function useWebRTCCall(peerId: string | null, mode: Mode = "video", isCaller = true) {
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
