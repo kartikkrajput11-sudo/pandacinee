@@ -74,6 +74,7 @@ function Scribble() {
   const [revealed, setRevealed] = useState<Set<number>>(new Set());
   const [targetScore, setTargetScore] = useState<number>(5);
   const [winnerId, setWinnerId] = useState<string | null>(null);
+  const [hintMask, setHintMask] = useState<string>("");
 
   const chRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const wordRef = useRef<string | null>(null);
