@@ -86,6 +86,7 @@ function Call() {
   const [duration, setDuration] = useState(0);
   const localRef = useRef<HTMLVideoElement>(null);
   const remoteRef = useRef<HTMLVideoElement>(null);
+  const remoteAudioRef = useRef<HTMLAudioElement>(null);
   const connectedAtRef = useRef<number | null>(null);
 
   // Send invite signal when caller mounts
@@ -104,10 +105,18 @@ function Call() {
     if (localRef.current && localStream) localRef.current.srcObject = localStream;
   }, [localStream]);
   useEffect(() => {
-    if (remoteRef.current && remoteStream) {
+    if (!remoteStream) return;
+    // Attach remote stream to the video element (image) AND a dedicated audio
+    // element (voice). Hidden <video> tags drop audio on some browsers, so we
+    // always route the audio track through a real <audio> element that lives
+    // outside any conditional branch.
+    if (remoteRef.current) {
       remoteRef.current.srcObject = remoteStream;
-      // Some mobile browsers won't autoplay a stream that arrives after mount.
       remoteRef.current.play?.().catch(() => {});
+    }
+    if (remoteAudioRef.current) {
+      remoteAudioRef.current.srcObject = remoteStream;
+      remoteAudioRef.current.play?.().catch(() => {});
     }
   }, [remoteStream]);
 
@@ -173,9 +182,12 @@ function Call() {
     return () => clearTimeout(t);
   }, [status, navigate, role, peerId, mode]);
 
-  // Speaker toggle: mute the remote audio locally
+  // Speaker toggle: mute the dedicated remote audio element. The video
+  // element is always muted (audio comes from the <audio> tag) to avoid
+  // double playback.
   useEffect(() => {
-    if (remoteRef.current) remoteRef.current.muted = !speakerOn;
+    if (remoteRef.current) remoteRef.current.muted = true;
+    if (remoteAudioRef.current) remoteAudioRef.current.muted = !speakerOn;
   }, [speakerOn, remoteStream]);
 
   const statusLabel = useMemo(() => {
@@ -241,6 +253,7 @@ function Call() {
               ref={remoteRef}
               autoPlay
               playsInline
+              muted
               className="absolute inset-0 w-full h-full object-cover bg-black"
             />
             {/* Local self-view */}
@@ -273,12 +286,12 @@ function Call() {
             <p className="mt-1 text-xs uppercase tracking-widest text-candle-muted">
               {isConnected ? "in your ear" : statusLabel}
             </p>
-            {/* Hidden audio-only playback */}
-            {mode === "audio" && (
-              <video ref={remoteRef} autoPlay playsInline className="hidden" />
-            )}
           </div>
         )}
+
+        {/* Dedicated remote-audio element — always mounted so the peer's
+            voice plays even in video mode or before the video track arrives. */}
+        <audio ref={remoteAudioRef} autoPlay playsInline className="hidden" />
 
         {mode === "video" && !remoteStream && (
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
