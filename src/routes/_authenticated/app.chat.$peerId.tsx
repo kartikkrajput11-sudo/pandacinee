@@ -137,17 +137,23 @@ function ChatPeer() {
     <div className={`flex flex-col h-screen ${shake ? "animate-chat-shake" : ""}`}>
       <header className="relative px-4 pt-6 pb-3 flex items-center gap-2 border-b border-border bg-velvet/80 backdrop-blur sticky top-0 z-10">
         <Link to="/app/chat" className="text-candle-muted"><ArrowLeft className="size-5" /></Link>
-        <div className="size-10 rounded-full bg-petal-soft flex items-center justify-center overflow-hidden">
-          {peer.avatar_url ? <img src={peer.avatar_url} alt="" className="size-full object-cover" /> : <span className="text-lg">🐼</span>}
-        </div>
-        <div className="flex-1 min-w-0">
-          <h1 className="font-serif italic text-lg leading-tight truncate">{peerDisplay}</h1>
-          <p className="text-[10px] text-petal flex items-center gap-1">
-            <span className={`size-1.5 rounded-full ${partnerOnline ? "bg-green-400" : "bg-candle-muted"}`} />
-            {partnerTyping ? "typing…" : partnerOnline ? "online" : "offline"}
-            {isPartner && <span className="text-candle-muted">· 💜 partner</span>}
-          </p>
-        </div>
+        <Link
+          to="/app/user/$userId"
+          params={{ userId: peer.id }}
+          className="flex items-center gap-2 flex-1 min-w-0 hover:opacity-80 transition-opacity"
+        >
+          <div className="size-10 rounded-full bg-petal-soft flex items-center justify-center overflow-hidden shrink-0">
+            {peer.avatar_url ? <img src={peer.avatar_url} alt="" className="size-full object-cover" /> : <span className="text-lg">🐼</span>}
+          </div>
+          <div className="flex-1 min-w-0">
+            <h1 className="font-serif italic text-lg leading-tight truncate">{peerDisplay}</h1>
+            <p className="text-[10px] text-petal flex items-center gap-1">
+              <span className={`size-1.5 rounded-full ${partnerOnline ? "bg-green-400" : "bg-candle-muted"}`} />
+              {partnerTyping ? "typing…" : partnerOnline ? "online" : "offline"}
+              {isPartner && <span className="text-candle-muted">· 💜 partner</span>}
+            </p>
+          </div>
+        </Link>
         <ChatSearch messages={messages} onJump={jumpTo} />
         <Link to="/app/call/$peerId" params={{ peerId: peer.id }} search={{ role: "caller", mode: "audio" }} className="size-10 rounded-full bg-surface border border-border flex items-center justify-center text-petal">
           <Phone className="size-4" />
