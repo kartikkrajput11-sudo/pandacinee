@@ -175,6 +175,8 @@ export function ChatBubble({
               ? "bg-transparent p-0"
               : mine
               ? "bg-petal text-velvet rounded-br-md px-3 py-2"
+              : isPartner
+              ? "bg-gradient-to-br from-petal-soft/70 to-surface-elevated text-candle rounded-bl-md border border-petal/50 px-3.5 py-2 font-partner text-[15px] animate-partner-glow"
               : "bg-surface-elevated text-candle rounded-bl-md border border-border px-3 py-2"
           }`}
         >
