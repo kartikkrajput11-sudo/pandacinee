@@ -373,4 +373,6 @@ export function WatchTogetherPanel({
       </div>
     </>
   );
+
+  return fsEl && !inline ? createPortal(content, fsEl) : content;
 }
