@@ -410,35 +410,18 @@ function Scribble() {
     if (!me || !guess.trim() || phase !== "playing" || iAmDrawer) return;
     const text = guess.trim();
     setGuess("");
-    const isCorrect = word && text.toLowerCase() === word.toLowerCase();
     const msg: Msg = { id: crypto.randomUUID(), by: me.id, name: me.display_name ?? "You", text };
     setMessages((m) => [...m, msg]);
     chRef.current?.send({ type: "broadcast", event: "guess", payload: msg });
-    if (isCorrect) {
-      const myNewScore = (scores[me.id] ?? 0) + 1;
-      setScores((s) => ({ ...s, [me.id]: (s[me.id] ?? 0) + 1 }));
-      setPhase("over");
-      setLastDrawerId(drawerId);
-      setEndsAt(null);
-      chRef.current?.send({
-        type: "broadcast",
-        event: "correct",
-        payload: { by: me.id, word, name: me.display_name ?? "Partner" },
-      });
-      toast.success(`Correct! The word was “${word}” — your turn to draw!`);
-      if (myNewScore >= targetScore) {
-        setWinnerId(me.id);
-        return;
-      }
-      // Auto-start next round for the new drawer (me, the correct guesser)
-      setTimeout(() => {
-        const [next] = pick4(new Set(word ? [word] : []));
-        if (next) confirmWord(next);
-      }, 1400);
-    } else {
-      toast.error("Not quite — keep guessing!");
-    }
+    // Force an un-throttled guess-live so the drawer can validate this exact submission.
+    chRef.current?.send({
+      type: "broadcast",
+      event: "guess-live",
+      payload: { by: me.id, name: me.display_name ?? "Partner", text },
+    });
+    // Drawer will broadcast "correct" back if it matches; nothing else to do locally.
   }
+
 
   const myScore = me ? scores[me.id] ?? 0 : 0;
   const theirScore = partner ? scores[partner.id] ?? 0 : 0;
