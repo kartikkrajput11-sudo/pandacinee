@@ -16,6 +16,7 @@ import {
   BookOpen,
   Play,
   Save,
+  Shapes,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,6 +26,8 @@ export const Route = createFileRoute("/_authenticated/app/paint")({
   component: PaintTogether,
 });
 
+type ShapeKind = "line" | "rect" | "oval" | "triangle" | "heart" | "star";
+
 type Stroke = {
   id: string;
   by: string;
@@ -33,12 +36,22 @@ type Stroke = {
   erase: boolean;
   pts: { x: number; y: number }[];
   stamp?: string; // emoji stamp, if this is a stamp stroke
+  shape?: ShapeKind; // shape kind, if this is a shape stroke
+  fill?: boolean;    // shape fill vs outline
   ts?: number;    // draw timestamp (ms) for replay ordering
 };
 
 const COLORS = ["#1f1f1f", "#8b5cf6", "#ec4899", "#22c55e", "#f59e0b", "#0ea5e9", "#ffffff"];
 const SIZES = [3, 6, 12, 22];
 const STAMPS = ["💜", "💗", "✨", "🌸", "🦋", "🐼", "⭐", "🌙", "🍓", "☁️"];
+const SHAPES: { key: ShapeKind; label: string }[] = [
+  { key: "line", label: "Line" },
+  { key: "rect", label: "Rect" },
+  { key: "oval", label: "Oval" },
+  { key: "triangle", label: "Triangle" },
+  { key: "heart", label: "Heart" },
+  { key: "star", label: "Star" },
+];
 
 type Bg = {
   key: string;
@@ -79,6 +92,73 @@ const BACKGROUNDS: Bg[] = [
   },
 ];
 
+function drawShape(
+  ctx: CanvasRenderingContext2D,
+  kind: ShapeKind,
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number,
+  fill: boolean,
+) {
+  ctx.beginPath();
+  if (kind === "line") {
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+    return;
+  }
+  if (kind === "rect") {
+    const x = Math.min(x1, x2);
+    const y = Math.min(y1, y2);
+    const w = Math.abs(x2 - x1);
+    const h = Math.abs(y2 - y1);
+    ctx.rect(x, y, w, h);
+  } else if (kind === "oval") {
+    const cx = (x1 + x2) / 2;
+    const cy = (y1 + y2) / 2;
+    const rx = Math.abs(x2 - x1) / 2;
+    const ry = Math.abs(y2 - y1) / 2;
+    ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+  } else if (kind === "triangle") {
+    const x = Math.min(x1, x2);
+    const y = Math.min(y1, y2);
+    const w = Math.abs(x2 - x1);
+    const h = Math.abs(y2 - y1);
+    ctx.moveTo(x + w / 2, y);
+    ctx.lineTo(x + w, y + h);
+    ctx.lineTo(x, y + h);
+    ctx.closePath();
+  } else if (kind === "heart") {
+    const x = Math.min(x1, x2);
+    const y = Math.min(y1, y2);
+    const w = Math.abs(x2 - x1);
+    const h = Math.abs(y2 - y1);
+    const cx = x + w / 2;
+    const top = y + h * 0.28;
+    ctx.moveTo(cx, y + h);
+    ctx.bezierCurveTo(x - w * 0.1, y + h * 0.6, x + w * 0.1, y, cx, top);
+    ctx.bezierCurveTo(x + w * 0.9, y, x + w * 1.1, y + h * 0.6, cx, y + h);
+    ctx.closePath();
+  } else if (kind === "star") {
+    const cx = (x1 + x2) / 2;
+    const cy = (y1 + y2) / 2;
+    const R = Math.max(Math.abs(x2 - x1), Math.abs(y2 - y1)) / 2;
+    const r = R * 0.42;
+    for (let i = 0; i < 10; i++) {
+      const ang = -Math.PI / 2 + (i * Math.PI) / 5;
+      const rad = i % 2 === 0 ? R : r;
+      const px = cx + Math.cos(ang) * rad;
+      const py = cy + Math.sin(ang) * rad;
+      if (i === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    }
+    ctx.closePath();
+  }
+  if (fill) ctx.fill();
+  else ctx.stroke();
+}
+
 type RemoteCursor = { x: number; y: number; color: string; name: string; ts: number };
 
 function PaintTogether() {
@@ -91,9 +171,12 @@ function PaintTogether() {
   const [size, setSize] = useState(6);
   const [erase, setErase] = useState(false);
   const [stampMode, setStampMode] = useState<string | null>(null);
+  const [shapeMode, setShapeMode] = useState<ShapeKind | null>(null);
+  const [fillShape, setFillShape] = useState(false);
   const [bg, setBg] = useState<string>("white");
   const [bgPickerOpen, setBgPickerOpen] = useState(false);
   const [stampsOpen, setStampsOpen] = useState(false);
+  const [shapesOpen, setShapesOpen] = useState(false);
 
   const strokes = useRef<Stroke[]>([]);
   const undone = useRef<Stroke[]>([]);
@@ -143,6 +226,17 @@ function PaintTogether() {
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.fillText(s.stamp, p.x * w, p.y * h);
+      return;
+    }
+    if (s.shape && s.pts.length >= 2) {
+      const a = s.pts[0];
+      const b = s.pts[s.pts.length - 1];
+      ctx.strokeStyle = s.erase ? "#ffffff" : s.color;
+      ctx.fillStyle = s.color;
+      ctx.lineWidth = s.size * (w / 400);
+      ctx.globalCompositeOperation = s.erase ? "destination-out" : "source-over";
+      drawShape(ctx, s.shape, a.x * w, a.y * h, b.x * w, b.y * h, !!s.fill);
+      ctx.globalCompositeOperation = "source-over";
       return;
     }
     ctx.beginPath();
@@ -298,14 +392,16 @@ function PaintTogether() {
       return;
     }
     (e.target as Element).setPointerCapture(e.pointerId);
+    const start = pt(e);
     const s: Stroke = {
       id: crypto.randomUUID(),
       by: me.id,
       color,
       size,
       erase,
-      pts: [pt(e)],
+      pts: shapeMode ? [start, start] : [start],
       ts: Date.now(),
+      ...(shapeMode ? { shape: shapeMode, fill: fillShape } : {}),
     };
     drawing.current = s;
     chRef.current?.send({ type: "broadcast", event: "stroke-start", payload: s });
@@ -332,15 +428,28 @@ function PaintTogether() {
       });
     }
     if (!drawing.current) return;
-    drawing.current.pts.push(p);
+    if (drawing.current.shape) {
+      drawing.current.pts[1] = p;
+    } else {
+      drawing.current.pts.push(p);
+    }
     redraw();
     if (now - liveThrottle.current > 33) {
       liveThrottle.current = now;
-      chRef.current?.send({
-        type: "broadcast",
-        event: "stroke-point",
-        payload: { id: drawing.current.id, pts: [p] },
-      });
+      if (drawing.current.shape) {
+        // For shapes, resend the whole stroke so partner sees preview update.
+        chRef.current?.send({
+          type: "broadcast",
+          event: "stroke-start",
+          payload: drawing.current,
+        });
+      } else {
+        chRef.current?.send({
+          type: "broadcast",
+          event: "stroke-point",
+          payload: { id: drawing.current.id, pts: [p] },
+        });
+      }
     }
   }
 
@@ -543,7 +652,7 @@ function PaintTogether() {
           {COLORS.map((c) => (
             <button
               key={c}
-              onClick={() => { setColor(c); setErase(false); setStampMode(null); }}
+              onClick={() => { setColor(c); setErase(false); setStampMode(null); setShapeMode(null); }}
               className={`size-8 rounded-full border-2 transition ${color === c && !erase && !stampMode ? "border-petal scale-110" : "border-border"}`}
               style={{ background: c }}
               aria-label={`Color ${c}`}
@@ -558,23 +667,30 @@ function PaintTogether() {
             <input
               type="color"
               value={color}
-              onChange={(e) => { setColor(e.target.value); setErase(false); setStampMode(null); }}
+              onChange={(e) => { setColor(e.target.value); setErase(false); setStampMode(null); setShapeMode(null); }}
               className="absolute inset-0 opacity-0 cursor-pointer"
             />
           </label>
           <button
-            onClick={() => { setErase((e) => !e); setStampMode(null); }}
+            onClick={() => { setErase((e) => !e); setStampMode(null); setShapeMode(null); }}
             className={`size-8 rounded-full border-2 flex items-center justify-center ${erase ? "border-petal bg-petal-soft" : "border-border bg-surface"}`}
             aria-label="Eraser"
           >
             <Eraser className="size-4" />
           </button>
           <button
-            onClick={() => setStampsOpen((v) => !v)}
+            onClick={() => { setStampsOpen((v) => !v); setShapesOpen(false); }}
             className={`size-8 rounded-full border-2 flex items-center justify-center ${stampMode ? "border-petal bg-petal-soft" : "border-border bg-surface"}`}
             aria-label="Stamps"
           >
             {stampMode ? <span className="text-base leading-none">{stampMode}</span> : <Sticker className="size-4" />}
+          </button>
+          <button
+            onClick={() => { setShapesOpen((v) => !v); setStampsOpen(false); }}
+            className={`size-8 rounded-full border-2 flex items-center justify-center ${shapeMode ? "border-petal bg-petal-soft" : "border-border bg-surface"}`}
+            aria-label="Shapes"
+          >
+            <Shapes className="size-4" />
           </button>
           <button
             onClick={() => setBgPickerOpen((v) => !v)}
@@ -585,12 +701,42 @@ function PaintTogether() {
           </button>
         </div>
 
+        {shapesOpen && (
+          <div className="rounded-2xl border border-border bg-surface p-2 flex flex-wrap gap-1 items-center">
+            {SHAPES.map((sh) => (
+              <button
+                key={sh.key}
+                onClick={() => { setShapeMode(sh.key); setErase(false); setStampMode(null); setShapesOpen(false); }}
+                className={`px-3 h-9 rounded-xl text-xs flex items-center justify-center hover:bg-petal-soft ${shapeMode === sh.key ? "bg-petal-soft ring-2 ring-petal" : ""}`}
+              >
+                {sh.label}
+              </button>
+            ))}
+            <label className="ml-auto text-xs text-candle-muted flex items-center gap-1 px-2">
+              <input
+                type="checkbox"
+                checked={fillShape}
+                onChange={(e) => setFillShape(e.target.checked)}
+              />
+              Fill
+            </label>
+            {shapeMode && (
+              <button
+                onClick={() => setShapeMode(null)}
+                className="text-xs text-candle-muted px-2"
+              >
+                Back
+              </button>
+            )}
+          </div>
+        )}
+
         {stampsOpen && (
           <div className="rounded-2xl border border-border bg-surface p-2 flex flex-wrap gap-1">
             {STAMPS.map((s) => (
               <button
                 key={s}
-                onClick={() => { setStampMode(s); setErase(false); setStampsOpen(false); }}
+                onClick={() => { setStampMode(s); setErase(false); setShapeMode(null); setStampsOpen(false); }}
                 className={`size-9 rounded-xl text-xl flex items-center justify-center hover:bg-petal-soft ${stampMode === s ? "bg-petal-soft ring-2 ring-petal" : ""}`}
               >
                 {s}
@@ -852,6 +998,19 @@ function ReplayCanvas({
         ctx.globalAlpha = pctPts;
         ctx.fillText(s.stamp, p.x * w, p.y * h);
         ctx.globalAlpha = 1;
+        return;
+      }
+      if (s.shape && s.pts.length >= 2) {
+        const a = s.pts[0];
+        const b = s.pts[s.pts.length - 1];
+        ctx.strokeStyle = s.erase ? "#ffffff" : s.color;
+        ctx.fillStyle = s.color;
+        ctx.lineWidth = s.size * (w / 400);
+        ctx.globalCompositeOperation = s.erase ? "destination-out" : "source-over";
+        ctx.globalAlpha = pctPts;
+        drawShape(ctx, s.shape, a.x * w, a.y * h, b.x * w, b.y * h, !!s.fill);
+        ctx.globalAlpha = 1;
+        ctx.globalCompositeOperation = "source-over";
         return;
       }
       ctx.beginPath();
