@@ -1017,3 +1017,95 @@ function WinnerOverlay({
     </div>
   );
 }
+
+type LbProfile = { id: string; display_name?: string | null; username?: string | null; avatar_url?: string | null } | null | undefined;
+type LbStats = { user_id: string; wins: number; correct_guesses: number; games_played: number; rounds_drawn: number };
+
+function Leaderboard({
+  me,
+  partner,
+  leaderboard,
+}: {
+  me: NonNullable<LbProfile>;
+  partner: LbProfile;
+  leaderboard: Record<string, LbStats>;
+}) {
+  const rows = [me, partner].filter(Boolean) as NonNullable<LbProfile>[];
+  const enriched = rows
+    .map((p) => {
+      const s = leaderboard[p.id] ?? { user_id: p.id, wins: 0, correct_guesses: 0, games_played: 0, rounds_drawn: 0 };
+      const winRate = s.games_played > 0 ? Math.round((s.wins / s.games_played) * 100) : 0;
+      return { profile: p, stats: s, winRate };
+    })
+    .sort((a, b) =>
+      b.stats.wins - a.stats.wins ||
+      b.stats.correct_guesses - a.stats.correct_guesses ||
+      b.stats.rounds_drawn - a.stats.rounds_drawn,
+    );
+
+  return (
+    <div className="mt-4 rounded-2xl border border-border bg-surface/70 backdrop-blur p-3">
+      <div className="flex items-center gap-2 mb-2">
+        <Crown className="size-4 text-petal" />
+        <h3 className="font-serif italic text-base">All-time Leaderboard</h3>
+      </div>
+      <div className="space-y-2">
+        {enriched.map((row, idx) => {
+          const isMe = row.profile.id === me.id;
+          const name = row.profile.display_name || row.profile.username || (isMe ? "You" : "Partner");
+          return (
+            <div
+              key={row.profile.id}
+              className={`flex items-center gap-2.5 rounded-xl px-3 py-2 border ${
+                idx === 0
+                  ? "border-petal/60 bg-petal-soft/30"
+                  : "border-border bg-velvet"
+              }`}
+            >
+              <div className={`size-6 rounded-full flex items-center justify-center text-[11px] font-bold ${
+                idx === 0 ? "bg-petal text-white" : "bg-surface text-candle-muted border border-border"
+              }`}>
+                {idx + 1}
+              </div>
+              <div className="size-8 rounded-full bg-petal-soft overflow-hidden flex items-center justify-center shrink-0">
+                {row.profile.avatar_url ? (
+                  <img src={row.profile.avatar_url} alt={name} className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-sm">🐼</span>
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm text-candle truncate">
+                  {name}{isMe && <span className="text-petal text-[10px] ml-1">(you)</span>}
+                </p>
+                <p className="text-[10px] text-candle-muted">
+                  {row.stats.games_played} game{row.stats.games_played === 1 ? "" : "s"} · {row.winRate}% win
+                </p>
+              </div>
+              <div className="flex items-center gap-3 text-xs">
+                <div className="text-center">
+                  <div className="text-petal font-bold tabular-nums">{row.stats.wins}</div>
+                  <div className="text-[9px] uppercase tracking-widest text-candle-muted">Wins</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-candle font-semibold tabular-nums">{row.stats.correct_guesses}</div>
+                  <div className="text-[9px] uppercase tracking-widest text-candle-muted">Guessed</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-candle font-semibold tabular-nums">{row.stats.rounds_drawn}</div>
+                  <div className="text-[9px] uppercase tracking-widest text-candle-muted">Drawn</div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+        {!partner && (
+          <p className="text-[11px] text-candle-muted text-center pt-1">
+            Pair with your partner to see them here.
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
