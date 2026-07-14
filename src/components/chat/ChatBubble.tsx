@@ -248,10 +248,49 @@ export function ChatBubble({
             <div className="w-px bg-border mx-1" />
             <button onClick={() => { onReply(m); setActionsOpen(false); }} className="p-1.5 rounded-lg text-candle hover:bg-petal/20"><Reply className="size-4" /></button>
             <button onClick={() => { onPin(m); setActionsOpen(false); }} className="p-1.5 rounded-lg text-candle hover:bg-petal/20"><Pin className="size-4" /></button>
+            {mine && onVanish && (
+              <button
+                onClick={() => setVanishOpen((v) => !v)}
+                className={`p-1.5 rounded-lg hover:bg-petal/20 ${m.expires_at ? "text-petal" : "text-candle"}`}
+                title="Vanish after…"
+              >
+                <Clock className="size-4" />
+              </button>
+            )}
             {mine && (
               <button onClick={() => { onDelete(m); setActionsOpen(false); }} className="p-1.5 rounded-lg text-destructive hover:bg-destructive/10"><Trash2 className="size-4" /></button>
             )}
             <button onClick={() => { onReact(m, "❤️"); setActionsOpen(false); }} className="p-1.5 rounded-lg text-petal hover:bg-petal/20"><Heart className="size-4" /></button>
+          </div>
+        )}
+
+        {actionsOpen && vanishOpen && mine && onVanish && (
+          <div className={`mt-1 flex gap-1 flex-wrap p-2 rounded-2xl bg-surface-elevated border border-petal/40 ${mine ? "self-end" : ""}`}>
+            <span className="text-[10px] uppercase tracking-widest text-petal self-center px-1">Vanish in</span>
+            {[
+              { label: "10s", s: 10 },
+              { label: "1m", s: 60 },
+              { label: "5m", s: 300 },
+              { label: "1h", s: 3600 },
+              { label: "1d", s: 86400 },
+              { label: "7d", s: 604800 },
+            ].map((o) => (
+              <button
+                key={o.label}
+                onClick={() => { onVanish(m, o.s); setVanishOpen(false); setActionsOpen(false); }}
+                className="px-2 py-1 text-xs rounded-lg bg-surface border border-border text-candle hover:border-petal/60"
+              >
+                {o.label}
+              </button>
+            ))}
+            {m.expires_at && (
+              <button
+                onClick={() => { onVanish(m, null); setVanishOpen(false); setActionsOpen(false); }}
+                className="px-2 py-1 text-xs rounded-lg text-destructive hover:bg-destructive/10"
+              >
+                Cancel
+              </button>
+            )}
           </div>
         )}
       </div>
