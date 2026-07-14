@@ -27,6 +27,7 @@ import { Route as AuthenticatedAppMeRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedAppInviteRouteImport } from './routes/_authenticated/app.invite'
 import { Route as AuthenticatedAppHelpRouteImport } from './routes/_authenticated/app.help'
 import { Route as AuthenticatedAppFriendsRouteImport } from './routes/_authenticated/app.friends'
+import { Route as AuthenticatedAppDailyChallengeRouteImport } from './routes/_authenticated/app.daily-challenge'
 import { Route as AuthenticatedAppAnniversaryRouteImport } from './routes/_authenticated/app.anniversary'
 import { Route as AuthenticatedAppAdminRouteImport } from './routes/_authenticated/app.admin'
 import { Route as AuthenticatedAppMoviesIndexRouteImport } from './routes/_authenticated/app.movies.index'
@@ -130,6 +131,12 @@ const AuthenticatedAppFriendsRoute = AuthenticatedAppFriendsRouteImport.update({
   path: '/friends',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
+const AuthenticatedAppDailyChallengeRoute =
+  AuthenticatedAppDailyChallengeRouteImport.update({
+    id: '/daily-challenge',
+    path: '/daily-challenge',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppAnniversaryRoute =
   AuthenticatedAppAnniversaryRouteImport.update({
     id: '/anniversary',
@@ -196,6 +203,7 @@ export interface FileRoutesByFullPath {
   '/app': typeof AuthenticatedAppRouteWithChildren
   '/app/admin': typeof AuthenticatedAppAdminRoute
   '/app/anniversary': typeof AuthenticatedAppAnniversaryRoute
+  '/app/daily-challenge': typeof AuthenticatedAppDailyChallengeRoute
   '/app/friends': typeof AuthenticatedAppFriendsRoute
   '/app/help': typeof AuthenticatedAppHelpRoute
   '/app/invite': typeof AuthenticatedAppInviteRoute
@@ -224,6 +232,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/app/admin': typeof AuthenticatedAppAdminRoute
   '/app/anniversary': typeof AuthenticatedAppAnniversaryRoute
+  '/app/daily-challenge': typeof AuthenticatedAppDailyChallengeRoute
   '/app/friends': typeof AuthenticatedAppFriendsRoute
   '/app/help': typeof AuthenticatedAppHelpRoute
   '/app/invite': typeof AuthenticatedAppInviteRoute
@@ -254,6 +263,7 @@ export interface FileRoutesById {
   '/_authenticated/app': typeof AuthenticatedAppRouteWithChildren
   '/_authenticated/app/admin': typeof AuthenticatedAppAdminRoute
   '/_authenticated/app/anniversary': typeof AuthenticatedAppAnniversaryRoute
+  '/_authenticated/app/daily-challenge': typeof AuthenticatedAppDailyChallengeRoute
   '/_authenticated/app/friends': typeof AuthenticatedAppFriendsRoute
   '/_authenticated/app/help': typeof AuthenticatedAppHelpRoute
   '/_authenticated/app/invite': typeof AuthenticatedAppInviteRoute
@@ -285,6 +295,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/app/admin'
     | '/app/anniversary'
+    | '/app/daily-challenge'
     | '/app/friends'
     | '/app/help'
     | '/app/invite'
@@ -313,6 +324,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/app/admin'
     | '/app/anniversary'
+    | '/app/daily-challenge'
     | '/app/friends'
     | '/app/help'
     | '/app/invite'
@@ -342,6 +354,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app'
     | '/_authenticated/app/admin'
     | '/_authenticated/app/anniversary'
+    | '/_authenticated/app/daily-challenge'
     | '/_authenticated/app/friends'
     | '/_authenticated/app/help'
     | '/_authenticated/app/invite'
@@ -501,6 +514,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppFriendsRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/daily-challenge': {
+      id: '/_authenticated/app/daily-challenge'
+      path: '/daily-challenge'
+      fullPath: '/app/daily-challenge'
+      preLoaderRoute: typeof AuthenticatedAppDailyChallengeRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/anniversary': {
       id: '/_authenticated/app/anniversary'
       path: '/anniversary'
@@ -607,6 +627,7 @@ const AuthenticatedAppMoviesRouteWithChildren =
 interface AuthenticatedAppRouteChildren {
   AuthenticatedAppAdminRoute: typeof AuthenticatedAppAdminRoute
   AuthenticatedAppAnniversaryRoute: typeof AuthenticatedAppAnniversaryRoute
+  AuthenticatedAppDailyChallengeRoute: typeof AuthenticatedAppDailyChallengeRoute
   AuthenticatedAppFriendsRoute: typeof AuthenticatedAppFriendsRoute
   AuthenticatedAppHelpRoute: typeof AuthenticatedAppHelpRoute
   AuthenticatedAppInviteRoute: typeof AuthenticatedAppInviteRoute
@@ -630,6 +651,7 @@ interface AuthenticatedAppRouteChildren {
 const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppAdminRoute: AuthenticatedAppAdminRoute,
   AuthenticatedAppAnniversaryRoute: AuthenticatedAppAnniversaryRoute,
+  AuthenticatedAppDailyChallengeRoute: AuthenticatedAppDailyChallengeRoute,
   AuthenticatedAppFriendsRoute: AuthenticatedAppFriendsRoute,
   AuthenticatedAppHelpRoute: AuthenticatedAppHelpRoute,
   AuthenticatedAppInviteRoute: AuthenticatedAppInviteRoute,
