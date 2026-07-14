@@ -19,6 +19,9 @@ function UserProfilePage() {
   const isPartner = partner?.id === userId;
   const isMe = me?.id === userId;
 
+  const qc = useQueryClient();
+  const [busy, setBusy] = useState(false);
+
   const { data: user, isLoading } = useQuery({
     enabled: !!userId,
     queryKey: ["user-profile", userId],
@@ -27,6 +30,52 @@ function UserProfilePage() {
       return (data as Profile) ?? null;
     },
   });
+
+  const { data: blockRow } = useQuery({
+    enabled: !!me?.id && !!userId && me?.id !== userId,
+    queryKey: ["user-block", me?.id, userId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("user_blocks" as any)
+        .select("id")
+        .eq("blocker_id", me!.id)
+        .eq("blocked_id", userId)
+        .maybeSingle();
+      return (data as { id: string } | null) ?? null;
+    },
+  });
+  const isBlocked = !!blockRow;
+
+  async function toggleBlock() {
+    if (!me?.id || isMe) return;
+    setBusy(true);
+    try {
+      if (isBlocked) {
+        const { error } = await supabase
+          .from("user_blocks" as any)
+          .delete()
+          .eq("blocker_id", me.id)
+          .eq("blocked_id", userId);
+        if (error) throw error;
+        toast.success("Unblocked");
+      } else {
+        if (!confirm(`Block ${displayName}? They won't be able to message you.`)) {
+          setBusy(false);
+          return;
+        }
+        const { error } = await supabase
+          .from("user_blocks" as any)
+          .insert({ blocker_id: me.id, blocked_id: userId });
+        if (error) throw error;
+        toast.success("Blocked");
+      }
+      qc.invalidateQueries({ queryKey: ["user-block", me.id, userId] });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Something went wrong");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   if (isLoading) {
     return <div className="pt-10 text-center text-candle-muted">Loading…</div>;
