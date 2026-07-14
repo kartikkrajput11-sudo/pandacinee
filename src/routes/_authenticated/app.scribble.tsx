@@ -180,6 +180,7 @@ function Scribble() {
       setLastDrawerId(drawerId);
       setEndsAt(null);
       toast.success(`${p.name} guessed “${w}”! Their turn to draw.`);
+    });
     ch.on("broadcast", { event: "guess" }, ({ payload }) => {
       setMessages((m) => [...m, payload as Msg]);
     });
