@@ -606,12 +606,21 @@ function LibraryTab() {
                 >
                   <Pencil className="size-3" /> Edit
                 </button>
+                {m.media_type === "tv" && (
+                  <button
+                    onClick={() => setEpisodesFor(m)}
+                    className="h-8 px-3 rounded-full bg-surface-elevated border border-border text-xs text-candle flex items-center gap-1 hover:border-petal/40"
+                  >
+                    <Clapperboard className="size-3" /> Episodes
+                  </button>
+                )}
                 <button
                   onClick={() => onDelete(m)}
                   className="h-8 px-3 rounded-full bg-surface-elevated border border-border text-xs text-rose-400 flex items-center gap-1 hover:border-rose-500/40"
                 >
                   <Trash2 className="size-3" /> Delete
                 </button>
+
               </div>
             </div>
           </div>
