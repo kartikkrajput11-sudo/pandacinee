@@ -50,6 +50,7 @@ const RATES = [0.5, 0.75, 1, 1.25, 1.5, 2];
 export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, locked = false }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const onReadyRef = useRef(onReady);
   const [playing, setPlaying] = useState(false);
   const [time, setTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -90,11 +91,17 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
     };
   }, []);
 
-  // Attach handle for parent sync control
+  useEffect(() => {
+    onReadyRef.current = onReady;
+  }, [onReady]);
+
+  // Attach handle for parent sync control. Keep this independent from the
+  // parent's callback identity so parent state updates cannot retrigger onReady
+  // forever while playback time updates are rendering.
   useEffect(() => {
     const v = videoRef.current;
-    if (!v || !onReady) return;
-    onReady({
+    if (!v || !onReadyRef.current) return;
+    onReadyRef.current({
       play: () => v.play().catch(() => {}),
       pause: () => v.pause(),
       seek: (t: number) => {
@@ -106,7 +113,7 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
       duration: () => v.duration,
       isPaused: () => v.paused,
     });
-  }, [onReady]);
+  }, [src]);
 
   // Seek to startAt when src or startAt changes
   useEffect(() => {
