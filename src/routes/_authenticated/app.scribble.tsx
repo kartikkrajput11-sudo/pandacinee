@@ -124,6 +124,45 @@ function Scribble() {
   const [winnerId, setWinnerId] = useState<string | null>(null);
   const [hintMask, setHintMask] = useState<string>("");
 
+  // Persistent leaderboard stats (all-time)
+  type Stats = { user_id: string; wins: number; correct_guesses: number; games_played: number; rounds_drawn: number };
+  const [leaderboard, setLeaderboard] = useState<Record<string, Stats>>({});
+  const winnerCountedRef = useRef<string | null>(null);
+  async function bumpMyStats(delta: Partial<Omit<Stats, "user_id">>) {
+    if (!me) return;
+    // Read current, then upsert incremented values. Small races don't matter for a personal leaderboard.
+    const { data: cur } = await supabase
+      .from("scribble_stats")
+      .select("wins, correct_guesses, games_played, rounds_drawn")
+      .eq("user_id", me.id)
+      .maybeSingle();
+    const next = {
+      user_id: me.id,
+      wins: (cur?.wins ?? 0) + (delta.wins ?? 0),
+      correct_guesses: (cur?.correct_guesses ?? 0) + (delta.correct_guesses ?? 0),
+      games_played: (cur?.games_played ?? 0) + (delta.games_played ?? 0),
+      rounds_drawn: (cur?.rounds_drawn ?? 0) + (delta.rounds_drawn ?? 0),
+    };
+    const { error } = await supabase.from("scribble_stats").upsert(next, { onConflict: "user_id" });
+    if (!error) setLeaderboard((s) => ({ ...s, [me.id]: next }));
+  }
+
+  // Load leaderboard for me + partner
+  useEffect(() => {
+    if (!me) return;
+    const ids = partner ? [me.id, partner.id] : [me.id];
+    supabase
+      .from("scribble_stats")
+      .select("user_id, wins, correct_guesses, games_played, rounds_drawn")
+      .in("user_id", ids)
+      .then(({ data }) => {
+        if (!data) return;
+        const map: Record<string, Stats> = {};
+        for (const r of data as Stats[]) map[r.user_id] = r;
+        setLeaderboard(map);
+      });
+  }, [me?.id, partner?.id]);
+
   const chRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const wordRef = useRef<string | null>(null);
   const drawerIdRef = useRef<string | null>(null);
