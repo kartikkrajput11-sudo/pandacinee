@@ -830,50 +830,136 @@ function GuessMe({
     patch({ ...s, guess: input.trim(), revealed: true });
     setInput("");
   }
-  async function next() {
+  async function next(verdictOverride?: "right" | "close" | "wrong" | null) {
+    const tally = s.tally ?? { right: 0, close: 0, wrong: 0 };
+    const nextTally = verdictOverride
+      ? { ...tally, [verdictOverride]: (tally[verdictOverride] ?? 0) + 1 }
+      : tally;
+    const history = s.answer
+      ? [...(s.history ?? []), { prompt, answer: s.answer, guess: s.guess ?? "—", verdict: verdictOverride ?? null }].slice(-20)
+      : (s.history ?? []);
     const c = await fetchCard(s.intensity ?? "playful");
-    patch({ ...s, count: (s.count ?? 0) + 1, card: c, answer: null, answeredBy: null, guess: null, revealed: false });
+    patch({
+      ...s,
+      count: (s.count ?? 0) + 1,
+      card: c,
+      answer: null,
+      answeredBy: null,
+      guess: null,
+      revealed: false,
+      history,
+      tally: nextTally,
+    });
+    setInput("");
+  }
+
+  const bestOf: number = s.bestOf ?? 10;
+  const round = (s.count ?? 0) + 1;
+  const matchDone = bestOf > 0 && (s.count ?? 0) >= bestOf;
+  const tally = s.tally ?? { right: 0, close: 0, wrong: 0 };
+  function rematch() {
+    patch({
+      ...s,
+      count: 0,
+      card: null,
+      answer: null,
+      answeredBy: null,
+      guess: null,
+      revealed: false,
+      history: [],
+      tally: { right: 0, close: 0, wrong: 0 },
+    });
     setInput("");
   }
 
   return (
     <div>
+      <MatchControls
+        round={round}
+        bestOf={bestOf}
+        onBestOf={(n) => patch({ ...s, bestOf: n })}
+        onRematch={rematch}
+        disabled={loading}
+      />
       <IntensityBar value={s.intensity ?? "playful"} onChange={(v) => patch({ ...s, intensity: v })} disabled={loading} />
-      <div className="p-6 rounded-3xl border border-border bg-surface mb-5">
-        <p className="text-[10px] uppercase tracking-widest text-petal mb-2">Prompt</p>
-        <p className="font-serif text-xl italic">{prompt}</p>
-      </div>
+      <p className="text-[10px] uppercase tracking-widest text-petal mb-2 text-center">
+        ✨ Right {tally.right} · 🌸 Close {tally.close} · 🫧 Off {tally.wrong}
+      </p>
 
-      {!s.answer ? (
-        iAnswered ? (
-          <p className="text-sm text-candle-muted text-center">Waiting on your panda…</p>
-        ) : (
-          <>
-            <p className="text-xs text-candle-muted mb-2">Write your real answer — they'll try to guess.</p>
-            <Composer value={input} onChange={setInput} onSubmit={submitAnswer} placeholder="My answer…" />
-          </>
-        )
-      ) : myTurnToGuess ? (
-        <>
-          <p className="text-xs text-candle-muted mb-2">Guess what they wrote.</p>
-          <Composer value={input} onChange={setInput} onSubmit={submitGuess} placeholder="My guess…" />
-        </>
-      ) : s.revealed ? (
-        <div className="space-y-3">
-          <Bubble label="Their answer" text={s.answer} />
-          <Bubble label="Your guess" text={s.guess ?? "—"} />
-          <button
-            onClick={next}
-            disabled={loading}
-            className="w-full py-3.5 bg-petal text-velvet rounded-2xl font-semibold flex items-center justify-center gap-2 disabled:opacity-60"
-          >
-            {loading ? <Sparkles className="size-4 animate-pulse" /> : <RefreshCw className="size-4" />}
-            {loading ? "Crafting…" : "Next prompt"}
-          </button>
-        </div>
+      {matchDone ? (
+        <MatchComplete
+          title={`${tally.right} spot-on · ${tally.close} close`}
+          subtitle={
+            tally.right >= tally.wrong ? "You know each other well 💞" : "So much still to learn about each other 🌙"
+          }
+          onRematch={rematch}
+        />
       ) : (
-        <p className="text-sm text-candle-muted text-center">Waiting on your panda's guess…</p>
+        <>
+          <div className="p-6 rounded-3xl border border-border bg-surface mb-5">
+            <p className="text-[10px] uppercase tracking-widest text-petal mb-2">Prompt</p>
+            <p className="font-serif text-xl italic">{prompt}</p>
+          </div>
+
+          {!s.answer ? (
+            iAnswered ? (
+              <p className="text-sm text-candle-muted text-center">Waiting on your panda…</p>
+            ) : (
+              <>
+                <p className="text-xs text-candle-muted mb-2">Write your real answer — they'll try to guess.</p>
+                <Composer value={input} onChange={setInput} onSubmit={submitAnswer} placeholder="My answer…" />
+              </>
+            )
+          ) : myTurnToGuess ? (
+            <>
+              <p className="text-xs text-candle-muted mb-2">Guess what they wrote.</p>
+              <Composer value={input} onChange={setInput} onSubmit={submitGuess} placeholder="My guess…" />
+            </>
+          ) : s.revealed ? (
+            <div className="space-y-3">
+              <Bubble label={iAnswered ? "Your answer" : "Their answer"} text={s.answer} />
+              <Bubble label={iAnswered ? "Their guess" : "Your guess"} text={s.guess ?? "—"} />
+              {iAnswered ? (
+                <>
+                  <p className="text-xs text-candle-muted text-center">How close was their guess?</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    <button
+                      onClick={() => next("right")}
+                      disabled={loading}
+                      className="py-3 rounded-2xl bg-petal text-velvet font-semibold text-sm disabled:opacity-60"
+                    >
+                      ✨ Spot on
+                    </button>
+                    <button
+                      onClick={() => next("close")}
+                      disabled={loading}
+                      className="py-3 rounded-2xl bg-petal-soft border border-petal text-candle font-semibold text-sm disabled:opacity-60"
+                    >
+                      🌸 Close
+                    </button>
+                    <button
+                      onClick={() => next("wrong")}
+                      disabled={loading}
+                      className="py-3 rounded-2xl bg-surface border border-border text-candle text-sm disabled:opacity-60"
+                    >
+                      🫧 Off
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <p className="text-sm text-candle-muted text-center">Waiting for them to score your guess…</p>
+              )}
+            </div>
+          ) : (
+            <p className="text-sm text-candle-muted text-center">Waiting on your panda's guess…</p>
+          )}
+        </>
       )}
+      <HistoryStrip
+        items={(s.history ?? []).map(
+          (h: any) => `${h.verdict === "right" ? "✨" : h.verdict === "close" ? "🌸" : h.verdict === "wrong" ? "🫧" : "·"} ${h.prompt} → ${h.answer}`
+        )}
+      />
     </div>
   );
 }
