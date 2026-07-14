@@ -375,15 +375,13 @@ function Scribble() {
 
   const hintDisplay = useMemo(() => {
     if (!wordLen) return "";
-    // Guesser view: word with revealed letters filled from actual word (received via wordLen only)
-    // We only know length + revealed indices; use the actual word if drawer, else masked pattern
-    if (iAmDrawer && word) return maskWord(word, new Set(Array.from({ length: word.length }, (_, i) => i)));
-    // For guesser we don't know letters — just show length with any revealed letters (drawer sends indices, not letters).
-    // To reveal actual letters we'd need to send letters; keep it simple: reveal count only.
-    const total = wordLen;
-    const shown = revealed.size;
-    return `${"•".repeat(total)}  (${shown}/${total} letters hinted)`;
-  }, [iAmDrawer, word, wordLen, revealed]);
+    // Drawer sees the full word; guesser sees the shared mask (letters revealed as the drawer ticks).
+    const source = iAmDrawer && word ? word : hintMask;
+    return source
+      .split("")
+      .map((ch) => (ch === " " ? "  " : ch))
+      .join(" ");
+  }, [iAmDrawer, word, wordLen, hintMask]);
 
   // My turn to start (swap roles): if there is a lastDrawer and it's me, wait for partner.
   const myTurnToStart = !partner || lastDrawerId !== me?.id;
