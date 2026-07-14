@@ -303,6 +303,18 @@ function Scribble() {
       setRevealed(new Set(p.indices));
       if (p.mask) setHintMask(p.mask);
     });
+    ch.on("broadcast", { event: "timeout" }, ({ payload }) => {
+      const p = payload as { word: string };
+      setWord(p.word);
+      setHintMask(p.word);
+      setPhase("over");
+      setEndsAt(null);
+      setMessages((m) => [
+        ...m,
+        { id: crypto.randomUUID(), by: "sys", name: "System", text: `Time! The word was “${p.word}”` },
+      ]);
+    });
+
     ch.subscribe();
     chRef.current = ch;
     return () => {
@@ -317,12 +329,21 @@ function Scribble() {
     if (now >= endsAt) {
       setPhase("over");
       setLastDrawerId(drawerId);
+      // Only the drawer knows the word — broadcast it so the guesser also sees it.
+      if (iAmDrawer && word) {
+        chRef.current?.send({
+          type: "broadcast",
+          event: "timeout",
+          payload: { word },
+        });
+      }
       setMessages((m) => [
         ...m,
-        { id: crypto.randomUUID(), by: "sys", name: "System", text: `Time! The word was “${word ?? "?"}”` },
+        { id: crypto.randomUUID(), by: "sys", name: "System", text: `Time! The word was “${word ?? "…"}”` },
       ]);
     }
-  }, [now, endsAt, phase, word, drawerId]);
+  }, [now, endsAt, phase, word, drawerId, iAmDrawer]);
+
 
   // Auto letter reveals — drawer broadcasts every ~ (roundSeconds/4) seconds
   useEffect(() => {
@@ -410,35 +431,18 @@ function Scribble() {
     if (!me || !guess.trim() || phase !== "playing" || iAmDrawer) return;
     const text = guess.trim();
     setGuess("");
-    const isCorrect = word && text.toLowerCase() === word.toLowerCase();
     const msg: Msg = { id: crypto.randomUUID(), by: me.id, name: me.display_name ?? "You", text };
     setMessages((m) => [...m, msg]);
     chRef.current?.send({ type: "broadcast", event: "guess", payload: msg });
-    if (isCorrect) {
-      const myNewScore = (scores[me.id] ?? 0) + 1;
-      setScores((s) => ({ ...s, [me.id]: (s[me.id] ?? 0) + 1 }));
-      setPhase("over");
-      setLastDrawerId(drawerId);
-      setEndsAt(null);
-      chRef.current?.send({
-        type: "broadcast",
-        event: "correct",
-        payload: { by: me.id, word, name: me.display_name ?? "Partner" },
-      });
-      toast.success(`Correct! The word was “${word}” — your turn to draw!`);
-      if (myNewScore >= targetScore) {
-        setWinnerId(me.id);
-        return;
-      }
-      // Auto-start next round for the new drawer (me, the correct guesser)
-      setTimeout(() => {
-        const [next] = pick4(new Set(word ? [word] : []));
-        if (next) confirmWord(next);
-      }, 1400);
-    } else {
-      toast.error("Not quite — keep guessing!");
-    }
+    // Force an un-throttled guess-live so the drawer can validate this exact submission.
+    chRef.current?.send({
+      type: "broadcast",
+      event: "guess-live",
+      payload: { by: me.id, name: me.display_name ?? "Partner", text },
+    });
+    // Drawer will broadcast "correct" back if it matches; nothing else to do locally.
   }
+
 
   const myScore = me ? scores[me.id] ?? 0 : 0;
   const theirScore = partner ? scores[partner.id] ?? 0 : 0;
