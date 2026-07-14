@@ -82,6 +82,40 @@ function Scribble() {
   const iAmDrawer = drawerId === me?.id;
   useEffect(() => { wordRef.current = word; }, [word]);
 
+  const pairKey = me ? (partner ? [me.id, partner.id].sort().join(":") : me.id) : "";
+  const storageKey = pairKey ? `scribble:${pairKey}` : "";
+
+  // Persist round state + strokes so a refresh doesn't wipe an in-progress game.
+  function persist() {
+    if (!storageKey || typeof window === "undefined") return;
+    try {
+      localStorage.setItem(
+        storageKey,
+        JSON.stringify({
+          strokes: strokes.current,
+          drawerId,
+          lastDrawerId,
+          word,
+          wordLen,
+          phase,
+          roundSeconds,
+          endsAt,
+          hintMask,
+          messages,
+          scores,
+          targetScore,
+          winnerId,
+          savedAt: Date.now(),
+        }),
+      );
+    } catch { /* ignore quota */ }
+  }
+  // Save whenever meaningful state changes.
+  useEffect(() => {
+    persist();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [drawerId, lastDrawerId, word, wordLen, phase, roundSeconds, endsAt, hintMask, messages, scores, targetScore, winnerId, storageKey]);
+
   function onGuessChange(next: string) {
     setGuess(next);
     if (!me || iAmDrawer || phase !== "playing") return;
