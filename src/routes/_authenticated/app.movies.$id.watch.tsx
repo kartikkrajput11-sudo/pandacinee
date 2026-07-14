@@ -242,11 +242,36 @@ function WatchMovie() {
 
   const [pausedByHost, setPausedByHost] = useState(false);
 
+  // Merge Pandacine (self-hosted) as an extra source in front of the VidKing sources.
+  const allSources = useMemo(() => {
+    const list: { id: string; label: string; hint: string; kind: "pandacine" | "vidking"; buildUrl?: (id: number, t?: number) => string }[] = [];
+    if (pandacine) {
+      list.push({
+        id: "pandacine",
+        label: "Pandacine",
+        hint: "Our own server — sync-ready",
+        kind: "pandacine",
+      });
+    }
+    for (const s of SOURCES) list.push({ id: s.id, label: s.label, hint: s.hint, kind: "vidking", buildUrl: s.url });
+    return list;
+  }, [pandacine]);
+
+  // Clamp sourceIdx when the list changes.
+  useEffect(() => {
+    if (sourceIdx >= allSources.length) setSourceIdx(0);
+  }, [allSources.length, sourceIdx]);
+
+  const currentSource = allSources[sourceIdx] ?? allSources[0];
+  const isPandacine = currentSource?.kind === "pandacine";
+
   const src = useMemo(() => {
+    if (!currentSource || currentSource.kind === "pandacine") return "";
     // When host paused, force a manual (no-autoplay) URL so playback stops at that time.
     if (pausedByHost) return SOURCES[1].url(tmdbId, startAt);
-    return SOURCES[sourceIdx].url(tmdbId, startAt);
-  }, [sourceIdx, tmdbId, startAt, pausedByHost]);
+    return currentSource.buildUrl!(tmdbId, startAt);
+  }, [currentSource, tmdbId, startAt, pausedByHost]);
+
 
   const applySeek = useCallback((time: number, opts?: { pause?: boolean }) => {
     setStartAt(time);
