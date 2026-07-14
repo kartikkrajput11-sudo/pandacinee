@@ -249,8 +249,12 @@ function Scribble() {
     setWord(matchedWord);
     setHintMask(matchedWord);
     setGuess("");
-    if (by === me?.id) toast.success(`Correct! The word was “${matchedWord}” — your turn to draw!`);
-    else toast.success(`${name} guessed “${matchedWord}”! Their turn to draw.`);
+    if (by === me?.id) {
+      toast.success(`Correct! The word was “${matchedWord}” — your turn to draw!`);
+      autoStartMyDrawTurn(matchedWord);
+    } else {
+      toast.success(`${name} guessed “${matchedWord}”! Their turn to draw.`);
+    }
     return true;
   }
 
@@ -259,6 +263,16 @@ function Scribble() {
     if (!w || roundResolvedRef.current) return false;
     if (normalizeGuessText(text) !== normalizeGuessText(w)) return false;
     return markCorrect(by, name, w, broadcast);
+  }
+
+  function autoStartMyDrawTurn(previousWord: string) {
+    if (!me) return;
+    const targetNow = (scoresRef.current[me.id] ?? 0) + 1;
+    if (targetNow >= targetScoreRef.current) return;
+    window.setTimeout(() => {
+      const [next] = pick4(new Set([previousWord]));
+      if (next) confirmWord(next);
+    }, 400);
   }
 
   // Realtime channel
@@ -305,16 +319,7 @@ function Scribble() {
 
     ch.on("broadcast", { event: "correct" }, ({ payload }) => {
       const p = payload as { by: string; word: string; name: string };
-      const accepted = markCorrect(p.by, p.name, p.word, false);
-      if (accepted && p.by === me.id) {
-        // I'm the winner (auto-detected by drawer) — auto-start next round.
-        const targetNow = (scoresRef.current[me.id] ?? 0) + 1;
-        if (targetNow >= targetScoreRef.current) return; // winner overlay handles it
-        setTimeout(() => {
-          const [next] = pick4(new Set([p.word]));
-          if (next) confirmWord(next);
-        }, 400);
-      }
+      markCorrect(p.by, p.name, p.word, false);
     });
     ch.on("broadcast", { event: "reveal" }, ({ payload }) => {
       const p = payload as { indices: number[]; mask: string };
