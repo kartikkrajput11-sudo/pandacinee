@@ -695,6 +695,9 @@ function MovieModal({ initial, onClose }: { initial?: CustomMovie | null; onClos
     setYear(m.release_date ? m.release_date.slice(0, 4) : "");
     if (m.poster_path) setPoster(`https://image.tmdb.org/t/p/w500${m.poster_path}`);
     if (m.backdrop_path) setBackdrop(`https://image.tmdb.org/t/p/w1280${m.backdrop_path}`);
+    setTmdbId(m.id);
+    setMediaType("movie");
+    setUseVidking(true); // default: play via VidKing when linked to TMDB
     setTmdbResults([]);
     setTmdbQ("");
     try {
@@ -704,12 +707,12 @@ function MovieModal({ initial, onClose }: { initial?: CustomMovie | null; onClos
         setGenres(detail.genres.map((g: any) => g.name).filter(Boolean).join(", "));
       }
     } catch { /* ignore */ }
-    toast.success(`Autofilled from TMDB · ${m.title}`);
+    toast.success(`Linked to TMDB · ${m.title} · VidKing ready`);
   }
 
   const canSave = useMemo(
-    () => title.trim().length > 0 && (isEdit || videoUrl.trim() || videoPath) && !uploading,
-    [title, videoUrl, videoPath, uploading, isEdit],
+    () => title.trim().length > 0 && (isEdit || videoUrl.trim() || videoPath || (useVidking && tmdbId)) && !uploading,
+    [title, videoUrl, videoPath, uploading, isEdit, useVidking, tmdbId],
   );
 
   async function uploadFile(file: File) {
