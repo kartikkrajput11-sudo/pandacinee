@@ -946,7 +946,7 @@ function WatchMovie() {
         )}
 
         {/* Refined controls row */}
-        <div className={`mt-4 grid gap-3 ${cinemaMode ? "opacity-40 hover:opacity-100 transition" : ""}`}>
+        <div className="mt-4 grid gap-3">
           {/* Together tools */}
           {partner && (
             <div className="rounded-2xl border border-border bg-surface/40 backdrop-blur px-3 py-3">
