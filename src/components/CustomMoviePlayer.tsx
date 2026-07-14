@@ -60,6 +60,33 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady }: Pr
   const [showControls, setShowControls] = useState(true);
   const hideTimer = useRef<number | null>(null);
   const scrubbing = useRef(false);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const gainNodeRef = useRef<GainNode | null>(null);
+  const sourceNodeRef = useRef<MediaElementAudioSourceNode | null>(null);
+
+  // Set up Web Audio gain node for volume boost (up to 300%)
+  const setupGain = useCallback(() => {
+    const v = videoRef.current;
+    if (!v || sourceNodeRef.current) return;
+    try {
+      const Ctx = (window.AudioContext || (window as any).webkitAudioContext);
+      if (!Ctx) return;
+      const ctx = new Ctx();
+      const src = ctx.createMediaElementSource(v);
+      const gain = ctx.createGain();
+      gain.gain.value = 1;
+      src.connect(gain).connect(ctx.destination);
+      audioCtxRef.current = ctx;
+      gainNodeRef.current = gain;
+      sourceNodeRef.current = src;
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      try { audioCtxRef.current?.close(); } catch {}
+    };
+  }, []);
 
   // Attach handle for parent sync control
   useEffect(() => {
