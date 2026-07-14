@@ -108,6 +108,25 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
     }
   }
 
+  async function sendMovieWheel(entries: WheelEntry[]) {
+    setWheelOpen(false);
+    setMenuOpen(false);
+    const winner_index = Math.floor(Math.random() * entries.length);
+    const winner = entries[winner_index];
+    try {
+      await onSend({
+        type: "movie_wheel",
+        content: `🎡 Movie wheel · ${entries.length} picks`,
+        media_meta: { entries, winner_index, winner_title: winner?.title },
+        reply_to_id: replyTo?.id ?? null,
+        disappear_seconds: disappearSecs,
+      });
+      onClearReply();
+    } catch (err: any) {
+      toast.error(err?.message ?? "Failed to send wheel");
+    }
+  }
+
   useEffect(() => {
     if (replyTo) onTyping(false);
   }, [replyTo, onTyping]);
