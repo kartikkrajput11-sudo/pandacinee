@@ -22,7 +22,13 @@ const TYPE_LABEL: Record<string, string> = {
 
 function MovieDetail() {
   const { id } = Route.useParams();
+  const isCustom = id.startsWith("custom:");
   const location = useLocation();
+  const isWatchRoute = location.pathname.endsWith("/watch");
+
+  if (isWatchRoute) return <Outlet />;
+  if (isCustom) return <CustomMovieDetail customId={id.slice("custom:".length)} />;
+
   const fetchMovie = useServerFn(tmdbMovie);
   const fetchSources = useServerFn(watchmodeSources);
   const { data: prof } = useProfile();
@@ -32,10 +38,8 @@ function MovieDetail() {
   const [sources, setSources] = useState<WatchSource[]>([]);
   const [region, setRegion] = useState<string>("US");
   const navigate = useNavigate();
-  const isWatchRoute = location.pathname.endsWith("/watch");
 
   useEffect(() => {
-    if (isWatchRoute) return;
     fetchMovie({ data: { id: Number(id) } })
       .then((m) => {
         setMovie(m);
@@ -45,7 +49,7 @@ function MovieDetail() {
     fetchSources({ data: { tmdbId: Number(id) } })
       .then((r) => setSources(r.sources))
       .catch(() => setSources([]));
-  }, [id, isWatchRoute]);
+  }, [id]);
 
 
   const regions = useMemo(() => Array.from(new Set(sources.map((s) => s.region))).sort(), [sources]);
