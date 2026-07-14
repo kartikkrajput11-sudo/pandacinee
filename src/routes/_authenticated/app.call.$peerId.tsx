@@ -12,6 +12,7 @@ import {
   Volume2,
   VolumeX,
   Signal,
+  SwitchCamera,
 } from "lucide-react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
