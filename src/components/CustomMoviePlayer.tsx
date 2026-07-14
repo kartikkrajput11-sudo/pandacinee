@@ -253,8 +253,8 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
         </div>
       )}
 
-      {/* Center play button when paused */}
-      {!playing && !buffering && (
+      {/* Center play button when paused (hidden for followers — host controls playback) */}
+      {!playing && !buffering && !locked && (
         <button
           onClick={togglePlay}
           aria-label="Play"
@@ -264,6 +264,15 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
             <Play className="size-7 md:size-9 fill-velvet ml-1" />
           </span>
         </button>
+      )}
+
+      {/* Follower lock hint when paused */}
+      {locked && !playing && !buffering && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/40 pointer-events-none">
+          <div className="px-4 py-2 rounded-full bg-black/60 border border-white/10 text-white/90 text-xs tracking-wide">
+            Host controls playback
+          </div>
+        </div>
       )}
 
       {/* Controls */}
