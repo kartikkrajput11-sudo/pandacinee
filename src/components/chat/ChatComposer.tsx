@@ -24,6 +24,8 @@ type Props = {
   onClearReply: () => void;
   onTyping: (v: boolean) => void;
   locked?: { reason: string } | null;
+  lockedHint?: string | null;
+
   onSend: (input: {
     content?: string;
     type?: "text" | "voice" | "image" | "video" | "file" | "sticker" | "watch_invite" | "game_invite" | "kiss" | "nudge" | "whisper" | "movie_wheel";
