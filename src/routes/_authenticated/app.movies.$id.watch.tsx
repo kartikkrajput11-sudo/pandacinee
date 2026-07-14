@@ -874,19 +874,54 @@ function WatchMovie() {
         })()}
 
 
-        {/* Floating reaction bar */}
-        <div className="mt-3 flex items-center justify-center gap-1.5">
-          {REACTIONS.map((emoji) => (
-            <button
-              key={emoji}
-              onClick={() => fireReaction(emoji)}
-              className="size-10 rounded-full bg-surface/70 backdrop-blur border border-border hover:border-petal/60 hover:bg-petal/10 flex items-center justify-center text-xl transition active:scale-90"
-              aria-label={`React ${emoji}`}
-            >
-              {emoji}
-            </button>
-          ))}
-        </div>
+        {/* Up Next — premium next-episode card for series */}
+        {isTv && nextEp && (
+          <button
+            onClick={() => setEpisode(nextEp.episode_number)}
+            className="mt-3 w-full group relative overflow-hidden rounded-2xl border border-petal/30 bg-gradient-to-br from-velvet via-surface/80 to-velvet text-left flex items-stretch shadow-[0_20px_60px_-30px_rgba(238,130,175,0.6)] hover:border-petal/70 transition"
+          >
+            <div className="relative w-32 sm:w-44 aspect-video shrink-0 overflow-hidden">
+              {nextEp.still_path ? (
+                <img
+                  src={`https://image.tmdb.org/t/p/w500${nextEp.still_path}`}
+                  alt={nextEp.name}
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  loading="lazy"
+                />
+              ) : (
+                <div className="w-full h-full bg-surface flex items-center justify-center text-candle-muted">
+                  <Tv className="size-6 opacity-40" />
+                </div>
+              )}
+              <div className="absolute inset-0 bg-gradient-to-r from-velvet/80 via-velvet/20 to-transparent" />
+              <div className="absolute top-1.5 left-1.5 h-5 px-1.5 rounded-md bg-velvet/85 text-petal text-[10px] font-semibold flex items-center">
+                S{season}·E{nextEp.episode_number}
+              </div>
+            </div>
+            <div className="flex-1 min-w-0 p-3 sm:p-4 flex flex-col justify-center">
+              <p className="text-[10px] uppercase tracking-[0.3em] text-petal flex items-center gap-1.5">
+                <Play className="size-3 fill-petal" /> Up next
+              </p>
+              <h4 className="mt-1 text-sm sm:text-base font-serif italic text-candle truncate">
+                {nextEp.name || `Episode ${nextEp.episode_number}`}
+              </h4>
+              {nextEp.overview && (
+                <p className="mt-0.5 text-[11px] text-candle-muted line-clamp-2">{nextEp.overview}</p>
+              )}
+              <div className="mt-1.5 flex items-center gap-3 text-[10px] text-candle-muted">
+                {nextEp.runtime ? (
+                  <span className="inline-flex items-center gap-0.5"><Clock className="size-3" />{nextEp.runtime}m</span>
+                ) : null}
+                {nextEp.air_date ? (
+                  <span className="inline-flex items-center gap-0.5"><CalendarDays className="size-3" />{nextEp.air_date}</span>
+                ) : null}
+              </div>
+            </div>
+            <div className="hidden sm:flex items-center pr-4 text-petal">
+              <ChevronRight className="size-6" />
+            </div>
+          </button>
+        )}
 
         {/* Incoming seek request */}
         {incomingSeek && !autoFollow && (
