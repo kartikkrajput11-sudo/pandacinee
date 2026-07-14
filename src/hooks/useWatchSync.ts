@@ -28,7 +28,9 @@ export type PeerState = {
 export type SyncCommand =
   | { kind: "seekTo"; time: number; from: string }
   | { kind: "countdown"; startAt: number; from: string; time?: number }
-  | { kind: "requestSync"; from: string };
+  | { kind: "requestSync"; from: string }
+  | { kind: "claimHost"; from: string }
+  | { kind: "releaseHost"; from: string };
 
 export function useWatchSync(
   meId: string | null,
