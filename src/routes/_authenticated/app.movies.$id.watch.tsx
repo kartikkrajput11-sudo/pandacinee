@@ -365,7 +365,9 @@ function WatchMovie() {
   const driftAbs = drift != null ? Math.abs(drift) : null;
   const inSync = driftAbs != null && driftAbs < 3;
   const partnerFirst = partner?.display_name.split(" ")[0] ?? "them";
-  const backdropUrl = movie?.backdrop_path ? `https://image.tmdb.org/t/p/w1280${movie.backdrop_path}` : null;
+  const backdropUrl = movie?.backdrop_path
+    ? (/^https?:\/\//i.test(movie.backdrop_path) ? movie.backdrop_path : `https://image.tmdb.org/t/p/w1280${movie.backdrop_path}`)
+    : null;
 
   return (
     <div className={`relative min-h-screen pt-6 pb-24 transition-colors duration-500 ${cinemaMode ? "bg-black" : ""}`}>
