@@ -432,28 +432,59 @@ function useCardFetcher(kind: "truth-or-dare" | "would-you-rather" | "this-or-th
 }
 
 function TruthOrDare({ me, session, patch }: { me: string; session: Session; patch: (s: any) => void }) {
-  const s = session.state ?? { count: 0, card: null, intensity: "playful" };
+  const s = session.state ?? { count: 0, card: null, intensity: "playful", history: [], tally: { truth: 0, dare: 0, skipped: 0 }, bestOf: 10 };
   const { loading, fetchCard } = useCardFetcher("truth-or-dare");
   const card = s.card as null | { type: "truth" | "dare"; text: string };
+  const tally = s.tally ?? { truth: 0, dare: 0, skipped: 0 };
+  const round = (s.count ?? 0) + 1;
+  const bestOf: number = s.bestOf ?? 10;
+  const matchDone = bestOf > 0 && (s.count ?? 0) >= bestOf;
 
   async function pick(type: "truth" | "dare") {
+    if (matchDone) return;
     const c = await fetchCard(s.intensity ?? "playful", type);
     const fallback = TRUTH_OR_DARE.find((x) => x.type === type) ?? TRUTH_OR_DARE[0];
     const chosen = c && c.type === type ? c : { type, text: c?.text ?? fallback.text };
-    const history = card ? [...(s.history ?? []), card].slice(-20) : (s.history ?? []);
-    patch({ ...s, count: (s.count ?? 0) + 1, card: chosen, history });
+    patch({ ...s, card: chosen });
   }
 
-  function reset() {
-    const history = card ? [...(s.history ?? []), card].slice(-20) : (s.history ?? []);
-    patch({ ...s, card: null, history });
+  function completeCard() {
+    if (!card) return;
+    const history = [...(s.history ?? []), card].slice(-30);
+    const nextTally = { ...tally, [card.type]: (tally[card.type] ?? 0) + 1 };
+    patch({ ...s, count: (s.count ?? 0) + 1, card: null, history, tally: nextTally });
+  }
+  function skipCard() {
+    if (!card) return;
+    const history = [...(s.history ?? []), card].slice(-30);
+    const nextTally = { ...tally, skipped: (tally.skipped ?? 0) + 1 };
+    patch({ ...s, count: (s.count ?? 0) + 1, card: null, history, tally: nextTally });
+  }
+  function rematch() {
+    patch({ ...s, count: 0, card: null, history: [], tally: { truth: 0, dare: 0, skipped: 0 } });
   }
 
   return (
     <div>
+      <MatchControls
+        round={round}
+        bestOf={bestOf}
+        onBestOf={(n) => patch({ ...s, bestOf: n })}
+        onRematch={rematch}
+        disabled={loading}
+      />
       <IntensityBar value={s.intensity ?? "playful"} onChange={(v) => patch({ ...s, intensity: v })} disabled={loading} />
+      <p className="text-[10px] uppercase tracking-widest text-petal mb-2 text-center">
+        🎯 Truth {tally.truth} · 🔥 Dare {tally.dare} · ⏭ Skipped {tally.skipped ?? 0}
+      </p>
 
-      {!card ? (
+      {matchDone ? (
+        <MatchComplete
+          title={`${tally.truth + tally.dare} cards completed`}
+          subtitle={`${tally.truth} truths · ${tally.dare} dares · ${tally.skipped ?? 0} skipped`}
+          onRematch={rematch}
+        />
+      ) : !card ? (
         <div className="p-6 rounded-3xl border border-border bg-surface mb-5 min-h-[200px] flex flex-col items-center justify-center gap-4">
           <p className="font-serif text-2xl italic text-candle text-center">Truth or Dare?</p>
           <p className="text-xs text-candle-muted text-center">Pick to reveal your card · {s.intensity ?? "playful"} mode</p>
@@ -481,23 +512,23 @@ function TruthOrDare({ me, session, patch }: { me: string; session: Session; pat
               {card.type === "truth" ? "🎯 Truth" : "🔥 Dare"} · {s.intensity ?? "playful"}
             </p>
             <p className="font-serif text-2xl italic leading-snug text-candle">{card.text}</p>
-            <p className="text-[10px] text-candle-muted">Card {s.count ?? 1}</p>
+            <p className="text-[10px] text-candle-muted">Card {round}{bestOf > 0 ? ` / ${bestOf}` : ""}</p>
           </div>
           <div className="flex gap-2">
             <button
-              onClick={() => pick(card.type)}
+              onClick={skipCard}
               disabled={loading}
               className="rounded-2xl bg-surface border border-border px-4 py-3.5 text-sm text-candle flex items-center gap-2 disabled:opacity-60"
             >
               <SkipForward className="size-4" /> Skip
             </button>
             <button
-              onClick={reset}
+              onClick={completeCard}
               disabled={loading}
               className="flex-1 py-3.5 bg-petal text-velvet rounded-2xl font-semibold flex items-center justify-center gap-2 disabled:opacity-60"
             >
-              {loading ? <Sparkles className="size-4 animate-pulse" /> : <RefreshCw className="size-4" />}
-              {loading ? "Crafting…" : "Truth or Dare?"}
+              {loading ? <Sparkles className="size-4 animate-pulse" /> : "✓"}
+              Done — next card
             </button>
           </div>
         </>
