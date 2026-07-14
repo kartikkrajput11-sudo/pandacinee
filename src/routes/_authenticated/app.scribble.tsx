@@ -48,7 +48,30 @@ function maskWord(word: string, revealed: Set<number>) {
 }
 
 function normalizeGuessText(text: string) {
-  return text.trim().toLowerCase().replace(/\s+/g, " ");
+  return text
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s]/gu, "") // strip punctuation
+    .trim()
+    .replace(/\s+/g, " ");
+}
+
+// Case-insensitive, punctuation-insensitive, allow common singular/plural swap.
+function guessesMatch(guess: string, secret: string) {
+  const g = normalizeGuessText(guess);
+  const s = normalizeGuessText(secret);
+  if (!g || !s) return false;
+  if (g === s) return true;
+  // singular/plural: apple <-> apples, berry <-> berries
+  const variants = (w: string) => {
+    const out = new Set<string>([w]);
+    if (w.endsWith("s")) out.add(w.slice(0, -1));
+    else out.add(w + "s");
+    if (w.endsWith("ies")) out.add(w.slice(0, -3) + "y");
+    if (w.endsWith("y")) out.add(w.slice(0, -1) + "ies");
+    if (w.endsWith("es")) out.add(w.slice(0, -2));
+    return out;
+  };
+  return variants(g).has(s) || variants(s).has(g);
 }
 
 function Scribble() {
