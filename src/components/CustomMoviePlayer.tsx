@@ -184,7 +184,8 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady }: Pr
         poster={poster ?? undefined}
         className="absolute inset-0 w-full h-full object-contain bg-black"
         playsInline
-        preload="metadata"
+        preload="auto"
+        crossOrigin="anonymous"
         onLoadedMetadata={(e) => setDuration(e.currentTarget.duration || 0)}
         onTimeUpdate={(e) => {
           if (scrubbing.current) return;
