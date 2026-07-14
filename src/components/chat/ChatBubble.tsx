@@ -3,6 +3,7 @@ import { Heart, Pin, Trash2, Reply, Check, CheckCheck, Download } from "lucide-r
 import { signMedia, type MessageRow } from "@/lib/chat";
 import { VoicePlayer } from "./VoicePlayer";
 import { SignedImage } from "./SignedImage";
+import { SignedVideo } from "./SignedVideo";
 import { WatchInviteCard } from "./WatchInviteCard";
 
 
