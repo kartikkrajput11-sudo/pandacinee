@@ -641,7 +641,8 @@ function Skeleton() {
 }
 
 function MovieModal({ initial, onClose }: { initial?: CustomMovie | null; onClose: () => void }) {
-  const isEdit = !!initial;
+  const [existingId, setExistingId] = useState<string | null>(initial?.id ?? null);
+  const isEdit = !!existingId;
   const create = useServerFn(createCustomMovie);
   const update = useServerFn(updateCustomMovie);
   const searchTmdb = useServerFn(tmdbSearch);
@@ -690,6 +691,38 @@ function MovieModal({ initial, onClose }: { initial?: CustomMovie | null; onClos
   }
 
   async function pickTmdb(m: TmdbMovie) {
+    setTmdbResults([]);
+    setTmdbQ("");
+
+    // If a library row already exists for this TMDB id, switch into edit mode
+    // and hydrate from that row rather than creating a duplicate.
+    const { data: existing } = await supabase
+      .from("custom_movies")
+      .select("*")
+      .eq("tmdb_id", m.id)
+      .maybeSingle();
+
+    if (existing) {
+      const row = existing as CustomMovie;
+      setExistingId(row.id);
+      setTitle(row.title);
+      setOverview(row.overview ?? "");
+      setYear(row.year != null ? String(row.year) : "");
+      setRuntime(row.runtime != null ? String(row.runtime) : "");
+      setPoster(row.poster_url ?? "");
+      setBackdrop(row.backdrop_url ?? "");
+      setGenres((row.genres ?? []).join(", "));
+      setVideoUrl(row.video_url ?? "");
+      setVideoPath(row.video_storage_path ?? null);
+      setVideoFileName(row.video_storage_path ?? null);
+      setTmdbId(row.tmdb_id);
+      setMediaType(row.media_type ?? "movie");
+      setUseVidking(row.use_vidking ?? true);
+      toast.success(`Editing existing · ${row.title}`);
+      return;
+    }
+
+    // No existing row → autofill a fresh entry from TMDB
     setTitle(m.title);
     setOverview(m.overview ?? "");
     setYear(m.release_date ? m.release_date.slice(0, 4) : "");
@@ -697,9 +730,7 @@ function MovieModal({ initial, onClose }: { initial?: CustomMovie | null; onClos
     if (m.backdrop_path) setBackdrop(`https://image.tmdb.org/t/p/w1280${m.backdrop_path}`);
     setTmdbId(m.id);
     setMediaType("movie");
-    setUseVidking(true); // default: play via VidKing when linked to TMDB
-    setTmdbResults([]);
-    setTmdbQ("");
+    setUseVidking(true);
     try {
       const detail: any = await getTmdb({ data: { id: m.id } });
       if (detail?.runtime) setRuntime(String(detail.runtime));
@@ -709,6 +740,7 @@ function MovieModal({ initial, onClose }: { initial?: CustomMovie | null; onClos
     } catch { /* ignore */ }
     toast.success(`Linked to TMDB · ${m.title} · VidKing ready`);
   }
+
 
   const canSave = useMemo(
     () => title.trim().length > 0 && (isEdit || videoUrl.trim() || videoPath || (useVidking && tmdbId)) && !uploading,
@@ -826,8 +858,8 @@ function MovieModal({ initial, onClose }: { initial?: CustomMovie | null; onClos
         media_type: mediaType,
         use_vidking: useVidking,
       };
-      if (isEdit && initial) {
-        await update({ data: { id: initial.id, ...payload } });
+      if (isEdit && existingId) {
+        await update({ data: { id: existingId, ...payload } });
         toast.success("Updated");
       } else {
         await create({ data: payload });
