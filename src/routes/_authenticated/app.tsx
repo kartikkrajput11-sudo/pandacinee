@@ -11,10 +11,11 @@ export const Route = createFileRoute("/_authenticated/app")({
 function AppShell() {
   usePresenceHeartbeat();
   const { pathname } = useLocation();
-  // Hide bottom nav on chat conversations and calls (it overlaps the composer / call UI)
+  // Hide bottom nav on chat conversations, calls, and movie pages (nav overlaps composers / cinematic UI)
   const hideNav =
     /^\/app\/chat\/[^/]+/.test(pathname) ||
-    /^\/app\/call\/[^/]+/.test(pathname);
+    /^\/app\/call\/[^/]+/.test(pathname) ||
+    /^\/app\/movies\//.test(pathname);
 
   return (
     <div className={`min-h-screen velvet-bg ${hideNav ? "" : "pb-28"}`}>
