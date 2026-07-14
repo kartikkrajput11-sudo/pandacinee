@@ -33,7 +33,10 @@ function PaintTogether() {
   const strokes = useRef<Stroke[]>([]);
   const undone = useRef<Stroke[]>([]);
   const drawing = useRef<Stroke | null>(null);
+  // In-progress strokes from the partner, keyed by stroke id, rendered live.
+  const liveRemote = useRef<Map<string, Stroke>>(new Map());
   const chRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const liveThrottle = useRef<number>(0);
 
   function redraw() {
     const canvas = canvasRef.current;
@@ -44,6 +47,7 @@ function PaintTogether() {
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
     for (const s of strokes.current) drawStroke(ctx, s);
+    for (const s of liveRemote.current.values()) drawStroke(ctx, s);
     if (drawing.current) drawStroke(ctx, drawing.current);
   }
 
@@ -65,13 +69,30 @@ function PaintTogether() {
     if (!me) return;
     const key = partner ? [me.id, partner.id].sort().join(":") : me.id;
     const ch = supabase.channel(`paint:${key}`, { config: { broadcast: { self: false } } });
+    ch.on("broadcast", { event: "stroke-start" }, ({ payload }) => {
+      const s = payload as Stroke;
+      liveRemote.current.set(s.id, { ...s, pts: [...s.pts] });
+      redraw();
+    });
+    ch.on("broadcast", { event: "stroke-point" }, ({ payload }) => {
+      const p = payload as { id: string; pts: { x: number; y: number }[] };
+      const existing = liveRemote.current.get(p.id);
+      if (existing) {
+        existing.pts.push(...p.pts);
+      }
+      redraw();
+    });
     ch.on("broadcast", { event: "stroke" }, ({ payload }) => {
-      strokes.current.push(payload as Stroke);
+      const s = payload as Stroke;
+      liveRemote.current.delete(s.id);
+      // Avoid duplicates if we already committed via live points
+      if (!strokes.current.some((x) => x.id === s.id)) strokes.current.push(s);
       redraw();
     });
     ch.on("broadcast", { event: "clear" }, () => {
       strokes.current = [];
       undone.current = [];
+      liveRemote.current.clear();
       redraw();
     });
     ch.on("broadcast", { event: "undo" }, ({ payload }) => {
@@ -80,7 +101,17 @@ function PaintTogether() {
       if (idx >= 0) strokes.current.splice(idx, 1);
       redraw();
     });
-    ch.subscribe();
+    // When a peer joins, they announce presence and we resend our committed strokes.
+    ch.on("broadcast", { event: "sync-request" }, () => {
+      for (const s of strokes.current) {
+        if (s.by === me.id) ch.send({ type: "broadcast", event: "stroke", payload: s });
+      }
+    });
+    ch.subscribe((status) => {
+      if (status === "SUBSCRIBED") {
+        ch.send({ type: "broadcast", event: "sync-request", payload: {} });
+      }
+    });
     chRef.current = ch;
     return () => {
       supabase.removeChannel(ch);
@@ -118,7 +149,7 @@ function PaintTogether() {
   function onDown(e: React.PointerEvent) {
     if (!me) return;
     (e.target as Element).setPointerCapture(e.pointerId);
-    drawing.current = {
+    const s: Stroke = {
       id: crypto.randomUUID(),
       by: me.id,
       color,
@@ -126,12 +157,31 @@ function PaintTogether() {
       erase,
       pts: [pt(e)],
     };
+    drawing.current = s;
+    // Announce the new stroke so partner can render it live.
+    chRef.current?.send({
+      type: "broadcast",
+      event: "stroke-start",
+      payload: s,
+    });
+    liveThrottle.current = 0;
     redraw();
   }
   function onMove(e: React.PointerEvent) {
     if (!drawing.current) return;
-    drawing.current.pts.push(pt(e));
+    const p = pt(e);
+    drawing.current.pts.push(p);
     redraw();
+    // Throttle live broadcast to ~30fps, sending only the newest point.
+    const now = performance.now();
+    if (now - liveThrottle.current > 33) {
+      liveThrottle.current = now;
+      chRef.current?.send({
+        type: "broadcast",
+        event: "stroke-point",
+        payload: { id: drawing.current.id, pts: [p] },
+      });
+    }
   }
   function onUp() {
     if (!drawing.current) return;
@@ -139,6 +189,7 @@ function PaintTogether() {
     drawing.current = null;
     strokes.current.push(s);
     undone.current = [];
+    // Send the complete stroke so late/dropped points reconcile on the peer.
     chRef.current?.send({ type: "broadcast", event: "stroke", payload: s });
     redraw();
   }
