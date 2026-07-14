@@ -30,6 +30,9 @@ type CustomMovie = {
   genres: string[];
   video_url: string | null;
   video_storage_path: string | null;
+  tmdb_id: number | null;
+  media_type: "movie" | "tv" | null;
+  use_vidking: boolean | null;
   created_at: string;
 };
 
