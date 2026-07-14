@@ -521,7 +521,6 @@ function Scribble() {
       payload: { by: me.id, name, text },
     });
   }
-  }
 
 
   const myScore = me ? scores[me.id] ?? 0 : 0;
