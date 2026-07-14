@@ -154,7 +154,10 @@ function Movies() {
     navigate({ to: "/app/movies", search: { q: input.trim() } });
   }
 
-  const featured = useMemo(() => trendingList[0], [trendingList]);
+  const featured = useMemo(() => {
+    const m = trendingList[0];
+    return m ? applyOverride(m, overrides.get(m.id)) : undefined;
+  }, [trendingList, overrides]);
 
   // Search results view
   if (q.trim()) {
