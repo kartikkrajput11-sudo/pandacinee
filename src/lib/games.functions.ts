@@ -19,42 +19,55 @@ function stripQuotes(s: string) {
   return s.trim().replace(/^["'`]+|["'`]+$/g, "").trim();
 }
 
-const KIND_PROMPTS: Record<string, KindCfg> = {
+const INTENSITY_GUIDE: Record<Intensity, string> = {
+  sweet:
+    "Sweet tier: tender, wholesome, gentle. Memories, appreciation, cute gestures. Absolutely nothing suggestive.",
+  playful:
+    "Playful tier: light, flirty, silly, giggly. Small dares, fun confessions. Playful teasing only.",
+  spicy:
+    "Spicy tier: bold, flirty, sensual, seductive between committed partners. Kisses, teasing touches, sultry confessions, whispered fantasies, intimate compliments, roleplay ideas. Suggestive is REQUIRED at this tier — sweet or generic questions are wrong. Stay consensual and tasteful; no explicit sexual acts or graphic anatomy.",
+  deep:
+    "Deep tier: vulnerable, emotional, introspective. Fears, dreams, growth, relationship reflection. Serious, not flirty.",
+};
+
+const KIND_PROMPTS: Record<string, KindCfg & { userTyped?: (i: Intensity, seed: number, type: "truth" | "dare") => string }> = {
   "truth-or-dare": {
     system:
-      "You generate romantic couple game cards for a private app used by two partners. Keep it consensual, warm, and specific. Never include anything unsafe, illegal, or explicit sexual content. Always respond with valid JSON only, no prose, no code fences.",
+      "You generate romantic couple game cards for a private app used by two committed partners. Match the requested intensity tier precisely — if 'spicy' is asked, the card MUST feel spicy (flirty, sensual, seductive), not sweet. Keep it consensual and tasteful; never include illegal content, graphic anatomy, or explicit sexual acts. Always respond with valid JSON only, no prose, no code fences.",
     schema: z.object({ type: z.enum(["truth", "dare"]), text: z.string() }),
     user: (i, seed) =>
-      `Return ONLY a JSON object like {"type":"truth"|"dare","text":"..."} for one Truth or Dare card at intensity "${i}". Vary between truth and dare. Under 22 words. No emojis. Seed:${seed}.`,
+      `Return ONLY a JSON object like {"type":"truth"|"dare","text":"..."} for one Truth or Dare card. Intensity: "${i}". ${INTENSITY_GUIDE[i]} Vary between truth and dare. Under 22 words. No emojis. Seed:${seed}.`,
+    userTyped: (i, seed, type) =>
+      `Return ONLY a JSON object like {"type":"${type}","text":"..."} for one ${type === "truth" ? "TRUTH question" : "DARE action"} card. Intensity: "${i}". ${INTENSITY_GUIDE[i]} The "type" field MUST be "${type}". Under 22 words. No emojis. Seed:${seed}.`,
   },
   "would-you-rather": {
     system:
-      "You generate 'Would You Rather' dilemmas for a couple. Balanced, imaginative, fun. Never unsafe or explicit. Always respond with valid JSON only.",
+      "You generate 'Would You Rather' dilemmas for a committed couple. Match the intensity tier precisely — spicy means flirty/sensual dilemmas, not generic ones. Balanced, imaginative, consensual, tasteful. Always respond with valid JSON only.",
     schema: z.object({ a: z.string(), b: z.string() }),
     user: (i, seed) =>
-      `Return ONLY a JSON object like {"a":"...","b":"..."} for one 'Would You Rather' dilemma at intensity "${i}". Two options, roughly equal appeal, each under 12 words. No emojis. No 'Would you rather' prefix. Seed:${seed}.`,
+      `Return ONLY a JSON object like {"a":"...","b":"..."} for one 'Would You Rather' dilemma. Intensity: "${i}". ${INTENSITY_GUIDE[i]} Two options, roughly equal appeal, each under 12 words. No emojis. No 'Would you rather' prefix. Seed:${seed}.`,
   },
   "this-or-that": {
     system:
-      "You generate quick taste comparisons for a couple. Simple, evocative pairs. Always respond with valid JSON only.",
+      "You generate quick taste comparisons for a couple. Match the intensity tier — spicy means sensual/flirty pairs. Always respond with valid JSON only.",
     schema: z.object({ a: z.string(), b: z.string() }),
     user: (i, seed) =>
-      `Return ONLY a JSON object like {"a":"...","b":"..."} for one 'This or That' pair at intensity "${i}". Each option 1-3 words. No emojis. Seed:${seed}.`,
+      `Return ONLY a JSON object like {"a":"...","b":"..."} for one 'This or That' pair. Intensity: "${i}". ${INTENSITY_GUIDE[i]} Each option 1-3 words. No emojis. Seed:${seed}.`,
   },
   "never-have-i-ever": {
     system:
-      "You generate 'Never Have I Ever' statements for a couple. Playful, revealing, safe. Never illegal or explicit. Always respond with valid JSON only.",
+      "You generate 'Never Have I Ever' statements for a committed couple. Match the intensity tier — spicy means flirty/sensual, sweet means wholesome. Consensual and tasteful; never illegal or graphic. Always respond with valid JSON only.",
     schema: z.object({ text: z.string() }),
     user: (i, seed) =>
-      `Return ONLY a JSON object like {"text":"..."} for one 'Never Have I Ever' statement at intensity "${i}". Under 18 words. Do NOT include the 'Never have I ever' prefix — just the action. Seed:${seed}.`,
+      `Return ONLY a JSON object like {"text":"..."} for one 'Never Have I Ever' statement. Intensity: "${i}". ${INTENSITY_GUIDE[i]} Under 18 words. Do NOT include the 'Never have I ever' prefix — just the action. Seed:${seed}.`,
     fallback: (raw) => ({ text: stripQuotes(raw) }),
   },
   "guess-me": {
     system:
-      "You generate 'How well do you know me?' prompts for a couple. Always respond with valid JSON only.",
+      "You generate 'How well do you know me?' prompts for a couple. Match the intensity tier. Always respond with valid JSON only.",
     schema: z.object({ text: z.string() }),
     user: (i, seed) =>
-      `Return ONLY a JSON object like {"text":"..."} for one 'Guess Me' prompt at intensity "${i}". A single question the partner must guess about the other. Under 16 words. Seed:${seed}.`,
+      `Return ONLY a JSON object like {"text":"..."} for one 'Guess Me' prompt. Intensity: "${i}". ${INTENSITY_GUIDE[i]} A single question the partner must guess about the other. Under 16 words. Seed:${seed}.`,
     fallback: (raw) => ({ text: stripQuotes(raw) }),
   },
 };
@@ -93,6 +106,7 @@ export const generateGameCard = createServerFn({ method: "POST" })
           "guess-me",
         ]),
         intensity: z.enum(INTENSITIES).default("playful"),
+        type: z.enum(["truth", "dare"]).optional(),
       })
       .parse(input),
   )
@@ -102,12 +116,16 @@ export const generateGameCard = createServerFn({ method: "POST" })
     const cfg = KIND_PROMPTS[data.kind];
     const gateway = createLovableAiGatewayProvider(key);
     const seed = Math.floor(Math.random() * 1_000_000);
+    const prompt =
+      data.kind === "truth-or-dare" && data.type && cfg.userTyped
+        ? cfg.userTyped(data.intensity, seed, data.type)
+        : cfg.user(data.intensity, seed);
 
     try {
       const { output } = await generateText({
         model: gateway("google/gemini-2.5-flash"),
         system: cfg.system,
-        prompt: cfg.user(data.intensity, seed),
+        prompt,
         output: Output.object({ schema: cfg.schema as z.ZodType<any> }),
       });
       return { card: output, seed };

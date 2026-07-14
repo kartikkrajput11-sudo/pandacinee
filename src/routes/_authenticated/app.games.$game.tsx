@@ -347,10 +347,10 @@ function RockPaperScissors({ me, session, patch }: { me: string; session: Sessio
 
 function useCardFetcher(kind: "truth-or-dare" | "would-you-rather" | "this-or-that" | "never-have-i-ever" | "guess-me") {
   const [loading, setLoading] = useState(false);
-  async function fetchCard(intensity: Intensity): Promise<any | null> {
+  async function fetchCard(intensity: Intensity, type?: "truth" | "dare"): Promise<any | null> {
     setLoading(true);
     try {
-      const res = await generateGameCard({ data: { kind, intensity } });
+      const res = await generateGameCard({ data: { kind, intensity, ...(type ? { type } : {}) } });
       return (res as any).card;
     } catch (err: any) {
       toast.error(err?.message ?? "AI unavailable");
@@ -365,43 +365,74 @@ function useCardFetcher(kind: "truth-or-dare" | "would-you-rather" | "this-or-th
 function TruthOrDare({ me, session, patch }: { me: string; session: Session; patch: (s: any) => void }) {
   const s = session.state ?? { count: 0, card: null, intensity: "playful" };
   const { loading, fetchCard } = useCardFetcher("truth-or-dare");
-  const card = s.card ?? TRUTH_OR_DARE[s.count % TRUTH_OR_DARE.length];
+  const card = s.card as null | { type: "truth" | "dare"; text: string };
 
-  async function next() {
-    const c = await fetchCard(s.intensity ?? "playful");
-    const history = [...(s.history ?? []), card].slice(-20);
-    patch({ ...s, count: (s.count ?? 0) + 1, card: c ?? TRUTH_OR_DARE[(s.count + 1) % TRUTH_OR_DARE.length], history });
+  async function pick(type: "truth" | "dare") {
+    const c = await fetchCard(s.intensity ?? "playful", type);
+    const fallback = TRUTH_OR_DARE.find((x) => x.type === type) ?? TRUTH_OR_DARE[0];
+    const chosen = c && c.type === type ? c : { type, text: c?.text ?? fallback.text };
+    const history = card ? [...(s.history ?? []), card].slice(-20) : (s.history ?? []);
+    patch({ ...s, count: (s.count ?? 0) + 1, card: chosen, history });
   }
-  async function skip() {
-    const c = await fetchCard(s.intensity ?? "playful");
-    patch({ ...s, card: c ?? TRUTH_OR_DARE[(s.count + 1) % TRUTH_OR_DARE.length] });
+
+  function reset() {
+    const history = card ? [...(s.history ?? []), card].slice(-20) : (s.history ?? []);
+    patch({ ...s, card: null, history });
   }
 
   return (
     <div>
       <IntensityBar value={s.intensity ?? "playful"} onChange={(v) => patch({ ...s, intensity: v })} disabled={loading} />
-      <div className="p-6 rounded-3xl border border-border bg-surface mb-5 min-h-[200px] flex flex-col justify-between">
-        <p className="text-[10px] uppercase tracking-widest text-petal">{card.type}</p>
-        <p className="font-serif text-2xl italic leading-snug">{card.text}</p>
-        <p className="text-[10px] text-candle-muted">Card {(s.count ?? 0) + 1}</p>
-      </div>
-      <div className="flex gap-2">
-        <button
-          onClick={skip}
-          disabled={loading}
-          className="rounded-2xl bg-surface border border-border px-4 py-3.5 text-sm text-candle flex items-center gap-2 disabled:opacity-60"
-        >
-          <SkipForward className="size-4" /> Skip
-        </button>
-        <button
-          onClick={next}
-          disabled={loading}
-          className="flex-1 py-3.5 bg-petal text-velvet rounded-2xl font-semibold flex items-center justify-center gap-2 disabled:opacity-60"
-        >
-          {loading ? <Sparkles className="size-4 animate-pulse" /> : <RefreshCw className="size-4" />}
-          {loading ? "Crafting…" : "Next card"}
-        </button>
-      </div>
+
+      {!card ? (
+        <div className="p-6 rounded-3xl border border-border bg-surface mb-5 min-h-[200px] flex flex-col items-center justify-center gap-4">
+          <p className="font-serif text-2xl italic text-candle text-center">Truth or Dare?</p>
+          <p className="text-xs text-candle-muted text-center">Pick to reveal your card · {s.intensity ?? "playful"} mode</p>
+          <div className="flex gap-3 w-full mt-2">
+            <button
+              onClick={() => pick("truth")}
+              disabled={loading}
+              className="flex-1 py-3.5 rounded-2xl bg-petal-soft border border-petal text-candle font-semibold flex items-center justify-center gap-2 disabled:opacity-60"
+            >
+              {loading ? <Sparkles className="size-4 animate-pulse" /> : "🎯"} Truth
+            </button>
+            <button
+              onClick={() => pick("dare")}
+              disabled={loading}
+              className="flex-1 py-3.5 rounded-2xl bg-petal text-velvet font-semibold flex items-center justify-center gap-2 disabled:opacity-60"
+            >
+              {loading ? <Sparkles className="size-4 animate-pulse" /> : "🔥"} Dare
+            </button>
+          </div>
+        </div>
+      ) : (
+        <>
+          <div className="p-6 rounded-3xl border border-petal/40 bg-gradient-to-br from-petal-soft to-transparent mb-5 min-h-[200px] flex flex-col justify-between">
+            <p className="text-[10px] uppercase tracking-widest text-petal">
+              {card.type === "truth" ? "🎯 Truth" : "🔥 Dare"} · {s.intensity ?? "playful"}
+            </p>
+            <p className="font-serif text-2xl italic leading-snug text-candle">{card.text}</p>
+            <p className="text-[10px] text-candle-muted">Card {s.count ?? 1}</p>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => pick(card.type)}
+              disabled={loading}
+              className="rounded-2xl bg-surface border border-border px-4 py-3.5 text-sm text-candle flex items-center gap-2 disabled:opacity-60"
+            >
+              <SkipForward className="size-4" /> Skip
+            </button>
+            <button
+              onClick={reset}
+              disabled={loading}
+              className="flex-1 py-3.5 bg-petal text-velvet rounded-2xl font-semibold flex items-center justify-center gap-2 disabled:opacity-60"
+            >
+              {loading ? <Sparkles className="size-4 animate-pulse" /> : <RefreshCw className="size-4" />}
+              {loading ? "Crafting…" : "Truth or Dare?"}
+            </button>
+          </div>
+        </>
+      )}
       <p className="text-xs text-candle-muted text-center mt-3">Both phones flip together.</p>
       <HistoryStrip items={(s.history ?? []).map((h: any) => `${h.type}: ${h.text}`)} />
     </div>
