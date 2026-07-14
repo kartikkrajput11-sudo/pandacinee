@@ -23,6 +23,7 @@ export type PeerState = {
   duration: number;
   updatedAt: number;
   sourceIdx?: number;
+  from?: string;
 };
 
 export type SyncCommand =
@@ -65,7 +66,13 @@ export function useWatchSync(
     });
 
     ch.on("broadcast", { event: "state" }, ({ payload }) => {
-      setPeer(payload as PeerState);
+      const next = payload as PeerState;
+      setPeer(next);
+      const isTransportEvent = next.event === "play" || next.event === "pause" || next.event === "seeked" || next.event === "ended";
+      if (!hostRef.current && next.from === partnerId && isTransportEvent) {
+        hostRef.current = partnerId;
+        setHostId(partnerId);
+      }
     });
     ch.on("broadcast", { event: "cmd" }, ({ payload }) => {
       const cmd = payload as SyncCommand;
@@ -80,8 +87,10 @@ export function useWatchSync(
           ch.send({ type: "broadcast", event: "cmd", payload: { kind: "claimHost", from: meId } });
         }
       } else if (cmd.kind === "claimHost") {
+        hostRef.current = cmd.from;
         setHostId(cmd.from);
       } else if (cmd.kind === "releaseHost") {
+        if (hostRef.current === cmd.from) hostRef.current = null;
         setHostId((prev) => (prev === cmd.from ? null : prev));
       }
     });
@@ -114,11 +123,11 @@ export function useWatchSync(
 
   // publish my state (throttled by caller — we just send whatever it gives us)
   const publish = useCallback((patch: Partial<PeerState>) => {
-    const next: PeerState = { ...mineRef.current, ...patch, updatedAt: Date.now() };
+    const next: PeerState = { ...mineRef.current, ...patch, from: meId ?? mineRef.current.from, updatedAt: Date.now() };
     mineRef.current = next;
     setMine(next);
     chRef.current?.send({ type: "broadcast", event: "state", payload: next });
-  }, []);
+  }, [meId]);
 
   const sendSeek = useCallback((time: number) => {
     if (!meId) return;
@@ -147,6 +156,7 @@ export function useWatchSync(
 
   const claimHost = useCallback(() => {
     if (!meId) return;
+    hostRef.current = meId;
     setHostId(meId);
     chRef.current?.send({
       type: "broadcast",
@@ -157,6 +167,7 @@ export function useWatchSync(
 
   const releaseHost = useCallback(() => {
     if (!meId) return;
+    if (hostRef.current === meId) hostRef.current = null;
     setHostId((prev) => (prev === meId ? null : prev));
     chRef.current?.send({
       type: "broadcast",
