@@ -876,7 +876,7 @@ function WatchMovie() {
               )}
 
               {/* Compact pill row: countdown + source + invite + whisper */}
-              <div className="flex items-center gap-2 overflow-x-auto no-scrollbar flex-wrap">
+              <div className="flex items-center gap-2 overflow-x-auto no-scrollbar flex-nowrap whitespace-nowrap">
                 <button
                   onClick={() => startCountdown(4)}
                   className="shrink-0 h-9 px-4 rounded-full bg-surface border border-border text-xs text-candle flex items-center gap-1.5"
