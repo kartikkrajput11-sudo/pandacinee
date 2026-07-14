@@ -49,6 +49,7 @@ function videoConstraints(facing: FacingMode): MediaTrackConstraints {
 export function useWebRTCCall(peerId: string | null, mode: Mode = "video", isCaller = true) {
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
+  const [remoteRev, setRemoteRev] = useState(0);
   const [status, setStatus] = useState<"idle" | "connecting" | "ringing" | "connected" | "ended" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
   const [facing, setFacing] = useState<FacingMode>("user");
