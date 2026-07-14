@@ -19,6 +19,8 @@ export type CustomPlayerHandle = {
   currentTime: () => number;
   duration: () => number;
   isPaused: () => boolean;
+  setMuted: (m: boolean) => void;
+  isMuted: () => boolean;
 };
 
 type Props = {
@@ -112,6 +114,8 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
       currentTime: () => v.currentTime,
       duration: () => v.duration,
       isPaused: () => v.paused,
+      setMuted: (m: boolean) => { v.muted = m; setMuted(m); },
+      isMuted: () => v.muted,
     });
   }, [src]);
 

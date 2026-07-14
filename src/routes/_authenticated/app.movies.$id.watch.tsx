@@ -194,6 +194,8 @@ function CatalogWatch({ id }: { id: string }) {
   const lastAppliedPeerEventRef = useRef<number>(0);
   const customPlayerRef = useRef<CustomPlayerHandle | null>(null);
   const suppressPlayerEventRef = useRef(false);
+  const [autoJoinedMuted, setAutoJoinedMuted] = useState(false);
+  const pendingAutoJoinRef = useRef<number | null>(null);
 
   // Auto-dismiss the "waiting for friend" overlay once they actually join the room
   useEffect(() => {
@@ -479,14 +481,21 @@ function CatalogWatch({ id }: { id: string }) {
     }
     lastAppliedPeerEventRef.current = peer.updatedAt;
 
-    // Follower hasn't tapped "Raise the curtain" yet — browsers block
-    // cross-origin autoplay-with-sound, so remounting the iframe here would
-    // just show a black screen. Instead, remember the host's timestamp so
-    // that when the follower taps, they jump straight to the host's spot.
+    // Follower hasn't tapped "Raise the curtain" yet. Browsers block
+    // cross-origin autoplay-with-sound, but they DO allow muted autoplay,
+    // so when the host presses play we auto-open the player muted and jump
+    // to the host's timestamp. The viewer just taps 🔊 to unmute.
     if (!started) {
-      if (evt !== "pause") setStartAt(peer.currentTime);
+      if (evt === "pause") return;
+      pendingAutoJoinRef.current = peer.currentTime;
+      setStartAt(peer.currentTime);
+      setStarted(true);
+      setPlayerLoading(true);
+      setAutoJoinedMuted(true);
+      toast.info(`Joining ${partner?.display_name.split(" ")[0]} muted — tap 🔊 to unmute`);
       return;
     }
+
 
     // Pandacine (our own server): control the <video> directly through the
     // player handle so the follower keeps watching without a full remount.
@@ -510,6 +519,20 @@ function CatalogWatch({ id }: { id: string }) {
       if (evt === "seeked") toast.info(`${partner?.display_name.split(" ")[0]} skipped`);
     }
   }, [peer, partnerIsHost, me, mine.currentTime, applySeek, partner, isPandacine, started, customPlayerReady, runSuppressedPlayerAction]);
+
+  // When the custom player mounts after an auto-join, mute + seek + play.
+  useEffect(() => {
+    if (pendingAutoJoinRef.current == null) return;
+    const h = customPlayerRef.current;
+    if (!h) return;
+    const t = pendingAutoJoinRef.current;
+    pendingAutoJoinRef.current = null;
+    runSuppressedPlayerAction(() => {
+      h.setMuted(true);
+      h.seek(t);
+      h.play();
+    }, 800);
+  }, [customPlayerReady, runSuppressedPlayerAction]);
 
   async function sendWatchInviteMessage(receiverId: string, extra?: Record<string, unknown>) {
     if (!me || !movie) return { error: new Error("Missing data") };
@@ -917,6 +940,22 @@ function CatalogWatch({ id }: { id: string }) {
                 <span className="text-candle-muted text-[11px] uppercase tracking-[0.25em]">{currentSource?.label ?? "Loading"}</span>
               </button>
             )}
+
+            {autoJoinedMuted && started && (
+              <button
+                onClick={() => {
+                  const h = customPlayerRef.current;
+                  if (h) h.setMuted(false);
+                  setAutoJoinedMuted(false);
+                }}
+                className="absolute top-3 right-3 z-40 px-3 py-2 rounded-full bg-petal text-velvet text-xs font-bold uppercase tracking-widest flex items-center gap-1.5 shadow-2xl shadow-petal/50 animate-pulse"
+              >
+                🔊 Tap to unmute
+              </button>
+            )}
+
+
+
 
 
 
