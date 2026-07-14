@@ -288,7 +288,7 @@ export function PunishmentVerificationChat({ lock, meId, partnerName, iAmLocked,
             />
             <button
               onClick={() => sendText(requiredKind === "text")}
-              disabled={sending || !text.trim()}
+              disabled={sending || !text.trim() || lockedOut}
               className="size-10 rounded-full bg-petal text-velvet disabled:opacity-50 flex items-center justify-center"
               aria-label="Send"
             >
@@ -296,19 +296,23 @@ export function PunishmentVerificationChat({ lock, meId, partnerName, iAmLocked,
             </button>
           </div>
 
-          {voiceOpen && (
+          {voiceOpen && !lockedOut && (
             <div className="mt-2 w-full rounded-2xl border border-petal/40 bg-petal-soft/20 p-2 flex items-stretch">
               <VoiceRecorder userId={meId} onSend={handleVoice} />
             </div>
           )}
 
-          {pendingSubmission ? (
+          {lockedOut ? (
+            <p className="text-[11px] text-center text-petal mt-2 font-semibold">
+              🔒 All {LOCKED_MSG_LIMIT} notes used — waiting on {partnerName} to review your submission.
+            </p>
+          ) : pendingSubmission ? (
             <p className="text-[11px] text-center text-candle-muted mt-2">
-              ⏳ Submission sent — waiting for approval.
+              ⏳ Submission sent — waiting for approval. · {lockedMsgsLeft}/{LOCKED_MSG_LIMIT} notes left
             </p>
           ) : (
             <p className="text-[11px] text-center text-candle-muted mt-2">
-              Submission type expected: <span className="text-petal">{requiredKind}</span>
+              Submission type expected: <span className="text-petal">{requiredKind}</span> · <span className="text-petal">{lockedMsgsLeft}/{LOCKED_MSG_LIMIT}</span> notes left
             </p>
           )}
         </div>
