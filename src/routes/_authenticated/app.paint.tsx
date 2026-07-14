@@ -873,7 +873,7 @@ function ReplayCanvas({
       const idx = Math.min(strokes.length - 1, Math.floor(t / perStroke));
       const inner = (t - idx * perStroke) / perStroke;
       // clear + redraw everything up to current
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.clearRect(0, 0, canvas!.width, canvas!.height);
       for (let k = 0; k <= idx; k++) {
         const pct = k < idx ? 1 : Math.min(1, inner);
         drawStrokeFrame(strokes[k], pct);
