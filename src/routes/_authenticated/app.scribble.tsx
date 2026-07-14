@@ -162,7 +162,11 @@ function Scribble() {
         ...m,
         { id: crypto.randomUUID(), by: p.by, name: p.name, text: `guessed “${p.word}”`, correct: true },
       ]);
-      setScores((s) => ({ ...s, [p.by]: (s[p.by] ?? 0) + 1 }));
+      setScores((s) => {
+        const next = { ...s, [p.by]: (s[p.by] ?? 0) + 1 };
+        if (next[p.by] >= targetScore) setWinnerId(p.by);
+        return next;
+      });
       setPhase("over");
       setLastDrawerId((prev) => drawerId ?? prev);
       setEndsAt(null);
