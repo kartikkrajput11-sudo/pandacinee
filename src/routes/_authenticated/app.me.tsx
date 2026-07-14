@@ -349,3 +349,44 @@ function ThemeSection() {
     </div>
   );
 }
+
+function PunishmentLockToggle({ me, onSaved }: { me: any; onSaved: () => void }) {
+  const enabled = me?.punishment_lock_enabled ?? true;
+  const [busy, setBusy] = useState(false);
+  async function toggle() {
+    setBusy(true);
+    const { error } = await (supabase as any)
+      .from("profiles")
+      .update({ punishment_lock_enabled: !enabled })
+      .eq("id", me.id);
+    setBusy(false);
+    if (error) toast.error(error.message);
+    else {
+      toast.success(!enabled ? "Punishment Lock enabled" : "Punishment Lock disabled");
+      onSaved();
+    }
+  }
+  return (
+    <div className="p-5 mb-4 rounded-3xl border border-border bg-surface flex items-center gap-3">
+      <Lock className="size-5 text-petal" />
+      <div className="flex-1 min-w-0">
+        <p className="text-[10px] uppercase tracking-widest text-petal">Punishment Lock</p>
+        <p className="text-xs text-candle-muted">
+          Let your partner playfully lock your chat with a challenge.
+        </p>
+      </div>
+      <button
+        onClick={toggle}
+        disabled={busy}
+        className={`relative h-7 w-12 rounded-full transition-colors ${enabled ? "bg-petal" : "bg-border"}`}
+        aria-pressed={enabled}
+      >
+        <span
+          className={`absolute top-0.5 size-6 rounded-full bg-white transition-all ${
+            enabled ? "left-[22px]" : "left-0.5"
+          }`}
+        />
+      </button>
+    </div>
+  );
+}
