@@ -1000,6 +1000,18 @@ function ReplayCanvas({
         ctx.globalAlpha = 1;
         return;
       }
+      if (s.shape && s.pts.length >= 2) {
+        const a = s.pts[0];
+        const b = s.pts[s.pts.length - 1];
+        ctx.strokeStyle = s.erase ? "#ffffff" : s.color;
+        ctx.fillStyle = s.color;
+        ctx.lineWidth = s.size * (w / 400);
+        ctx.globalCompositeOperation = s.erase ? "destination-out" : "source-over";
+        ctx.globalAlpha = pctPts;
+        drawShape(ctx, s.shape, a.x * w, a.y * h, b.x * w, b.y * h, !!s.fill);
+        ctx.globalAlpha = 1;
+        ctx.globalCompositeOperation = "source-over";
+        return;
       ctx.beginPath();
       ctx.strokeStyle = s.erase ? "#ffffff" : s.color;
       ctx.lineWidth = s.size * (w / 400);
