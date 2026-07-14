@@ -31,6 +31,8 @@ function ChatPeer() {
   const peerQ = useQuery({
     enabled: !!peerId,
     queryKey: ["peer", peerId],
+    refetchInterval: 30_000,
+    refetchOnWindowFocus: true,
     queryFn: async () => {
       const { data: p } = await supabase
         .from("profiles")
