@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   MessageCircle,
   Send,
@@ -99,7 +100,17 @@ export function WatchTogetherPanel({
 
   const partnerFirst = partner.display_name.split(" ")[0];
 
-  return (
+  // Track fullscreen element so the floating chat stays visible when the player goes fullscreen.
+  const [fsEl, setFsEl] = useState<Element | null>(null);
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const onChange = () => setFsEl(document.fullscreenElement);
+    onChange();
+    document.addEventListener("fullscreenchange", onChange);
+    return () => document.removeEventListener("fullscreenchange", onChange);
+  }, []);
+
+  const content = (
     <>
       {/* Toggle FAB (hidden in inline mode) */}
       {!inline && (
@@ -362,4 +373,6 @@ export function WatchTogetherPanel({
       </div>
     </>
   );
+
+  return fsEl && !inline ? createPortal(content, fsEl) : content;
 }
