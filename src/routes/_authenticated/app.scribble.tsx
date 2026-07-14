@@ -124,6 +124,45 @@ function Scribble() {
   const [winnerId, setWinnerId] = useState<string | null>(null);
   const [hintMask, setHintMask] = useState<string>("");
 
+  // Persistent leaderboard stats (all-time)
+  type Stats = { user_id: string; wins: number; correct_guesses: number; games_played: number; rounds_drawn: number };
+  const [leaderboard, setLeaderboard] = useState<Record<string, Stats>>({});
+  const winnerCountedRef = useRef<string | null>(null);
+  async function bumpMyStats(delta: Partial<Omit<Stats, "user_id">>) {
+    if (!me) return;
+    // Read current, then upsert incremented values. Small races don't matter for a personal leaderboard.
+    const { data: cur } = await supabase
+      .from("scribble_stats")
+      .select("wins, correct_guesses, games_played, rounds_drawn")
+      .eq("user_id", me.id)
+      .maybeSingle();
+    const next = {
+      user_id: me.id,
+      wins: (cur?.wins ?? 0) + (delta.wins ?? 0),
+      correct_guesses: (cur?.correct_guesses ?? 0) + (delta.correct_guesses ?? 0),
+      games_played: (cur?.games_played ?? 0) + (delta.games_played ?? 0),
+      rounds_drawn: (cur?.rounds_drawn ?? 0) + (delta.rounds_drawn ?? 0),
+    };
+    const { error } = await supabase.from("scribble_stats").upsert(next, { onConflict: "user_id" });
+    if (!error) setLeaderboard((s) => ({ ...s, [me.id]: next }));
+  }
+
+  // Load leaderboard for me + partner
+  useEffect(() => {
+    if (!me) return;
+    const ids = partner ? [me.id, partner.id] : [me.id];
+    supabase
+      .from("scribble_stats")
+      .select("user_id, wins, correct_guesses, games_played, rounds_drawn")
+      .in("user_id", ids)
+      .then(({ data }) => {
+        if (!data) return;
+        const map: Record<string, Stats> = {};
+        for (const r of data as Stats[]) map[r.user_id] = r;
+        setLeaderboard(map);
+      });
+  }, [me?.id, partner?.id]);
+
   const chRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const wordRef = useRef<string | null>(null);
   const drawerIdRef = useRef<string | null>(null);
@@ -141,6 +180,16 @@ function Scribble() {
   useEffect(() => { endsAtRef.current = endsAt; }, [endsAt]);
   useEffect(() => { roundSecondsRef.current = roundSeconds; }, [roundSeconds]);
   useEffect(() => { revealedRef.current = revealed; }, [revealed]);
+
+  // Persistent leaderboard: when a winner is decided, record games_played (+1)
+  // and wins (+1 if that winner is me). Guard so we count once per game.
+  useEffect(() => {
+    if (!me || !winnerId) return;
+    if (winnerCountedRef.current === winnerId) return;
+    winnerCountedRef.current = winnerId;
+    void bumpMyStats({ games_played: 1, wins: winnerId === me.id ? 1 : 0 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [winnerId, me?.id]);
 
   const pairKey = me ? (partner ? [me.id, partner.id].sort().join(":") : me.id) : "";
   const storageKey = pairKey ? `scribble:${pairKey}` : "";
@@ -300,6 +349,8 @@ function Scribble() {
       if (next[by] >= targetScoreRef.current) setWinnerId(by);
       return next;
     });
+    // Persistent leaderboard: bump my correct_guesses when I'm the one who guessed.
+    if (isMe) void bumpMyStats({ correct_guesses: 1 });
     setPhase("over");
     setLastDrawerId(drawerIdRef.current);
     setEndsAt(null);
@@ -550,6 +601,7 @@ function Scribble() {
 
   function confirmWord(w: string) {
     if (!me) return;
+    void bumpMyStats({ rounds_drawn: 1 });
     roundResolvedRef.current = false;
     wordRef.current = w;
     drawerIdRef.current = me.id;
@@ -821,6 +873,13 @@ function Scribble() {
                 : "Waiting for partner…"
               : "Start round"}
           </button>
+
+          {/* All-time leaderboard */}
+          <Leaderboard
+            me={me}
+            partner={partner}
+            leaderboard={leaderboard}
+          />
         </div>
       )}
 
@@ -958,3 +1017,95 @@ function WinnerOverlay({
     </div>
   );
 }
+
+type LbProfile = { id: string; display_name?: string | null; username?: string | null; avatar_url?: string | null } | null | undefined;
+type LbStats = { user_id: string; wins: number; correct_guesses: number; games_played: number; rounds_drawn: number };
+
+function Leaderboard({
+  me,
+  partner,
+  leaderboard,
+}: {
+  me: any;
+  partner: any;
+  leaderboard: Record<string, LbStats>;
+}) {
+  const rows = [me, partner].filter(Boolean) as NonNullable<LbProfile>[];
+  const enriched = rows
+    .map((p) => {
+      const s = leaderboard[p.id] ?? { user_id: p.id, wins: 0, correct_guesses: 0, games_played: 0, rounds_drawn: 0 };
+      const winRate = s.games_played > 0 ? Math.round((s.wins / s.games_played) * 100) : 0;
+      return { profile: p, stats: s, winRate };
+    })
+    .sort((a, b) =>
+      b.stats.wins - a.stats.wins ||
+      b.stats.correct_guesses - a.stats.correct_guesses ||
+      b.stats.rounds_drawn - a.stats.rounds_drawn,
+    );
+
+  return (
+    <div className="mt-4 rounded-2xl border border-border bg-surface/70 backdrop-blur p-3">
+      <div className="flex items-center gap-2 mb-2">
+        <Crown className="size-4 text-petal" />
+        <h3 className="font-serif italic text-base">All-time Leaderboard</h3>
+      </div>
+      <div className="space-y-2">
+        {enriched.map((row, idx) => {
+          const isMe = row.profile.id === me.id;
+          const name = row.profile.display_name || row.profile.username || (isMe ? "You" : "Partner");
+          return (
+            <div
+              key={row.profile.id}
+              className={`flex items-center gap-2.5 rounded-xl px-3 py-2 border ${
+                idx === 0
+                  ? "border-petal/60 bg-petal-soft/30"
+                  : "border-border bg-velvet"
+              }`}
+            >
+              <div className={`size-6 rounded-full flex items-center justify-center text-[11px] font-bold ${
+                idx === 0 ? "bg-petal text-white" : "bg-surface text-candle-muted border border-border"
+              }`}>
+                {idx + 1}
+              </div>
+              <div className="size-8 rounded-full bg-petal-soft overflow-hidden flex items-center justify-center shrink-0">
+                {row.profile.avatar_url ? (
+                  <img src={row.profile.avatar_url} alt={name} className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-sm">🐼</span>
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm text-candle truncate">
+                  {name}{isMe && <span className="text-petal text-[10px] ml-1">(you)</span>}
+                </p>
+                <p className="text-[10px] text-candle-muted">
+                  {row.stats.games_played} game{row.stats.games_played === 1 ? "" : "s"} · {row.winRate}% win
+                </p>
+              </div>
+              <div className="flex items-center gap-3 text-xs">
+                <div className="text-center">
+                  <div className="text-petal font-bold tabular-nums">{row.stats.wins}</div>
+                  <div className="text-[9px] uppercase tracking-widest text-candle-muted">Wins</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-candle font-semibold tabular-nums">{row.stats.correct_guesses}</div>
+                  <div className="text-[9px] uppercase tracking-widest text-candle-muted">Guessed</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-candle font-semibold tabular-nums">{row.stats.rounds_drawn}</div>
+                  <div className="text-[9px] uppercase tracking-widest text-candle-muted">Drawn</div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+        {!partner && (
+          <p className="text-[11px] text-candle-muted text-center pt-1">
+            Pair with your partner to see them here.
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
