@@ -179,7 +179,6 @@ function MemoryChallenge() {
                     const blob = await res.blob();
                     const file = new File([blob], `memory-${todayEntry.date}.jpg`, { type: blob.type });
                     const shareData: ShareData = { text: `Today's Pandacine memory: ${todayEntry.prompt} 🐼`, files: [file] };
-                    // @ts-expect-error canShare with files is supported at runtime
                     if (navigator.share && (!navigator.canShare || navigator.canShare(shareData))) {
                       await navigator.share(shareData);
                     } else {
