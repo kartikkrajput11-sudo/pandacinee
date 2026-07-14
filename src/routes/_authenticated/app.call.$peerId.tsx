@@ -86,6 +86,7 @@ function Call() {
   const [duration, setDuration] = useState(0);
   const localRef = useRef<HTMLVideoElement>(null);
   const remoteRef = useRef<HTMLVideoElement>(null);
+  const remoteAudioRef = useRef<HTMLAudioElement>(null);
   const connectedAtRef = useRef<number | null>(null);
 
   // Send invite signal when caller mounts
@@ -104,10 +105,18 @@ function Call() {
     if (localRef.current && localStream) localRef.current.srcObject = localStream;
   }, [localStream]);
   useEffect(() => {
-    if (remoteRef.current && remoteStream) {
+    if (!remoteStream) return;
+    // Attach remote stream to the video element (image) AND a dedicated audio
+    // element (voice). Hidden <video> tags drop audio on some browsers, so we
+    // always route the audio track through a real <audio> element that lives
+    // outside any conditional branch.
+    if (remoteRef.current) {
       remoteRef.current.srcObject = remoteStream;
-      // Some mobile browsers won't autoplay a stream that arrives after mount.
       remoteRef.current.play?.().catch(() => {});
+    }
+    if (remoteAudioRef.current) {
+      remoteAudioRef.current.srcObject = remoteStream;
+      remoteAudioRef.current.play?.().catch(() => {});
     }
   }, [remoteStream]);
 
