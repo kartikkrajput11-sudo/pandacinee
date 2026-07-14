@@ -458,7 +458,7 @@ function RevealOverlay({
           <p className="text-[10px] uppercase tracking-[0.3em] text-petal flex items-center justify-center gap-1">
             <Sparkles className="size-3" /> Masterpiece
           </p>
-          <h2 className="font-serif text-2xl italic text-candle mt-1">
+          <h2 className="font-serif text-2xl italic mt-1" style={{ color: "#8b5cf6" }}>
             {fromPartner ? "Your partner called it done" : "Beautifully done"}
           </h2>
           <p className="text-xs text-candle-muted mt-1">
