@@ -1432,7 +1432,7 @@ function CustomWatch({ customId }: { customId: string }) {
   const {
     mine, peer, partnerOnline, publish, sendSeek, sendCountdown, countdown, clearCountdown,
     incomingSeek, clearIncomingSeek, hostId, claimHost, releaseHost, drift,
-  } = useWatchSync(me?.id ?? null, partner?.id ?? null, 0, "movie");
+  } = useWatchSync(me?.id ?? null, partner?.id ?? null, `custom:${customId}`, "movie");
 
   const handleRef = useRef<CustomPlayerHandle | null>(null);
   const suppressRef = useRef(false);
