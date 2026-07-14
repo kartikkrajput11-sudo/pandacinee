@@ -145,5 +145,26 @@ export function useGroupChat(meId: string | null, groupId: string | null) {
     await supabase.from("messages").delete().eq("id", m.id);
   }, []);
 
-  return { messages, loading, typingUsers, onlineIds, send, sendTyping, react, togglePin, remove };
+  const setVanish = useCallback(async (m: MessageRow, seconds: number | null) => {
+    const expires_at = seconds ? new Date(Date.now() + seconds * 1000).toISOString() : null;
+    await supabase.from("messages").update({ expires_at }).eq("id", m.id);
+  }, []);
+
+  // Reap expired messages (real vanish)
+  useEffect(() => {
+    if (!meId) return;
+    const tick = () => {
+      const now = Date.now();
+      const expired = messages.filter((m) => m.expires_at && new Date(m.expires_at).getTime() <= now);
+      if (expired.length === 0) return;
+      setMessages((prev) => prev.filter((x) => !expired.some((e) => e.id === x.id)));
+      const mineIds = expired.filter((m) => m.sender_id === meId).map((m) => m.id);
+      if (mineIds.length) supabase.from("messages").delete().in("id", mineIds).then();
+    };
+    tick();
+    const t = window.setInterval(tick, 5000);
+    return () => window.clearInterval(t);
+  }, [messages, meId]);
+
+  return { messages, loading, typingUsers, onlineIds, send, sendTyping, react, togglePin, remove, setVanish };
 }
