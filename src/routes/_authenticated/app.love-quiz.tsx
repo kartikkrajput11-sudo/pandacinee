@@ -249,7 +249,6 @@ function SpinIntro({
   seed: number;
   spinning: boolean;
   loading: boolean;
-  landed: string | null;
   onSpin: () => void;
 }) {
   const meName = me.display_name ?? "You";
