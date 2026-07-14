@@ -102,7 +102,7 @@ export function usePunishmentLock(meId: string | null, peerId: string | null) {
       const expires_at = input.max_duration_seconds
         ? new Date(Date.now() + input.max_duration_seconds * 1000).toISOString()
         : null;
-      const { error } = await supabase.from("punishment_locks" as never).insert({
+      const { error } = await (supabase as any).from("punishment_locks").insert({
         locker_id: meId,
         target_id: peerId,
         type: input.type,
@@ -135,7 +135,7 @@ export function usePunishmentLock(meId: string | null, peerId: string | null) {
       .eq("id", lockId);
     // Auto-cleanup after a delay so the row doesn't clutter
     window.setTimeout(() => {
-      supabase.from("punishment_locks" as never).delete().eq("id", lockId).then();
+      (supabase as any).from("punishment_locks").delete().eq("id", lockId).then();
     }, 30000);
   }, []);
 
