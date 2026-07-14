@@ -345,7 +345,7 @@ function InCallChat({ meId, partnerId, partnerName, onClose }: { meId: string; p
   useEffect(() => { scrollRef.current?.scrollTo({ top: 9e9 }); }, [messages.length]);
 
   return (
-    <div className="absolute inset-x-0 bottom-0 top-1/3 z-30 bg-velvet/95 backdrop-blur-xl border-t border-petal/40 rounded-t-3xl flex flex-col animate-slide-in-from-bottom">
+    <div className="absolute inset-x-0 bottom-0 top-1/3 z-30 bg-velvet/95 backdrop-blur-xl border-t border-petal/40 rounded-t-3xl flex flex-col animate-fade-in">
       <div className="px-4 py-3 flex items-center justify-between border-b border-border">
         <p className="font-serif italic text-sm">Chat with {partnerName}</p>
         <button onClick={onClose} className="text-candle-muted hover:text-candle transition-colors"><X className="size-4" /></button>
