@@ -1,11 +1,17 @@
 import { useEffect, useRef, useState } from "react";
-import { Plus, X, Image as ImageIcon, Paperclip, Smile, Send, Clock, Film, Video as VideoIcon } from "lucide-react";
+import {
+  Plus, X, Image as ImageIcon, Paperclip, Smile, Send, Clock, Film,
+  Video as VideoIcon, Gamepad2, Heart, Zap, EyeOff, Eye,
+} from "lucide-react";
 import { toast } from "sonner";
 import { uploadChatMedia, DISAPPEAR_OPTIONS, type MessageRow } from "@/lib/chat";
 import { VoiceRecorder } from "./VoiceRecorder";
 import { WatchInvitePicker } from "./WatchInvitePicker";
 import { EmojiPicker } from "./EmojiPicker";
+import { GameInvitePicker, type GamePick } from "./GameInvitePicker";
 import type { TmdbMovie } from "@/lib/tmdb.functions";
+
+const KISS_EMOJIS = ["💋", "💜", "🌸", "🫧", "💫", "🐼", "🌷", "🫶"];
 
 
 type Props = {
