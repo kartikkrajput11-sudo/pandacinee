@@ -186,6 +186,23 @@ export function WatchTogetherPanel({
                   : `${partnerFirst} hasn't joined yet`}
               </p>
             </div>
+            {/* Opacity mode toggle — Blur / Clear / Solid */}
+            {!inline && (
+              <div className="flex items-center rounded-full bg-surface/60 border border-border p-0.5 mr-1">
+                {(["blur", "clear", "solid"] as const).map((m) => (
+                  <button
+                    key={m}
+                    onClick={() => setOpacityMode(m)}
+                    className={`h-6 px-2 rounded-full text-[9px] uppercase tracking-widest transition ${
+                      opacityMode === m ? "bg-petal text-velvet font-semibold" : "text-candle-muted hover:text-candle"
+                    }`}
+                    aria-label={`${m} background`}
+                  >
+                    {m === "blur" ? "Blur" : m === "clear" ? "Clear" : "Solid"}
+                  </button>
+                ))}
+              </div>
+            )}
             {!inline && (
               <button
                 onClick={() => setOpen(false)}
