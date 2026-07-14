@@ -127,6 +127,11 @@ export function useWatchSync(
 
   const clearCountdown = useCallback(() => setCountdown(null), []);
   const clearIncomingSeek = useCallback(() => setIncomingSeek(null), []);
+  const clearIncomingReaction = useCallback(() => setIncomingReaction(null), []);
+
+  const sendReaction = useCallback((emoji: string) => {
+    chRef.current?.send({ type: "broadcast", event: "reaction", payload: { emoji } });
+  }, []);
 
   // drift (positive => I'm ahead of partner)
   const drift =
@@ -145,6 +150,9 @@ export function useWatchSync(
     clearCountdown,
     incomingSeek,
     clearIncomingSeek,
+    incomingReaction,
+    clearIncomingReaction,
+    sendReaction,
     drift,
   };
 }
