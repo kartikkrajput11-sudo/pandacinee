@@ -15,10 +15,10 @@ export function PartnerPresenceCard({
     return () => window.clearInterval(id);
   }, []);
 
-  const moodUpdated = partner.mood_updated_at ? new Date(partner.mood_updated_at).getTime() : 0;
-  // Consider "online" if mood was updated in the last 5 minutes (best-effort presence signal)
-  const online = moodUpdated && now - moodUpdated < 5 * 60 * 1000;
-  const lastSeen = moodUpdated ? relTime(now - moodUpdated) : "a while ago";
+  const lastSeenAt = partner.last_seen_at ? new Date(partner.last_seen_at).getTime() : 0;
+  // Online if the partner heartbeat pinged in the last 2 minutes (heartbeat cadence is 45s)
+  const online = lastSeenAt > 0 && now - lastSeenAt < 2 * 60 * 1000;
+  const lastSeen = lastSeenAt ? relTime(now - lastSeenAt) : "a while ago";
 
   const localTime = new Date(now).toLocaleTimeString(undefined, {
     hour: "numeric",
