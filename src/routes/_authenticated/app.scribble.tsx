@@ -362,8 +362,26 @@ function Scribble() {
       const p = payload as { word: string };
       resolveTimeout(p.word);
     });
+    // Handshake: newly-joined guesser asks for the current round state.
+    ch.on("broadcast", { event: "sync-request" }, () => {
+      // Only the active drawer answers, and only during a live round.
+      if (drawerIdRef.current !== me.id) return;
+      if (!wordRef.current || !endsAt) return;
+      const w = wordRef.current;
+      const mask = w.split("").map((ch2, i) => (ch2 === " " ? " " : revealed.has(i) ? ch2 : "•")).join("");
+      chRef.current?.send({
+        type: "broadcast",
+        event: "round",
+        payload: { drawerId: me.id, endsAt, wordLen: w.length, seconds: roundSeconds, mask, word: w },
+      });
+    });
 
-    ch.subscribe();
+    ch.subscribe((status) => {
+      if (status === "SUBSCRIBED") {
+        // Request current state in case a round is already in progress.
+        ch.send({ type: "broadcast", event: "sync-request", payload: {} });
+      }
+    });
     chRef.current = ch;
     return () => {
       supabase.removeChannel(ch);
