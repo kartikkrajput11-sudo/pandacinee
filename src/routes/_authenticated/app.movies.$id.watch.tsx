@@ -121,8 +121,8 @@ function WatchMovie() {
   const [isTv, setIsTv] = useState(false);
   const [customMovieId, setCustomMovieId] = useState<string | null>(null);
   const [tvSeasons, setTvSeasons] = useState<{ season_number: number; episode_count: number; name: string }[]>([]);
-  const [season, setSeason] = useState<number>(1);
-  const [episode, setEpisode] = useState<number>(1);
+  const [season, setSeason] = useState<number>(search.season ?? 1);
+  const [episode, setEpisode] = useState<number>(search.episode ?? 1);
   const [seasonEps, setSeasonEps] = useState<Array<{ episode_number: number; name: string; overview: string | null; still_path: string | null; runtime: number | null; air_date: string | null }>>([]);
   const [customEps, setCustomEps] = useState<Array<{ season: number; episode: number; title: string | null; video_url: string | null; video_storage_path: string | null; use_vidking: boolean }>>([]);
   const tvDetailFn = useServerFn(tmdbTvDetail);
