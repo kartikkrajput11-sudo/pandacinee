@@ -243,8 +243,8 @@ function Scribble() {
 
   function openChoices() {
     if (!me) return;
-    setChoices(pick4(new Set(word ? [word] : [])));
-    setPhase("choosing");
+    const [next] = pick4(new Set(word ? [word] : []));
+    if (next) confirmWord(next);
   }
 
   function confirmWord(w: string) {
