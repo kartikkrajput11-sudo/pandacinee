@@ -103,6 +103,18 @@ function WatchMovie() {
   const [floaties, setFloaties] = useState<{ id: number; emoji: string; x: number; from: "me" | "partner" }[]>([]);
   const lastPublishRef = useRef(0);
 
+  // TV series state (populated when the admin marked this TMDB id as media_type=tv)
+  const [isTv, setIsTv] = useState(false);
+  const [customMovieId, setCustomMovieId] = useState<string | null>(null);
+  const [tvSeasons, setTvSeasons] = useState<{ season_number: number; episode_count: number; name: string }[]>([]);
+  const [season, setSeason] = useState<number>(1);
+  const [episode, setEpisode] = useState<number>(1);
+  const [seasonEps, setSeasonEps] = useState<Array<{ episode_number: number; name: string; still_path: string | null }>>([]);
+  const [customEps, setCustomEps] = useState<Array<{ season: number; episode: number; title: string | null; video_url: string | null; video_storage_path: string | null; use_vidking: boolean }>>([]);
+  const tvDetailFn = useServerFn(tmdbTvDetail);
+  const tvSeasonFn = useServerFn(tmdbTvSeason);
+
+
   const {
     mine,
     peer,
