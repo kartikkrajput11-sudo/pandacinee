@@ -481,7 +481,7 @@ function SearchHeader({
   );
 }
 
-function FeaturedHero({ movie }: { movie: TmdbMovie }) {
+function FeaturedHero({ movie, isTv = false }: { movie: TmdbMovie; isTv?: boolean }) {
   return (
     <div className="relative h-[380px] w-full overflow-hidden">
       {movie.backdrop_path && (
