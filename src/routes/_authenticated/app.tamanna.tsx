@@ -773,16 +773,63 @@ function AddMovieModal({ onClose }: { onClose: () => void }) {
               className="hidden"
               onChange={(e) => e.target.files?.[0] && uploadFile(e.target.files[0])}
             />
-            <button
-              onClick={() => fileRef.current?.click()}
-              disabled={uploading}
-              className="w-full h-11 rounded-2xl bg-velvet border border-dashed border-border flex items-center justify-center gap-2 text-sm text-candle disabled:opacity-50"
-            >
-              {uploading ? <Loader2 className="size-4 animate-spin" /> : <Upload className="size-4" />}
-              {uploading ? `Uploading ${uploadPct}%` : videoPath ? "Replace uploaded video" : "Upload video file"}
-            </button>
+
+            {!uploading && !videoPath && (
+              <button
+                onClick={() => fileRef.current?.click()}
+                className="w-full h-24 rounded-2xl bg-velvet border border-dashed border-border hover:border-petal/60 hover:bg-petal/5 transition-colors flex flex-col items-center justify-center gap-1 text-sm text-candle"
+              >
+                <Upload className="size-5 text-petal" />
+                <span>Upload video file</span>
+                <span className="text-[10px] text-candle-muted">Resumable · any size · mp4, mkv, webm…</span>
+              </button>
+            )}
+
+            {uploading && (
+              <div className="rounded-2xl bg-velvet border border-petal/30 p-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <Loader2 className="size-4 animate-spin text-petal" />
+                  <p className="text-xs text-candle truncate flex-1">{videoFileName}</p>
+                  <button
+                    onClick={cancelUpload}
+                    className="text-[10px] uppercase tracking-widest text-rose-400 hover:text-rose-300"
+                  >
+                    Cancel
+                  </button>
+                </div>
+                <div className="h-2 rounded-full bg-surface-elevated overflow-hidden">
+                  <div
+                    className="h-full bg-petal transition-all"
+                    style={{ width: `${uploadPct}%` }}
+                  />
+                </div>
+                <div className="flex justify-between mt-1.5 text-[10px] text-candle-muted tabular-nums">
+                  <span>{uploadPct}% · {fmtBytes((uploadPct / 100) * videoFileSize)} / {fmtBytes(videoFileSize)}</span>
+                  <span>{uploadSpeed}{uploadEta ? ` · ${uploadEta} left` : ""}</span>
+                </div>
+              </div>
+            )}
+
             {videoPath && !uploading && (
-              <p className="mt-2 text-[10px] text-candle-muted truncate">Uploaded: {videoPath}</p>
+              <div className="rounded-2xl bg-petal/10 border border-petal/30 p-3 flex items-center gap-2">
+                <div className="size-8 rounded-full bg-petal/20 flex items-center justify-center shrink-0">
+                  <Film className="size-4 text-petal" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs text-candle truncate">{videoFileName ?? videoPath}</p>
+                  <p className="text-[10px] text-candle-muted">{fmtBytes(videoFileSize)} · Uploaded ✓</p>
+                </div>
+                <button
+                  onClick={() => { setVideoPath(null); setVideoFileName(null); setVideoFileSize(0); fileRef.current?.click(); }}
+                  className="text-[10px] uppercase tracking-widest text-petal hover:underline"
+                >
+                  Replace
+                </button>
+              </div>
+            )}
+
+            {uploadErr && !uploading && (
+              <p className="mt-2 text-[10px] text-rose-400">{uploadErr}</p>
             )}
           </div>
         </div>
