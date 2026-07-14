@@ -502,8 +502,10 @@ function LibraryTab() {
   const qc = useQueryClient();
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState<CustomMovie | null>(null);
+  const [episodesFor, setEpisodesFor] = useState<CustomMovie | null>(null);
   const [query, setQuery] = useState("");
   const del = useServerFn(deleteCustomMovie);
+
 
   const { data: movies, isLoading } = useQuery({
     queryKey: ["custom-movies"],
