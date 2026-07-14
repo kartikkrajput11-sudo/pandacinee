@@ -152,7 +152,7 @@ function ChatPeer() {
             <h1 className="font-serif italic text-lg leading-tight truncate">{peerDisplay}</h1>
             <p className="text-[10px] text-petal flex items-center gap-1">
               <span className={`size-1.5 rounded-full ${partnerOnline ? "bg-green-400" : "bg-candle-muted"}`} />
-              {partnerTyping ? "typing…" : partnerOnline ? "online" : "offline"}
+              {partnerTyping ? "typing…" : formatLastSeen(peer.last_seen_at, partnerOnline)}
               {isPartner && <span className="text-candle-muted">· 💜 partner</span>}
             </p>
           </div>
