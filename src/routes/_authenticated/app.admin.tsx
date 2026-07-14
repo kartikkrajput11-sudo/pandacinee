@@ -114,11 +114,6 @@ function AdminPage() {
   return <AdminDashboard />;
 }
 
-function AdminDashboard() {
-  const qc = useQueryClient();
-  const [adding, setAdding] = useState(false);
-  const del = useServerFn(deleteCustomMovie);
-
 type Tab = "overview" | "activity" | "users" | "library";
 
 function AdminDashboard() {
