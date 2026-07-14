@@ -466,6 +466,20 @@ function Scribble() {
               ))}
             </div>
           </div>
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-[10px] uppercase tracking-widest text-petal">Win at</span>
+            <div className="flex gap-1 p-1 rounded-full bg-surface border border-border">
+              {TARGET_CHOICES.map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setTargetScore(t)}
+                  className={`px-3 py-1 rounded-full text-xs transition ${targetScore === t ? "bg-petal text-white" : "text-candle-muted"}`}
+                >
+                  {t} pts
+                </button>
+              ))}
+            </div>
+          </div>
           <button
             onClick={openChoices}
             disabled={!myTurnToStart}
@@ -479,6 +493,31 @@ function Scribble() {
               : "Start round"}
           </button>
         </div>
+      )}
+
+      {winnerId && (
+        <WinnerOverlay
+          isMe={winnerId === me?.id}
+          winnerName={
+            winnerId === me?.id
+              ? me?.display_name ?? "You"
+              : partner?.display_name ?? "Partner"
+          }
+          myScore={myScore}
+          theirScore={theirScore}
+          onClose={() => {
+            setWinnerId(null);
+            setScores({});
+            setPhase("idle");
+            setLastDrawerId(null);
+            setWord(null);
+            setWordLen(0);
+            setEndsAt(null);
+            setMessages([]);
+            strokes.current = [];
+            redraw();
+          }}
+        />
       )}
     </div>
   );
