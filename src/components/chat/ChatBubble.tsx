@@ -6,6 +6,7 @@ import { SignedImage } from "./SignedImage";
 import { SignedVideo } from "./SignedVideo";
 import { WatchInviteCard } from "./WatchInviteCard";
 import { GameInviteCard } from "./GameInviteCard";
+import { MovieWheelCard } from "./MovieWheelCard";
 
 
 const QUICK_REACTIONS = ["❤️", "😂", "🥺", "🔥", "🐼", "👍"];
