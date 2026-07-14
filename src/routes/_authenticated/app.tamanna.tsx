@@ -436,6 +436,9 @@ function UserRow({ user: u }: { user: AdminUserRow }) {
   const del = useServerFn(deleteAdminUser);
   const [busy, setBusy] = useState(false);
   const [revoking, setRevoking] = useState(false);
+  const [pinOpen, setPinOpen] = useState(false);
+  const [pin, setPin] = useState("");
+  const [shake, setShake] = useState(false);
 
   async function onDelete(e: React.MouseEvent) {
     e.preventDefault();
@@ -454,11 +457,16 @@ function UserRow({ user: u }: { user: AdminUserRow }) {
     }
   }
 
-  async function onRevokeAdmin(e: React.MouseEvent) {
+  function openRevoke(e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
-    const pin = window.prompt(`Enter security code to remove admin from ${u.display_name ?? u.username ?? "this user"}:`);
-    if (pin === null) return;
+    setPin("");
+    setPinOpen(true);
+  }
+
+  async function submitRevoke(e: React.FormEvent) {
+    e.preventDefault();
+    e.stopPropagation();
     setRevoking(true);
     try {
       const { data, error } = await supabase.rpc("revoke_admin", { _target: u.id, _pin: pin });
@@ -466,8 +474,11 @@ function UserRow({ user: u }: { user: AdminUserRow }) {
       if (data === true) {
         toast.success("Admin removed");
         qc.invalidateQueries({ queryKey: ["admin", "users"] });
+        setPinOpen(false);
       } else {
-        toast.error("Incorrect security code");
+        setShake(true);
+        setTimeout(() => setShake(false), 400);
+        toast.error("Wrong code");
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not remove admin");
@@ -513,7 +524,7 @@ function UserRow({ user: u }: { user: AdminUserRow }) {
       </Link>
       {u.is_admin ? (
         <button
-          onClick={onRevokeAdmin}
+          onClick={openRevoke}
           disabled={revoking}
           title="Remove admin (requires code)"
           className="shrink-0 h-9 px-3 rounded-full bg-velvet border border-petal/40 text-petal text-[10px] uppercase tracking-widest font-bold hover:bg-petal/10 disabled:opacity-50 flex items-center gap-1.5 transition-colors"
@@ -531,9 +542,59 @@ function UserRow({ user: u }: { user: AdminUserRow }) {
           {busy ? <Loader2 className="size-4 animate-spin" /> : <Trash2 className="size-4" />}
         </button>
       )}
+
+      {pinOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center px-5 bg-velvet/80 backdrop-blur-md animate-in fade-in duration-200"
+          onClick={() => !revoking && setPinOpen(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-sm rounded-3xl border border-petal/30 bg-surface p-6 text-center shadow-2xl shadow-petal/20 animate-in zoom-in-95 duration-200"
+          >
+            <div className="size-14 mx-auto mb-4 rounded-full bg-petal-soft flex items-center justify-center">
+              <ShieldCheck className="size-6 text-petal" />
+            </div>
+            <h2 className="font-serif text-xl italic mb-1">Revoke admin</h2>
+            <p className="text-xs text-candle-muted mb-5">
+              Enter the security code to remove admin from{" "}
+              <span className="text-candle">{u.display_name ?? u.username ?? "this user"}</span>.
+            </p>
+            <form onSubmit={submitRevoke} className={shake ? "animate-[shake_0.4s]" : ""}>
+              <input
+                value={pin}
+                onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                inputMode="numeric"
+                autoFocus
+                placeholder="••••"
+                className="w-full text-center tracking-[0.8em] text-2xl font-serif bg-velvet border border-border rounded-2xl px-4 py-4 text-candle placeholder:text-candle-muted focus:outline-none focus:border-petal/60 focus:ring-2 focus:ring-petal/20"
+              />
+              <div className="mt-4 flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setPinOpen(false)}
+                  disabled={revoking}
+                  className="flex-1 py-3 rounded-full bg-velvet border border-border text-candle-muted text-sm font-semibold disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={revoking || pin.length < 4}
+                  className="flex-1 py-3 bg-petal text-velvet rounded-full font-semibold text-sm disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {revoking ? <Loader2 className="size-4 animate-spin" /> : null}
+                  {revoking ? "Verifying…" : "Revoke"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
 
 
 // ─── Library (existing custom-movies management) ─────────────────────────
