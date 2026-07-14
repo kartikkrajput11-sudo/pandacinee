@@ -326,10 +326,12 @@ function Scribble() {
     setPhase("playing");
     setRevealed(new Set());
     setMessages([]);
+    const initialMask = w.split("").map((ch) => (ch === " " ? " " : "•")).join("");
+    setHintMask(initialMask);
     chRef.current?.send({
       type: "broadcast",
       event: "round",
-      payload: { drawerId: me.id, endsAt: ends, wordLen: w.length, seconds: roundSeconds },
+      payload: { drawerId: me.id, endsAt: ends, wordLen: w.length, seconds: roundSeconds, mask: initialMask },
     });
     chRef.current?.send({ type: "broadcast", event: "clear", payload: {} });
   }
