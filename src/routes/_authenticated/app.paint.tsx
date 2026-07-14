@@ -466,7 +466,7 @@ function PaintTogether() {
     const { error } = await supabase.from("paint_gallery").insert({
       pair_key: pairKey(),
       by_user: me.id,
-      strokes: strokes.current as unknown as object,
+      strokes: JSON.parse(JSON.stringify(strokes.current)),
       background: bg,
     });
     if (error) {
