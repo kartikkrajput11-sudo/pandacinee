@@ -320,13 +320,18 @@ function Call() {
           </ControlButton>
 
           {mode === "video" ? (
-            <ControlButton
-              active={videoOff}
-              onClick={() => { toggleVideo(); setVideoOff((v) => !v); }}
-              label={videoOff ? "Camera on" : "Camera off"}
-            >
-              {videoOff ? <VideoOff className="size-5" /> : <Video className="size-5" />}
-            </ControlButton>
+            <>
+              <ControlButton
+                active={videoOff}
+                onClick={() => { toggleVideo(); setVideoOff((v) => !v); }}
+                label={videoOff ? "Camera on" : "Camera off"}
+              >
+                {videoOff ? <VideoOff className="size-5" /> : <Video className="size-5" />}
+              </ControlButton>
+              <ControlButton onClick={() => flipCamera()} label="Flip camera">
+                <SwitchCamera className="size-5" />
+              </ControlButton>
+            </>
           ) : (
             <ControlButton
               active={!speakerOn}
