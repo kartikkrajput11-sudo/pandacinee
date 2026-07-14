@@ -150,6 +150,25 @@ export function PunishmentVerificationChat({ lock, meId, partnerName, iAmLocked,
     }
   }
 
+  async function handleDoodle(blob: Blob) {
+    if (iAmLocked && lockedOut) { toast.error(`You've used all ${LOCKED_MSG_LIMIT} notes.`); return; }
+    setSending(true);
+    try {
+      const path = await uploadChatMedia(blob, meId, "image", "png");
+      await sendMessage({
+        kind: "drawing",
+        media_url: path,
+        media_meta: { mime: "image/png", size: blob.size },
+        submission: requiredKind === "drawing",
+      });
+      setDoodleOpen(false);
+    } catch (err: any) {
+      toast.error(err?.message ?? "Failed to send doodle");
+    } finally {
+      setSending(false);
+    }
+  }
+
   async function approve(message: VerificationMessage) {
     try {
       await reviewMessage(message.id, true);
