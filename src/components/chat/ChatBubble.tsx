@@ -7,6 +7,7 @@ import { SignedVideo } from "./SignedVideo";
 import { WatchInviteCard } from "./WatchInviteCard";
 import { GameInviteCard } from "./GameInviteCard";
 import { MovieWheelCard } from "./MovieWheelCard";
+import { isPandaStickerContent, pandaStickerUrl } from "@/lib/panda-stickers";
 
 
 const QUICK_REACTIONS = ["❤️", "😂", "🥺", "🔥", "🐼", "👍"];
