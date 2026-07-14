@@ -366,27 +366,70 @@ function PunishmentLockToggle({ me, onSaved }: { me: any; onSaved: () => void })
       onSaved();
     }
   }
+  async function toggleCat(key: string, current: boolean) {
+    const { error } = await (supabase as any)
+      .from("profiles")
+      .update({ [key]: !current })
+      .eq("id", me.id);
+    if (error) toast.error(error.message);
+    else onSaved();
+  }
   return (
-    <div className="p-5 mb-4 rounded-3xl border border-border bg-surface flex items-center gap-3">
-      <Lock className="size-5 text-petal" />
-      <div className="flex-1 min-w-0">
-        <p className="text-[10px] uppercase tracking-widest text-petal">Punishment Lock</p>
-        <p className="text-xs text-candle-muted">
-          Let your partner playfully lock your chat with a challenge.
-        </p>
+    <div className="p-5 mb-4 rounded-3xl border border-border bg-surface">
+      <div className="flex items-center gap-3">
+        <Lock className="size-5 text-petal" />
+        <div className="flex-1 min-w-0">
+          <p className="text-[10px] uppercase tracking-widest text-petal">Punishment Lock</p>
+          <p className="text-xs text-candle-muted">
+            Let your partner playfully lock your chat with a challenge.
+          </p>
+        </div>
+        <button
+          onClick={toggle}
+          disabled={busy}
+          className={`relative h-7 w-12 rounded-full transition-colors ${enabled ? "bg-petal" : "bg-border"}`}
+          aria-pressed={enabled}
+        >
+          <span
+            className={`absolute top-0.5 size-6 rounded-full bg-white transition-all ${
+              enabled ? "left-[22px]" : "left-0.5"
+            }`}
+          />
+        </button>
       </div>
-      <button
-        onClick={toggle}
-        disabled={busy}
-        className={`relative h-7 w-12 rounded-full transition-colors ${enabled ? "bg-petal" : "bg-border"}`}
-        aria-pressed={enabled}
-      >
-        <span
-          className={`absolute top-0.5 size-6 rounded-full bg-white transition-all ${
-            enabled ? "left-[22px]" : "left-0.5"
-          }`}
-        />
-      </button>
+
+      {enabled && (
+        <div className="mt-4 pt-4 border-t border-border space-y-2">
+          <p className="text-[10px] uppercase tracking-widest text-candle-muted">Allowed challenge categories</p>
+          {CATEGORY_SETTINGS.map((c) => {
+            const val = (me as any)?.[c.key] !== false;
+            return (
+              <label key={c.key} className="flex items-center gap-3 py-1.5 cursor-pointer">
+                <span className="text-lg">{c.emoji}</span>
+                <span className="flex-1 min-w-0">
+                  <span className="block text-sm text-candle">{c.label}</span>
+                  <span className="block text-[10px] text-candle-muted">{c.description}</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => toggleCat(c.key, val)}
+                  className={`relative h-5 w-9 rounded-full transition-colors ${val ? "bg-petal" : "bg-border"}`}
+                  aria-pressed={val}
+                >
+                  <span
+                    className={`absolute top-0.5 size-4 rounded-full bg-white transition-all ${
+                      val ? "left-[18px]" : "left-0.5"
+                    }`}
+                  />
+                </button>
+              </label>
+            );
+          })}
+          <p className="text-[10px] text-candle-muted mt-2">
+            Categories are allowed only when both partners have them enabled.
+          </p>
+        </div>
+      )}
     </div>
   );
 }
