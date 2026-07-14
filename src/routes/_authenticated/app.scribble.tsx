@@ -762,6 +762,27 @@ function Scribble() {
           </div>
         </div>
       )}
+
+      <div className="mt-4 rounded-2xl border border-border bg-surface p-3 max-h-40 overflow-y-auto space-y-1.5">
+        {messages.length === 0 ? (
+          <p className="text-xs text-candle-muted text-center py-2">Guesses appear here</p>
+        ) : (
+          messages.map((m) => (
+            <div key={m.id} className={`text-sm ${m.correct ? "text-petal font-semibold" : "text-candle"}`}>
+              <span className="text-candle-muted mr-2">{m.name}:</span>{m.text}
+              {m.correct && " ✨"}
+            </div>
+          ))
+        )}
+      </div>
+
+      {phase === "playing" && !iAmDrawer && (
+        <div className="mt-3 flex gap-2">
+          <input
+            value={guess}
+            onChange={(e) => onGuessChange(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && sendGuess()}
+            placeholder="Type your guess…"
             className="flex-1 rounded-full bg-surface border border-border px-4 py-2.5 text-sm text-candle focus:outline-none focus:border-petal/50"
           />
           <button
