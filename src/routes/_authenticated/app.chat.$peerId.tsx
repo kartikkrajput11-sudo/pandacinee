@@ -310,6 +310,7 @@ function ChatPeer() {
 
       />
       <KissOverlay trigger={kissTick} emoji={kissEmoji} />
+      <UnlockCelebration trigger={unlockTick || null} />
 
       {activeLock && iAmLocked && !isVerifyMode && (
         <PunishmentLockOverlay
