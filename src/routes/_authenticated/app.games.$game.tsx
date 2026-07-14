@@ -489,37 +489,52 @@ function useCardFetcher(kind: "truth-or-dare" | "would-you-rather" | "this-or-th
 }
 
 function TruthOrDare({ me, session, patch }: { me: string; session: Session; patch: (s: any) => void }) {
-  const s = session.state ?? { count: 0, card: null, intensity: "playful", history: [], tally: { truth: 0, dare: 0, skipped: 0 }, bestOf: 10 };
+  const s = session.state ?? { count: 0, card: null, intensity: "playful", history: [], tally: { truth: 0, dare: 0, skipped: 0 }, bestOf: 10, answer: null, answeredBy: null };
   const { loading, fetchCard } = useCardFetcher("truth-or-dare");
   const card = s.card as null | { type: "truth" | "dare"; text: string };
   const tally = s.tally ?? { truth: 0, dare: 0, skipped: 0 };
   const round = (s.count ?? 0) + 1;
   const bestOf: number = s.bestOf ?? 10;
   const matchDone = bestOf > 0 && (s.count ?? 0) >= bestOf;
+  const [input, setInput] = useState("");
+  const answer: string | null = s.answer ?? null;
+  const answeredByMe = s.answeredBy === me;
 
   async function pick(type: "truth" | "dare") {
     if (matchDone) return;
     const c = await fetchCard(s.intensity ?? "playful", type);
     const fallback = TRUTH_OR_DARE.find((x) => x.type === type) ?? TRUTH_OR_DARE[0];
     const chosen = c && c.type === type ? c : { type, text: c?.text ?? fallback.text };
-    patch({ ...s, card: chosen });
+    patch({ ...s, card: chosen, answer: null, answeredBy: null });
+  }
+
+  function submitAnswer() {
+    if (!input.trim() || !card) return;
+    patch({ ...s, answer: input.trim(), answeredBy: me });
+    setInput("");
   }
 
   function completeCard() {
     if (!card) return;
-    const history = [...(s.history ?? []), card].slice(-30);
+    const history = [...(s.history ?? []), { ...card, answer: answer ?? null }].slice(-30);
     const nextTally = { ...tally, [card.type]: (tally[card.type] ?? 0) + 1 };
-    patch({ ...s, count: (s.count ?? 0) + 1, card: null, history, tally: nextTally });
+    patch({ ...s, count: (s.count ?? 0) + 1, card: null, history, tally: nextTally, answer: null, answeredBy: null });
+    setInput("");
   }
   function skipCard() {
     if (!card) return;
-    const history = [...(s.history ?? []), card].slice(-30);
+    const history = [...(s.history ?? []), { ...card, answer: answer ?? null, skipped: true }].slice(-30);
     const nextTally = { ...tally, skipped: (tally.skipped ?? 0) + 1 };
-    patch({ ...s, count: (s.count ?? 0) + 1, card: null, history, tally: nextTally });
+    patch({ ...s, count: (s.count ?? 0) + 1, card: null, history, tally: nextTally, answer: null, answeredBy: null });
+    setInput("");
   }
   function rematch() {
-    patch({ ...s, count: 0, card: null, history: [], tally: { truth: 0, dare: 0, skipped: 0 } });
+    patch({ ...s, count: 0, card: null, history: [], tally: { truth: 0, dare: 0, skipped: 0 }, answer: null, answeredBy: null });
+    setInput("");
   }
+
+  const answerLabel = card?.type === "dare" ? "Proof / how it went" : "Your answer";
+  const placeholder = card?.type === "dare" ? "Describe how you did it…" : "Type your honest answer…";
 
   return (
     <div>
@@ -564,13 +579,25 @@ function TruthOrDare({ me, session, patch }: { me: string; session: Session; pat
         </div>
       ) : (
         <>
-          <div className="p-6 rounded-3xl border border-petal/40 bg-gradient-to-br from-petal-soft to-transparent mb-5 min-h-[200px] flex flex-col justify-between">
+          <div className="p-6 rounded-3xl border border-petal/40 bg-gradient-to-br from-petal-soft to-transparent mb-5 min-h-[180px] flex flex-col justify-between">
             <p className="text-[10px] uppercase tracking-widest text-petal">
               {card.type === "truth" ? "🎯 Truth" : "🔥 Dare"} · {s.intensity ?? "playful"}
             </p>
             <p className="font-serif text-2xl italic leading-snug text-candle">{card.text}</p>
             <p className="text-[10px] text-candle-muted">Card {round}{bestOf > 0 ? ` / ${bestOf}` : ""}</p>
           </div>
+
+          <div className="mb-4">
+            {answer ? (
+              <Bubble label={answeredByMe ? `${answerLabel} (you)` : `${answerLabel} · their reply`} text={answer} />
+            ) : (
+              <>
+                <p className="text-xs text-candle-muted mb-2">{answerLabel} — both phones see it once you send.</p>
+                <Composer value={input} onChange={setInput} onSubmit={submitAnswer} placeholder={placeholder} />
+              </>
+            )}
+          </div>
+
           <div className="flex gap-2">
             <button
               onClick={skipCard}
@@ -581,17 +608,22 @@ function TruthOrDare({ me, session, patch }: { me: string; session: Session; pat
             </button>
             <button
               onClick={completeCard}
-              disabled={loading}
-              className="flex-1 py-3.5 bg-petal text-velvet rounded-2xl font-semibold flex items-center justify-center gap-2 disabled:opacity-60"
+              disabled={loading || !answer}
+              className="flex-1 py-3.5 bg-petal text-velvet rounded-2xl font-semibold flex items-center justify-center gap-2 disabled:opacity-40"
             >
               {loading ? <Sparkles className="size-4 animate-pulse" /> : "✓"}
-              Done — next card
+              {answer ? "Done — next card" : "Send your answer first"}
             </button>
           </div>
         </>
       )}
       <p className="text-xs text-candle-muted text-center mt-3">Both phones flip together.</p>
-      <HistoryStrip items={(s.history ?? []).map((h: any) => `${h.type}: ${h.text}`)} />
+      <HistoryStrip
+        items={(s.history ?? []).map(
+          (h: any) =>
+            `${h.type === "truth" ? "🎯" : "🔥"} ${h.text}${h.answer ? ` → ${h.answer}` : h.skipped ? " (skipped)" : ""}`
+        )}
+      />
     </div>
   );
 }
