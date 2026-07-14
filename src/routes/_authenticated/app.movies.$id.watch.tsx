@@ -194,6 +194,8 @@ function CatalogWatch({ id }: { id: string }) {
   const lastAppliedPeerEventRef = useRef<number>(0);
   const customPlayerRef = useRef<CustomPlayerHandle | null>(null);
   const suppressPlayerEventRef = useRef(false);
+  const [autoJoinedMuted, setAutoJoinedMuted] = useState(false);
+  const pendingAutoJoinRef = useRef<number | null>(null);
 
   // Auto-dismiss the "waiting for friend" overlay once they actually join the room
   useEffect(() => {
