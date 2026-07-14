@@ -205,7 +205,7 @@ function Call() {
         });
       })();
     }
-    const t = setTimeout(() => navigate({ to: "/app" }), 800);
+    const t = setTimeout(() => navigate({ to: "/app/chat/$peerId", params: { peerId } }), 800);
     return () => clearTimeout(t);
   }, [status, navigate, role, peerId, mode]);
 
