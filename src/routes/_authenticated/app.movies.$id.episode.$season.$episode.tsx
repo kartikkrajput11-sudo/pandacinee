@@ -110,7 +110,6 @@ function EpisodeDetail() {
           <Link
             to="/app/movies/$id/episode/$season/$episode"
             params={{ id: String(tmdbId), season: String(s), episode: String(prevEp?.episode_number ?? e) }}
-            disabled={!prevEp}
             className={`flex items-center justify-center gap-2 py-3 bg-surface border border-border rounded-xl text-[10px] font-semibold uppercase tracking-widest ${prevEp ? "text-candle" : "text-candle-muted opacity-50 pointer-events-none"}`}
           >
             ← Prev E{prevEp?.episode_number ?? ""}
@@ -118,7 +117,6 @@ function EpisodeDetail() {
           <Link
             to="/app/movies/$id/episode/$season/$episode"
             params={{ id: String(tmdbId), season: String(s), episode: String(nextEp?.episode_number ?? e) }}
-            disabled={!nextEp}
             className={`flex items-center justify-center gap-2 py-3 bg-surface border border-border rounded-xl text-[10px] font-semibold uppercase tracking-widest ${nextEp ? "text-candle" : "text-candle-muted opacity-50 pointer-events-none"}`}
           >
             Next E{nextEp?.episode_number ?? ""} →
