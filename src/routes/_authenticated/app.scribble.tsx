@@ -47,6 +47,10 @@ function maskWord(word: string, revealed: Set<number>) {
     .join(" ");
 }
 
+function normalizeGuessText(text: string) {
+  return text.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
 function Scribble() {
   const { data } = useProfile();
   const me = data?.profile;
@@ -78,9 +82,15 @@ function Scribble() {
 
   const chRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const wordRef = useRef<string | null>(null);
-  const liveGuessThrottle = useRef<number>(0);
+  const drawerIdRef = useRef<string | null>(null);
+  const targetScoreRef = useRef(targetScore);
+  const scoresRef = useRef<Record<string, number>>({});
+  const roundResolvedRef = useRef(false);
   const iAmDrawer = drawerId === me?.id;
   useEffect(() => { wordRef.current = word; }, [word]);
+  useEffect(() => { drawerIdRef.current = drawerId; }, [drawerId]);
+  useEffect(() => { targetScoreRef.current = targetScore; }, [targetScore]);
+  useEffect(() => { scoresRef.current = scores; }, [scores]);
 
   const pairKey = me ? (partner ? [me.id, partner.id].sort().join(":") : me.id) : "";
   const storageKey = pairKey ? `scribble:${pairKey}` : "";
@@ -119,6 +129,7 @@ function Scribble() {
   function onGuessChange(next: string) {
     setGuess(next);
     if (!me || iAmDrawer || phase !== "playing") return;
+    if (tryMatch(me.id, me.display_name ?? "You", next, true)) return;
     // Send every keystroke so the drawer can detect a correct guess instantly.
     chRef.current?.send({
       type: "broadcast",
@@ -187,8 +198,10 @@ function Scribble() {
       if (Array.isArray(s.strokes)) strokes.current = s.strokes;
       if (typeof s.drawerId === "string" || s.drawerId === null) setDrawerId(s.drawerId ?? null);
       if (typeof s.lastDrawerId === "string" || s.lastDrawerId === null) setLastDrawerId(s.lastDrawerId ?? null);
-      // Only the drawer stored the word; partner side won't have it.
-      if (typeof s.word === "string" && s.drawerId === me?.id) setWord(s.word);
+      if (typeof s.word === "string") {
+        wordRef.current = s.word;
+        setWord(s.word);
+      }
       if (typeof s.wordLen === "number") setWordLen(s.wordLen);
       if (typeof s.phase === "string") {
         // If the timer already expired, downgrade to "over".
@@ -210,6 +223,58 @@ function Scribble() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [storageKey]);
 
+  function markCorrect(by: string, name: string, matchedWord: string, broadcast: boolean) {
+    if (roundResolvedRef.current) return false;
+    roundResolvedRef.current = true;
+    wordRef.current = matchedWord;
+    if (broadcast) {
+      chRef.current?.send({
+        type: "broadcast",
+        event: "correct",
+        payload: { by, word: matchedWord, name },
+      });
+    }
+    setMessages((m) => [
+      ...m,
+      { id: crypto.randomUUID(), by, name, text: `guessed “${matchedWord}”`, correct: true },
+    ]);
+    setScores((s) => {
+      const next = { ...s, [by]: (s[by] ?? 0) + 1 };
+      if (next[by] >= targetScoreRef.current) setWinnerId(by);
+      return next;
+    });
+    setPhase("over");
+    setLastDrawerId(drawerIdRef.current);
+    setEndsAt(null);
+    setWord(matchedWord);
+    setHintMask(matchedWord);
+    setGuess("");
+    if (by === me?.id) {
+      toast.success(`Correct! The word was “${matchedWord}” — your turn to draw!`);
+      autoStartMyDrawTurn(matchedWord);
+    } else {
+      toast.success(`${name} guessed “${matchedWord}”! Their turn to draw.`);
+    }
+    return true;
+  }
+
+  function tryMatch(by: string, name: string, text: string, broadcast = true) {
+    const w = wordRef.current;
+    if (!w || roundResolvedRef.current) return false;
+    if (normalizeGuessText(text) !== normalizeGuessText(w)) return false;
+    return markCorrect(by, name, w, broadcast);
+  }
+
+  function autoStartMyDrawTurn(previousWord: string) {
+    if (!me) return;
+    const targetNow = (scoresRef.current[me.id] ?? 0) + 1;
+    if (targetNow >= targetScoreRef.current) return;
+    window.setTimeout(() => {
+      const [next] = pick4(new Set([previousWord]));
+      if (next) confirmWord(next);
+    }, 400);
+  }
+
   // Realtime channel
   useEffect(() => {
     if (!me) return;
@@ -226,7 +291,10 @@ function Scribble() {
       persist();
     });
     ch.on("broadcast", { event: "round" }, ({ payload }) => {
-      const p = payload as { drawerId: string; endsAt: number; wordLen: number; seconds: number; mask: string };
+      const p = payload as { drawerId: string; endsAt: number; wordLen: number; seconds: number; mask: string; word?: string };
+      roundResolvedRef.current = false;
+      drawerIdRef.current = p.drawerId;
+      wordRef.current = p.word ?? null;
       setDrawerId(p.drawerId);
       setEndsAt(p.endsAt);
       setRoundSeconds(p.seconds);
@@ -237,33 +305,8 @@ function Scribble() {
       setMessages([]);
       strokes.current = [];
       redraw();
-      if (p.drawerId !== me.id) setWord(null);
+      setWord(p.word ?? null);
     });
-    const tryMatch = (by: string, name: string, text: string) => {
-      const w = wordRef.current;
-      if (!w) return false;
-      const norm = (s: string) => s.trim().toLowerCase().replace(/\s+/g, " ");
-      if (norm(text) !== norm(w)) return false;
-      chRef.current?.send({
-        type: "broadcast",
-        event: "correct",
-        payload: { by, word: w, name },
-      });
-      setMessages((m) => [
-        ...m,
-        { id: crypto.randomUUID(), by, name, text: `guessed “${w}”`, correct: true },
-      ]);
-      setScores((s) => {
-        const next = { ...s, [by]: (s[by] ?? 0) + 1 };
-        if (next[by] >= targetScore) setWinnerId(by);
-        return next;
-      });
-      setPhase("over");
-      setLastDrawerId(drawerId);
-      setEndsAt(null);
-      toast.success(`${name} guessed “${w}”! Their turn to draw.`);
-      return true;
-    };
     ch.on("broadcast", { event: "guess-live" }, ({ payload }) => {
       const p = payload as { by: string; name: string; text: string };
       tryMatch(p.by, p.name, p.text);
@@ -276,32 +319,7 @@ function Scribble() {
 
     ch.on("broadcast", { event: "correct" }, ({ payload }) => {
       const p = payload as { by: string; word: string; name: string };
-      setMessages((m) => [
-        ...m,
-        { id: crypto.randomUUID(), by: p.by, name: p.name, text: `guessed “${p.word}”`, correct: true },
-      ]);
-      setScores((s) => {
-        const next = { ...s, [p.by]: (s[p.by] ?? 0) + 1 };
-        if (next[p.by] >= targetScore) setWinnerId(p.by);
-        return next;
-      });
-      setPhase("over");
-      setLastDrawerId((prev) => drawerId ?? prev);
-      setEndsAt(null);
-      // Reveal the word to the drawer's UI too
-      setWord(p.word);
-      setHintMask(p.word);
-      if (p.by !== me.id) toast.success(`${p.name} guessed “${p.word}”! Their turn to draw.`);
-      else {
-        // I'm the winner (auto-detected by drawer) — auto-start next round.
-        toast.success(`Correct! The word was “${p.word}” — your turn to draw!`);
-        const targetNow = (scores[me.id] ?? 0) + 1;
-        if (targetNow >= targetScore) return; // winner overlay handles it
-        setTimeout(() => {
-          const [next] = pick4(new Set([p.word]));
-          if (next) confirmWord(next);
-        }, 400);
-      }
+      markCorrect(p.by, p.name, p.word, false);
     });
     ch.on("broadcast", { event: "reveal" }, ({ payload }) => {
       const p = payload as { indices: number[]; mask: string };
@@ -309,7 +327,10 @@ function Scribble() {
       if (p.mask) setHintMask(p.mask);
     });
     ch.on("broadcast", { event: "timeout" }, ({ payload }) => {
+      if (roundResolvedRef.current) return;
+      roundResolvedRef.current = true;
       const p = payload as { word: string };
+      wordRef.current = p.word;
       setWord(p.word);
       setHintMask(p.word);
       setPhase("over");
@@ -326,12 +347,14 @@ function Scribble() {
       supabase.removeChannel(ch);
       chRef.current = null;
     };
-  }, [me?.id, partner?.id, drawerId]);
+  }, [me?.id, partner?.id]);
 
   // Time out
   useEffect(() => {
     if (phase !== "playing" || !endsAt) return;
     if (now >= endsAt) {
+      if (roundResolvedRef.current) return;
+      roundResolvedRef.current = true;
       setPhase("over");
       setLastDrawerId(drawerId);
       // Only the drawer knows the word — broadcast it so the guesser also sees it.
@@ -412,6 +435,9 @@ function Scribble() {
 
   function confirmWord(w: string) {
     if (!me) return;
+    roundResolvedRef.current = false;
+    wordRef.current = w;
+    drawerIdRef.current = me.id;
     setWord(w);
     setWordLen(w.length);
     strokes.current = [];
@@ -427,7 +453,7 @@ function Scribble() {
     chRef.current?.send({
       type: "broadcast",
       event: "round",
-      payload: { drawerId: me.id, endsAt: ends, wordLen: w.length, seconds: roundSeconds, mask: initialMask },
+      payload: { drawerId: me.id, endsAt: ends, wordLen: w.length, seconds: roundSeconds, mask: initialMask, word: w },
     });
     chRef.current?.send({ type: "broadcast", event: "clear", payload: {} });
   }
@@ -436,14 +462,16 @@ function Scribble() {
     if (!me || !guess.trim() || phase !== "playing" || iAmDrawer) return;
     const text = guess.trim();
     setGuess("");
-    const msg: Msg = { id: crypto.randomUUID(), by: me.id, name: me.display_name ?? "You", text };
+    const name = me.display_name ?? "You";
+    if (tryMatch(me.id, name, text, true)) return;
+    const msg: Msg = { id: crypto.randomUUID(), by: me.id, name, text };
     setMessages((m) => [...m, msg]);
     chRef.current?.send({ type: "broadcast", event: "guess", payload: msg });
     // Force an un-throttled guess-live so the drawer can validate this exact submission.
     chRef.current?.send({
       type: "broadcast",
       event: "guess-live",
-      payload: { by: me.id, name: me.display_name ?? "Partner", text },
+      payload: { by: me.id, name, text },
     });
     // Drawer will broadcast "correct" back if it matches; nothing else to do locally.
   }
