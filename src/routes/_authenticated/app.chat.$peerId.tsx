@@ -264,7 +264,7 @@ function ChatPeer() {
       />
       <KissOverlay trigger={kissTick} emoji={kissEmoji} />
 
-      {activeLock && iAmLocked && (
+      {activeLock && iAmLocked && !isVerifyMode && (
         <PunishmentLockOverlay
           lock={activeLock}
           meId={me.id}
@@ -275,10 +275,24 @@ function ChatPeer() {
         />
       )}
 
+      {activeLock && isVerifyMode && verifyOpen && (
+        <PunishmentVerificationChat
+          lock={activeLock}
+          meId={me.id}
+          partnerName={peerDisplay}
+          iAmLocked={iAmLocked}
+          iAmLocker={iAmLocker}
+          onClose={() => setVerifyOpen(false)}
+          onCancel={iAmLocker ? () => cancelLock(activeLock.id) : undefined}
+        />
+      )}
+
       <PunishmentLockDialog
         open={lockDialogOpen}
         onClose={() => setLockDialogOpen(false)}
         targetName={peerDisplay}
+        mePrefs={me as unknown as Record<string, boolean>}
+        peerPrefs={peer as unknown as Record<string, boolean>}
         onCreate={createLock}
       />
     </div>
