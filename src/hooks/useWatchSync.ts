@@ -80,8 +80,10 @@ export function useWatchSync(
           ch.send({ type: "broadcast", event: "cmd", payload: { kind: "claimHost", from: meId } });
         }
       } else if (cmd.kind === "claimHost") {
+        hostRef.current = cmd.from;
         setHostId(cmd.from);
       } else if (cmd.kind === "releaseHost") {
+        if (hostRef.current === cmd.from) hostRef.current = null;
         setHostId((prev) => (prev === cmd.from ? null : prev));
       }
     });
@@ -147,6 +149,7 @@ export function useWatchSync(
 
   const claimHost = useCallback(() => {
     if (!meId) return;
+    hostRef.current = meId;
     setHostId(meId);
     chRef.current?.send({
       type: "broadcast",
@@ -157,6 +160,7 @@ export function useWatchSync(
 
   const releaseHost = useCallback(() => {
     if (!meId) return;
+    if (hostRef.current === meId) hostRef.current = null;
     setHostId((prev) => (prev === meId ? null : prev));
     chRef.current?.send({
       type: "broadcast",
