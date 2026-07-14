@@ -637,20 +637,24 @@ function Skeleton() {
   );
 }
 
-function AddMovieModal({ onClose }: { onClose: () => void }) {
+function MovieModal({ initial, onClose }: { initial?: CustomMovie | null; onClose: () => void }) {
+  const isEdit = !!initial;
   const create = useServerFn(createCustomMovie);
+  const update = useServerFn(updateCustomMovie);
+  const searchTmdb = useServerFn(tmdbSearch);
+  const getTmdb = useServerFn(tmdbMovie);
   const fileRef = useRef<HTMLInputElement>(null);
   const uploadRef = useRef<any>(null);
-  const [title, setTitle] = useState("");
-  const [year, setYear] = useState<string>("");
-  const [runtime, setRuntime] = useState<string>("");
-  const [overview, setOverview] = useState("");
-  const [poster, setPoster] = useState("");
-  const [backdrop, setBackdrop] = useState("");
-  const [genres, setGenres] = useState("");
-  const [videoUrl, setVideoUrl] = useState("");
-  const [videoPath, setVideoPath] = useState<string | null>(null);
-  const [videoFileName, setVideoFileName] = useState<string | null>(null);
+  const [title, setTitle] = useState(initial?.title ?? "");
+  const [year, setYear] = useState<string>(initial?.year != null ? String(initial.year) : "");
+  const [runtime, setRuntime] = useState<string>(initial?.runtime != null ? String(initial.runtime) : "");
+  const [overview, setOverview] = useState(initial?.overview ?? "");
+  const [poster, setPoster] = useState(initial?.poster_url ?? "");
+  const [backdrop, setBackdrop] = useState(initial?.backdrop_url ?? "");
+  const [genres, setGenres] = useState((initial?.genres ?? []).join(", "));
+  const [videoUrl, setVideoUrl] = useState(initial?.video_url ?? "");
+  const [videoPath, setVideoPath] = useState<string | null>(initial?.video_storage_path ?? null);
+  const [videoFileName, setVideoFileName] = useState<string | null>(initial?.video_storage_path ?? null);
   const [videoFileSize, setVideoFileSize] = useState<number>(0);
   const [uploading, setUploading] = useState(false);
   const [uploadPct, setUploadPct] = useState(0);
@@ -659,9 +663,46 @@ function AddMovieModal({ onClose }: { onClose: () => void }) {
   const [uploadErr, setUploadErr] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
+  // TMDB autofill search
+  const [tmdbQ, setTmdbQ] = useState("");
+  const [tmdbLoading, setTmdbLoading] = useState(false);
+  const [tmdbResults, setTmdbResults] = useState<TmdbMovie[]>([]);
+
+  async function runTmdbSearch() {
+    const q = tmdbQ.trim();
+    if (!q) return;
+    setTmdbLoading(true);
+    try {
+      const r = await searchTmdb({ data: { q } });
+      setTmdbResults(r.slice(0, 8));
+    } catch {
+      toast.error("TMDB search failed");
+    } finally {
+      setTmdbLoading(false);
+    }
+  }
+
+  async function pickTmdb(m: TmdbMovie) {
+    setTitle(m.title);
+    setOverview(m.overview ?? "");
+    setYear(m.release_date ? m.release_date.slice(0, 4) : "");
+    if (m.poster_path) setPoster(`https://image.tmdb.org/t/p/w500${m.poster_path}`);
+    if (m.backdrop_path) setBackdrop(`https://image.tmdb.org/t/p/w1280${m.backdrop_path}`);
+    setTmdbResults([]);
+    setTmdbQ("");
+    try {
+      const detail: any = await getTmdb({ data: { id: m.id } });
+      if (detail?.runtime) setRuntime(String(detail.runtime));
+      if (Array.isArray(detail?.genres)) {
+        setGenres(detail.genres.map((g: any) => g.name).filter(Boolean).join(", "));
+      }
+    } catch { /* ignore */ }
+    toast.success(`Autofilled from TMDB · ${m.title}`);
+  }
+
   const canSave = useMemo(
-    () => title.trim().length > 0 && (videoUrl.trim() || videoPath) && !uploading,
-    [title, videoUrl, videoPath, uploading],
+    () => title.trim().length > 0 && (isEdit || videoUrl.trim() || videoPath) && !uploading,
+    [title, videoUrl, videoPath, uploading, isEdit],
   );
 
   async function uploadFile(file: File) {
