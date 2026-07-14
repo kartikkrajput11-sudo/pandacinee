@@ -457,7 +457,7 @@ function CatalogWatch({ id }: { id: string }) {
       runSuppressedPlayerAction(() => {
         if (Math.abs(h.currentTime() - peer.currentTime) > 1.5) h.seek(peer.currentTime);
         if (evt === "pause") h.pause();
-        else h.play();
+        if (evt === "play") h.play();
       });
       if (evt === "seeked") toast.info(`${partner?.display_name.split(" ")[0]} skipped`);
       if (evt === "pause") toast.info(`${partner?.display_name.split(" ")[0]} paused`);
@@ -1510,7 +1510,7 @@ function CustomWatch({ customId }: { customId: string }) {
     lastAppliedPeerEventRef.current = peer.updatedAt;
     runSuppressed(() => {
       if (Math.abs(h.currentTime() - peer.currentTime) > 0.8) h.seek(peer.currentTime);
-      if (evt === "play" || evt === "seeked") h.play();
+      if (evt === "play") h.play();
       if (evt === "pause") h.pause();
     });
   }, [peer, partnerIsHost, runSuppressed]);
