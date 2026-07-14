@@ -79,8 +79,18 @@ function PuzzleTogether() {
 
   const activeImageUrl = customImage ?? PUZZLE_URL;
 
+  // Race state — puzzles are NOT synced; first to solve wins and can send a dare.
+  type Outcome = null | "winner" | "loser";
+  const [outcome, setOutcome] = useState<Outcome>(null);
+  const [partnerTime, setPartnerTime] = useState<number | null>(null);
+  const [dareText, setDareText] = useState("");
+  const [dareSent, setDareSent] = useState<string | null>(null);
+  const [dareReceived, setDareReceived] = useState<string | null>(null);
+  const [dareDone, setDareDone] = useState(false);
+
   const chRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
-  const applyingRemote = useRef(false);
+  const outcomeRef = useRef<Outcome>(null);
+  useEffect(() => { outcomeRef.current = outcome; }, [outcome]);
 
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 500);
