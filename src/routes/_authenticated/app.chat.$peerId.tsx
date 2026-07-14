@@ -20,7 +20,7 @@ import { usePunishmentVerification } from "@/hooks/usePunishmentVerification";
 import { UnlockCelebration } from "@/components/chat/UnlockCelebration";
 import { typeMeta } from "@/lib/punishment";
 
-const LOCKED_MSG_LIMIT = 10;
+
 
 import type { MessageRow } from "@/lib/chat";
 
@@ -85,16 +85,8 @@ function ChatPeer() {
     return null;
   }, [messages, me?.id]);
 
-  // Locked chat: the locked party can still whisper — but only 10 messages
-  // during a lock, so it actually feels locked. Count messages they've sent
-  // since the lock started.
-  const lockedMsgsUsed = useMemo(() => {
-    if (!activeLock || !iAmLocked || !me?.id) return 0;
-    const t0 = new Date(activeLock.created_at).getTime();
-    return messages.filter(
-      (m) => m.sender_id === me.id && new Date(m.created_at).getTime() >= t0,
-    ).length;
-  }, [activeLock, iAmLocked, messages, me?.id]);
+  // Note: the 10-message cap now lives inside the temporary verification chat
+  // (PunishmentVerificationChat) — the actual DM is not throttled.
 
   // Play the unlock animation whenever an active lock ends (punisher approved,
   // canceled, or otherwise wiped). Fires for both sides so the moment feels shared.
@@ -297,16 +289,9 @@ function ChatPeer() {
         onClearReply={() => setReplyTo(null)}
         onTyping={sendTyping}
         onSend={send}
-        locked={
-          iAmLocked && activeLock && lockedMsgsUsed >= LOCKED_MSG_LIMIT
-            ? { reason: `You've used all ${LOCKED_MSG_LIMIT} locked-chat messages — complete your ${activeLock.type} challenge to unlock.` }
-            : null
-        }
-        lockedHint={
-          iAmLocked && activeLock
-            ? `Locked chat · ${Math.max(0, LOCKED_MSG_LIMIT - lockedMsgsUsed)}/${LOCKED_MSG_LIMIT} messages left`
-            : null
-        }
+        locked={null}
+        lockedHint={null}
+
 
       />
       <KissOverlay trigger={kissTick} emoji={kissEmoji} />

@@ -53,6 +53,16 @@ export function PunishmentVerificationChat({ lock, meId, partnerName, iAmLocked,
     [messages],
   );
 
+  // Temporary "note" chat cap — the locked partner only gets 10 sends here,
+  // so the verification chat itself feels locked.
+  const LOCKED_MSG_LIMIT = 10;
+  const lockedMsgsUsed = useMemo(
+    () => messages.filter((m) => m.sender_id === meId).length,
+    [messages, meId],
+  );
+  const lockedMsgsLeft = Math.max(0, LOCKED_MSG_LIMIT - lockedMsgsUsed);
+  const lockedOut = iAmLocked && lockedMsgsLeft === 0;
+
   const submissionKindFor = (type: string): "text" | "image" | "video" | "voice" | "card" | "drawing" => {
     switch (type) {
       case "photo":    return "image";
@@ -70,6 +80,10 @@ export function PunishmentVerificationChat({ lock, meId, partnerName, iAmLocked,
   async function sendText(asSubmission: boolean) {
     const val = text.trim();
     if (!val) return;
+    if (iAmLocked && lockedOut) {
+      toast.error(`You've used all ${LOCKED_MSG_LIMIT} notes — finish your ${lock.type} challenge to unlock.`);
+      return;
+    }
     setSending(true);
     try {
       await sendMessage({ kind: "text", content: val, submission: asSubmission });
@@ -86,6 +100,7 @@ export function PunishmentVerificationChat({ lock, meId, partnerName, iAmLocked,
     e.target.value = "";
     if (!file) return;
     if (file.size > 60 * 1024 * 1024) return toast.error("Keep it under 60MB");
+    if (iAmLocked && lockedOut) return toast.error(`You've used all ${LOCKED_MSG_LIMIT} notes.`);
     setSending(true);
     try {
       const ext = (file.name.split(".").pop() || (kind === "image" ? "jpg" : "mp4")).toLowerCase();
@@ -105,6 +120,7 @@ export function PunishmentVerificationChat({ lock, meId, partnerName, iAmLocked,
 
   async function handleVoice(path: string, ms: number) {
     setVoiceOpen(false);
+    if (iAmLocked && lockedOut) { toast.error(`You've used all ${LOCKED_MSG_LIMIT} notes.`); return; }
     try {
       await sendMessage({
         kind: "voice",
@@ -119,6 +135,7 @@ export function PunishmentVerificationChat({ lock, meId, partnerName, iAmLocked,
 
   async function sendCard(t: (typeof CARD_TEMPLATES)[number], note: string) {
     setCardOpen(false);
+    if (iAmLocked && lockedOut) return toast.error(`You've used all ${LOCKED_MSG_LIMIT} notes.`);
     try {
       await sendMessage({
         kind: "card",
@@ -271,7 +288,7 @@ export function PunishmentVerificationChat({ lock, meId, partnerName, iAmLocked,
             />
             <button
               onClick={() => sendText(requiredKind === "text")}
-              disabled={sending || !text.trim()}
+              disabled={sending || !text.trim() || lockedOut}
               className="size-10 rounded-full bg-petal text-velvet disabled:opacity-50 flex items-center justify-center"
               aria-label="Send"
             >
@@ -279,19 +296,23 @@ export function PunishmentVerificationChat({ lock, meId, partnerName, iAmLocked,
             </button>
           </div>
 
-          {voiceOpen && (
+          {voiceOpen && !lockedOut && (
             <div className="mt-2 w-full rounded-2xl border border-petal/40 bg-petal-soft/20 p-2 flex items-stretch">
               <VoiceRecorder userId={meId} onSend={handleVoice} />
             </div>
           )}
 
-          {pendingSubmission ? (
+          {lockedOut ? (
+            <p className="text-[11px] text-center text-petal mt-2 font-semibold">
+              🔒 All {LOCKED_MSG_LIMIT} notes used — waiting on {partnerName} to review your submission.
+            </p>
+          ) : pendingSubmission ? (
             <p className="text-[11px] text-center text-candle-muted mt-2">
-              ⏳ Submission sent — waiting for approval.
+              ⏳ Submission sent — waiting for approval. · {lockedMsgsLeft}/{LOCKED_MSG_LIMIT} notes left
             </p>
           ) : (
             <p className="text-[11px] text-center text-candle-muted mt-2">
-              Submission type expected: <span className="text-petal">{requiredKind}</span>
+              Submission type expected: <span className="text-petal">{requiredKind}</span> · <span className="text-petal">{lockedMsgsLeft}/{LOCKED_MSG_LIMIT}</span> notes left
             </p>
           )}
         </div>
