@@ -430,9 +430,18 @@ function WatchMovie() {
     }
     lastAppliedPeerEventRef.current = peer.updatedAt;
 
+    // Follower hasn't tapped "Raise the curtain" yet — browsers block
+    // cross-origin autoplay-with-sound, so remounting the iframe here would
+    // just show a black screen. Instead, remember the host's timestamp so
+    // that when the follower taps, they jump straight to the host's spot.
+    if (!started) {
+      if (evt !== "pause") setStartAt(peer.currentTime);
+      return;
+    }
+
     // Pandacine (our own server): control the <video> directly through the
     // player handle so the follower keeps watching without a full remount.
-    if (isPandacine && customPlayerRef.current && started) {
+    if (isPandacine && customPlayerRef.current) {
       const h = customPlayerRef.current;
       if (Math.abs(h.currentTime() - peer.currentTime) > 1.5) h.seek(peer.currentTime);
       if (evt === "pause") h.pause();
