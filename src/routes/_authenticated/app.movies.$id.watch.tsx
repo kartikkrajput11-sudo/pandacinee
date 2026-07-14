@@ -73,6 +73,7 @@ function WatchMovie() {
   const partner = prof?.partner;
   const navigate = useNavigate();
   const [movie, setMovie] = useState<any>(null);
+  const [pandacine, setPandacine] = useState<{ videoSrc: string; title: string | null } | null>(null);
   const [sourceIdx, setSourceIdx] = useState(0);
   const [iframeKey, setIframeKey] = useState(0);
   const [started, setStarted] = useState(false);
