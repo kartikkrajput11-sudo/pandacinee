@@ -6,9 +6,7 @@ import {
   Send,
   RefreshCw,
   Maximize2,
-  ExternalLink,
   Play,
-  Users,
   Radio,
   Rewind,
   FastForward,
@@ -17,6 +15,12 @@ import {
   CircleDot,
   Wifi,
   WifiOff,
+  Moon,
+  MonitorPlay,
+  Server,
+  Check,
+  Heart,
+  MessageCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { tmdbMovie } from "@/lib/tmdb.functions";
@@ -31,25 +35,27 @@ type Source = { id: string; label: string; url: (tmdb: number, startAt?: number)
 const SOURCES: Source[] = [
   {
     id: "vidking-auto",
-    label: "VidKing Auto",
-    hint: "Autoplay enabled",
+    label: "Velvet HD",
+    hint: "Autoplay enabled — recommended",
     url: (id, t) =>
       `https://www.vidking.net/embed/movie/${id}?color=9146ff&autoPlay=true${t ? `&progress=${Math.floor(t)}` : ""}`,
   },
   {
     id: "vidking-manual",
-    label: "VidKing Manual",
+    label: "Velvet Manual",
     hint: "Press play inside the player",
     url: (id, t) =>
       `https://www.vidking.net/embed/movie/${id}?color=9146ff${t ? `&progress=${Math.floor(t)}` : ""}`,
   },
   {
     id: "vidking-clean",
-    label: "VidKing Clean",
-    hint: "Basic VidKing embed",
+    label: "Basic",
+    hint: "Minimal fallback embed",
     url: (id, t) => `https://www.vidking.net/embed/movie/${id}${t ? `?progress=${Math.floor(t)}` : ""}`,
   },
 ];
+
+const REACTIONS = ["❤️", "🔥", "😂", "😱", "🥰", "🍿"];
 
 export const Route = createFileRoute("/_authenticated/app/movies/$id/watch")({
   component: WatchMovie,
@@ -70,11 +76,14 @@ function WatchMovie() {
   const [iframeKey, setIframeKey] = useState(0);
   const [started, setStarted] = useState(false);
   const [playerLoading, setPlayerLoading] = useState(false);
-  const [embeddedPreview, setEmbeddedPreview] = useState(false);
   const [slowPlayer, setSlowPlayer] = useState(false);
   const [startAt, setStartAt] = useState<number | undefined>(undefined);
   const [autoFollow, setAutoFollow] = useState(false);
-  const publishTimer = useRef<number | null>(null);
+  const [cinemaMode, setCinemaMode] = useState(false);
+  const [sourceMenuOpen, setSourceMenuOpen] = useState(false);
+  const [sleepMinutes, setSleepMinutes] = useState<number | null>(null);
+  const [sleepAt, setSleepAt] = useState<number | null>(null);
+  const [floaties, setFloaties] = useState<{ id: number; emoji: string; x: number; from: "me" | "partner" }[]>([]);
   const lastPublishRef = useRef(0);
 
   const {
@@ -88,16 +97,15 @@ function WatchMovie() {
     clearCountdown,
     incomingSeek,
     clearIncomingSeek,
+    incomingReaction,
+    clearIncomingReaction,
+    sendReaction,
     drift,
   } = useWatchSync(me?.id ?? null, partner?.id ?? null, tmdbId, "movie");
 
   useEffect(() => {
     fetchMovie({ data: { id: tmdbId } }).then(setMovie).catch(() => setMovie(null));
   }, [tmdbId]);
-
-  useEffect(() => {
-    setEmbeddedPreview(window.self !== window.top);
-  }, []);
 
   // Capture VidKing events, publish to partner (throttled)
   useEffect(() => {
@@ -111,17 +119,13 @@ function WatchMovie() {
         const currentTime: number = Number(data.currentTime ?? 0);
         const duration: number = Number(data.duration ?? mine.duration ?? 0);
         setSlowPlayer(false);
-
         const now = Date.now();
-        // Throttle timeupdate; always send discrete events
         const isDiscrete = evt === "play" || evt === "pause" || evt === "seeked" || evt === "ended";
         if (isDiscrete || now - lastPublishRef.current > 2000) {
           lastPublishRef.current = now;
           publish({ event: evt, currentTime, duration, sourceIdx });
         }
-      } catch {
-        /* ignore non-JSON provider messages */
-      }
+      } catch {}
     };
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
@@ -134,7 +138,6 @@ function WatchMovie() {
     return () => window.clearTimeout(t);
   }, [started, sourceIdx, iframeKey]);
 
-  // Handle incoming seek command
   useEffect(() => {
     if (!incomingSeek) return;
     if (autoFollow) {
@@ -143,7 +146,33 @@ function WatchMovie() {
     }
   }, [incomingSeek, autoFollow]);
 
-  // Handle countdown → auto play
+  // Floating reactions from partner
+  useEffect(() => {
+    if (!incomingReaction) return;
+    const f = { id: incomingReaction.id, emoji: incomingReaction.emoji, x: 20 + Math.random() * 60, from: "partner" as const };
+    setFloaties((prev) => [...prev, f]);
+    const t = window.setTimeout(() => {
+      setFloaties((prev) => prev.filter((p) => p.id !== f.id));
+      clearIncomingReaction();
+    }, 2400);
+    return () => window.clearTimeout(t);
+  }, [incomingReaction, clearIncomingReaction]);
+
+  // Sleep timer
+  useEffect(() => {
+    if (!sleepAt) return;
+    const iv = window.setInterval(() => {
+      if (Date.now() >= sleepAt) {
+        // Reload iframe without autoplay to effectively pause
+        setStarted(false);
+        setSleepAt(null);
+        setSleepMinutes(null);
+        toast.info("Sleep timer — sweet dreams 🌙");
+      }
+    }, 1000);
+    return () => window.clearInterval(iv);
+  }, [sleepAt]);
+
   const [countdownRemaining, setCountdownRemaining] = useState<number | null>(null);
   useEffect(() => {
     if (!countdown) { setCountdownRemaining(null); return; }
@@ -151,7 +180,6 @@ function WatchMovie() {
       const rem = Math.ceil((countdown.startAt - Date.now()) / 1000);
       if (rem <= 0) {
         setCountdownRemaining(0);
-        // start playback at synced time if provided
         if (typeof countdown.time === "number") setStartAt(countdown.time);
         setStarted(true);
         setPlayerLoading(true);
@@ -167,10 +195,6 @@ function WatchMovie() {
   }, [countdown, clearCountdown]);
 
   const src = useMemo(() => SOURCES[sourceIdx].url(tmdbId, startAt), [sourceIdx, tmdbId, startAt]);
-  const fullPageUrl =
-    typeof window !== "undefined"
-      ? `${window.location.origin}/app/movies/${tmdbId}/watch`
-      : `/app/movies/${tmdbId}/watch`;
 
   const applySeek = useCallback((time: number) => {
     setStartAt(time);
@@ -200,13 +224,13 @@ function WatchMovie() {
 
   function switchSource(i: number) {
     setSourceIdx(i);
+    setSourceMenuOpen(false);
     setStarted(true);
     setPlayerLoading(true);
     setIframeKey((k) => k + 1);
   }
 
   function startCountdown(seconds = 4) {
-    // Broadcast + local start; sync at partner's current time if they're ahead of us
     const syncTime = peer && peer.currentTime > mine.currentTime ? peer.currentTime : mine.currentTime;
     sendCountdown(seconds, syncTime > 5 ? syncTime : undefined);
   }
@@ -218,9 +242,22 @@ function WatchMovie() {
   }
 
   function pullPartnerHere() {
-    // Ask partner to jump to my current time
     sendSeek(mine.currentTime);
     toast.success("Sync request sent 💞");
+  }
+
+  function fireReaction(emoji: string) {
+    const f = { id: Date.now() + Math.random(), emoji, x: 20 + Math.random() * 60, from: "me" as const };
+    setFloaties((prev) => [...prev, f]);
+    window.setTimeout(() => setFloaties((prev) => prev.filter((p) => p.id !== f.id)), 2400);
+    if (partner) sendReaction(emoji);
+  }
+
+  function setSleep(minutes: number | null) {
+    if (minutes == null) { setSleepMinutes(null); setSleepAt(null); toast.info("Sleep timer off"); return; }
+    setSleepMinutes(minutes);
+    setSleepAt(Date.now() + minutes * 60 * 1000);
+    toast.success(`Sleep in ${minutes} min 🌙`);
   }
 
   const progressPct = mine.duration > 0 ? Math.min(100, (mine.currentTime / mine.duration) * 100) : 0;
@@ -228,29 +265,54 @@ function WatchMovie() {
   const driftAbs = drift != null ? Math.abs(drift) : null;
   const inSync = driftAbs != null && driftAbs < 3;
   const partnerFirst = partner?.display_name.split(" ")[0] ?? "them";
+  const backdropUrl = movie?.backdrop_path ? `https://image.tmdb.org/t/p/w1280${movie.backdrop_path}` : null;
 
   return (
-    <div className="pt-8 pb-24">
-      <header className="px-5 pb-3 flex items-center gap-3 max-w-6xl mx-auto">
-        <Link to="/app/movies/$id" params={{ id }} className="text-candle-muted">
-          <ArrowLeft className="size-5" />
+    <div className={`relative min-h-screen pt-6 pb-24 transition-colors duration-500 ${cinemaMode ? "bg-black" : ""}`}>
+      {/* Ambient backdrop glow */}
+      {backdropUrl && !cinemaMode && (
+        <div
+          aria-hidden
+          className="pointer-events-none fixed inset-0 -z-10 opacity-30"
+          style={{
+            backgroundImage: `url(${backdropUrl})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            filter: "blur(80px) saturate(1.3)",
+          }}
+        />
+      )}
+      <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 bg-gradient-to-b from-velvet/90 via-velvet to-velvet" />
+
+      {/* Header */}
+      <header className={`px-5 pb-4 flex items-center gap-3 max-w-6xl mx-auto transition-opacity ${cinemaMode ? "opacity-30 hover:opacity-100" : ""}`}>
+        <Link to="/app/movies/$id" params={{ id }} className="size-9 rounded-full bg-surface/70 backdrop-blur border border-border flex items-center justify-center text-candle">
+          <ArrowLeft className="size-4" />
         </Link>
         <div className="flex-1 min-w-0">
-          <p className="text-[10px] uppercase tracking-widest text-petal flex items-center gap-1.5">
-            <Radio className="size-3 animate-pulse" /> Watch Party
+          <p className="text-[10px] uppercase tracking-[0.3em] text-petal flex items-center gap-1.5">
+            <Radio className="size-3 animate-pulse" /> Now Screening
           </p>
-          <h1 className="font-serif text-lg md:text-2xl italic truncate">
+          <h1 className="font-serif text-lg md:text-2xl italic truncate text-candle">
             {movie?.title ?? "Loading…"}
             {movie?.release_date && (
               <span className="text-candle-muted not-italic font-sans text-sm md:text-base ml-2">
-                ({movie.release_date.slice(0, 4)})
+                · {movie.release_date.slice(0, 4)}
               </span>
             )}
           </h1>
         </div>
         <button
+          onClick={() => setCinemaMode((v) => !v)}
+          className={`size-9 rounded-full backdrop-blur border flex items-center justify-center transition ${cinemaMode ? "bg-petal text-velvet border-petal" : "bg-surface/70 border-border text-candle"}`}
+          aria-label="Cinema mode"
+          title="Cinema mode"
+        >
+          <Moon className="size-4" />
+        </button>
+        <button
           onClick={openFullscreen}
-          className="size-9 rounded-full bg-surface border border-border flex items-center justify-center text-candle"
+          className="size-9 rounded-full bg-surface/70 backdrop-blur border border-border flex items-center justify-center text-candle"
           aria-label="Fullscreen"
         >
           <Maximize2 className="size-4" />
@@ -258,18 +320,9 @@ function WatchMovie() {
       </header>
 
       <div className="px-3 md:px-5 max-w-6xl mx-auto">
-        {embeddedPreview && (
-          <div className="mb-3 rounded-2xl border border-petal/30 bg-petal-soft/10 px-4 py-3 text-xs text-candle-muted leading-relaxed">
-            Playback works best in a full tab. Sync events still flow inside the preview.
-            <a href={fullPageUrl} target="_blank" rel="noreferrer" className="ml-2 text-petal font-semibold underline underline-offset-4">
-              Open full player
-            </a>
-          </div>
-        )}
-
         {/* Partner sync bar */}
-        {partner && (
-          <div className="mb-3 rounded-2xl border border-border bg-surface/70 backdrop-blur px-3 py-2.5 flex items-center gap-3">
+        {partner && !cinemaMode && (
+          <div className="mb-3 rounded-2xl border border-border bg-surface/60 backdrop-blur px-3 py-2.5 flex items-center gap-3">
             <div className="relative shrink-0">
               {partner.avatar_url ? (
                 <img src={partner.avatar_url} alt={partner.display_name} className="size-10 rounded-full object-cover border border-border" />
@@ -288,7 +341,7 @@ function WatchMovie() {
               <div className="flex items-center gap-2 text-xs">
                 <span className="text-candle font-semibold truncate">{partnerFirst}</span>
                 {partnerOnline ? (
-                  <span className="text-green-400 text-[10px] flex items-center gap-1"><Wifi className="size-2.5"/>in room</span>
+                  <span className="text-green-400 text-[10px] flex items-center gap-1"><Wifi className="size-2.5"/>in the room</span>
                 ) : (
                   <span className="text-candle-muted text-[10px] flex items-center gap-1"><WifiOff className="size-2.5"/>waiting</span>
                 )}
@@ -324,69 +377,99 @@ function WatchMovie() {
           </div>
         )}
 
-        {/* Player */}
-        <div className="relative rounded-2xl md:rounded-3xl overflow-hidden bg-black border border-border aspect-video">
-          {started ? (
-            <iframe
-              id="movie-frame"
-              key={`${sourceIdx}-${iframeKey}`}
-              src={src}
-              width="100%"
-              height="600"
-              frameBorder={0}
-              className="absolute inset-0 w-full h-full"
-              allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
-              onLoad={() => setPlayerLoading(false)}
-              allowFullScreen
-            />
-          ) : (
-            <button
-              onClick={() => { setStarted(true); setPlayerLoading(true); }}
-              className="absolute inset-0 w-full h-full flex flex-col items-center justify-center gap-3 group"
-              style={
-                movie?.backdrop_path
-                  ? {
-                      backgroundImage: `linear-gradient(to top, rgba(0,0,0,0.85), rgba(0,0,0,0.45)), url(https://image.tmdb.org/t/p/w1280${movie.backdrop_path})`,
-                      backgroundSize: "cover",
-                      backgroundPosition: "center",
-                    }
-                  : undefined
-              }
-            >
-              <span className="size-16 md:size-20 rounded-full bg-petal text-velvet flex items-center justify-center shadow-2xl shadow-petal/40 group-hover:scale-105 transition">
-                <Play className="size-7 md:size-9 fill-velvet ml-1" />
-              </span>
-              <span className="text-candle text-sm md:text-base font-medium">Tap to play</span>
-              <span className="text-candle-muted text-[11px] md:text-xs">Source: {SOURCES[sourceIdx].label}</span>
-            </button>
-          )}
-          {started && playerLoading && (
-            <div className="absolute inset-0 pointer-events-none flex items-center justify-center bg-velvet/80">
-              <div className="flex flex-col items-center gap-3 text-candle">
-                <RefreshCw className="size-6 animate-spin text-petal" />
-                <span className="text-xs uppercase tracking-widest text-candle-muted">Loading player</span>
+        {/* Player — framed like a cinema screen */}
+        <div className="relative">
+          {/* Petal glow halo */}
+          <div aria-hidden className="absolute -inset-2 rounded-[28px] bg-petal/20 blur-3xl opacity-60 pointer-events-none" />
+          <div className="relative rounded-2xl md:rounded-3xl overflow-hidden bg-black border border-petal/30 aspect-video shadow-[0_30px_80px_-20px_rgba(238,130,175,0.35)]">
+            {started ? (
+              <iframe
+                id="movie-frame"
+                key={`${sourceIdx}-${iframeKey}`}
+                src={src}
+                frameBorder={0}
+                className="absolute inset-0 w-full h-full"
+                allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+                onLoad={() => setPlayerLoading(false)}
+                allowFullScreen
+              />
+            ) : (
+              <button
+                onClick={() => { setStarted(true); setPlayerLoading(true); }}
+                className="absolute inset-0 w-full h-full flex flex-col items-center justify-center gap-3 group"
+                style={
+                  backdropUrl
+                    ? {
+                        backgroundImage: `linear-gradient(to top, rgba(10,5,15,0.9), rgba(10,5,15,0.35)), url(${backdropUrl})`,
+                        backgroundSize: "cover",
+                        backgroundPosition: "center",
+                      }
+                    : undefined
+                }
+              >
+                <span className="size-20 md:size-24 rounded-full bg-petal text-velvet flex items-center justify-center shadow-2xl shadow-petal/50 group-hover:scale-105 transition ring-4 ring-petal/20">
+                  <Play className="size-8 md:size-10 fill-velvet ml-1" />
+                </span>
+                <span className="text-candle font-serif italic text-lg md:text-xl">Raise the curtain</span>
+                <span className="text-candle-muted text-[11px] uppercase tracking-[0.25em]">{SOURCES[sourceIdx].label}</span>
+              </button>
+            )}
+
+            {/* Floating reactions layer */}
+            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+              {floaties.map((f) => (
+                <span
+                  key={f.id}
+                  className="absolute bottom-6 text-3xl md:text-4xl animate-float-up drop-shadow-[0_2px_12px_rgba(238,130,175,0.6)]"
+                  style={{ left: `${f.x}%` }}
+                >
+                  {f.emoji}
+                </span>
+              ))}
+            </div>
+
+            {started && playerLoading && (
+              <div className="absolute inset-0 pointer-events-none flex items-center justify-center bg-velvet/80">
+                <div className="flex flex-col items-center gap-3 text-candle">
+                  <RefreshCw className="size-6 animate-spin text-petal" />
+                  <span className="text-xs uppercase tracking-widest text-candle-muted">Dimming the lights</span>
+                </div>
               </div>
-            </div>
-          )}
-          {countdownRemaining != null && countdownRemaining > 0 && (
-            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-velvet/85 backdrop-blur-sm animate-fade-up">
-              <p className="text-[11px] uppercase tracking-widest text-petal mb-2">Pressing play together in</p>
-              <p className="font-serif text-8xl md:text-9xl italic text-candle drop-shadow-[0_4px_24px_rgba(238,130,175,0.5)]">
-                {countdownRemaining}
-              </p>
-              <p className="mt-3 text-xs text-candle-muted">with {partnerFirst} 💞</p>
-            </div>
-          )}
-          {started && slowPlayer && (
-            <div className="absolute left-3 right-3 bottom-3 rounded-2xl bg-velvet/90 border border-border px-3 py-2 text-[11px] text-candle-muted backdrop-blur">
-              Stuck at 00:00? Try <span className="text-petal">VidKing Manual</span> and press play inside the player.
-            </div>
-          )}
+            )}
+            {countdownRemaining != null && countdownRemaining > 0 && (
+              <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-velvet/85 backdrop-blur-sm">
+                <p className="text-[11px] uppercase tracking-[0.3em] text-petal mb-2">Pressing play together in</p>
+                <p className="font-serif text-8xl md:text-9xl italic text-candle drop-shadow-[0_4px_24px_rgba(238,130,175,0.5)]">
+                  {countdownRemaining}
+                </p>
+                <p className="mt-3 text-xs text-candle-muted">with {partnerFirst} 💞</p>
+              </div>
+            )}
+            {started && slowPlayer && (
+              <div className="absolute left-3 right-3 bottom-3 rounded-2xl bg-velvet/90 border border-border px-3 py-2 text-[11px] text-candle-muted backdrop-blur">
+                Stuck? Try a different server from the ✦ menu below.
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Floating reaction bar */}
+        <div className="mt-3 flex items-center justify-center gap-1.5">
+          {REACTIONS.map((emoji) => (
+            <button
+              key={emoji}
+              onClick={() => fireReaction(emoji)}
+              className="size-10 rounded-full bg-surface/70 backdrop-blur border border-border hover:border-petal/60 hover:bg-petal/10 flex items-center justify-center text-xl transition active:scale-90"
+              aria-label={`React ${emoji}`}
+            >
+              {emoji}
+            </button>
+          ))}
         </div>
 
         {/* Incoming seek request */}
         {incomingSeek && !autoFollow && (
-          <div className="mt-3 rounded-2xl border border-petal bg-petal-soft/15 px-3 py-2.5 flex items-center gap-3 animate-fade-up">
+          <div className="mt-3 rounded-2xl border border-petal bg-petal/10 px-3 py-2.5 flex items-center gap-3">
             <Sparkles className="size-4 text-petal shrink-0" />
             <p className="text-xs text-candle flex-1">
               {partnerFirst} wants to sync at <span className="text-petal font-semibold">{fmtTime(incomingSeek.time)}</span>
@@ -406,120 +489,133 @@ function WatchMovie() {
           </div>
         )}
 
-        {/* Sync controls */}
-        {partner && (
-          <div className="mt-3 rounded-2xl border border-border bg-surface/50 px-3 py-2.5">
-            <div className="flex items-center gap-2 mb-2">
-              <Users className="size-3.5 text-petal" />
-              <span className="text-[10px] uppercase tracking-widest text-candle-muted">Sync tools</span>
-              <label className="ml-auto flex items-center gap-1.5 text-[10px] text-candle-muted cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={autoFollow}
-                  onChange={(e) => setAutoFollow(e.target.checked)}
-                  className="accent-petal"
-                />
-                Auto-follow {partnerFirst}
-              </label>
+        {/* Refined controls row */}
+        <div className={`mt-4 grid gap-3 ${cinemaMode ? "opacity-40 hover:opacity-100 transition" : ""}`}>
+          {/* Together tools */}
+          {partner && (
+            <div className="rounded-2xl border border-border bg-surface/40 backdrop-blur px-3 py-3">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] uppercase tracking-[0.3em] text-candle-muted">Together</span>
+                <label className="flex items-center gap-1.5 text-[10px] text-candle-muted cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={autoFollow}
+                    onChange={(e) => setAutoFollow(e.target.checked)}
+                    className="accent-petal"
+                  />
+                  Auto-follow {partnerFirst}
+                </label>
+              </div>
+              <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
+                <button
+                  onClick={() => startCountdown(4)}
+                  className="shrink-0 h-9 px-4 rounded-full bg-petal text-velvet text-xs font-semibold flex items-center gap-1.5 shadow-lg shadow-petal/30"
+                >
+                  <Timer className="size-3.5" /> Press play together
+                </button>
+                <button
+                  onClick={syncToPartner}
+                  disabled={!peer}
+                  className="shrink-0 h-9 px-3 rounded-full bg-surface border border-border text-xs text-candle flex items-center gap-1.5 disabled:opacity-40"
+                >
+                  <Rewind className="size-3.5" /> Jump to {partnerFirst}
+                </button>
+                <button
+                  onClick={pullPartnerHere}
+                  className="shrink-0 h-9 px-3 rounded-full bg-surface border border-border text-xs text-candle flex items-center gap-1.5"
+                >
+                  <FastForward className="size-3.5" /> Pull them here
+                </button>
+              </div>
             </div>
-            <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
+          )}
+
+          {/* Row: source menu + sleep timer + invite */}
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+            {/* Source dropdown */}
+            <div className="relative">
               <button
-                onClick={() => startCountdown(4)}
-                className="shrink-0 h-9 px-4 rounded-full bg-petal text-velvet text-xs font-semibold flex items-center gap-1.5 shadow-lg shadow-petal/30"
+                onClick={() => setSourceMenuOpen((v) => !v)}
+                className="w-full h-11 rounded-2xl bg-surface/60 backdrop-blur border border-border text-candle text-xs font-medium flex items-center justify-center gap-2"
               >
-                <Timer className="size-3.5" /> Watch together (3-2-1)
+                <Server className="size-3.5 text-petal" />
+                <span className="truncate">{SOURCES[sourceIdx].label}</span>
               </button>
-              <button
-                onClick={syncToPartner}
-                disabled={!peer}
-                className="shrink-0 h-9 px-3 rounded-full bg-surface border border-border text-xs text-candle flex items-center gap-1.5 disabled:opacity-40"
-              >
-                <Rewind className="size-3.5" /> Jump to {partnerFirst}
-              </button>
-              <button
-                onClick={pullPartnerHere}
-                className="shrink-0 h-9 px-3 rounded-full bg-surface border border-border text-xs text-candle flex items-center gap-1.5"
-              >
-                <FastForward className="size-3.5" /> Pull them here
-              </button>
-              <button
-                onClick={() => { setStartAt(undefined); setStarted(true); setPlayerLoading(true); setIframeKey((k) => k + 1); }}
-                className="shrink-0 h-9 px-3 rounded-full bg-surface border border-border text-xs text-candle-muted flex items-center gap-1.5"
-                title="Restart from beginning"
-              >
-                <RefreshCw className="size-3.5" /> Restart
-              </button>
+              {sourceMenuOpen && (
+                <div className="absolute z-20 top-full mt-2 left-0 right-0 rounded-2xl bg-velvet border border-border shadow-2xl shadow-black/60 overflow-hidden">
+                  {SOURCES.map((s, i) => (
+                    <button
+                      key={s.id}
+                      onClick={() => switchSource(i)}
+                      className="w-full px-3 py-2.5 flex items-start gap-2 text-left hover:bg-petal/10 border-b border-border/50 last:border-0"
+                    >
+                      <Check className={`size-3.5 mt-0.5 shrink-0 ${i === sourceIdx ? "text-petal" : "text-transparent"}`} />
+                      <div className="min-w-0">
+                        <div className="text-xs text-candle font-medium">{s.label}</div>
+                        <div className="text-[10px] text-candle-muted truncate">{s.hint}</div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
+
+            {/* Sleep timer */}
+            <div className="relative group">
+              <button className="w-full h-11 rounded-2xl bg-surface/60 backdrop-blur border border-border text-candle text-xs font-medium flex items-center justify-center gap-2">
+                <Moon className="size-3.5 text-petal" />
+                <span>{sleepMinutes ? `Sleep ${sleepMinutes}m` : "Sleep timer"}</span>
+              </button>
+              <div className="absolute z-20 top-full mt-2 left-0 right-0 rounded-2xl bg-velvet border border-border shadow-2xl shadow-black/60 overflow-hidden opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto group-focus-within:opacity-100 group-focus-within:pointer-events-auto transition">
+                {[15, 30, 45, 60, 90].map((m) => (
+                  <button
+                    key={m}
+                    onClick={() => setSleep(m)}
+                    className="w-full px-3 py-2 text-left text-xs text-candle hover:bg-petal/10 border-b border-border/50"
+                  >
+                    In {m} minutes
+                  </button>
+                ))}
+                {sleepMinutes && (
+                  <button
+                    onClick={() => setSleep(null)}
+                    className="w-full px-3 py-2 text-left text-xs text-rose-400 hover:bg-petal/10"
+                  >
+                    Cancel timer
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Invite / chat */}
+            {partner ? (
+              <button
+                onClick={inviteToWatch}
+                className="h-11 rounded-2xl bg-petal text-velvet font-semibold text-xs flex items-center justify-center gap-2 col-span-2 md:col-span-1 shadow-lg shadow-petal/30"
+              >
+                <Send className="size-4" /> Invite {partnerFirst}
+              </button>
+            ) : (
+              <Link
+                to="/app/invite"
+                className="h-11 rounded-2xl bg-petal text-velvet font-semibold text-xs flex items-center justify-center gap-2 col-span-2 md:col-span-1"
+              >
+                <Send className="size-4" /> Invite partner
+              </Link>
+            )}
           </div>
-        )}
 
-        <div className="mt-3 flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
-          <span className="text-[10px] uppercase tracking-widest text-candle-muted shrink-0 pr-1">Sources</span>
-          {SOURCES.map((s, i) => (
-            <button
-              key={s.id}
-              onClick={() => switchSource(i)}
-              title={s.hint}
-              className={`shrink-0 px-3 h-8 rounded-full text-xs border transition ${
-                i === sourceIdx
-                  ? "bg-petal text-velvet border-petal"
-                  : "bg-surface text-candle border-border hover:border-petal/60"
-              }`}
-            >
-              {s.label}
-            </button>
-          ))}
-          <a
-            href={src}
-            target="_blank"
-            rel="noreferrer"
-            className="shrink-0 h-8 px-3 rounded-full bg-surface border border-border text-xs text-candle-muted flex items-center gap-1.5"
-          >
-            <ExternalLink className="size-3" /> New tab
-          </a>
-        </div>
-
-        <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-3">
-          {partner ? (
-            <button
-              onClick={inviteToWatch}
-              className="flex items-center justify-center gap-2 h-11 rounded-full bg-petal text-velvet font-semibold text-sm"
-            >
-              <Send className="size-4" /> Invite {partnerFirst} again
-            </button>
-          ) : (
+          {/* Chat with partner shortcut */}
+          {partner && (
             <Link
-              to="/app/invite"
-              className="flex items-center justify-center gap-2 h-11 rounded-full bg-petal text-velvet font-semibold text-sm"
+              to="/app/chat/$peerId"
+              params={{ peerId: partner.id }}
+              className="h-10 rounded-2xl bg-surface/40 backdrop-blur border border-border text-candle-muted text-xs flex items-center justify-center gap-2 hover:text-petal hover:border-petal/40 transition"
             >
-              <Send className="size-4" /> Invite partner
+              <MessageCircle className="size-3.5" /> Whisper to {partnerFirst}
             </Link>
           )}
-          <Link
-            to="/app/movies/$id"
-            params={{ id }}
-            className="flex items-center justify-center gap-2 h-11 rounded-full bg-surface border border-border text-candle text-sm"
-          >
-            Back to details
-          </Link>
         </div>
-
-        {movie?.overview && (
-          <div className="mt-6">
-            <p className="text-[10px] uppercase tracking-widest text-candle-muted mb-2">Synopsis</p>
-            <p className="text-sm text-candle leading-relaxed max-w-3xl">{movie.overview}</p>
-          </div>
-        )}
-
-        {Array.isArray(movie?.genres) && movie.genres.length > 0 && (
-          <div className="mt-5 flex flex-wrap gap-2">
-            {movie.genres.map((g: any) => (
-              <span key={g.id} className="px-3 h-7 inline-flex items-center rounded-full bg-surface border border-border text-[11px] text-candle-muted">
-                {g.name}
-              </span>
-            ))}
-          </div>
-        )}
       </div>
 
       {me && partner && movie && (
@@ -623,10 +719,6 @@ function CustomWatch({ customId }: { customId: string }) {
               <span className="text-[10px] text-amber-400">±{fmtTime(Math.abs(drift))}</span>
             )}
           </div>
-        )}
-
-        {movie?.overview && (
-          <p className="mt-5 text-sm text-candle leading-relaxed">{movie.overview}</p>
         )}
       </div>
     </div>
