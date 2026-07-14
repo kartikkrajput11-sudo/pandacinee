@@ -13,7 +13,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { claimAdmin, createCustomMovie, deleteCustomMovie } from "@/lib/admin.functions";
 import { getAdminStats, getRecentActivity, getAdminUsers, deleteAdminUser, type ActivityItem, type AdminUserRow } from "@/lib/admin-stats.functions";
 
-export const Route = createFileRoute("/_authenticated/app/admin")({
+export const Route = createFileRoute("/_authenticated/app/tamanna")({
   component: AdminPage,
 });
 
