@@ -36,6 +36,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/integrations/supabase/client";
 import { WatchTogetherPanel } from "@/components/watch/WatchTogetherPanel";
 import { useWatchSync, fmtTime } from "@/hooks/useWatchSync";
+import { useScreenShare } from "@/hooks/useScreenShare";
 import { CustomMoviePlayer, type CustomPlayerHandle } from "@/components/CustomMoviePlayer";
 import { useFriendships } from "@/hooks/useFriends";
 
