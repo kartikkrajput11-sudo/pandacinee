@@ -875,23 +875,26 @@ function WatchMovie() {
                 </div>
               )}
 
-              {/* Compact pill row: countdown + source + invite + whisper */}
-              <div className="flex items-center gap-2 overflow-x-auto no-scrollbar flex-nowrap whitespace-nowrap">
+              {/* Compact pill row: countdown + source + invite + whisper (fits on one line) */}
+              <div className="flex items-center gap-1.5 flex-nowrap whitespace-nowrap">
                 <button
                   onClick={() => startCountdown(4)}
-                  className="shrink-0 h-9 px-4 rounded-full bg-surface border border-border text-xs text-candle flex items-center gap-1.5"
+                  title="Countdown together"
+                  className="shrink min-w-0 h-8 px-2.5 rounded-full bg-surface border border-border text-[10px] text-candle flex items-center gap-1"
                 >
-                  <Timer className="size-3.5" /> Countdown together
+                  <Timer className="size-3 shrink-0" />
+                  <span className="truncate">Countdown</span>
                 </button>
 
                 {/* Source pill */}
-                <div className="relative shrink-0">
+                <div className="relative shrink min-w-0">
                   <button
                     onClick={() => setSourceMenuOpen((v) => !v)}
-                    className="h-9 px-4 rounded-full bg-surface border border-border text-xs text-candle flex items-center gap-1.5"
+                    title={currentSource?.label ?? "Server"}
+                    className="h-8 px-2.5 rounded-full bg-surface border border-border text-[10px] text-candle flex items-center gap-1 max-w-full"
                   >
-                    <Server className="size-3.5 text-petal" />
-                    <span className="truncate max-w-[7rem]">{currentSource?.label ?? "Server"}</span>
+                    <Server className="size-3 text-petal shrink-0" />
+                    <span className="truncate">{currentSource?.label ?? "Server"}</span>
                   </button>
                   {sourceMenuOpen && (
                     <div className="absolute z-20 top-full mt-2 left-0 min-w-[14rem] rounded-2xl bg-velvet border border-border shadow-2xl shadow-black/60 overflow-hidden">
@@ -921,16 +924,19 @@ function WatchMovie() {
                 {partner ? (
                   <button
                     onClick={inviteToWatch}
-                    className="shrink-0 h-9 px-4 rounded-full bg-petal text-velvet text-xs font-semibold flex items-center gap-1.5 shadow-lg shadow-petal/30"
+                    title={`Invite ${partnerFirst}`}
+                    className="shrink min-w-0 h-8 px-2.5 rounded-full bg-petal text-velvet text-[10px] font-semibold flex items-center gap-1 shadow-lg shadow-petal/30"
                   >
-                    <Send className="size-3.5" /> Invite {partnerFirst}
+                    <Send className="size-3 shrink-0" />
+                    <span className="truncate">Invite</span>
                   </button>
                 ) : (
                   <Link
                     to="/app/invite"
-                    className="shrink-0 h-9 px-4 rounded-full bg-petal text-velvet text-xs font-semibold flex items-center gap-1.5"
+                    className="shrink min-w-0 h-8 px-2.5 rounded-full bg-petal text-velvet text-[10px] font-semibold flex items-center gap-1"
                   >
-                    <Send className="size-3.5" /> Invite partner
+                    <Send className="size-3 shrink-0" />
+                    <span className="truncate">Invite</span>
                   </Link>
                 )}
 
@@ -939,9 +945,11 @@ function WatchMovie() {
                   <Link
                     to="/app/chat/$peerId"
                     params={{ peerId: partner.id }}
-                    className="shrink-0 h-9 px-4 rounded-full bg-surface border border-border text-xs text-candle flex items-center gap-1.5 hover:text-petal hover:border-petal/40 transition"
+                    title={`Whisper ${partnerFirst}`}
+                    className="shrink min-w-0 h-8 px-2.5 rounded-full bg-surface border border-border text-[10px] text-candle flex items-center gap-1 hover:text-petal hover:border-petal/40 transition"
                   >
-                    <MessageCircle className="size-3.5" /> Whisper {partnerFirst}
+                    <MessageCircle className="size-3 shrink-0" />
+                    <span className="truncate">Whisper</span>
                   </Link>
                 )}
               </div>
