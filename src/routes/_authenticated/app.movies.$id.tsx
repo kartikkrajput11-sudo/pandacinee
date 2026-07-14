@@ -24,9 +24,10 @@ function MovieDetail() {
   const { id } = Route.useParams();
   const isCustom = id.startsWith("custom:");
   const location = useLocation();
-  const isWatchRoute = location.pathname.endsWith("/watch");
+  const basePath = `/app/movies/${id}`;
+  const hasChildRoute = location.pathname.length > basePath.length;
 
-  if (isWatchRoute) return <Outlet />;
+  if (hasChildRoute) return <Outlet />;
   if (isCustom) return <CustomMovieDetail customId={id.slice("custom:".length)} />;
 
   const fetchMovie = useServerFn(tmdbMovie);

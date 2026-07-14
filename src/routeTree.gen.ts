@@ -43,6 +43,7 @@ import { Route as AuthenticatedAppChatPeerIdRouteImport } from './routes/_authen
 import { Route as AuthenticatedAppCallPeerIdRouteImport } from './routes/_authenticated/app.call.$peerId'
 import { Route as AuthenticatedAppMoviesIdWatchRouteImport } from './routes/_authenticated/app.movies.$id.watch'
 import { Route as AuthenticatedAppChatGroupGroupIdRouteImport } from './routes/_authenticated/app.chat.group.$groupId'
+import { Route as AuthenticatedAppMoviesIdEpisodeSeasonEpisodeRouteImport } from './routes/_authenticated/app.movies.$id.episode.$season.$episode'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -230,6 +231,12 @@ const AuthenticatedAppChatGroupGroupIdRoute =
     path: '/chat/group/$groupId',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppMoviesIdEpisodeSeasonEpisodeRoute =
+  AuthenticatedAppMoviesIdEpisodeSeasonEpisodeRouteImport.update({
+    id: '/episode/$season/$episode',
+    path: '/episode/$season/$episode',
+    getParentRoute: () => AuthenticatedAppMoviesIdRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -265,6 +272,7 @@ export interface FileRoutesByFullPath {
   '/app/movies/': typeof AuthenticatedAppMoviesIndexRoute
   '/app/chat/group/$groupId': typeof AuthenticatedAppChatGroupGroupIdRoute
   '/app/movies/$id/watch': typeof AuthenticatedAppMoviesIdWatchRoute
+  '/app/movies/$id/episode/$season/$episode': typeof AuthenticatedAppMoviesIdEpisodeSeasonEpisodeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -298,6 +306,7 @@ export interface FileRoutesByTo {
   '/app/movies': typeof AuthenticatedAppMoviesIndexRoute
   '/app/chat/group/$groupId': typeof AuthenticatedAppChatGroupGroupIdRoute
   '/app/movies/$id/watch': typeof AuthenticatedAppMoviesIdWatchRoute
+  '/app/movies/$id/episode/$season/$episode': typeof AuthenticatedAppMoviesIdEpisodeSeasonEpisodeRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -335,6 +344,7 @@ export interface FileRoutesById {
   '/_authenticated/app/movies/': typeof AuthenticatedAppMoviesIndexRoute
   '/_authenticated/app/chat/group/$groupId': typeof AuthenticatedAppChatGroupGroupIdRoute
   '/_authenticated/app/movies/$id/watch': typeof AuthenticatedAppMoviesIdWatchRoute
+  '/_authenticated/app/movies/$id/episode/$season/$episode': typeof AuthenticatedAppMoviesIdEpisodeSeasonEpisodeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -372,6 +382,7 @@ export interface FileRouteTypes {
     | '/app/movies/'
     | '/app/chat/group/$groupId'
     | '/app/movies/$id/watch'
+    | '/app/movies/$id/episode/$season/$episode'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -405,6 +416,7 @@ export interface FileRouteTypes {
     | '/app/movies'
     | '/app/chat/group/$groupId'
     | '/app/movies/$id/watch'
+    | '/app/movies/$id/episode/$season/$episode'
   id:
     | '__root__'
     | '/'
@@ -441,6 +453,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/movies/'
     | '/_authenticated/app/chat/group/$groupId'
     | '/_authenticated/app/movies/$id/watch'
+    | '/_authenticated/app/movies/$id/episode/$season/$episode'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -690,16 +703,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppChatGroupGroupIdRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/movies/$id/episode/$season/$episode': {
+      id: '/_authenticated/app/movies/$id/episode/$season/$episode'
+      path: '/episode/$season/$episode'
+      fullPath: '/app/movies/$id/episode/$season/$episode'
+      preLoaderRoute: typeof AuthenticatedAppMoviesIdEpisodeSeasonEpisodeRouteImport
+      parentRoute: typeof AuthenticatedAppMoviesIdRoute
+    }
   }
 }
 
 interface AuthenticatedAppMoviesIdRouteChildren {
   AuthenticatedAppMoviesIdWatchRoute: typeof AuthenticatedAppMoviesIdWatchRoute
+  AuthenticatedAppMoviesIdEpisodeSeasonEpisodeRoute: typeof AuthenticatedAppMoviesIdEpisodeSeasonEpisodeRoute
 }
 
 const AuthenticatedAppMoviesIdRouteChildren: AuthenticatedAppMoviesIdRouteChildren =
   {
     AuthenticatedAppMoviesIdWatchRoute: AuthenticatedAppMoviesIdWatchRoute,
+    AuthenticatedAppMoviesIdEpisodeSeasonEpisodeRoute:
+      AuthenticatedAppMoviesIdEpisodeSeasonEpisodeRoute,
   }
 
 const AuthenticatedAppMoviesIdRouteWithChildren =
