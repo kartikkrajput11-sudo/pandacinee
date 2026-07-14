@@ -940,7 +940,12 @@ function CatalogWatch({ id }: { id: string }) {
                     : undefined
                 }
               >
-                <span className="size-20 md:size-24 rounded-full bg-petal text-velvet flex items-center justify-center shadow-2xl shadow-petal/50 group-hover:scale-105 transition ring-4 ring-petal/20">
+                {partnerIsHost && peer && peer.event !== "pause" && (
+                  <span className="absolute top-4 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-full bg-petal text-velvet text-[10px] uppercase tracking-[0.25em] font-bold shadow-lg shadow-petal/50 animate-pulse">
+                    {partnerFirst} is watching · tap to join
+                  </span>
+                )}
+                <span className={`size-20 md:size-24 rounded-full bg-petal text-velvet flex items-center justify-center shadow-2xl shadow-petal/50 group-hover:scale-105 transition ring-4 ring-petal/20 ${partnerIsHost && peer && peer.event !== "pause" ? "animate-pulse" : ""}`}>
                   <Play className="size-8 md:size-10 fill-velvet ml-1" />
                 </span>
                 <span className="text-candle font-serif italic text-lg md:text-xl">
