@@ -44,6 +44,8 @@ export function ChatBubble({
   const reactionsEntries = Object.entries(m.reactions ?? {}).filter(([, ids]) => ids.length > 0);
 
   const isSticker = m.type === "sticker";
+  const pandaUrl = isSticker ? pandaStickerUrl(m.content ?? "") : null;
+  const isPandaSticker = !!pandaUrl;
   const isWatchInvite = m.type === "watch_invite";
   const isGameInvite = m.type === "game_invite";
   const isMovieWheel = m.type === "movie_wheel";
