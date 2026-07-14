@@ -173,6 +173,10 @@ function Movies() {
           inline
         />
 
+        {custom.length > 0 && (
+          <CustomRail title="Our Private Library" movies={custom} />
+        )}
+
         {recent.length > 0 && (
           <Rail
             title="Continue Watching"
