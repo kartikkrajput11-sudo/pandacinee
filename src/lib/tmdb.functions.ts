@@ -78,8 +78,16 @@ export const tmdbSearch = createServerFn({ method: "GET" })
 export const tmdbMovie = createServerFn({ method: "GET" })
   .inputValidator((d: { id: number }) => d)
   .handler(async ({ data }) => {
-    const movie = await tmdb<any>(`/movie/${data.id}`, { append_to_response: "credits,videos,similar" });
-    return movie;
+    const movie = await tmdbOrNull<any>(`/movie/${data.id}`, { append_to_response: "credits,videos,similar" });
+    if (movie) return movie;
+    // Fallback: id may actually be a TV series
+    const tv = await tmdbOrNull<any>(`/tv/${data.id}`, { append_to_response: "credits,videos,similar" });
+    if (!tv) return null;
+    tv.title = tv.name ?? tv.original_name ?? null;
+    tv.release_date = tv.first_air_date ?? null;
+    tv.runtime = Array.isArray(tv.episode_run_time) && tv.episode_run_time[0] ? tv.episode_run_time[0] : null;
+    tv.media_type = "tv";
+    return tv;
   });
 
 export const tmdbCategory = createServerFn({ method: "GET" })
