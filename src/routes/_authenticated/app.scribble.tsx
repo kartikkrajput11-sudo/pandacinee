@@ -158,11 +158,12 @@ function Scribble() {
       redraw();
     });
     ch.on("broadcast", { event: "round" }, ({ payload }) => {
-      const p = payload as { drawerId: string; endsAt: number; wordLen: number; seconds: number };
+      const p = payload as { drawerId: string; endsAt: number; wordLen: number; seconds: number; mask: string };
       setDrawerId(p.drawerId);
       setEndsAt(p.endsAt);
       setRoundSeconds(p.seconds);
       setWordLen(p.wordLen);
+      setHintMask(p.mask);
       setPhase("playing");
       setRevealed(new Set());
       setMessages([]);
