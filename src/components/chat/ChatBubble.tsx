@@ -95,6 +95,7 @@ export function ChatBubble({
           {m.type === "sticker" && <span>{m.content}</span>}
           {isWatchInvite && <WatchInviteCard m={m} mine={mine} />}
           {isGameInvite && <GameInviteCard m={m} mine={mine} />}
+          {isMovieWheel && <MovieWheelCard m={m} mine={mine} />}
 
           {isKiss && (
             <div className={`px-4 py-3 rounded-2xl border ${mine ? "border-velvet/30 bg-velvet/10 text-velvet" : "border-petal/40 bg-petal-soft/30 text-candle"} flex items-center gap-3`}>
