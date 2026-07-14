@@ -106,25 +106,55 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
     }
   }
 
+  async function uploadAndSend(
+    file: File,
+    kind: "image" | "video" | "file",
+    payload: (path: string) => Parameters<typeof onSend>[0],
+    label: string,
+  ) {
+    setMenuOpen(false);
+    const ext = (file.name.split(".").pop() || "bin").toLowerCase();
+    const task = (async () => {
+      const path = await uploadChatMedia(file, meId, kind, ext);
+      await onSend(payload(path));
+      onClearReply();
+    })();
+    toast.promise(task, {
+      loading: `Sending ${label}…`,
+      success: `${label[0].toUpperCase()}${label.slice(1)} sent`,
+      error: (err: any) => err?.message ?? "Upload failed",
+    });
+    try { await task; } catch { /* toast already shown */ }
+  }
+
   async function handleImage(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
-    setMenuOpen(false);
-    try {
-      const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
-      const path = await uploadChatMedia(file, meId, "image", ext);
-      await onSend({
-        type: "image",
-        media_url: path,
-        media_meta: { name: file.name, size: file.size, mime: file.type },
-        reply_to_id: replyTo?.id ?? null,
-        disappear_seconds: disappearSecs,
-      });
-      onClearReply();
-    } catch (err: any) {
-      toast.error(err?.message ?? "Upload failed");
+    await uploadAndSend(file, "image", (path) => ({
+      type: "image",
+      media_url: path,
+      media_meta: { name: file.name, size: file.size, mime: file.type },
+      reply_to_id: replyTo?.id ?? null,
+      disappear_seconds: disappearSecs,
+    }), "photo");
+  }
+
+  async function handleVideo(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    if (file.size > 60 * 1024 * 1024) {
+      toast.error("Video too large (max 60 MB)");
+      return;
     }
+    await uploadAndSend(file, "video", (path) => ({
+      type: "video",
+      media_url: path,
+      media_meta: { name: file.name, size: file.size, mime: file.type },
+      reply_to_id: replyTo?.id ?? null,
+      disappear_seconds: disappearSecs,
+    }), "video");
   }
 
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
