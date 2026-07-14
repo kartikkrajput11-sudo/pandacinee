@@ -134,3 +134,64 @@ export const generateGameCard = createServerFn({ method: "POST" })
       throw new Error("AI couldn't generate a card. Try again.");
     }
   });
+
+/** Generate a 5-question quiz about the couple based on hints they provide. */
+const QuizQuestion = z.object({
+  q: z.string().min(4),
+  options: z.array(z.string().min(1)).length(4),
+  answer: z.number().int().min(0).max(3),
+});
+const QuizSchema = z.object({ questions: z.array(QuizQuestion).length(5) });
+
+export const generateLoveQuiz = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        // Optional hints: nicknames, favorites, memories the couple shared.
+        hints: z.string().max(2000).optional(),
+        seed: z.number().int().optional(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data }) => {
+    const key = process.env.LOVABLE_API_KEY;
+    if (!key) throw new Error("AI is not configured");
+    const gateway = createLovableAiGatewayProvider(key);
+    const seed = data.seed ?? Math.floor(Math.random() * 1_000_000);
+
+    const system =
+      "You generate short, warm 'how well do you know your partner' quizzes for couples. Playful, consensual, safe. Always respond with valid JSON only, no prose, no code fences.";
+    const prompt = `Return ONLY a JSON object like {"questions":[{"q":"...","options":["a","b","c","d"],"answer":0}, ...]} with exactly 5 questions. Each question has 4 concise options (2-6 words) and one correct answer index (0-3). Use general couple-relatable questions like favorites, habits, love languages, ideal dates. Keep questions under 14 words. Seed:${seed}. ${
+      data.hints ? `Couple hints: ${data.hints}` : ""
+    }`.trim();
+
+    try {
+      const { output } = await generateText({
+        model: gateway("google/gemini-2.5-flash"),
+        system,
+        prompt,
+        output: Output.object({ schema: QuizSchema as z.ZodType<any> }),
+      });
+      return { quiz: output, seed };
+    } catch (err: any) {
+      const msg = String(err?.message ?? "");
+      if (msg.includes("429")) throw new Error("AI is busy — try again in a moment.");
+      if (msg.includes("402"))
+        throw new Error("AI credits exhausted. Add credits to keep playing.");
+      // Fallback quiz so the game is always playable
+      return {
+        quiz: {
+          questions: [
+            { q: "Their ideal weekend?", options: ["Cozy in", "Wild night out", "Nature trip", "Café hopping"], answer: 0 },
+            { q: "Their comfort snack?", options: ["Chocolate", "Chips", "Ice cream", "Instant noodles"], answer: 2 },
+            { q: "Preferred love language?", options: ["Words", "Touch", "Gifts", "Quality time"], answer: 3 },
+            { q: "Their morning mood?", options: ["Sunshine", "Grumpy", "Sleepy", "Chatty"], answer: 2 },
+            { q: "Their dream trip?", options: ["Beach", "Mountains", "City", "Countryside"], answer: 0 },
+          ],
+        },
+        seed,
+      };
+    }
+  });
+

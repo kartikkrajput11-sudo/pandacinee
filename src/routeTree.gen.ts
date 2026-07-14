@@ -17,13 +17,16 @@ import { Route as AuthenticatedAppIndexRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedAppWishlistRouteImport } from './routes/_authenticated/app.wishlist'
 import { Route as AuthenticatedAppWatchRouteImport } from './routes/_authenticated/app.watch'
 import { Route as AuthenticatedAppScribbleRouteImport } from './routes/_authenticated/app.scribble'
+import { Route as AuthenticatedAppPuzzleRouteImport } from './routes/_authenticated/app.puzzle'
 import { Route as AuthenticatedAppPlayRouteImport } from './routes/_authenticated/app.play'
 import { Route as AuthenticatedAppPartnerRouteImport } from './routes/_authenticated/app.partner'
 import { Route as AuthenticatedAppPaintRouteImport } from './routes/_authenticated/app.paint'
 import { Route as AuthenticatedAppMoviesRouteImport } from './routes/_authenticated/app.movies'
 import { Route as AuthenticatedAppMoodRouteImport } from './routes/_authenticated/app.mood'
+import { Route as AuthenticatedAppMemoryChallengeRouteImport } from './routes/_authenticated/app.memory-challenge'
 import { Route as AuthenticatedAppMemoriesRouteImport } from './routes/_authenticated/app.memories'
 import { Route as AuthenticatedAppMeRouteImport } from './routes/_authenticated/app.me'
+import { Route as AuthenticatedAppLoveQuizRouteImport } from './routes/_authenticated/app.love-quiz'
 import { Route as AuthenticatedAppInviteRouteImport } from './routes/_authenticated/app.invite'
 import { Route as AuthenticatedAppHelpRouteImport } from './routes/_authenticated/app.help'
 import { Route as AuthenticatedAppFriendsRouteImport } from './routes/_authenticated/app.friends'
@@ -80,6 +83,11 @@ const AuthenticatedAppScribbleRoute =
     path: '/scribble',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppPuzzleRoute = AuthenticatedAppPuzzleRouteImport.update({
+  id: '/puzzle',
+  path: '/puzzle',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
 const AuthenticatedAppPlayRoute = AuthenticatedAppPlayRouteImport.update({
   id: '/play',
   path: '/play',
@@ -105,6 +113,12 @@ const AuthenticatedAppMoodRoute = AuthenticatedAppMoodRouteImport.update({
   path: '/mood',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
+const AuthenticatedAppMemoryChallengeRoute =
+  AuthenticatedAppMemoryChallengeRouteImport.update({
+    id: '/memory-challenge',
+    path: '/memory-challenge',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppMemoriesRoute =
   AuthenticatedAppMemoriesRouteImport.update({
     id: '/memories',
@@ -116,6 +130,12 @@ const AuthenticatedAppMeRoute = AuthenticatedAppMeRouteImport.update({
   path: '/me',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
+const AuthenticatedAppLoveQuizRoute =
+  AuthenticatedAppLoveQuizRouteImport.update({
+    id: '/love-quiz',
+    path: '/love-quiz',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppInviteRoute = AuthenticatedAppInviteRouteImport.update({
   id: '/invite',
   path: '/invite',
@@ -207,13 +227,16 @@ export interface FileRoutesByFullPath {
   '/app/friends': typeof AuthenticatedAppFriendsRoute
   '/app/help': typeof AuthenticatedAppHelpRoute
   '/app/invite': typeof AuthenticatedAppInviteRoute
+  '/app/love-quiz': typeof AuthenticatedAppLoveQuizRoute
   '/app/me': typeof AuthenticatedAppMeRoute
   '/app/memories': typeof AuthenticatedAppMemoriesRoute
+  '/app/memory-challenge': typeof AuthenticatedAppMemoryChallengeRoute
   '/app/mood': typeof AuthenticatedAppMoodRoute
   '/app/movies': typeof AuthenticatedAppMoviesRouteWithChildren
   '/app/paint': typeof AuthenticatedAppPaintRoute
   '/app/partner': typeof AuthenticatedAppPartnerRoute
   '/app/play': typeof AuthenticatedAppPlayRoute
+  '/app/puzzle': typeof AuthenticatedAppPuzzleRoute
   '/app/scribble': typeof AuthenticatedAppScribbleRoute
   '/app/watch': typeof AuthenticatedAppWatchRoute
   '/app/wishlist': typeof AuthenticatedAppWishlistRoute
@@ -236,12 +259,15 @@ export interface FileRoutesByTo {
   '/app/friends': typeof AuthenticatedAppFriendsRoute
   '/app/help': typeof AuthenticatedAppHelpRoute
   '/app/invite': typeof AuthenticatedAppInviteRoute
+  '/app/love-quiz': typeof AuthenticatedAppLoveQuizRoute
   '/app/me': typeof AuthenticatedAppMeRoute
   '/app/memories': typeof AuthenticatedAppMemoriesRoute
+  '/app/memory-challenge': typeof AuthenticatedAppMemoryChallengeRoute
   '/app/mood': typeof AuthenticatedAppMoodRoute
   '/app/paint': typeof AuthenticatedAppPaintRoute
   '/app/partner': typeof AuthenticatedAppPartnerRoute
   '/app/play': typeof AuthenticatedAppPlayRoute
+  '/app/puzzle': typeof AuthenticatedAppPuzzleRoute
   '/app/scribble': typeof AuthenticatedAppScribbleRoute
   '/app/watch': typeof AuthenticatedAppWatchRoute
   '/app/wishlist': typeof AuthenticatedAppWishlistRoute
@@ -267,13 +293,16 @@ export interface FileRoutesById {
   '/_authenticated/app/friends': typeof AuthenticatedAppFriendsRoute
   '/_authenticated/app/help': typeof AuthenticatedAppHelpRoute
   '/_authenticated/app/invite': typeof AuthenticatedAppInviteRoute
+  '/_authenticated/app/love-quiz': typeof AuthenticatedAppLoveQuizRoute
   '/_authenticated/app/me': typeof AuthenticatedAppMeRoute
   '/_authenticated/app/memories': typeof AuthenticatedAppMemoriesRoute
+  '/_authenticated/app/memory-challenge': typeof AuthenticatedAppMemoryChallengeRoute
   '/_authenticated/app/mood': typeof AuthenticatedAppMoodRoute
   '/_authenticated/app/movies': typeof AuthenticatedAppMoviesRouteWithChildren
   '/_authenticated/app/paint': typeof AuthenticatedAppPaintRoute
   '/_authenticated/app/partner': typeof AuthenticatedAppPartnerRoute
   '/_authenticated/app/play': typeof AuthenticatedAppPlayRoute
+  '/_authenticated/app/puzzle': typeof AuthenticatedAppPuzzleRoute
   '/_authenticated/app/scribble': typeof AuthenticatedAppScribbleRoute
   '/_authenticated/app/watch': typeof AuthenticatedAppWatchRoute
   '/_authenticated/app/wishlist': typeof AuthenticatedAppWishlistRoute
@@ -299,13 +328,16 @@ export interface FileRouteTypes {
     | '/app/friends'
     | '/app/help'
     | '/app/invite'
+    | '/app/love-quiz'
     | '/app/me'
     | '/app/memories'
+    | '/app/memory-challenge'
     | '/app/mood'
     | '/app/movies'
     | '/app/paint'
     | '/app/partner'
     | '/app/play'
+    | '/app/puzzle'
     | '/app/scribble'
     | '/app/watch'
     | '/app/wishlist'
@@ -328,12 +360,15 @@ export interface FileRouteTypes {
     | '/app/friends'
     | '/app/help'
     | '/app/invite'
+    | '/app/love-quiz'
     | '/app/me'
     | '/app/memories'
+    | '/app/memory-challenge'
     | '/app/mood'
     | '/app/paint'
     | '/app/partner'
     | '/app/play'
+    | '/app/puzzle'
     | '/app/scribble'
     | '/app/watch'
     | '/app/wishlist'
@@ -358,13 +393,16 @@ export interface FileRouteTypes {
     | '/_authenticated/app/friends'
     | '/_authenticated/app/help'
     | '/_authenticated/app/invite'
+    | '/_authenticated/app/love-quiz'
     | '/_authenticated/app/me'
     | '/_authenticated/app/memories'
+    | '/_authenticated/app/memory-challenge'
     | '/_authenticated/app/mood'
     | '/_authenticated/app/movies'
     | '/_authenticated/app/paint'
     | '/_authenticated/app/partner'
     | '/_authenticated/app/play'
+    | '/_authenticated/app/puzzle'
     | '/_authenticated/app/scribble'
     | '/_authenticated/app/watch'
     | '/_authenticated/app/wishlist'
@@ -444,6 +482,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppScribbleRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/puzzle': {
+      id: '/_authenticated/app/puzzle'
+      path: '/puzzle'
+      fullPath: '/app/puzzle'
+      preLoaderRoute: typeof AuthenticatedAppPuzzleRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/play': {
       id: '/_authenticated/app/play'
       path: '/play'
@@ -479,6 +524,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppMoodRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/memory-challenge': {
+      id: '/_authenticated/app/memory-challenge'
+      path: '/memory-challenge'
+      fullPath: '/app/memory-challenge'
+      preLoaderRoute: typeof AuthenticatedAppMemoryChallengeRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/memories': {
       id: '/_authenticated/app/memories'
       path: '/memories'
@@ -491,6 +543,13 @@ declare module '@tanstack/react-router' {
       path: '/me'
       fullPath: '/app/me'
       preLoaderRoute: typeof AuthenticatedAppMeRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/love-quiz': {
+      id: '/_authenticated/app/love-quiz'
+      path: '/love-quiz'
+      fullPath: '/app/love-quiz'
+      preLoaderRoute: typeof AuthenticatedAppLoveQuizRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/invite': {
@@ -631,13 +690,16 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppFriendsRoute: typeof AuthenticatedAppFriendsRoute
   AuthenticatedAppHelpRoute: typeof AuthenticatedAppHelpRoute
   AuthenticatedAppInviteRoute: typeof AuthenticatedAppInviteRoute
+  AuthenticatedAppLoveQuizRoute: typeof AuthenticatedAppLoveQuizRoute
   AuthenticatedAppMeRoute: typeof AuthenticatedAppMeRoute
   AuthenticatedAppMemoriesRoute: typeof AuthenticatedAppMemoriesRoute
+  AuthenticatedAppMemoryChallengeRoute: typeof AuthenticatedAppMemoryChallengeRoute
   AuthenticatedAppMoodRoute: typeof AuthenticatedAppMoodRoute
   AuthenticatedAppMoviesRoute: typeof AuthenticatedAppMoviesRouteWithChildren
   AuthenticatedAppPaintRoute: typeof AuthenticatedAppPaintRoute
   AuthenticatedAppPartnerRoute: typeof AuthenticatedAppPartnerRoute
   AuthenticatedAppPlayRoute: typeof AuthenticatedAppPlayRoute
+  AuthenticatedAppPuzzleRoute: typeof AuthenticatedAppPuzzleRoute
   AuthenticatedAppScribbleRoute: typeof AuthenticatedAppScribbleRoute
   AuthenticatedAppWatchRoute: typeof AuthenticatedAppWatchRoute
   AuthenticatedAppWishlistRoute: typeof AuthenticatedAppWishlistRoute
@@ -655,13 +717,16 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppFriendsRoute: AuthenticatedAppFriendsRoute,
   AuthenticatedAppHelpRoute: AuthenticatedAppHelpRoute,
   AuthenticatedAppInviteRoute: AuthenticatedAppInviteRoute,
+  AuthenticatedAppLoveQuizRoute: AuthenticatedAppLoveQuizRoute,
   AuthenticatedAppMeRoute: AuthenticatedAppMeRoute,
   AuthenticatedAppMemoriesRoute: AuthenticatedAppMemoriesRoute,
+  AuthenticatedAppMemoryChallengeRoute: AuthenticatedAppMemoryChallengeRoute,
   AuthenticatedAppMoodRoute: AuthenticatedAppMoodRoute,
   AuthenticatedAppMoviesRoute: AuthenticatedAppMoviesRouteWithChildren,
   AuthenticatedAppPaintRoute: AuthenticatedAppPaintRoute,
   AuthenticatedAppPartnerRoute: AuthenticatedAppPartnerRoute,
   AuthenticatedAppPlayRoute: AuthenticatedAppPlayRoute,
+  AuthenticatedAppPuzzleRoute: AuthenticatedAppPuzzleRoute,
   AuthenticatedAppScribbleRoute: AuthenticatedAppScribbleRoute,
   AuthenticatedAppWatchRoute: AuthenticatedAppWatchRoute,
   AuthenticatedAppWishlistRoute: AuthenticatedAppWishlistRoute,
