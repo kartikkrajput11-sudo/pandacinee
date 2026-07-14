@@ -437,3 +437,58 @@ export function WatchTogetherPanel({
 
   return fsEl && !inline ? createPortal(content, fsEl) : content;
 }
+
+/** Draggable floating container. Long-press or hold on the handle to move. */
+function DraggableFab({ children }: { children: React.ReactNode }) {
+  const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
+  const dragRef = useRef<{ startX: number; startY: number; ox: number; oy: number } | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  function onPointerDown(e: React.PointerEvent) {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    dragRef.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      ox: rect.left,
+      oy: rect.top,
+    };
+    (e.target as Element).setPointerCapture?.(e.pointerId);
+  }
+  function onPointerMove(e: React.PointerEvent) {
+    if (!dragRef.current) return;
+    const dx = e.clientX - dragRef.current.startX;
+    const dy = e.clientY - dragRef.current.startY;
+    if (Math.abs(dx) < 4 && Math.abs(dy) < 4 && !pos) return;
+    const nx = Math.max(8, Math.min(window.innerWidth - 80, dragRef.current.ox + dx));
+    const ny = Math.max(8, Math.min(window.innerHeight - 80, dragRef.current.oy + dy));
+    setPos({ x: nx, y: ny });
+  }
+  function onPointerUp() {
+    dragRef.current = null;
+  }
+
+  const style: React.CSSProperties = pos
+    ? { left: pos.x, top: pos.y, right: "auto", bottom: "auto" }
+    : { right: 16, bottom: 96 };
+
+  return (
+    <div
+      ref={containerRef}
+      className="fixed z-40 flex flex-col items-center select-none touch-none"
+      style={style}
+    >
+      {/* Drag handle */}
+      <div
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerUp}
+        className="mb-1.5 w-10 h-1.5 rounded-full bg-white/40 hover:bg-white/70 cursor-grab active:cursor-grabbing shadow"
+        aria-label="Drag to move"
+        title="Drag to move"
+      />
+      {children}
+    </div>
+  );
+}
