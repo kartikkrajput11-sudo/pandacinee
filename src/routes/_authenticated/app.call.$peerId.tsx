@@ -239,32 +239,60 @@ function Call() {
   const showRings = !isConnected && status !== "ended";
 
   return (
-    <div className="fixed inset-0 flex flex-col overflow-hidden bg-velvet text-candle">
-      {/* Ambient gradient background */}
+    <div className="fixed inset-0 flex flex-col overflow-hidden bg-[#0f0714] text-white">
+      {/* Candlelit background — velvet vignette + rose/amber glows + film grain */}
       <div className="absolute inset-0 -z-10">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,hsl(var(--petal)/0.35),transparent_55%),radial-gradient(circle_at_85%_90%,hsl(var(--petal)/0.25),transparent_60%),linear-gradient(180deg,hsl(var(--velvet)),#0a0510)]" />
-        <div className="absolute inset-0 opacity-40 mix-blend-screen bg-[conic-gradient(from_0deg_at_50%_50%,transparent,hsl(var(--petal)/0.15),transparent_30%)] animate-[spin_18s_linear_infinite]" />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,#0f0714_0%,#160820_45%,#0a0510_100%)]" />
+        <div className="absolute top-1/4 -left-10 w-72 h-72 rounded-full bg-rose-900/20 blur-[110px] animate-[pulse_6s_ease-in-out_infinite]" />
+        <div className="absolute bottom-1/4 -right-10 w-80 h-80 rounded-full bg-amber-900/15 blur-[130px] animate-[pulse_7s_ease-in-out_infinite]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,transparent_10%,#0f0714_110%)]" />
       </div>
+      {/* Fine noise grain for cinematic texture */}
+      <div
+        className="pointer-events-none absolute inset-0 z-[1] opacity-[0.05] mix-blend-overlay"
+        style={{
+          backgroundImage:
+            "url('data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22n%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.8%22 numOctaves=%224%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23n)%22/%3E%3C/svg%3E')",
+        }}
+      />
 
       {/* Header */}
-      <header className="relative z-20 flex items-center justify-between px-5 pt-5 pb-3">
+      <header className="relative z-20 flex items-start justify-between px-5 pt-6 pb-3">
         <Link
           to="/app"
-          className="size-10 rounded-full bg-surface/70 backdrop-blur border border-border/60 flex items-center justify-center text-candle-muted hover:text-petal transition-colors"
+          className="size-10 rounded-full bg-white/[0.04] backdrop-blur-xl border border-white/10 flex items-center justify-center text-white/70 hover:text-amber-200/90 transition-colors"
         >
           <ArrowLeft className="size-4" />
         </Link>
-        <div className="text-center">
-          <p className="text-[10px] uppercase tracking-[0.25em] text-petal flex items-center gap-1.5 justify-center">
-            <Signal className={`size-3 ${isConnected ? "text-petal" : "text-candle-muted animate-pulse"}`} />
-            {mode === "video" ? "Video call" : "Voice call"}
-          </p>
-          <p className="text-[11px] tabular-nums text-candle-muted mt-0.5">{statusLabel}</p>
+        <div className="flex flex-col items-center gap-1 pt-1">
+          <span className="text-[10px] font-medium uppercase tracking-[0.4em] text-white/40 flex items-center gap-2">
+            <Signal className={`size-2.5 ${isConnected ? "text-amber-300/80" : "text-white/30 animate-pulse"}`} />
+            {mode === "video" ? "Video Call" : "Voice Call"}
+          </span>
+          <div className="flex items-baseline gap-2">
+            <span className="text-base sm:text-lg font-light tracking-wide text-white/85">
+              {isConnected ? "" : role === "caller" ? "Calling" : "Ringing"}
+            </span>
+            <span className="font-serif italic text-xl sm:text-2xl text-amber-100/90 drop-shadow-[0_2px_6px_rgba(0,0,0,0.5)]">
+              {peer.display_name || "…"}
+            </span>
+          </div>
+          {isConnected ? (
+            <p className="text-[11px] tabular-nums text-amber-200/60 tracking-[0.2em]">{statusLabel}</p>
+          ) : (
+            <div className="flex gap-1.5 mt-1">
+              <span className="size-1 rounded-full bg-amber-300/80 animate-pulse" />
+              <span className="size-1 rounded-full bg-amber-300/50 animate-pulse [animation-delay:150ms]" />
+              <span className="size-1 rounded-full bg-amber-300/30 animate-pulse [animation-delay:300ms]" />
+            </div>
+          )}
         </div>
         <button
           onClick={() => setChatOpen((c) => !c)}
-          className={`size-10 rounded-full backdrop-blur border flex items-center justify-center transition-colors ${
-            chatOpen ? "bg-petal text-velvet border-petal" : "bg-surface/70 border-border/60 text-petal hover:bg-petal/10"
+          className={`size-10 rounded-full backdrop-blur-xl border flex items-center justify-center transition-colors ${
+            chatOpen
+              ? "bg-amber-200/90 text-[#0f0714] border-amber-200"
+              : "bg-white/[0.04] border-white/10 text-amber-100/80 hover:bg-white/10"
           }`}
           aria-label="Chat"
         >
@@ -281,14 +309,19 @@ function Call() {
               autoPlay
               playsInline
               muted
-              className="absolute inset-0 w-full h-full object-cover bg-black"
+              className="absolute inset-0 w-full h-full object-cover"
             />
-            {/* Local self-view */}
-            <div className="absolute top-4 right-4 w-24 h-36 sm:w-28 sm:h-40 rounded-2xl overflow-hidden border border-white/20 shadow-2xl bg-black">
+            {/* Cinematic overlays on top of the remote video */}
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0f0714] via-transparent to-[#0f0714]/40" />
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_20%,rgba(15,7,20,0.55)_100%)]" />
+
+            {/* Self-view PiP — glass-edged, candle-glow shadow */}
+            <div className="absolute bottom-32 right-5 w-24 h-36 sm:w-28 sm:h-40 rounded-[28px] overflow-hidden border border-white/15 ring-1 ring-white/5 shadow-[0_18px_40px_rgba(0,0,0,0.7)] bg-black">
               <video ref={localRef} autoPlay playsInline muted className="w-full h-full object-cover" />
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
               {videoOff && (
-                <div className="absolute inset-0 bg-velvet flex items-center justify-center">
-                  <VideoOff className="size-5 text-candle-muted" />
+                <div className="absolute inset-0 bg-[#0f0714] flex items-center justify-center">
+                  <VideoOff className="size-5 text-white/50" />
                 </div>
               )}
             </div>
@@ -298,51 +331,49 @@ function Call() {
             <div className="relative flex items-center justify-center">
               {showRings && (
                 <>
-                  <span className="absolute size-52 rounded-full bg-petal/15 animate-ping" />
-                  <span className="absolute size-64 rounded-full border border-petal/30 animate-pulse" />
-                  <span className="absolute size-80 rounded-full border border-petal/10" />
+                  <span className="absolute size-56 rounded-full bg-amber-300/10 animate-ping" />
+                  <span className="absolute size-72 rounded-full border border-amber-200/20 animate-pulse" />
+                  <span className="absolute size-[22rem] rounded-full border border-amber-200/5" />
                 </>
               )}
-              <div className="relative size-40 rounded-full bg-gradient-to-br from-petal-soft to-petal/40 border border-petal/40 overflow-hidden shadow-[0_0_60px_hsl(var(--petal)/0.4)]">
+              <div className="relative size-40 rounded-full bg-gradient-to-br from-amber-100/30 to-rose-900/40 border border-amber-200/30 overflow-hidden shadow-[0_0_80px_rgba(251,191,36,0.25)]">
                 <CallAvatar path={peer.avatar_url} name={peer.display_name} />
               </div>
             </div>
-            <p className="mt-8 font-serif italic text-2xl text-candle">
+            <p className="mt-10 font-serif italic text-3xl text-amber-100/90 drop-shadow-[0_2px_10px_rgba(0,0,0,0.6)]">
               {peer.display_name || "Connecting…"}
             </p>
-            <p className="mt-1 text-xs uppercase tracking-widest text-candle-muted">
-              {isConnected ? "in your ear" : statusLabel}
+            <p className="mt-2 text-[10px] uppercase tracking-[0.4em] text-white/40">
+              {isConnected ? "In your ear" : statusLabel}
             </p>
           </div>
         )}
 
-        {/* Dedicated remote-audio element — always mounted so the peer's
-            voice plays even in video mode or before the video track arrives. */}
         <audio ref={remoteAudioRef} autoPlay playsInline className="hidden" />
 
         {mode === "video" && !remoteStream && (
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
             <div className="relative flex items-center justify-center">
-              <span className="absolute size-44 rounded-full bg-petal/15 animate-ping" />
-              <div className="relative size-32 rounded-full bg-gradient-to-br from-petal-soft to-petal/40 border border-petal/40 overflow-hidden">
+              <span className="absolute size-48 rounded-full bg-amber-300/10 animate-ping" />
+              <div className="relative size-32 rounded-full bg-gradient-to-br from-amber-100/30 to-rose-900/40 border border-amber-200/30 overflow-hidden shadow-[0_0_60px_rgba(251,191,36,0.2)]">
                 <CallAvatar path={peer.avatar_url} name={peer.display_name} />
               </div>
             </div>
-            <p className="mt-6 font-serif italic text-xl">{peer.display_name || "Connecting…"}</p>
+            <p className="mt-8 font-serif italic text-2xl text-amber-100/90">{peer.display_name || "Connecting…"}</p>
           </div>
         )}
 
         {audioBlocked && !error && (
           <button
             onClick={enableSound}
-            className="absolute bottom-32 left-4 right-4 p-3 bg-petal text-velvet rounded-2xl text-sm font-semibold flex items-center justify-center gap-2 shadow-xl animate-fade-in"
+            className="absolute bottom-36 left-5 right-5 p-3 bg-amber-200/95 text-[#0f0714] rounded-2xl text-sm font-semibold flex items-center justify-center gap-2 shadow-[0_10px_30px_rgba(251,191,36,0.35)] animate-fade-in"
           >
             <Volume2 className="size-4" /> Tap to hear {peer.display_name || "them"}
           </button>
         )}
 
         {error && (
-          <div className="absolute bottom-32 left-4 right-4 p-3 bg-surface/90 backdrop-blur border border-petal/40 rounded-2xl text-sm text-candle text-center">
+          <div className="absolute bottom-36 left-5 right-5 p-3 bg-white/[0.06] backdrop-blur-xl border border-rose-400/30 rounded-2xl text-sm text-white/90 text-center">
             {error}
           </div>
         )}
@@ -357,9 +388,9 @@ function Call() {
         )}
       </div>
 
-      {/* Controls */}
-      <div className="relative z-20 px-6 pb-10 pt-4">
-        <div className="mx-auto max-w-md bg-surface/60 backdrop-blur-xl border border-border/60 rounded-full p-3 flex items-center justify-around shadow-2xl">
+      {/* Control dock — candlelit glass */}
+      <div className="relative z-20 px-5 pb-8 pt-3">
+        <div className="mx-auto max-w-md bg-white/[0.04] backdrop-blur-3xl border border-white/10 rounded-[36px] p-2 flex items-center justify-between shadow-[0_12px_40px_rgba(0,0,0,0.6),inset_0_1px_1px_rgba(255,255,255,0.06)]">
           <ControlButton
             active={muted}
             onClick={() => { toggleAudio(); setMuted((m) => !m); }}
@@ -393,10 +424,10 @@ function Call() {
 
           <button
             onClick={() => { hangup(); navigate({ to: "/app" }); }}
-            className="size-16 rounded-full bg-gradient-to-br from-red-500 to-red-600 text-white flex items-center justify-center shadow-[0_10px_30px_rgba(239,68,68,0.5)] hover:scale-105 active:scale-95 transition-transform"
+            className="relative w-20 h-12 rounded-[24px] bg-[#e11d48] text-white flex items-center justify-center shadow-[0_8px_25px_rgba(225,29,72,0.45),inset_0_2px_4px_rgba(255,255,255,0.28)] active:scale-95 active:brightness-90 transition-transform"
             aria-label="End call"
           >
-            <PhoneOff className="size-6" />
+            <PhoneOff className="size-5" />
           </button>
         </div>
       </div>
@@ -419,16 +450,17 @@ function ControlButton({
     <button
       onClick={onClick}
       aria-label={label}
-      className={`size-12 rounded-full flex items-center justify-center transition-all active:scale-95 ${
+      className={`size-12 rounded-full flex items-center justify-center transition-all active:scale-95 border ${
         active
-          ? "bg-candle text-velvet"
-          : "bg-surface/80 border border-border text-candle hover:border-petal/50 hover:text-petal"
+          ? "bg-amber-100/90 text-[#0f0714] border-amber-200 shadow-[inset_0_2px_4px_rgba(255,255,255,0.4)]"
+          : "bg-white/[0.04] border-white/10 text-white/75 hover:bg-white/10 hover:text-amber-100"
       }`}
     >
       {children}
     </button>
   );
 }
+
 
 function InCallChat({ meId, partnerId, partnerName, onClose }: { meId: string; partnerId: string; partnerName: string; onClose: () => void }) {
   const { messages, send, react, togglePin, remove, setVanish, sendTyping } = useChat(meId, partnerId);
