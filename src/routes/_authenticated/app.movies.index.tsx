@@ -12,6 +12,17 @@ import {
 } from "@/lib/tmdb.functions";
 import { MovieCard, poster } from "./app.movies";
 import { readRecentMovies } from "@/lib/recent-movies";
+import { supabase } from "@/integrations/supabase/client";
+
+type CustomMovieRow = {
+  id: string;
+  title: string;
+  year: number | null;
+  poster_url: string | null;
+  backdrop_url: string | null;
+  overview: string | null;
+  runtime: number | null;
+};
 
 export const Route = createFileRoute("/_authenticated/app/movies/")({
   component: Movies,
@@ -50,6 +61,7 @@ function Movies() {
   const [thrillers, setThrillers] = useState<TmdbMovie[]>([]);
   const [feelGood, setFeelGood] = useState<TmdbMovie[]>([]);
   const [recent, setRecent] = useState<TmdbMovie[]>([]);
+  const [custom, setCustom] = useState<CustomMovieRow[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => { setInput(q); }, [q]);
@@ -99,6 +111,16 @@ function Movies() {
     if (ids.length) {
       batch({ data: { ids } }).then((r) => alive && setRecent(r)).catch(() => {});
     }
+
+    // Custom (admin-uploaded) movies from our library — shown as normal movies.
+    supabase
+      .from("custom_movies")
+      .select("id, title, year, poster_url, backdrop_url, overview, runtime")
+      .order("created_at", { ascending: false })
+      .then(({ data }) => {
+        if (alive && data) setCustom(data as CustomMovieRow[]);
+      });
+
     return () => { alive = false; };
   }, []);
 
@@ -150,6 +172,10 @@ function Movies() {
           onClear={() => setInput("")}
           inline
         />
+
+        {custom.length > 0 && (
+          <CustomRail title="Our Private Library" movies={custom} />
+        )}
 
         {recent.length > 0 && (
           <Rail
@@ -394,5 +420,43 @@ function GenreChip({ label, icon, genre }: { label: string; icon: React.ReactNod
       <span className="text-petal">{icon}</span>
       {label}
     </Link>
+  );
+}
+
+function CustomRail({ title, movies }: { title: string; movies: CustomMovieRow[] }) {
+  return (
+    <section className="mt-8">
+      <h3 className="text-[10px] font-bold tracking-[0.2em] uppercase text-candle-muted mb-4 flex items-center gap-2.5">
+        <Sparkles className="size-3.5 text-petal" />
+        <span>{title}</span>
+        <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-petal/20 border border-petal/30 text-petal normal-case tracking-normal">
+          Fully synced
+        </span>
+        <div className="h-px flex-1 bg-border" />
+      </h3>
+      <div className="flex gap-3 overflow-x-auto no-scrollbar -mx-5 px-5 pb-2">
+        {movies.map((m) => (
+          <Link
+            key={m.id}
+            to="/app/movies/$id"
+            params={{ id: `custom:${m.id}` }}
+            className="w-28 shrink-0 group"
+          >
+            <div className="aspect-[2/3] rounded-2xl overflow-hidden bg-velvet border border-petal/30 relative shadow-lg shadow-petal/10">
+              {m.poster_url ? (
+                <img src={m.poster_url} alt={m.title} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-3xl">🎬</div>
+              )}
+              <span className="absolute top-1.5 left-1.5 text-[9px] uppercase tracking-widest bg-petal text-velvet px-1.5 py-0.5 rounded-full font-bold">
+                Ours
+              </span>
+            </div>
+            <p className="mt-1.5 text-xs text-candle truncate">{m.title}</p>
+            {m.year && <p className="text-[10px] text-candle-muted">{m.year}</p>}
+          </Link>
+        ))}
+      </div>
+    </section>
   );
 }
