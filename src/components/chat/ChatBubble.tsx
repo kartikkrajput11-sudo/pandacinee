@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Heart, Pin, Trash2, Reply, Check, CheckCheck, Download, Zap } from "lucide-react";
+import { Heart, Pin, Trash2, Reply, Check, CheckCheck, Download, Zap, Phone, Video as VideoIcon, PhoneMissed } from "lucide-react";
 import { signMedia, type MessageRow } from "@/lib/chat";
 import { VoicePlayer } from "./VoicePlayer";
 import { SignedImage } from "./SignedImage";
