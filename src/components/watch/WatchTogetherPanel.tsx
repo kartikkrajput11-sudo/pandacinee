@@ -150,7 +150,7 @@ export function WatchTogetherPanel({
             aria-label={open ? "Close discussion" : "Open discussion"}
           >
             <span
-              className={`relative flex items-center justify-center size-14 rounded-full transition-all duration-300 shadow-2xl ${
+              className={`relative flex items-center justify-center size-11 rounded-full transition-all duration-300 shadow-2xl ${
                 open
                   ? "bg-velvet border border-petal/50 shadow-black/40"
                   : "bg-petal shadow-petal/40 hover:scale-105"
@@ -160,9 +160,9 @@ export function WatchTogetherPanel({
                 <span aria-hidden className="absolute inset-0 rounded-full bg-petal/40 blur-xl -z-10 group-hover:bg-petal/60 transition" />
               )}
               {open ? (
-                <X className="size-5 text-petal" />
+                <X className="size-4 text-petal" />
               ) : (
-                <MessageCircle className="size-6 text-velvet fill-velvet/10" />
+                <MessageCircle className="size-5 text-velvet fill-velvet/10" />
               )}
               {!open && unread > 0 && (
                 <>
