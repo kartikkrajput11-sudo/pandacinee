@@ -114,6 +114,8 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
       currentTime: () => v.currentTime,
       duration: () => v.duration,
       isPaused: () => v.paused,
+      setMuted: (m: boolean) => { v.muted = m; setMuted(m); },
+      isMuted: () => v.muted,
     });
   }, [src]);
 
