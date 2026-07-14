@@ -1,13 +1,33 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { Phone, PhoneOff, Video } from "lucide-react";
+import { playRingTone } from "@/lib/ringtone";
 
 type Incoming = { from_id: string; mode: "video" | "audio"; name?: string };
 
 export function IncomingCallListener() {
   const [incoming, setIncoming] = useState<Incoming | null>(null);
   const navigate = useNavigate();
+  const ringRef = useRef<{ stop: () => void } | null>(null);
+
+  // Start/stop ring tone + vibrate while an incoming call is on screen
+  useEffect(() => {
+    if (!incoming) return;
+    ringRef.current = playRingTone();
+    let vibTimer: number | null = null;
+    if ("vibrate" in navigator) {
+      const pulse = () => navigator.vibrate?.([400, 200, 400, 1400]);
+      pulse();
+      vibTimer = window.setInterval(pulse, 2400);
+    }
+    return () => {
+      ringRef.current?.stop();
+      ringRef.current = null;
+      if (vibTimer) window.clearInterval(vibTimer);
+      if ("vibrate" in navigator) navigator.vibrate?.(0);
+    };
+  }, [incoming]);
 
   useEffect(() => {
     let cancelled = false;
