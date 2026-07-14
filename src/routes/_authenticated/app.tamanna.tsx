@@ -11,8 +11,12 @@ import {
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
-import { claimAdmin, createCustomMovie, updateCustomMovie, deleteCustomMovie } from "@/lib/admin.functions";
-import { tmdbSearch, tmdbMovie, type TmdbMovie } from "@/lib/tmdb.functions";
+import {
+  claimAdmin, createCustomMovie, updateCustomMovie, deleteCustomMovie,
+  listCustomEpisodes, upsertCustomEpisode, updateCustomEpisode, deleteCustomEpisode,
+} from "@/lib/admin.functions";
+import { tmdbSearch, tmdbMovie, tmdbTvDetail, tmdbTvSeason, type TmdbMovie } from "@/lib/tmdb.functions";
+
 import { getAdminStats, getRecentActivity, getAdminUsers, deleteAdminUser, type ActivityItem, type AdminUserRow } from "@/lib/admin-stats.functions";
 
 export const Route = createFileRoute("/_authenticated/app/tamanna")({
