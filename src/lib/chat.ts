@@ -42,13 +42,24 @@ export async function uploadChatMedia(
   ext: string,
 ) {
   const path = `${userId}/${kind}/${crypto.randomUUID()}.${ext}`;
+  // Supabase storage rejects mime types with codec parameters
+  // (e.g. "audio/webm;codecs=opus"). Strip them to the base type.
+  const rawType = file.type || "";
+  const baseType = rawType.split(";")[0].trim();
+  const fallback =
+    kind === "voice" ? "audio/webm" :
+    kind === "image" ? "image/jpeg" :
+    kind === "video" ? "video/mp4" :
+    "application/octet-stream";
+  const contentType = baseType || fallback;
   const { error } = await supabase.storage.from("chat-media").upload(path, file, {
-    contentType: file.type || undefined,
+    contentType,
     upsert: false,
   });
   if (error) throw error;
   return path;
 }
+
 
 export async function signMedia(path: string) {
   const { data } = await supabase.storage.from("chat-media").createSignedUrl(path, 60 * 60);
