@@ -659,6 +659,10 @@ function MovieModal({ initial, onClose }: { initial?: CustomMovie | null; onClos
   const [videoPath, setVideoPath] = useState<string | null>(initial?.video_storage_path ?? null);
   const [videoFileName, setVideoFileName] = useState<string | null>(initial?.video_storage_path ?? null);
   const [videoFileSize, setVideoFileSize] = useState<number>(0);
+  const [tmdbId, setTmdbId] = useState<number | null>(initial?.tmdb_id ?? null);
+  const [mediaType, setMediaType] = useState<"movie" | "tv">(initial?.media_type ?? "movie");
+  const [useVidking, setUseVidking] = useState<boolean>(initial?.use_vidking ?? false);
+  const [showPreview, setShowPreview] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadPct, setUploadPct] = useState(0);
   const [uploadSpeed, setUploadSpeed] = useState<string>("");
