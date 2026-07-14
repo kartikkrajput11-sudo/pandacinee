@@ -1,5 +1,6 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { Home, MessageCircle, Film, Gamepad2, User } from "lucide-react";
+import { useUnreadMessages } from "@/hooks/useUnreadMessages";
 
 type Item = {
   to: "/app" | "/app/chat" | "/app/movies" | "/app/play" | "/app/me";
@@ -20,6 +21,7 @@ const items: Item[] = [
 
 export function BottomNav() {
   const location = useLocation();
+  const unread = useUnreadMessages();
   return (
     <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[440px] z-40">
       <div className="mx-3 mb-3 h-[62px] px-3 glass-strong rounded-full flex items-center justify-around shadow-2xl">
@@ -52,11 +54,21 @@ export function BottomNav() {
               className="relative flex flex-col items-center gap-0.5 px-3 py-2 rounded-full transition-colors active:scale-95"
               aria-label={label}
             >
-              <Icon
-                className={`size-[20px] transition-all duration-300 ${
-                  active ? "text-petal scale-110" : "text-candle-muted"
-                }`}
-              />
+              <div className="relative">
+                <Icon
+                  className={`size-[20px] transition-all duration-300 ${
+                    active ? "text-petal scale-110" : "text-candle-muted"
+                  }`}
+                />
+                {to === "/app/chat" && unread > 0 && !active && (
+                  <span
+                    aria-label={`${unread} unread`}
+                    className="absolute -top-1 -right-1.5 min-w-[16px] h-[16px] px-1 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center ring-2 ring-background shadow-[0_0_8px_rgba(239,68,68,0.7)] animate-pulse"
+                  >
+                    {unread > 9 ? "9+" : unread}
+                  </span>
+                )}
+              </div>
               <span
                 className={`text-[9px] uppercase tracking-wider font-semibold transition-colors ${
                   active ? "text-petal" : "text-candle-muted/80"
