@@ -134,12 +134,12 @@ export function PunishmentVerificationChat({ lock, meId, partnerName, iAmLocked,
   async function approve(message: VerificationMessage) {
     try {
       await reviewMessage(message.id, true);
-      setCelebrating(true);
+      setCelebrateTick((n) => n + 1);
       toast.success(`Punishment approved — chat unlocked 🎉`);
       window.setTimeout(async () => {
         await wipePunishment(lock.id);
         onClose();
-      }, 1800);
+      }, 2400);
     } catch (e: any) {
       toast.error(e?.message ?? "Failed");
     }
