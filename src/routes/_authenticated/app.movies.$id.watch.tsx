@@ -492,17 +492,34 @@ function WatchMovie() {
   const driftAbs = drift != null ? Math.abs(drift) : null;
   const inSync = driftAbs != null && driftAbs < 3;
   const partnerFirst = partner?.display_name.split(" ")[0] ?? "them";
-  const backdropUrl = movie?.backdrop_path
-    ? (/^https?:\/\//i.test(movie.backdrop_path) ? movie.backdrop_path : `https://image.tmdb.org/t/p/w1280${movie.backdrop_path}`)
-    : null;
+  // Prefer the current episode still for a cinematic frame on series
+  const currentEp = useMemo(
+    () => (isTv ? seasonEps.find((e) => e.episode_number === episode) ?? null : null),
+    [isTv, seasonEps, episode],
+  );
+  const currentEpIdx = useMemo(
+    () => (isTv ? seasonEps.findIndex((e) => e.episode_number === episode) : -1),
+    [isTv, seasonEps, episode],
+  );
+  const nextEp = useMemo(
+    () => (currentEpIdx >= 0 && currentEpIdx < seasonEps.length - 1 ? seasonEps[currentEpIdx + 1] : null),
+    [currentEpIdx, seasonEps],
+  );
+  const episodeStill = currentEp?.still_path ? `https://image.tmdb.org/t/p/w1280${currentEp.still_path}` : null;
+  const backdropUrl =
+    episodeStill ??
+    (movie?.backdrop_path
+      ? (/^https?:\/\//i.test(movie.backdrop_path) ? movie.backdrop_path : `https://image.tmdb.org/t/p/w1280${movie.backdrop_path}`)
+      : null);
 
   return (
-    <div className={`relative min-h-screen pt-6 pb-24 transition-colors duration-500 ${cinemaMode ? "bg-black" : ""}`}>
-      {/* Ambient backdrop glow */}
-      {backdropUrl && !cinemaMode && (
+    <div className="relative min-h-screen pt-6 pb-24">
+      {/* Ambient backdrop glow (episode-aware on series) */}
+      {backdropUrl && (
         <div
           aria-hidden
-          className="pointer-events-none fixed inset-0 -z-10 opacity-30"
+          key={backdropUrl}
+          className="pointer-events-none fixed inset-0 -z-10 opacity-30 transition-opacity duration-700"
           style={{
             backgroundImage: `url(${backdropUrl})`,
             backgroundSize: "cover",
@@ -514,7 +531,8 @@ function WatchMovie() {
       <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 bg-gradient-to-b from-velvet/90 via-velvet to-velvet" />
 
       {/* Header */}
-      <header className={`px-5 pb-4 flex items-center gap-3 max-w-6xl mx-auto transition-opacity ${cinemaMode ? "opacity-30 hover:opacity-100" : ""}`}>
+      <header className="px-5 pb-4 flex items-center gap-3 max-w-6xl mx-auto">
+
         <Link to="/app/movies/$id" params={{ id }} className="size-9 rounded-full bg-surface/70 backdrop-blur border border-border flex items-center justify-center text-candle">
           <ArrowLeft className="size-4" />
         </Link>
@@ -542,14 +560,6 @@ function WatchMovie() {
           </h1>
         </div>
         <button
-          onClick={() => setCinemaMode((v) => !v)}
-          className={`size-9 rounded-full backdrop-blur border flex items-center justify-center transition ${cinemaMode ? "bg-petal text-velvet border-petal" : "bg-surface/70 border-border text-candle"}`}
-          aria-label="Cinema mode"
-          title="Cinema mode"
-        >
-          <Moon className="size-4" />
-        </button>
-        <button
           onClick={openFullscreen}
           className="size-9 rounded-full bg-surface/70 backdrop-blur border border-border flex items-center justify-center text-candle"
           aria-label="Fullscreen"
@@ -560,7 +570,7 @@ function WatchMovie() {
 
       <div className="px-3 md:px-5 max-w-6xl mx-auto">
         {/* Partner sync bar */}
-        {partner && !cinemaMode && (
+        {partner && (
           <div className="mb-3 rounded-2xl border border-border bg-surface/60 backdrop-blur px-3 py-2.5 flex items-center gap-3">
             <div className="relative shrink-0">
               {partner.avatar_url ? (
@@ -671,18 +681,8 @@ function WatchMovie() {
               </button>
             )}
 
-            {/* Floating reactions layer */}
-            <div className="absolute inset-0 pointer-events-none overflow-hidden">
-              {floaties.map((f) => (
-                <span
-                  key={f.id}
-                  className="absolute bottom-6 text-3xl md:text-4xl animate-float-up drop-shadow-[0_2px_12px_rgba(238,130,175,0.6)]"
-                  style={{ left: `${f.x}%` }}
-                >
-                  {f.emoji}
-                </span>
-              ))}
-            </div>
+
+
 
             {started && playerLoading && (
               <div className="absolute inset-0 pointer-events-none flex items-center justify-center bg-velvet/80">
@@ -874,19 +874,54 @@ function WatchMovie() {
         })()}
 
 
-        {/* Floating reaction bar */}
-        <div className="mt-3 flex items-center justify-center gap-1.5">
-          {REACTIONS.map((emoji) => (
-            <button
-              key={emoji}
-              onClick={() => fireReaction(emoji)}
-              className="size-10 rounded-full bg-surface/70 backdrop-blur border border-border hover:border-petal/60 hover:bg-petal/10 flex items-center justify-center text-xl transition active:scale-90"
-              aria-label={`React ${emoji}`}
-            >
-              {emoji}
-            </button>
-          ))}
-        </div>
+        {/* Up Next — premium next-episode card for series */}
+        {isTv && nextEp && (
+          <button
+            onClick={() => setEpisode(nextEp.episode_number)}
+            className="mt-3 w-full group relative overflow-hidden rounded-2xl border border-petal/30 bg-gradient-to-br from-velvet via-surface/80 to-velvet text-left flex items-stretch shadow-[0_20px_60px_-30px_rgba(238,130,175,0.6)] hover:border-petal/70 transition"
+          >
+            <div className="relative w-32 sm:w-44 aspect-video shrink-0 overflow-hidden">
+              {nextEp.still_path ? (
+                <img
+                  src={`https://image.tmdb.org/t/p/w500${nextEp.still_path}`}
+                  alt={nextEp.name}
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  loading="lazy"
+                />
+              ) : (
+                <div className="w-full h-full bg-surface flex items-center justify-center text-candle-muted">
+                  <Tv className="size-6 opacity-40" />
+                </div>
+              )}
+              <div className="absolute inset-0 bg-gradient-to-r from-velvet/80 via-velvet/20 to-transparent" />
+              <div className="absolute top-1.5 left-1.5 h-5 px-1.5 rounded-md bg-velvet/85 text-petal text-[10px] font-semibold flex items-center">
+                S{season}·E{nextEp.episode_number}
+              </div>
+            </div>
+            <div className="flex-1 min-w-0 p-3 sm:p-4 flex flex-col justify-center">
+              <p className="text-[10px] uppercase tracking-[0.3em] text-petal flex items-center gap-1.5">
+                <Play className="size-3 fill-petal" /> Up next
+              </p>
+              <h4 className="mt-1 text-sm sm:text-base font-serif italic text-candle truncate">
+                {nextEp.name || `Episode ${nextEp.episode_number}`}
+              </h4>
+              {nextEp.overview && (
+                <p className="mt-0.5 text-[11px] text-candle-muted line-clamp-2">{nextEp.overview}</p>
+              )}
+              <div className="mt-1.5 flex items-center gap-3 text-[10px] text-candle-muted">
+                {nextEp.runtime ? (
+                  <span className="inline-flex items-center gap-0.5"><Clock className="size-3" />{nextEp.runtime}m</span>
+                ) : null}
+                {nextEp.air_date ? (
+                  <span className="inline-flex items-center gap-0.5"><CalendarDays className="size-3" />{nextEp.air_date}</span>
+                ) : null}
+              </div>
+            </div>
+            <div className="hidden sm:flex items-center pr-4 text-petal">
+              <ChevronRight className="size-6" />
+            </div>
+          </button>
+        )}
 
         {/* Incoming seek request */}
         {incomingSeek && !autoFollow && (
@@ -911,7 +946,7 @@ function WatchMovie() {
         )}
 
         {/* Refined controls row */}
-        <div className={`mt-4 grid gap-3 ${cinemaMode ? "opacity-40 hover:opacity-100 transition" : ""}`}>
+        <div className="mt-4 grid gap-3">
           {/* Together tools */}
           {partner && (
             <div className="rounded-2xl border border-border bg-surface/40 backdrop-blur px-3 py-3">
@@ -961,25 +996,12 @@ function WatchMovie() {
                 >
                   <Timer className="size-3.5" /> Countdown together
                 </button>
-                <button
-                  onClick={syncToPartner}
-                  disabled={!peer}
-                  className="shrink-0 h-9 px-3 rounded-full bg-surface border border-border text-xs text-candle flex items-center gap-1.5 disabled:opacity-40"
-                >
-                  <Rewind className="size-3.5" /> Jump to {partnerFirst}
-                </button>
-                <button
-                  onClick={pullPartnerHere}
-                  className="shrink-0 h-9 px-3 rounded-full bg-surface border border-border text-xs text-candle flex items-center gap-1.5"
-                >
-                  <FastForward className="size-3.5" /> Pull them here
-                </button>
               </div>
             </div>
           )}
 
-          {/* Row: source menu + sleep timer + invite */}
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+          {/* Row: source menu + invite */}
+          <div className="grid grid-cols-2 gap-2">
             {/* Source dropdown */}
             <div className="relative">
               <button
@@ -1013,32 +1035,6 @@ function WatchMovie() {
               )}
             </div>
 
-            {/* Sleep timer */}
-            <div className="relative group">
-              <button className="w-full h-11 rounded-2xl bg-surface/60 backdrop-blur border border-border text-candle text-xs font-medium flex items-center justify-center gap-2">
-                <Moon className="size-3.5 text-petal" />
-                <span>{sleepMinutes ? `Sleep ${sleepMinutes}m` : "Sleep timer"}</span>
-              </button>
-              <div className="absolute z-20 top-full mt-2 left-0 right-0 rounded-2xl bg-velvet border border-border shadow-2xl shadow-black/60 overflow-hidden opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto group-focus-within:opacity-100 group-focus-within:pointer-events-auto transition">
-                {[15, 30, 45, 60, 90].map((m) => (
-                  <button
-                    key={m}
-                    onClick={() => setSleep(m)}
-                    className="w-full px-3 py-2 text-left text-xs text-candle hover:bg-petal/10 border-b border-border/50"
-                  >
-                    In {m} minutes
-                  </button>
-                ))}
-                {sleepMinutes && (
-                  <button
-                    onClick={() => setSleep(null)}
-                    className="w-full px-3 py-2 text-left text-xs text-rose-400 hover:bg-petal/10"
-                  >
-                    Cancel timer
-                  </button>
-                )}
-              </div>
-            </div>
 
             {/* Invite / chat */}
             {partner ? (
