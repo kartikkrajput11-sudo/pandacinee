@@ -492,17 +492,34 @@ function WatchMovie() {
   const driftAbs = drift != null ? Math.abs(drift) : null;
   const inSync = driftAbs != null && driftAbs < 3;
   const partnerFirst = partner?.display_name.split(" ")[0] ?? "them";
-  const backdropUrl = movie?.backdrop_path
-    ? (/^https?:\/\//i.test(movie.backdrop_path) ? movie.backdrop_path : `https://image.tmdb.org/t/p/w1280${movie.backdrop_path}`)
-    : null;
+  // Prefer the current episode still for a cinematic frame on series
+  const currentEp = useMemo(
+    () => (isTv ? seasonEps.find((e) => e.episode_number === episode) ?? null : null),
+    [isTv, seasonEps, episode],
+  );
+  const currentEpIdx = useMemo(
+    () => (isTv ? seasonEps.findIndex((e) => e.episode_number === episode) : -1),
+    [isTv, seasonEps, episode],
+  );
+  const nextEp = useMemo(
+    () => (currentEpIdx >= 0 && currentEpIdx < seasonEps.length - 1 ? seasonEps[currentEpIdx + 1] : null),
+    [currentEpIdx, seasonEps],
+  );
+  const episodeStill = currentEp?.still_path ? `https://image.tmdb.org/t/p/w1280${currentEp.still_path}` : null;
+  const backdropUrl =
+    episodeStill ??
+    (movie?.backdrop_path
+      ? (/^https?:\/\//i.test(movie.backdrop_path) ? movie.backdrop_path : `https://image.tmdb.org/t/p/w1280${movie.backdrop_path}`)
+      : null);
 
   return (
-    <div className={`relative min-h-screen pt-6 pb-24 transition-colors duration-500 ${cinemaMode ? "bg-black" : ""}`}>
-      {/* Ambient backdrop glow */}
-      {backdropUrl && !cinemaMode && (
+    <div className="relative min-h-screen pt-6 pb-24">
+      {/* Ambient backdrop glow (episode-aware on series) */}
+      {backdropUrl && (
         <div
           aria-hidden
-          className="pointer-events-none fixed inset-0 -z-10 opacity-30"
+          key={backdropUrl}
+          className="pointer-events-none fixed inset-0 -z-10 opacity-30 transition-opacity duration-700"
           style={{
             backgroundImage: `url(${backdropUrl})`,
             backgroundSize: "cover",
@@ -514,7 +531,8 @@ function WatchMovie() {
       <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 bg-gradient-to-b from-velvet/90 via-velvet to-velvet" />
 
       {/* Header */}
-      <header className={`px-5 pb-4 flex items-center gap-3 max-w-6xl mx-auto transition-opacity ${cinemaMode ? "opacity-30 hover:opacity-100" : ""}`}>
+      <header className="px-5 pb-4 flex items-center gap-3 max-w-6xl mx-auto">
+
         <Link to="/app/movies/$id" params={{ id }} className="size-9 rounded-full bg-surface/70 backdrop-blur border border-border flex items-center justify-center text-candle">
           <ArrowLeft className="size-4" />
         </Link>
