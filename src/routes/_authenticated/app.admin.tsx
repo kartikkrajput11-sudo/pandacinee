@@ -11,7 +11,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
 import { claimAdmin, createCustomMovie, deleteCustomMovie } from "@/lib/admin.functions";
-import { getAdminStats, getRecentActivity, getAdminUsers, type ActivityItem, type AdminUserRow } from "@/lib/admin-stats.functions";
+import { getAdminStats, getRecentActivity, getAdminUsers, deleteAdminUser, type ActivityItem, type AdminUserRow } from "@/lib/admin-stats.functions";
 
 export const Route = createFileRoute("/_authenticated/app/admin")({
   component: AdminPage,
@@ -423,44 +423,71 @@ function UsersTab() {
 
 function UserRow({ user: u }: { user: AdminUserRow }) {
   const online = u.last_seen_at && Date.now() - new Date(u.last_seen_at).getTime() < 5 * 60 * 1000;
+  const qc = useQueryClient();
+  const del = useServerFn(deleteAdminUser);
+  const [busy, setBusy] = useState(false);
+
+  async function onDelete(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!confirm(`Permanently delete ${u.display_name ?? u.username ?? "this user"}? This cannot be undone.`)) return;
+    setBusy(true);
+    try {
+      await del({ data: { userId: u.id } });
+      toast.success("User deleted");
+      qc.invalidateQueries({ queryKey: ["admin", "users"] });
+      qc.invalidateQueries({ queryKey: ["admin", "stats"] });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Delete failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
-    <Link
-      to="/app/user/$userId"
-      params={{ userId: u.id }}
-      className="flex items-center gap-3 px-3 py-3 hover:bg-petal/5 transition-colors"
-    >
-      <div className="relative shrink-0">
-        {u.avatar_url ? (
-          <img src={u.avatar_url} alt="" className="size-10 rounded-full object-cover border border-border" />
-        ) : (
-          <div className="size-10 rounded-full bg-petal/20 border border-border flex items-center justify-center text-petal font-serif italic">
-            {(u.display_name ?? "?")[0]}
-          </div>
-        )}
-        <span className={`absolute -bottom-0.5 -right-0.5 size-3 rounded-full border-2 border-surface ${online ? "bg-green-400" : "bg-candle-muted/40"}`} />
-      </div>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-1.5">
-          <p className="text-sm font-semibold text-candle truncate">{u.display_name ?? "Unnamed"}</p>
-          {u.is_admin && (
-            <span className="text-[9px] uppercase tracking-widest px-1.5 py-0.5 rounded-full bg-petal text-velvet font-bold">Admin</span>
+    <div className="flex items-center gap-3 px-3 py-3 hover:bg-petal/5 transition-colors">
+      <Link
+        to="/app/user/$userId"
+        params={{ userId: u.id }}
+        className="flex items-center gap-3 flex-1 min-w-0"
+      >
+        <div className="relative shrink-0">
+          {u.avatar_url ? (
+            <img src={u.avatar_url} alt="" className="size-10 rounded-full object-cover border border-border" />
+          ) : (
+            <div className="size-10 rounded-full bg-petal/20 border border-border flex items-center justify-center text-petal font-serif italic">
+              {(u.display_name ?? "?")[0]}
+            </div>
           )}
+          <span className={`absolute -bottom-0.5 -right-0.5 size-3 rounded-full border-2 border-surface ${online ? "bg-green-400" : "bg-candle-muted/40"}`} />
         </div>
-        <p className="text-[10px] text-candle-muted truncate">
-          @{u.username ?? "—"}
-          {u.partner_name && <> · 💞 {u.partner_name}</>}
-        </p>
-      </div>
-      <div className="text-right shrink-0">
-        <p className="text-xs text-candle tabular-nums">{u.message_count.toLocaleString()}</p>
-        <p className="text-[10px] text-candle-muted">msgs</p>
-      </div>
-      <div className="text-right shrink-0 hidden sm:block ml-3 w-20">
-        <p className="text-[10px] text-candle-muted">
-          {u.last_seen_at ? timeAgo(u.last_seen_at) : "never"}
-        </p>
-      </div>
-    </Link>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5">
+            <p className="text-sm font-semibold text-candle truncate">{u.display_name ?? "Unnamed"}</p>
+            {u.is_admin && (
+              <span className="text-[9px] uppercase tracking-widest px-1.5 py-0.5 rounded-full bg-petal text-velvet font-bold">Admin</span>
+            )}
+          </div>
+          <p className="text-[10px] text-candle-muted truncate">
+            @{u.username ?? "—"}
+            {u.partner_name && <> · 💞 {u.partner_name}</>}
+          </p>
+        </div>
+        <div className="text-right shrink-0 hidden sm:block ml-3 w-20">
+          <p className="text-[10px] text-candle-muted">
+            {u.last_seen_at ? timeAgo(u.last_seen_at) : "never"}
+          </p>
+        </div>
+      </Link>
+      <button
+        onClick={onDelete}
+        disabled={busy || u.is_admin}
+        title={u.is_admin ? "Cannot delete an admin" : "Delete user"}
+        className="shrink-0 size-9 rounded-full bg-velvet border border-border text-rose-400 hover:bg-rose-500/10 hover:border-rose-500/40 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
+      >
+        {busy ? <Loader2 className="size-4 animate-spin" /> : <Trash2 className="size-4" />}
+      </button>
+    </div>
   );
 }
 

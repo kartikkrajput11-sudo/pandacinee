@@ -264,3 +264,21 @@ export const getAdminUsers = createServerFn({ method: "GET" })
       message_count: counts.get(p.id) ?? 0,
     }));
   });
+
+export const deleteAdminUser = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { userId: string }) => d)
+  .handler(async ({ data, context }): Promise<{ ok: true }> => {
+    await ensureAdmin(context);
+    if (data.userId === context.userId) throw new Error("You can't delete your own admin account.");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    // Unpair partner if any
+    const { data: prof } = await supabaseAdmin.from("profiles").select("partner_id").eq("id", data.userId).maybeSingle();
+    if (prof?.partner_id) {
+      await supabaseAdmin.from("profiles").update({ partner_id: null, paired_at: null }).eq("id", prof.partner_id);
+    }
+    // Delete auth user — cascade removes profile + owned rows via FKs
+    const { error } = await (supabaseAdmin as any).auth.admin.deleteUser(data.userId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
