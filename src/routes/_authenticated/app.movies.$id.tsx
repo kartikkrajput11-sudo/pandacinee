@@ -33,6 +33,7 @@ function MovieDetail() {
   const fetchMovie = useServerFn(tmdbMovie);
   const fetchTv = useServerFn(tmdbTvFull);
   const fetchSources = useServerFn(watchmodeSources);
+  const fetchSeasonEps = useServerFn(tmdbTvSeason);
   const { data: prof } = useProfile();
   const me = prof?.profile;
   const partner = prof?.partner;
@@ -40,6 +41,8 @@ function MovieDetail() {
   const [isTv, setIsTv] = useState(false);
   const [sources, setSources] = useState<WatchSource[]>([]);
   const [region, setRegion] = useState<string>("US");
+  const [selectedSeason, setSelectedSeason] = useState<number>(1);
+  const [seasonEps, setSeasonEps] = useState<any[]>([]);
   const navigate = useNavigate();
 
   useEffect(() => {
