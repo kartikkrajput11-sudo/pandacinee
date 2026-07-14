@@ -1,13 +1,17 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { ArrowLeft, Search, Play, Flame, Sparkles, Heart, Star, Clock, Calendar, Ghost, Rocket } from "lucide-react";
+import { ArrowLeft, Search, Play, Flame, Sparkles, Heart, Star, Clock, Calendar, Ghost, Rocket, Tv, Film } from "lucide-react";
 import {
   tmdbTrending,
   tmdbSearch,
   tmdbCategory,
   tmdbDiscover,
   tmdbMoviesBatch,
+  tmdbTvTrending,
+  tmdbTvCategory,
+  tmdbTvDiscover,
+  tmdbMulti,
   type TmdbMovie,
 } from "@/lib/tmdb.functions";
 import { MovieCard, poster } from "./app.movies";
