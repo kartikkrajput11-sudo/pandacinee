@@ -34,6 +34,7 @@ export function PunishmentVerificationChat({ lock, meId, partnerName, iAmLocked,
   const [sending, setSending] = useState(false);
   const [cardOpen, setCardOpen] = useState(false);
   const [voiceOpen, setVoiceOpen] = useState(false);
+  const [doodleOpen, setDoodleOpen] = useState(false);
   const [retryFor, setRetryFor] = useState<VerificationMessage | null>(null);
   const [retryNote, setRetryNote] = useState("");
   const [celebrateTick, setCelebrateTick] = useState(0);
