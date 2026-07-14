@@ -686,22 +686,6 @@ function Scribble() {
       </div>
 
       {iAmDrawer && phase === "playing" && (
-        <div className="mt-3 flex gap-2 flex-wrap items-center">
-          {COLORS.map((c) => (
-            <button
-              key={c}
-              onClick={() => { setColor(c); setErase(false); }}
-              className={`size-7 rounded-full border-2 ${color === c && !erase ? "border-petal scale-110" : "border-border"}`}
-              style={{ background: c }}
-            />
-          ))}
-          <button
-            onClick={() => setErase((e) => !e)}
-            className={`size-7 rounded-full border-2 flex items-center justify-center ${erase ? "border-petal bg-petal-soft" : "border-border bg-surface"}`}
-          >
-            <Eraser className="size-3.5" />
-          </button>
-      {iAmDrawer && phase === "playing" && (
         <div className="mt-3 rounded-2xl border border-border bg-surface/70 backdrop-blur p-2.5 space-y-2">
           {/* Color palette */}
           <div className="flex gap-1.5 flex-wrap">
