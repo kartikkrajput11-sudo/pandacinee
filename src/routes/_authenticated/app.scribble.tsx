@@ -109,11 +109,17 @@ function Scribble() {
   const targetScoreRef = useRef(targetScore);
   const scoresRef = useRef<Record<string, number>>({});
   const roundResolvedRef = useRef(false);
+  const endsAtRef = useRef<number | null>(null);
+  const roundSecondsRef = useRef<number>(90);
+  const revealedRef = useRef<Set<number>>(new Set());
   const iAmDrawer = drawerId === me?.id;
   useEffect(() => { wordRef.current = word; }, [word]);
   useEffect(() => { drawerIdRef.current = drawerId; }, [drawerId]);
   useEffect(() => { targetScoreRef.current = targetScore; }, [targetScore]);
   useEffect(() => { scoresRef.current = scores; }, [scores]);
+  useEffect(() => { endsAtRef.current = endsAt; }, [endsAt]);
+  useEffect(() => { roundSecondsRef.current = roundSeconds; }, [roundSeconds]);
+  useEffect(() => { revealedRef.current = revealed; }, [revealed]);
 
   const pairKey = me ? (partner ? [me.id, partner.id].sort().join(":") : me.id) : "";
   const storageKey = pairKey ? `scribble:${pairKey}` : "";
