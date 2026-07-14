@@ -38,9 +38,49 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
   const [disappearSecs, setDisappearSecs] = useState<number | null>(null);
   const [disappearMenu, setDisappearMenu] = useState(false);
   const [watchPickerOpen, setWatchPickerOpen] = useState(false);
+  const [gamePickerOpen, setGamePickerOpen] = useState(false);
+  const [whisper, setWhisper] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const imgRef = useRef<HTMLInputElement>(null);
   const vidRef = useRef<HTMLInputElement>(null);
+
+  async function sendGameInvite(g: GamePick) {
+    setGamePickerOpen(false);
+    setMenuOpen(false);
+    try {
+      await onSend({
+        type: "game_invite",
+        content: g.name,
+        media_meta: { game_id: g.id, emoji: g.emoji, body: g.body, href: g.href },
+        reply_to_id: replyTo?.id ?? null,
+        disappear_seconds: disappearSecs,
+      });
+      onClearReply();
+    } catch (err: any) {
+      toast.error(err?.message ?? "Failed to send invite");
+    }
+  }
+
+  async function sendKiss() {
+    setMenuOpen(false);
+    const emoji = KISS_EMOJIS[Math.floor(Math.random() * KISS_EMOJIS.length)];
+    try {
+      await onSend({ type: "kiss", content: emoji, reply_to_id: null, disappear_seconds: 3600 });
+    } catch (err: any) {
+      toast.error(err?.message ?? "Couldn't send");
+    }
+  }
+
+  async function sendNudge() {
+    setMenuOpen(false);
+    try {
+      await onSend({ type: "nudge", content: `Nudged ${partnerName}!`, disappear_seconds: 3600 });
+      toast.success(`You nudged ${partnerName} 👋`);
+    } catch (err: any) {
+      toast.error(err?.message ?? "Couldn't nudge");
+    }
+  }
+
 
   async function sendWatchInvite(movie: TmdbMovie) {
     setWatchPickerOpen(false);
