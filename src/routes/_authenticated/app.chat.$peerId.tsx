@@ -229,8 +229,27 @@ function ChatPeer() {
         onClearReply={() => setReplyTo(null)}
         onTyping={sendTyping}
         onSend={send}
+        locked={iAmLocked && activeLock ? { reason: `Complete your ${activeLock.type} challenge to unlock` } : null}
       />
       <KissOverlay trigger={kissTick} emoji={kissEmoji} />
+
+      {activeLock && iAmLocked && (
+        <PunishmentLockOverlay
+          lock={activeLock}
+          meId={me.id}
+          partnerId={peer.id}
+          partnerName={peerDisplay}
+          onIncrement={incrementProgress}
+          onComplete={completeLock}
+        />
+      )}
+
+      <PunishmentLockDialog
+        open={lockDialogOpen}
+        onClose={() => setLockDialogOpen(false)}
+        targetName={peerDisplay}
+        onCreate={createLock}
+      />
     </div>
   );
 }
