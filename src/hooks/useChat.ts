@@ -104,7 +104,7 @@ export function useChat(meId: string | null, partnerId: string | null) {
   const send = useCallback(
     async (input: {
       content?: string;
-      type?: "text" | "voice" | "image" | "video" | "file" | "sticker" | "watch_invite";
+      type?: "text" | "voice" | "image" | "video" | "file" | "sticker" | "watch_invite" | "game_invite" | "kiss" | "nudge" | "whisper";
       media_url?: string | null;
       media_meta?: Record<string, unknown> | null;
       reply_to_id?: string | null;
