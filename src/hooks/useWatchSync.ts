@@ -72,8 +72,15 @@ export function useWatchSync(
       } else if (cmd.kind === "countdown") {
         setCountdown({ startAt: cmd.startAt, time: cmd.time, from: cmd.from });
       } else if (cmd.kind === "requestSync") {
-        // reply with current state
         ch.send({ type: "broadcast", event: "state", payload: mineRef.current });
+        // Also announce host status so late joiner sees it
+        if (hostRef.current === meId) {
+          ch.send({ type: "broadcast", event: "cmd", payload: { kind: "claimHost", from: meId } });
+        }
+      } else if (cmd.kind === "claimHost") {
+        setHostId(cmd.from);
+      } else if (cmd.kind === "releaseHost") {
+        setHostId((prev) => (prev === cmd.from ? null : prev));
       }
     });
     ch.on("broadcast", { event: "reaction" }, ({ payload }) => {
