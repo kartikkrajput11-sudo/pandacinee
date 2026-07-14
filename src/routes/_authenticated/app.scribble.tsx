@@ -283,6 +283,7 @@ function Scribble() {
     setMessages((m) => [...m, msg]);
     chRef.current?.send({ type: "broadcast", event: "guess", payload: msg });
     if (isCorrect) {
+      const myNewScore = (scores[me.id] ?? 0) + 1;
       setScores((s) => ({ ...s, [me.id]: (s[me.id] ?? 0) + 1 }));
       setPhase("over");
       setLastDrawerId(drawerId);
@@ -293,6 +294,10 @@ function Scribble() {
         payload: { by: me.id, word, name: me.display_name ?? "Partner" },
       });
       toast.success(`Correct! The word was “${word}” — your turn to draw!`);
+      if (myNewScore >= targetScore) {
+        setWinnerId(me.id);
+        return;
+      }
       // Auto-start next round for the new drawer (me, the correct guesser)
       setTimeout(() => {
         const [next] = pick4(new Set(word ? [word] : []));
