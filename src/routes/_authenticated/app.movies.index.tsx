@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { ArrowLeft, Search, Play, Flame, Sparkles, Heart, Star, Clock, Calendar, Ghost, Rocket, Tv, Film } from "lucide-react";
 import {
   tmdbTrending,
-  tmdbSearch,
+  tmdbSearch as _tmdbSearchUnused,
   tmdbCategory,
   tmdbDiscover,
   tmdbMoviesBatch,
