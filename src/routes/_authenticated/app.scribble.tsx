@@ -24,7 +24,28 @@ const WORDS = [
 
 const TIMER_CHOICES = [60, 90, 120] as const;
 const TARGET_CHOICES = [3, 5, 7] as const;
-const COLORS = ["#1f1f1f", "#8b5cf6", "#ec4899", "#22c55e", "#f59e0b", "#0ea5e9"];
+const COLORS = [
+  "#1f1f1f", // ink
+  "#ffffff", // white
+  "#6b7280", // gray
+  "#ef4444", // red
+  "#f97316", // orange
+  "#f59e0b", // amber
+  "#eab308", // yellow
+  "#84cc16", // lime
+  "#22c55e", // green
+  "#14b8a6", // teal
+  "#06b6d4", // cyan
+  "#0ea5e9", // sky
+  "#3b82f6", // blue
+  "#6366f1", // indigo
+  "#8b5cf6", // violet
+  "#a855f7", // purple
+  "#ec4899", // pink
+  "#f43f5e", // rose
+  "#92400e", // brown
+  "#f5deb3", // wheat / skin
+];
 
 type Stroke = { by: string; color: string; size: number; erase: boolean; pts: { x: number; y: number }[] };
 type Msg = { id: string; by: string; name: string; text: string; correct?: boolean };
