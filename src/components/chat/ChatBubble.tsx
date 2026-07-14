@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Heart, Pin, Trash2, Reply, Check, CheckCheck, Download, Zap, Phone, Video as VideoIcon, PhoneMissed, Clock } from "lucide-react";
 import { signMedia, type MessageRow } from "@/lib/chat";
 import { VoicePlayer } from "./VoicePlayer";
