@@ -216,6 +216,7 @@ function Scribble() {
       setEndsAt(null);
       // Reveal the word to the drawer's UI too
       setWord(p.word);
+      setHintMask(p.word);
       if (p.by !== me.id) toast.success(`${p.name} guessed “${p.word}”! Their turn to draw.`);
       else {
         // I'm the winner (auto-detected by drawer) — auto-start next round.
