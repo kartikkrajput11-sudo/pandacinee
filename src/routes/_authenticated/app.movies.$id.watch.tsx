@@ -189,6 +189,29 @@ function CatalogWatch({ id }: { id: string }) {
     drift,
   } = useWatchSync(me?.id ?? null, partner?.id ?? null, syncRoomId, isTv ? "tv" : "movie");
 
+  // Screen-mirror pipe: host can broadcast their live tab/player to the friend.
+  const {
+    localStream: shareLocalStream,
+    remoteStream: shareRemoteStream,
+    isSharing: iAmSharing,
+    sharerId,
+    status: shareStatus,
+    startShare,
+    stopShare,
+  } = useScreenShare(me?.id ?? null, partner?.id ?? null, String(syncRoomId));
+  const partnerIsSharing = !!sharerId && !!partner && sharerId === partner.id;
+  const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
+  useEffect(() => {
+    const el = remoteVideoRef.current;
+    if (!el) return;
+    if (partnerIsSharing && shareRemoteStream) {
+      el.srcObject = shareRemoteStream;
+      el.play().catch(() => {});
+    } else {
+      el.srcObject = null;
+    }
+  }, [partnerIsSharing, shareRemoteStream]);
+
   const iAmHost = !!me && hostId === me.id;
   const partnerIsHost = !!partner && hostId === partner.id;
   const lastAppliedPeerEventRef = useRef<number>(0);
