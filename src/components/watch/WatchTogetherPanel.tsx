@@ -184,13 +184,15 @@ export function WatchTogetherPanel({
                   : `${partnerFirst} hasn't joined yet`}
               </p>
             </div>
-            <button
-              onClick={() => setOpen(false)}
-              className="size-8 rounded-full bg-surface/70 border border-border flex items-center justify-center text-candle-muted hover:text-petal"
-              aria-label="Close"
-            >
-              <X className="size-3.5" />
-            </button>
+            {!inline && (
+              <button
+                onClick={() => setOpen(false)}
+                className="size-8 rounded-full bg-surface/70 border border-border flex items-center justify-center text-candle-muted hover:text-petal"
+                aria-label="Close"
+              >
+                <X className="size-3.5" />
+              </button>
+            )}
           </header>
 
           {/* Messages */}
