@@ -49,9 +49,10 @@ export function ChatBubble({
   const isKiss = m.type === "kiss";
   const isNudge = m.type === "nudge";
   const isWhisper = m.type === "whisper";
+  const isCall = m.type === "call";
   const [whisperRevealed, setWhisperRevealed] = useState(false);
 
-  const bare = isSticker || isWatchInvite || isGameInvite || isMovieWheel || isKiss || isNudge;
+  const bare = isSticker || isWatchInvite || isGameInvite || isMovieWheel || isKiss || isNudge || isCall;
 
   return (
     <div className={`group flex ${mine ? "justify-end" : "justify-start"} mt-1.5 px-1`}>
