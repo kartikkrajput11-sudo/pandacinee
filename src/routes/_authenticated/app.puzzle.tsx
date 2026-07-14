@@ -178,6 +178,59 @@ function PuzzleTogether() {
     broadcast(next);
   }
 
+  async function onPickImage(file: File) {
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please choose an image file");
+      return;
+    }
+    if (file.size > 6 * 1024 * 1024) {
+      toast.error("Image is too large (max 6 MB)");
+      return;
+    }
+    // Downscale + crop to square via canvas so puzzle pieces stay uniform.
+    const dataUrl: string = await new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        const size = 720;
+        const canvas = document.createElement("canvas");
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return reject(new Error("no ctx"));
+        const s = Math.min(img.width, img.height);
+        const sx = (img.width - s) / 2;
+        const sy = (img.height - s) / 2;
+        ctx.drawImage(img, sx, sy, s, s, 0, 0, size, size);
+        resolve(canvas.toDataURL("image/jpeg", 0.85));
+      };
+      img.onerror = reject;
+      img.src = URL.createObjectURL(file);
+    });
+    setCustomImage(dataUrl);
+    try { window.localStorage.setItem("pandacine-puzzle-image", dataUrl); } catch { /* quota */ }
+    const next = shuffled(total);
+    setSlots(next);
+    setSelected(null);
+    setMoves(0);
+    setSolved(false);
+    setStartedAt(Date.now());
+    broadcast(next);
+    toast.success("Photo loaded — puzzle ready");
+  }
+
+  function clearCustomImage() {
+    setCustomImage(null);
+    try { window.localStorage.removeItem("pandacine-puzzle-image"); } catch { /* ignore */ }
+    const next = shuffled(total);
+    setSlots(next);
+    setSelected(null);
+    setMoves(0);
+    setSolved(false);
+    setStartedAt(Date.now());
+    broadcast(next);
+  }
+
+
   const elapsed = Math.floor((solved ? 0 : now - startedAt) / 1000);
   const solvedTime = solved ? Math.floor((now - startedAt) / 1000) : 0;
 
