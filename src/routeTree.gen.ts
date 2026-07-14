@@ -36,6 +36,7 @@ import { Route as AuthenticatedAppAdminRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedAppMoviesIndexRouteImport } from './routes/_authenticated/app.movies.index'
 import { Route as AuthenticatedAppChatIndexRouteImport } from './routes/_authenticated/app.chat.index'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
+import { Route as AuthenticatedAppUserUserIdRouteImport } from './routes/_authenticated/app.user.$userId'
 import { Route as AuthenticatedAppMoviesIdRouteImport } from './routes/_authenticated/app.movies.$id'
 import { Route as AuthenticatedAppGamesGameRouteImport } from './routes/_authenticated/app.games.$game'
 import { Route as AuthenticatedAppChatPeerIdRouteImport } from './routes/_authenticated/app.chat.$peerId'
@@ -187,6 +188,12 @@ const LovableEmailQueueProcessRoute =
     path: '/lovable/email/queue/process',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AuthenticatedAppUserUserIdRoute =
+  AuthenticatedAppUserUserIdRouteImport.update({
+    id: '/user/$userId',
+    path: '/user/$userId',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppMoviesIdRoute =
   AuthenticatedAppMoviesIdRouteImport.update({
     id: '/$id',
@@ -252,6 +259,7 @@ export interface FileRoutesByFullPath {
   '/app/chat/$peerId': typeof AuthenticatedAppChatPeerIdRoute
   '/app/games/$game': typeof AuthenticatedAppGamesGameRoute
   '/app/movies/$id': typeof AuthenticatedAppMoviesIdRouteWithChildren
+  '/app/user/$userId': typeof AuthenticatedAppUserUserIdRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/app/chat/': typeof AuthenticatedAppChatIndexRoute
   '/app/movies/': typeof AuthenticatedAppMoviesIndexRoute
@@ -284,6 +292,7 @@ export interface FileRoutesByTo {
   '/app/chat/$peerId': typeof AuthenticatedAppChatPeerIdRoute
   '/app/games/$game': typeof AuthenticatedAppGamesGameRoute
   '/app/movies/$id': typeof AuthenticatedAppMoviesIdRouteWithChildren
+  '/app/user/$userId': typeof AuthenticatedAppUserUserIdRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/app/chat': typeof AuthenticatedAppChatIndexRoute
   '/app/movies': typeof AuthenticatedAppMoviesIndexRoute
@@ -320,6 +329,7 @@ export interface FileRoutesById {
   '/_authenticated/app/chat/$peerId': typeof AuthenticatedAppChatPeerIdRoute
   '/_authenticated/app/games/$game': typeof AuthenticatedAppGamesGameRoute
   '/_authenticated/app/movies/$id': typeof AuthenticatedAppMoviesIdRouteWithChildren
+  '/_authenticated/app/user/$userId': typeof AuthenticatedAppUserUserIdRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/_authenticated/app/chat/': typeof AuthenticatedAppChatIndexRoute
   '/_authenticated/app/movies/': typeof AuthenticatedAppMoviesIndexRoute
@@ -356,6 +366,7 @@ export interface FileRouteTypes {
     | '/app/chat/$peerId'
     | '/app/games/$game'
     | '/app/movies/$id'
+    | '/app/user/$userId'
     | '/lovable/email/queue/process'
     | '/app/chat/'
     | '/app/movies/'
@@ -388,6 +399,7 @@ export interface FileRouteTypes {
     | '/app/chat/$peerId'
     | '/app/games/$game'
     | '/app/movies/$id'
+    | '/app/user/$userId'
     | '/lovable/email/queue/process'
     | '/app/chat'
     | '/app/movies'
@@ -423,6 +435,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/chat/$peerId'
     | '/_authenticated/app/games/$game'
     | '/_authenticated/app/movies/$id'
+    | '/_authenticated/app/user/$userId'
     | '/lovable/email/queue/process'
     | '/_authenticated/app/chat/'
     | '/_authenticated/app/movies/'
@@ -628,6 +641,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LovableEmailQueueProcessRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/app/user/$userId': {
+      id: '/_authenticated/app/user/$userId'
+      path: '/user/$userId'
+      fullPath: '/app/user/$userId'
+      preLoaderRoute: typeof AuthenticatedAppUserUserIdRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/movies/$id': {
       id: '/_authenticated/app/movies/$id'
       path: '/$id'
@@ -727,6 +747,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppCallPeerIdRoute: typeof AuthenticatedAppCallPeerIdRoute
   AuthenticatedAppChatPeerIdRoute: typeof AuthenticatedAppChatPeerIdRoute
   AuthenticatedAppGamesGameRoute: typeof AuthenticatedAppGamesGameRoute
+  AuthenticatedAppUserUserIdRoute: typeof AuthenticatedAppUserUserIdRoute
   AuthenticatedAppChatIndexRoute: typeof AuthenticatedAppChatIndexRoute
   AuthenticatedAppChatGroupGroupIdRoute: typeof AuthenticatedAppChatGroupGroupIdRoute
 }
@@ -755,6 +776,7 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppCallPeerIdRoute: AuthenticatedAppCallPeerIdRoute,
   AuthenticatedAppChatPeerIdRoute: AuthenticatedAppChatPeerIdRoute,
   AuthenticatedAppGamesGameRoute: AuthenticatedAppGamesGameRoute,
+  AuthenticatedAppUserUserIdRoute: AuthenticatedAppUserUserIdRoute,
   AuthenticatedAppChatIndexRoute: AuthenticatedAppChatIndexRoute,
   AuthenticatedAppChatGroupGroupIdRoute: AuthenticatedAppChatGroupGroupIdRoute,
 }
