@@ -225,7 +225,7 @@ function Scribble() {
         setTimeout(() => {
           const [next] = pick4(new Set([p.word]));
           if (next) confirmWord(next);
-        }, 1400);
+        }, 400);
       }
     });
     ch.on("broadcast", { event: "reveal" }, ({ payload }) => {
