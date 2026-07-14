@@ -69,6 +69,7 @@ export function ChatBubble({
               <p className="opacity-70 truncate">
                 {replyTo.type === "voice" ? "🎙 Voice" :
                  replyTo.type === "image" ? "📷 Photo" :
+                 replyTo.type === "video" ? "🎬 Video" :
                  replyTo.type === "file" ? `📎 ${replyTo.content}` :
                  replyTo.content}
               </p>
