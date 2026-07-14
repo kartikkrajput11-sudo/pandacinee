@@ -29,7 +29,10 @@ function MovieDetail() {
 
   if (hasChildRoute) return <Outlet />;
   if (isCustom) return <CustomMovieDetail customId={id.slice("custom:".length)} />;
+  return <MovieDetailInner id={id} />;
+}
 
+function MovieDetailInner({ id }: { id: string }) {
   const fetchMovie = useServerFn(tmdbMovie);
   const fetchTv = useServerFn(tmdbTvFull);
   const fetchSources = useServerFn(watchmodeSources);
