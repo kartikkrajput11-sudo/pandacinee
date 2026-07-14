@@ -244,7 +244,7 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
         onWaiting={() => setBuffering(true)}
         onPlaying={() => setBuffering(false)}
         onEnded={(e) => onEvent?.({ event: "ended", currentTime: e.currentTarget.currentTime, duration: e.currentTarget.duration })}
-        onClick={togglePlay}
+        onClick={locked ? undefined : togglePlay}
       />
 
       {buffering && (
