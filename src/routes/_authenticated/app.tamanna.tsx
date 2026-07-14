@@ -1023,6 +1023,31 @@ function MovieModal({ initial, onClose }: { initial?: CustomMovie | null; onClos
             </p>
           </div>
 
+          {/* Episodes manager — only for TV series */}
+          {mediaType === "tv" && (
+            <div className="rounded-2xl bg-velvet border border-border p-3 space-y-2">
+              <div className="flex items-center gap-1.5">
+                <Clapperboard className="size-3.5 text-petal" />
+                <label className="text-[10px] uppercase tracking-widest text-petal">
+                  Episodes — edit by season & number
+                </label>
+              </div>
+              {!existingId ? (
+                <p className="text-xs text-candle-muted">
+                  Save this show first — then episodes will appear here so you can edit them one by one.
+                </p>
+              ) : !tmdbId ? (
+                <p className="text-xs text-candle-muted">
+                  Add a TMDB TV ID above so seasons and episode metadata can load automatically.
+                </p>
+              ) : (
+                <EpisodesPanel movieId={existingId} tmdbId={tmdbId} compact />
+              )}
+            </div>
+          )}
+
+
+
 
 
           <div>
@@ -1128,7 +1153,7 @@ type EpisodeRow = {
   use_vidking: boolean;
 };
 
-function EpisodesModal({ movie, onClose }: { movie: CustomMovie; onClose: () => void }) {
+function EpisodesPanel({ movieId, tmdbId, compact = false }: { movieId: string; tmdbId: number | null; compact?: boolean }) {
   const listFn = useServerFn(listCustomEpisodes);
   const upsertFn = useServerFn(upsertCustomEpisode);
   const delFn = useServerFn(deleteCustomEpisode);
@@ -1142,9 +1167,6 @@ function EpisodesModal({ movie, onClose }: { movie: CustomMovie; onClose: () => 
   const [loading, setLoading] = useState(true);
   const [savingKey, setSavingKey] = useState<string | null>(null);
 
-  const tmdbId = movie.tmdb_id;
-
-  // Bootstrap: TV detail (for season list) + custom episodes for this movie
   useEffect(() => {
     let alive = true;
     (async () => {
@@ -1152,7 +1174,7 @@ function EpisodesModal({ movie, onClose }: { movie: CustomMovie; onClose: () => 
       try {
         const [detail, rows] = await Promise.all([
           tmdbId ? tvDetail({ data: { id: tmdbId } }).catch(() => null) : Promise.resolve(null),
-          listFn({ data: { movie_id: movie.id } }),
+          listFn({ data: { movie_id: movieId } }),
         ]);
         if (!alive) return;
         if (detail?.seasons) {
@@ -1167,9 +1189,8 @@ function EpisodesModal({ movie, onClose }: { movie: CustomMovie; onClose: () => 
     })();
     return () => { alive = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [movie.id, tmdbId]);
+  }, [movieId, tmdbId]);
 
-  // Load episodes when season changes
   useEffect(() => {
     if (!tmdbId) { setTmdbEps([]); return; }
     let alive = true;
@@ -1198,7 +1219,7 @@ function EpisodesModal({ movie, onClose }: { movie: CustomMovie; onClose: () => 
     try {
       const row = await upsertFn({
         data: {
-          movie_id: movie.id,
+          movie_id: movieId,
           season: patch.season,
           episode: patch.episode,
           title: patch.title ?? null,
@@ -1234,6 +1255,69 @@ function EpisodesModal({ movie, onClose }: { movie: CustomMovie; onClose: () => 
     }
   }
 
+  if (!tmdbId) {
+    return (
+      <div className="p-4 rounded-2xl border border-dashed border-border text-center">
+        <p className="text-sm text-candle-muted">Set a TMDB TV ID on this show first so episodes can be loaded automatically.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      {seasons.length > 0 && (
+        <div className={`flex flex-wrap gap-1.5 ${compact ? "" : "mt-3"}`}>
+          {seasons.map((s) => (
+            <button
+              key={s.season_number}
+              onClick={() => setSeason(s.season_number)}
+              className={`h-8 px-3 rounded-full text-xs border transition-colors ${
+                season === s.season_number
+                  ? "bg-petal text-velvet border-petal"
+                  : "bg-surface-elevated border-border text-candle hover:border-petal/40"
+              }`}
+            >
+              S{s.season_number} <span className="opacity-60">· {s.episode_count}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {loading && <div className="py-8 text-center text-xs text-candle-muted"><Loader2 className="size-4 animate-spin inline mr-1" /> Loading…</div>}
+
+      {!loading && tmdbEps.length === 0 && (
+        <div className="mt-4 p-4 rounded-2xl border border-dashed border-border text-center">
+          <p className="text-sm text-candle-muted">No episodes found for this season.</p>
+        </div>
+      )}
+
+      <div className="mt-3 space-y-2">
+        {tmdbEps.map((ep) => {
+          const ov = overrideMap.get(`${season}:${ep.episode_number}`);
+          const key = `${season}:${ep.episode_number}`;
+          const busy = savingKey === key;
+          return (
+            <EpisodeEditor
+              key={key}
+              season={season}
+              episode={ep.episode_number}
+              tmdbName={ep.name}
+              tmdbOverview={ep.overview}
+              tmdbStill={ep.still_path ? `https://image.tmdb.org/t/p/w300${ep.still_path}` : null}
+              tmdbRuntime={ep.runtime}
+              override={ov ?? null}
+              busy={busy}
+              onSave={saveOne}
+              onReset={ov ? () => resetOne(ov) : undefined}
+            />
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function EpisodesModal({ movie, onClose }: { movie: CustomMovie; onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 bg-velvet/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-3">
       <div className="w-full max-w-2xl max-h-[92vh] overflow-y-auto rounded-3xl bg-surface border border-border p-5 animate-fade-up">
@@ -1241,66 +1325,17 @@ function EpisodesModal({ movie, onClose }: { movie: CustomMovie; onClose: () => 
           <div className="min-w-0">
             <p className="text-[10px] uppercase tracking-widest text-petal">Episodes · {movie.title}</p>
             <p className="text-xs text-candle-muted truncate">
-              {tmdbId ? `TMDB TV ${tmdbId}` : "No TMDB link — set a TMDB ID on the show to auto-load seasons"}
+              {movie.tmdb_id ? `TMDB TV ${movie.tmdb_id}` : "No TMDB link — set a TMDB ID on the show to auto-load seasons"}
             </p>
           </div>
           <button onClick={onClose} className="size-9 shrink-0 rounded-full bg-surface-elevated flex items-center justify-center"><X className="size-4" /></button>
         </div>
-
-        {seasons.length > 0 && (
-          <div className="mt-3 flex flex-wrap gap-1.5">
-            {seasons.map((s) => (
-              <button
-                key={s.season_number}
-                onClick={() => setSeason(s.season_number)}
-                className={`h-8 px-3 rounded-full text-xs border transition-colors ${
-                  season === s.season_number
-                    ? "bg-petal text-velvet border-petal"
-                    : "bg-surface-elevated border-border text-candle hover:border-petal/40"
-                }`}
-              >
-                S{s.season_number} <span className="opacity-60">· {s.episode_count}</span>
-              </button>
-            ))}
-          </div>
-        )}
-
-        {loading && <div className="py-8 text-center text-xs text-candle-muted"><Loader2 className="size-4 animate-spin inline mr-1" /> Loading…</div>}
-
-        {!loading && tmdbEps.length === 0 && (
-          <div className="mt-4 p-4 rounded-2xl border border-dashed border-border text-center">
-            <p className="text-sm text-candle-muted">
-              {tmdbId ? "No episodes found for this season." : "Add a TMDB TV ID on this title to load episode metadata automatically."}
-            </p>
-          </div>
-        )}
-
-        <div className="mt-3 space-y-2">
-          {tmdbEps.map((ep) => {
-            const ov = overrideMap.get(`${season}:${ep.episode_number}`);
-            const key = `${season}:${ep.episode_number}`;
-            const busy = savingKey === key;
-            return (
-              <EpisodeEditor
-                key={key}
-                season={season}
-                episode={ep.episode_number}
-                tmdbName={ep.name}
-                tmdbOverview={ep.overview}
-                tmdbStill={ep.still_path ? `https://image.tmdb.org/t/p/w300${ep.still_path}` : null}
-                tmdbRuntime={ep.runtime}
-                override={ov ?? null}
-                busy={busy}
-                onSave={saveOne}
-                onReset={ov ? () => resetOne(ov) : undefined}
-              />
-            );
-          })}
-        </div>
+        <EpisodesPanel movieId={movie.id} tmdbId={movie.tmdb_id} />
       </div>
     </div>
   );
 }
+
 
 function EpisodeEditor({
   season, episode, tmdbName, tmdbOverview, tmdbStill, tmdbRuntime,
