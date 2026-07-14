@@ -290,14 +290,15 @@ export function PunishmentVerificationChat({ lock, meId, partnerName, iAmLocked,
                 💌
               </button>
               {(lock.type === "draw" || lock.type === "creative") && (
-                <Link
-                  to="/app/paint"
-                  className="size-10 rounded-full bg-velvet border border-border flex items-center justify-center text-candle"
-                  aria-label="Open Paint Together"
-                  title="Open Paint Together"
+                <button
+                  onClick={() => setDoodleOpen(true)}
+                  disabled={lockedOut}
+                  className="size-10 rounded-full bg-velvet border border-border flex items-center justify-center text-candle disabled:opacity-50"
+                  aria-label="Draw a doodle"
+                  title="Draw a doodle"
                 >
                   <Palette className="size-4" />
-                </Link>
+                </button>
               )}
             </div>
             <textarea
