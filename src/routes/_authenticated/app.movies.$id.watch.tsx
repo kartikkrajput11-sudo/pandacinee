@@ -115,6 +115,7 @@ function WatchMovie() {
   const [sleepMinutes, setSleepMinutes] = useState<number | null>(null);
   const [sleepAt, setSleepAt] = useState<number | null>(null);
   const [floaties, setFloaties] = useState<{ id: number; emoji: string; x: number; from: "me" | "partner" }[]>([]);
+  const [viewersOpen, setViewersOpen] = useState(false);
   const lastPublishRef = useRef(0);
 
   // TV series state (populated when the admin marked this TMDB id as media_type=tv)
@@ -559,6 +560,104 @@ function WatchMovie() {
             )}
           </h1>
         </div>
+        <div className="relative">
+          <button
+            onClick={() => setViewersOpen((v) => !v)}
+            className="h-9 pl-1 pr-2.5 rounded-full bg-surface/70 backdrop-blur border border-border flex items-center gap-1.5 text-candle text-[11px]"
+            aria-label="Who's watching"
+          >
+            <div className="flex -space-x-2">
+              {me?.avatar_url ? (
+                <img src={me.avatar_url} alt="You" className="size-6 rounded-full object-cover border-2 border-velvet" />
+              ) : (
+                <div className="size-6 rounded-full bg-petal/30 border-2 border-velvet flex items-center justify-center text-[10px] text-petal font-semibold">
+                  {(me?.display_name ?? "Y")[0]}
+                </div>
+              )}
+              {partner && (
+                partner.avatar_url ? (
+                  <img src={partner.avatar_url} alt={partner.display_name} className="size-6 rounded-full object-cover border-2 border-velvet" />
+                ) : (
+                  <div className="size-6 rounded-full bg-petal/20 border-2 border-velvet flex items-center justify-center text-[10px] text-petal font-semibold">
+                    {partnerFirst[0]}
+                  </div>
+                )
+              )}
+            </div>
+            <span className="font-semibold">{partner ? 2 : 1}</span>
+          </button>
+          {viewersOpen && (
+            <>
+              <div className="fixed inset-0 z-30" onClick={() => setViewersOpen(false)} />
+              <div className="absolute right-0 top-full mt-2 z-40 w-64 rounded-2xl bg-velvet border border-border shadow-2xl shadow-black/60 overflow-hidden">
+                <div className="px-3 py-2 border-b border-border/60 flex items-center justify-between">
+                  <span className="text-[10px] uppercase tracking-[0.25em] text-candle-muted">In the room</span>
+                  <span className="text-[10px] text-candle-muted">{partner ? 2 : 1} watching</span>
+                </div>
+                {/* Me */}
+                <div className="px-3 py-2.5 flex items-center gap-2.5">
+                  <div className="relative shrink-0">
+                    {me?.avatar_url ? (
+                      <img src={me.avatar_url} alt="You" className="size-9 rounded-full object-cover border border-border" />
+                    ) : (
+                      <div className="size-9 rounded-full bg-petal/20 border border-border flex items-center justify-center text-petal font-serif italic">
+                        {(me?.display_name ?? "Y")[0]}
+                      </div>
+                    )}
+                    <span className="absolute -bottom-0.5 -right-0.5 size-3 rounded-full border-2 border-velvet bg-green-400 animate-pulse" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-sm text-candle font-semibold truncate">You</span>
+                      {iAmHost && (
+                        <span className="inline-flex items-center gap-0.5 h-4 px-1.5 rounded-full bg-petal text-velvet text-[8px] font-bold uppercase tracking-wider">
+                          <Crown className="size-2.5" /> Host
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[10px] text-candle-muted">{fmtTime(mine.currentTime)}{mine.duration ? ` / ${fmtTime(mine.duration)}` : ""}</p>
+                  </div>
+                </div>
+                {/* Partner */}
+                {partner && (
+                  <div className="px-3 py-2.5 flex items-center gap-2.5 border-t border-border/60">
+                    <div className="relative shrink-0">
+                      {partner.avatar_url ? (
+                        <img src={partner.avatar_url} alt={partner.display_name} className="size-9 rounded-full object-cover border border-border" />
+                      ) : (
+                        <div className="size-9 rounded-full bg-petal/20 border border-border flex items-center justify-center text-petal font-serif italic">
+                          {partnerFirst[0]}
+                        </div>
+                      )}
+                      <span className={`absolute -bottom-0.5 -right-0.5 size-3 rounded-full border-2 border-velvet ${partnerOnline ? "bg-green-400 animate-pulse" : "bg-candle-muted/50"}`} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-sm text-candle font-semibold truncate">{partnerFirst}</span>
+                        {partnerIsHost && (
+                          <span className="inline-flex items-center gap-0.5 h-4 px-1.5 rounded-full bg-petal text-velvet text-[8px] font-bold uppercase tracking-wider">
+                            <Crown className="size-2.5" /> Host
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[10px] text-candle-muted">
+                        {partnerOnline ? (peer ? `${peer.event} · ${fmtTime(peer.currentTime)}` : "in the room") : "waiting…"}
+                      </p>
+                    </div>
+                  </div>
+                )}
+                {!hostId && (
+                  <button
+                    onClick={() => { claimHost(); setViewersOpen(false); }}
+                    className="w-full px-3 py-2 border-t border-border/60 bg-petal/10 hover:bg-petal/20 text-petal text-[11px] font-semibold flex items-center justify-center gap-1.5 transition"
+                  >
+                    <Crown className="size-3" /> Claim host
+                  </button>
+                )}
+              </div>
+            </>
+          )}
+        </div>
         <button
           onClick={openFullscreen}
           className="size-9 rounded-full bg-surface/70 backdrop-blur border border-border flex items-center justify-center text-candle"
@@ -701,8 +800,49 @@ function WatchMovie() {
                 <p className="mt-3 text-xs text-candle-muted">with {partnerFirst} 💞</p>
               </div>
             )}
+
+            {/* Floating reactions over the player */}
+            <div className="absolute inset-0 pointer-events-none overflow-hidden z-20">
+              {floaties.map((f) => (
+                <span
+                  key={f.id}
+                  className="absolute text-3xl md:text-4xl select-none"
+                  style={{
+                    left: `${f.x}%`,
+                    bottom: "8%",
+                    animation: "floaty-rise 2.4s ease-out forwards",
+                    filter: "drop-shadow(0 4px 12px rgba(238,130,175,0.6))",
+                  }}
+                >
+                  {f.emoji}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* Reaction bar */}
+          <div className="mt-2 flex items-center justify-center gap-1.5 flex-wrap">
+            {REACTIONS.map((emoji) => (
+              <button
+                key={emoji}
+                onClick={() => fireReaction(emoji)}
+                className="size-10 rounded-full bg-surface/60 backdrop-blur border border-border hover:border-petal/60 hover:bg-petal/10 hover:scale-110 active:scale-95 transition text-xl flex items-center justify-center shadow-lg shadow-black/20"
+                aria-label={`React ${emoji}`}
+              >
+                {emoji}
+              </button>
+            ))}
           </div>
         </div>
+
+        <style>{`
+          @keyframes floaty-rise {
+            0% { transform: translateY(0) scale(0.6) rotate(0deg); opacity: 0; }
+            15% { transform: translateY(-20px) scale(1.1) rotate(-6deg); opacity: 1; }
+            100% { transform: translateY(-260px) scale(1) rotate(8deg); opacity: 0; }
+          }
+        `}</style>
+
 
         {/* Series — luxurious season & episode gallery */}
         {isTv && tvSeasons.length > 0 && (() => {
