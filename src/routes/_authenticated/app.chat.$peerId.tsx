@@ -17,6 +17,7 @@ import { PunishmentLockOverlay } from "@/components/chat/PunishmentLockOverlay";
 import { PunishmentLockBanner } from "@/components/chat/PunishmentLockBanner";
 import { PunishmentVerificationChat } from "@/components/chat/PunishmentVerificationChat";
 import { usePunishmentVerification } from "@/hooks/usePunishmentVerification";
+import { UnlockCelebration } from "@/components/chat/UnlockCelebration";
 import { typeMeta } from "@/lib/punishment";
 
 const LOCKED_MSG_LIMIT = 10;
@@ -94,6 +95,18 @@ function ChatPeer() {
       (m) => m.sender_id === me.id && new Date(m.created_at).getTime() >= t0,
     ).length;
   }, [activeLock, iAmLocked, messages, me?.id]);
+
+  // Play the unlock animation whenever an active lock ends (punisher approved,
+  // canceled, or otherwise wiped). Fires for both sides so the moment feels shared.
+  const [unlockTick, setUnlockTick] = useState(0);
+  const prevLockIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    const prev = prevLockIdRef.current;
+    const now = activeLock?.id ?? null;
+    if (prev && !now) setUnlockTick((n) => n + 1);
+    prevLockIdRef.current = now;
+  }, [activeLock?.id]);
+
 
 
   const [kissTick, setKissTick] = useState(0);
@@ -297,6 +310,7 @@ function ChatPeer() {
 
       />
       <KissOverlay trigger={kissTick} emoji={kissEmoji} />
+      <UnlockCelebration trigger={unlockTick || null} />
 
       {activeLock && iAmLocked && !isVerifyMode && (
         <PunishmentLockOverlay

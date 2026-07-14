@@ -7,6 +7,7 @@ import { uploadChatMedia } from "@/lib/chat";
 import { typeMeta, type PunishmentLock } from "@/lib/punishment";
 import { VoiceRecorder } from "./VoiceRecorder";
 import { usePunishmentVerification, wipePunishment, type VerificationMessage } from "@/hooks/usePunishmentVerification";
+import { UnlockCelebration } from "./UnlockCelebration";
 
 type Props = {
   lock: PunishmentLock;
@@ -34,7 +35,7 @@ export function PunishmentVerificationChat({ lock, meId, partnerName, iAmLocked,
   const [voiceOpen, setVoiceOpen] = useState(false);
   const [retryFor, setRetryFor] = useState<VerificationMessage | null>(null);
   const [retryNote, setRetryNote] = useState("");
-  const [celebrating, setCelebrating] = useState(false);
+  const [celebrateTick, setCelebrateTick] = useState(0);
   const imgRef = useRef<HTMLInputElement>(null);
   const vidRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -133,12 +134,12 @@ export function PunishmentVerificationChat({ lock, meId, partnerName, iAmLocked,
   async function approve(message: VerificationMessage) {
     try {
       await reviewMessage(message.id, true);
-      setCelebrating(true);
+      setCelebrateTick((n) => n + 1);
       toast.success(`Punishment approved — chat unlocked 🎉`);
       window.setTimeout(async () => {
         await wipePunishment(lock.id);
         onClose();
-      }, 1800);
+      }, 2400);
     } catch (e: any) {
       toast.error(e?.message ?? "Failed");
     }
@@ -157,7 +158,7 @@ export function PunishmentVerificationChat({ lock, meId, partnerName, iAmLocked,
 
   return (
     <div className="fixed inset-0 z-40 bg-velvet/95 backdrop-blur flex flex-col animate-fade-in">
-      {celebrating && <Confetti />}
+      <UnlockCelebration trigger={celebrateTick || null} />
 
       {/* Header */}
       <header className="px-4 pt-6 pb-3 border-b border-border bg-velvet/80 backdrop-blur">
