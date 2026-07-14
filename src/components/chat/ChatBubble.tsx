@@ -18,6 +18,7 @@ export function ChatBubble({
   replyTo,
   showAvatar: _showAvatar,
   isLast,
+  isPartner = false,
   onReact,
   onReply,
   onPin,
@@ -29,6 +30,7 @@ export function ChatBubble({
   replyTo: MessageRow | null;
   showAvatar: boolean;
   isLast: boolean;
+  isPartner?: boolean;
   onReact: (m: MessageRow, emoji: string) => void;
   onReply: (m: MessageRow) => void;
   onPin: (m: MessageRow) => void;
