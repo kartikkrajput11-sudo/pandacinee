@@ -24,14 +24,15 @@ import {
   Crown,
 } from "lucide-react";
 import { toast } from "sonner";
-import { tmdbMovie } from "@/lib/tmdb.functions";
+import { tmdbMovie, tmdbTvDetail, tmdbTvSeason } from "@/lib/tmdb.functions";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/integrations/supabase/client";
 import { WatchTogetherPanel } from "@/components/watch/WatchTogetherPanel";
 import { useWatchSync, fmtTime } from "@/hooks/useWatchSync";
 import { CustomMoviePlayer, type CustomPlayerHandle } from "@/components/CustomMoviePlayer";
 
-type Source = { id: string; label: string; url: (tmdb: number, startAt?: number) => string; hint: string };
+type Source = { id: string; label: string; url: (tmdb: number, startAt?: number, mediaType?: "movie" | "tv", season?: number, episode?: number) => string; hint: string };
+
 
 const SOURCES: Source[] = [
   {
