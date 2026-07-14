@@ -195,6 +195,11 @@ function PaintTogether() {
       });
     }
   }
+  function pairKey() {
+    if (!me) return "";
+    return partner ? [me.id, partner.id].sort().join(":") : me.id;
+  }
+
   function onUp() {
     if (!drawing.current) return;
     const s = drawing.current;
@@ -203,6 +208,11 @@ function PaintTogether() {
     undone.current = [];
     // Send the complete stroke so late/dropped points reconcile on the peer.
     chRef.current?.send({ type: "broadcast", event: "stroke", payload: s });
+    // Persist so the partner sees it even when they open the page later.
+    supabase
+      .from("paint_strokes")
+      .insert({ id: s.id, pair_key: pairKey(), by_user: s.by, stroke: s })
+      .then(({ error }) => { if (error) console.warn("paint save:", error.message); });
     redraw();
   }
 
@@ -213,6 +223,7 @@ function PaintTogether() {
         const [s] = strokes.current.splice(i, 1);
         undone.current.push(s);
         chRef.current?.send({ type: "broadcast", event: "undo", payload: { id: s.id } });
+        supabase.from("paint_strokes").delete().eq("id", s.id).then(() => {});
         redraw();
         return;
       }
@@ -224,6 +235,10 @@ function PaintTogether() {
     if (s) {
       strokes.current.push(s);
       chRef.current?.send({ type: "broadcast", event: "stroke", payload: s });
+      supabase
+        .from("paint_strokes")
+        .insert({ id: s.id, pair_key: pairKey(), by_user: s.by, stroke: s })
+        .then(({ error }) => { if (error) console.warn("paint save:", error.message); });
     }
     redraw();
   }
@@ -236,9 +251,11 @@ function PaintTogether() {
     }
     strokes.current = strokes.current.filter((s) => s.by !== me?.id);
     undone.current = [...undone.current, ...mine];
+    const ids = mine.map((s) => s.id);
     for (const s of mine) {
       chRef.current?.send({ type: "broadcast", event: "undo", payload: { id: s.id } });
     }
+    supabase.from("paint_strokes").delete().in("id", ids).then(() => {});
     redraw();
   }
   function download() {
