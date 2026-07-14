@@ -905,6 +905,72 @@ function MovieModal({ initial, onClose }: { initial?: CustomMovie | null; onClos
           <TextField label="Backdrop URL" value={backdrop} onChange={setBackdrop} placeholder="https://..." />
           <TextField label="Genres (comma separated)" value={genres} onChange={setGenres} placeholder="Romance, Comedy" />
 
+          {/* VidKing integration panel */}
+          <div className="rounded-2xl bg-velvet border border-border p-3 space-y-2">
+            <label className="text-[10px] uppercase tracking-widest text-petal flex items-center gap-1.5">
+              <Play className="size-3" /> VidKing / IMDb source
+            </label>
+            <div className="grid grid-cols-[1fr_auto] gap-2">
+              <input
+                value={tmdbId ?? ""}
+                onChange={(e) => setTmdbId(e.target.value ? Number(e.target.value.replace(/\D/g, "")) : null)}
+                placeholder="TMDB ID (e.g. 27205)"
+                inputMode="numeric"
+                className="h-10 px-3 rounded-full bg-surface border border-border text-sm text-candle focus:outline-none focus:border-petal/60"
+              />
+              <select
+                value={mediaType}
+                onChange={(e) => setMediaType(e.target.value as "movie" | "tv")}
+                className="h-10 px-3 rounded-full bg-surface border border-border text-xs text-candle focus:outline-none focus:border-petal/60"
+              >
+                <option value="movie">Movie</option>
+                <option value="tv">TV / Series</option>
+              </select>
+            </div>
+            <label className="flex items-center gap-2 text-xs text-candle cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={useVidking}
+                disabled={!tmdbId}
+                onChange={(e) => setUseVidking(e.target.checked)}
+                className="accent-petal size-4"
+              />
+              Play via VidKing embed (uses TMDB ID)
+            </label>
+            {tmdbId && (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setShowPreview((v) => !v)}
+                  className="h-8 px-3 rounded-full bg-surface-elevated border border-border text-[11px] text-candle flex items-center gap-1"
+                >
+                  <Play className="size-3" /> {showPreview ? "Hide preview" : "Test VidKing"}
+                </button>
+                <a
+                  href={`https://www.themoviedb.org/${mediaType}/${tmdbId}`}
+                  target="_blank" rel="noreferrer"
+                  className="text-[11px] text-petal underline"
+                >
+                  Open on TMDB ↗
+                </a>
+              </div>
+            )}
+            {showPreview && tmdbId && (
+              <div className="rounded-xl overflow-hidden border border-petal/30 bg-black aspect-video mt-2">
+                <iframe
+                  src={`https://www.vidking.net/embed/${mediaType}/${tmdbId}?color=9146ff`}
+                  className="w-full h-full"
+                  allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+            )}
+            <p className="text-[10px] text-candle-muted">
+              Link a TMDB/IMDb title so this entry can stream through VidKing without uploading a file. Uploaded video takes priority when both are set.
+            </p>
+          </div>
+
+
+
           <div>
             <label className="block text-[10px] uppercase tracking-widest text-petal mb-1.5">Video source *</label>
             <TextField label="" value={videoUrl} onChange={setVideoUrl} placeholder="https://... .mp4 or .m3u8" />
