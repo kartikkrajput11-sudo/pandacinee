@@ -262,7 +262,8 @@ function PuzzleTogether() {
     setMoves(0);
     setSolved(false);
     setStartedAt(Date.now());
-    broadcast(next);
+    setOutcome(null);
+    setPartnerTime(null);
     toast.success("Photo loaded — puzzle ready");
   }
 
