@@ -543,7 +543,13 @@ function NeverHaveIEver({ me, session, patch }: { me: string; session: Session; 
     const have = (s.tallies?.have ?? 0) + (myPick === 0 ? 1 : 0) + (theirPick === 0 ? 1 : 0);
     const havent = (s.tallies?.havent ?? 0) + (myPick === 1 ? 1 : 0) + (theirPick === 1 ? 1 : 0);
     const c = await fetchCard(s.intensity ?? "playful");
-    patch({ ...s, count: (s.count ?? 0) + 1, card: c, picks: {}, tallies: { have, havent } });
+    const history = [...(s.history ?? []), s.card].filter(Boolean).slice(-20);
+    patch({ ...s, count: (s.count ?? 0) + 1, card: c, picks: {}, tallies: { have, havent }, history });
+  }
+  async function skip() {
+    if (myPick !== undefined || theirPick !== undefined) return;
+    const c = await fetchCard(s.intensity ?? "playful");
+    patch({ ...s, card: c });
   }
 
   return (
@@ -579,14 +585,26 @@ function NeverHaveIEver({ me, session, patch }: { me: string; session: Session; 
           );
         })}
       </div>
-      <button
-        onClick={next}
-        disabled={!bothPicked || loading}
-        className="w-full py-3.5 bg-petal text-velvet rounded-2xl font-semibold flex items-center justify-center gap-2 disabled:opacity-40"
-      >
-        {loading ? <Sparkles className="size-4 animate-pulse" /> : <RefreshCw className="size-4" />}
-        {loading ? "Crafting…" : "Next"}
-      </button>
+      <div className="flex gap-2">
+        {!bothPicked && myPick === undefined && theirPick === undefined && (
+          <button
+            onClick={skip}
+            disabled={loading || !s.card}
+            className="rounded-2xl bg-surface border border-border px-4 py-3.5 text-sm text-candle flex items-center gap-2 disabled:opacity-60"
+          >
+            <SkipForward className="size-4" /> Skip
+          </button>
+        )}
+        <button
+          onClick={next}
+          disabled={!bothPicked || loading}
+          className="flex-1 py-3.5 bg-petal text-velvet rounded-2xl font-semibold flex items-center justify-center gap-2 disabled:opacity-40"
+        >
+          {loading ? <Sparkles className="size-4 animate-pulse" /> : <RefreshCw className="size-4" />}
+          {loading ? "Crafting…" : "Next"}
+        </button>
+      </div>
+      <HistoryStrip items={(s.history ?? []).map((h: any) => h.text)} />
     </div>
   );
 }
