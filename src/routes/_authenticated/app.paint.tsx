@@ -104,9 +104,12 @@ function PaintTogether() {
   const [size, setSize] = useState(6);
   const [erase, setErase] = useState(false);
   const [stampMode, setStampMode] = useState<string | null>(null);
+  const [shapeMode, setShapeMode] = useState<ShapeKind | null>(null);
+  const [fillShape, setFillShape] = useState(false);
   const [bg, setBg] = useState<string>("white");
   const [bgPickerOpen, setBgPickerOpen] = useState(false);
   const [stampsOpen, setStampsOpen] = useState(false);
+  const [shapesOpen, setShapesOpen] = useState(false);
 
   const strokes = useRef<Stroke[]>([]);
   const undone = useRef<Stroke[]>([]);
