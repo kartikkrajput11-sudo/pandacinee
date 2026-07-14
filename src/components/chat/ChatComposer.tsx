@@ -176,6 +176,20 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
     }
   }
 
+  async function sendPandaSticker(id: PandaStickerId) {
+    try {
+      await onSend({
+        content: pandaStickerContent(id),
+        type: "sticker",
+        reply_to_id: replyTo?.id ?? null,
+        disappear_seconds: disappearSecs,
+      });
+      onClearReply();
+    } catch (err: any) {
+      toast.error(err?.message ?? "Failed");
+    }
+  }
+
   async function uploadAndSend(
     file: File,
     kind: "image" | "video" | "file",
