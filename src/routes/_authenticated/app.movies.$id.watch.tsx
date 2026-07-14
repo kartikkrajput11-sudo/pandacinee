@@ -194,6 +194,15 @@ function CatalogWatch({ id }: { id: string }) {
   const customPlayerRef = useRef<CustomPlayerHandle | null>(null);
   const suppressPlayerEventRef = useRef(false);
 
+  // Auto-dismiss the "waiting for friend" overlay once they actually join the room
+  useEffect(() => {
+    if (!waitingFor) return;
+    if (partnerOnline || peer) {
+      toast.success(`${waitingFor.name} joined 🍿`);
+      setWaitingFor(null);
+    }
+  }, [waitingFor, partnerOnline, peer]);
+
   useEffect(() => {
     let alive = true;
     (async () => {
