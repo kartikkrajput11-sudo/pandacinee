@@ -30,38 +30,62 @@ function MovieDetail() {
   if (isCustom) return <CustomMovieDetail customId={id.slice("custom:".length)} />;
 
   const fetchMovie = useServerFn(tmdbMovie);
+  const fetchTv = useServerFn(tmdbTvFull);
   const fetchSources = useServerFn(watchmodeSources);
   const { data: prof } = useProfile();
   const me = prof?.profile;
   const partner = prof?.partner;
   const [movie, setMovie] = useState<any>(null);
+  const [isTv, setIsTv] = useState(false);
   const [sources, setSources] = useState<WatchSource[]>([]);
   const [region, setRegion] = useState<string>("US");
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchMovie({ data: { id: Number(id) } })
-      .then(async (m) => {
-        // Overlay admin-edited fields from custom_movies
-        const { data: ov } = await supabase
-          .from("custom_movies")
-          .select("title, overview, poster_url, backdrop_url, runtime")
-          .eq("tmdb_id", Number(id))
-          .maybeSingle();
-        if (ov && m) {
-          if (ov.title) m.title = ov.title;
-          if (ov.overview != null) m.overview = ov.overview;
-          if (ov.poster_url) m.poster_path = ov.poster_url;
-          if (ov.backdrop_url) m.backdrop_path = ov.backdrop_url;
-          if (ov.runtime) m.runtime = ov.runtime;
-        }
-        setMovie(m);
-        if (m?.id) trackRecentMovie(m.id);
-      })
-      .catch(() => setMovie(null));
+    let alive = true;
+    (async () => {
+      // 1) Check admin override to know if this is a series (media_type=tv)
+      const { data: ov } = await supabase
+        .from("custom_movies")
+        .select("title, overview, poster_url, backdrop_url, runtime, media_type")
+        .eq("tmdb_id", Number(id))
+        .maybeSingle();
+      const tv = ov?.media_type === "tv";
+      if (!alive) return;
+      setIsTv(tv);
+
+      // 2) Fetch the right TMDB endpoint. Fall back to movie if TV 404s.
+      let m: any = null;
+      if (tv) {
+        m = await fetchTv({ data: { id: Number(id) } }).catch(() => null);
+      }
+      if (!m) {
+        m = await fetchMovie({ data: { id: Number(id) } }).catch(() => null);
+        if (m && !tv) setIsTv(false);
+      } else {
+        // Normalise TV shape → the rest of the JSX reads `title` / `release_date`.
+        m.title = m.name ?? m.original_name ?? m.title;
+        m.release_date = m.first_air_date ?? m.release_date ?? null;
+        // First episode runtime as an approximation
+        m.runtime = Array.isArray(m.episode_run_time) && m.episode_run_time[0] ? m.episode_run_time[0] : null;
+      }
+
+      // 3) Overlay admin edits
+      if (ov && m) {
+        if (ov.title) m.title = ov.title;
+        if (ov.overview != null) m.overview = ov.overview;
+        if (ov.poster_url) m.poster_path = ov.poster_url;
+        if (ov.backdrop_url) m.backdrop_path = ov.backdrop_url;
+        if (ov.runtime) m.runtime = ov.runtime;
+      }
+      if (!alive) return;
+      setMovie(m);
+      if (m?.id) trackRecentMovie(m.id);
+    })();
     fetchSources({ data: { tmdbId: Number(id) } })
-      .then((r) => setSources(r.sources))
-      .catch(() => setSources([]));
+      .then((r) => alive && setSources(r.sources))
+      .catch(() => alive && setSources([]));
+    return () => { alive = false; };
   }, [id]);
 
 
