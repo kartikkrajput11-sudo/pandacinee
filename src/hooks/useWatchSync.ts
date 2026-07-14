@@ -54,6 +54,8 @@ export function useWatchSync(
   const chRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const mineRef = useRef(mine);
   mineRef.current = mine;
+  const hostRef = useRef<string | null>(null);
+  hostRef.current = hostId;
 
   useEffect(() => {
     if (!meId || !partnerId || !movieId) return;
