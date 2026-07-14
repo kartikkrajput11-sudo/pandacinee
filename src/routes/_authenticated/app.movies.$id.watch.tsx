@@ -493,16 +493,33 @@ function WatchMovie() {
           <div aria-hidden className="absolute -inset-2 rounded-[28px] bg-petal/20 blur-3xl opacity-60 pointer-events-none" />
           <div className="relative rounded-2xl md:rounded-3xl overflow-hidden bg-black border border-petal/30 aspect-video shadow-[0_30px_80px_-20px_rgba(238,130,175,0.35)]">
             {started ? (
-              <iframe
-                id="movie-frame"
-                key={`${sourceIdx}-${iframeKey}`}
-                src={src}
-                frameBorder={0}
-                className="absolute inset-0 w-full h-full"
-                allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
-                onLoad={() => setPlayerLoading(false)}
-                allowFullScreen
-              />
+              isPandacine && pandacine ? (
+                <CustomMoviePlayer
+                  key={`pandacine-${iframeKey}`}
+                  src={pandacine.videoSrc}
+                  poster={movie?.backdrop_path ? `https://image.tmdb.org/t/p/w1280${movie.backdrop_path}` : null}
+                  onReady={() => setPlayerLoading(false)}
+                  onEvent={(evt) => {
+                    const now = Date.now();
+                    const isDiscrete = evt.event === "play" || evt.event === "pause" || evt.event === "seeked" || evt.event === "ended";
+                    if (isDiscrete || now - lastPublishRef.current > 2000) {
+                      lastPublishRef.current = now;
+                      publish({ event: evt.event, currentTime: evt.currentTime, duration: evt.duration, sourceIdx });
+                    }
+                  }}
+                />
+              ) : (
+                <iframe
+                  id="movie-frame"
+                  key={`${sourceIdx}-${iframeKey}`}
+                  src={src}
+                  frameBorder={0}
+                  className="absolute inset-0 w-full h-full"
+                  allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+                  onLoad={() => setPlayerLoading(false)}
+                  allowFullScreen
+                />
+              )
             ) : (
               <button
                 onClick={() => { setStarted(true); setPlayerLoading(true); }}
@@ -521,7 +538,7 @@ function WatchMovie() {
                   <Play className="size-8 md:size-10 fill-velvet ml-1" />
                 </span>
                 <span className="text-candle font-serif italic text-lg md:text-xl">Raise the curtain</span>
-                <span className="text-candle-muted text-[11px] uppercase tracking-[0.25em]">{SOURCES[sourceIdx].label}</span>
+                <span className="text-candle-muted text-[11px] uppercase tracking-[0.25em]">{currentSource?.label ?? "Loading"}</span>
               </button>
             )}
 
