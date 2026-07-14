@@ -32,20 +32,53 @@ function Play() {
       )}
 
       <div className="grid grid-cols-2 gap-3">
-        {(Object.keys(GAMES) as GameKind[]).map((kind) => {
+        {(Object.keys(GAMES) as GameKind[])
+          .filter((k) => k !== "rock-paper-scissors")
+          .map((kind) => {
           const g = GAMES[kind];
-          return (
-            <Link
-              key={kind}
-              to="/app/games/$game"
-              params={{ game: kind }}
-              className="aspect-square p-4 bg-surface rounded-3xl border border-border flex flex-col justify-between hover:border-petal/40 transition-colors"
-            >
+          const cardCls =
+            "aspect-square p-4 bg-surface rounded-3xl border border-border flex flex-col justify-between hover:border-petal/40 transition-colors relative overflow-hidden";
+          const inner = (
+            <>
               <span className="text-3xl">{g.emoji}</span>
               <div>
                 <p className="font-serif italic text-lg leading-tight">{g.name}</p>
                 <p className="text-[11px] text-candle-muted mt-1">{g.body}</p>
               </div>
+              {g.comingSoon && (
+                <span className="absolute top-2 right-2 text-[9px] uppercase tracking-widest bg-petal-soft text-petal px-2 py-0.5 rounded-full">
+                  Soon
+                </span>
+              )}
+            </>
+          );
+          if (g.comingSoon) {
+            return (
+              <button
+                key={kind}
+                type="button"
+                onClick={() => import("sonner").then(({ toast }) => toast("Coming soon — we're painting this one in."))}
+                className={cardCls + " text-left opacity-90"}
+              >
+                {inner}
+              </button>
+            );
+          }
+          if (g.href) {
+            return (
+              <Link key={kind} to={g.href} className={cardCls}>
+                {inner}
+              </Link>
+            );
+          }
+          return (
+            <Link
+              key={kind}
+              to="/app/games/$game"
+              params={{ game: kind }}
+              className={cardCls}
+            >
+              {inner}
             </Link>
           );
         })}
