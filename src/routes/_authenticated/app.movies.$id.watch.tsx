@@ -903,17 +903,6 @@ function CatalogWatch({ id }: { id: string }) {
                     customPlayerRef.current = h;
                     setCustomPlayerReady((n) => n + 1);
                     setPlayerLoading(false);
-                    // Host just tapped "Raise the curtain" — start playback
-                    // immediately using that user gesture. If the browser
-                    // blocks sound, retry muted so it still starts together.
-                    if (pendingAutoJoinRef.current == null) {
-                      try {
-                        h.play();
-                        setTimeout(() => {
-                          if (h.isPaused()) { h.setMuted(true); h.play(); }
-                        }, 400);
-                      } catch {}
-                    }
                   }}
                   onEvent={(evt) => {
                     if (suppressPlayerEventRef.current) return;
