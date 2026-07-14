@@ -139,7 +139,7 @@ function ChatPeer() {
         <Link to="/app/call/$peerId" params={{ peerId: peer.id }} search={{ role: "caller", mode: "video" }} className="size-10 rounded-full bg-surface border border-border flex items-center justify-center text-petal">
           <Video className="size-4" />
         </Link>
-        {isPartner && !activeLock && (
+        {isPartner && !activeLock && (me as any).punishment_lock_enabled !== false && (peer as any).punishment_lock_enabled !== false && (
           <button
             onClick={() => setLockDialogOpen(true)}
             className="size-10 rounded-full bg-surface border border-border flex items-center justify-center text-petal"
