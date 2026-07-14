@@ -19,12 +19,30 @@ export function useUnreadMessages() {
     if (!userId) return;
 
     const fetchCount = async () => {
-      const { count: c } = await supabase
+      // Direct messages to me
+      const { count: dm } = await supabase
         .from("messages")
         .select("id", { count: "exact", head: true })
         .eq("receiver_id", userId)
         .is("read_at", null);
-      setCount(c ?? 0);
+
+      // Group messages in groups I'm a member of, not sent by me
+      const { data: myGroups } = await supabase
+        .from("chat_group_members")
+        .select("group_id")
+        .eq("user_id", userId);
+      const groupIds = (myGroups ?? []).map((g) => g.group_id);
+      let gm = 0;
+      if (groupIds.length > 0) {
+        const { count } = await supabase
+          .from("messages")
+          .select("id", { count: "exact", head: true })
+          .in("group_id", groupIds)
+          .neq("sender_id", userId)
+          .is("read_at", null);
+        gm = count ?? 0;
+      }
+      setCount((dm ?? 0) + gm);
     };
 
     fetchCount();

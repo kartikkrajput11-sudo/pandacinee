@@ -41,6 +41,62 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_group_members: {
+        Row: {
+          group_id: string
+          joined_at: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          group_id: string
+          joined_at?: string
+          role?: string
+          user_id: string
+        }
+        Update: {
+          group_id?: string
+          joined_at?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_group_members_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "chat_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_groups: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          created_by: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          created_by: string
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          created_by?: string
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       custom_movies: {
         Row: {
           backdrop_url: string | null
@@ -363,13 +419,14 @@ export type Database = {
           content: string
           created_at: string
           expires_at: string | null
+          group_id: string | null
           id: string
           media_meta: Json | null
           media_url: string | null
           pinned: boolean
           reactions: Json
           read_at: string | null
-          receiver_id: string
+          receiver_id: string | null
           reply_to_id: string | null
           sender_id: string
           type: string
@@ -378,13 +435,14 @@ export type Database = {
           content: string
           created_at?: string
           expires_at?: string | null
+          group_id?: string | null
           id?: string
           media_meta?: Json | null
           media_url?: string | null
           pinned?: boolean
           reactions?: Json
           read_at?: string | null
-          receiver_id: string
+          receiver_id?: string | null
           reply_to_id?: string | null
           sender_id: string
           type?: string
@@ -393,18 +451,26 @@ export type Database = {
           content?: string
           created_at?: string
           expires_at?: string | null
+          group_id?: string | null
           id?: string
           media_meta?: Json | null
           media_url?: string | null
           pinned?: boolean
           reactions?: Json
           read_at?: string | null
-          receiver_id?: string
+          receiver_id?: string | null
           reply_to_id?: string | null
           sender_id?: string
           type?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "messages_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "chat_groups"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "messages_reply_to_id_fkey"
             columns: ["reply_to_id"]
@@ -715,6 +781,11 @@ export type Database = {
       }
       is_accepted_friend: { Args: { _other: string }; Returns: boolean }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_group_admin: { Args: { _gid: string; _uid: string }; Returns: boolean }
+      is_group_member: {
+        Args: { _gid: string; _uid: string }
+        Returns: boolean
+      }
       move_to_dlq: {
         Args: {
           dlq_name: string

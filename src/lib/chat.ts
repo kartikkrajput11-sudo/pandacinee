@@ -17,7 +17,8 @@ export const DISAPPEAR_OPTIONS = [
 export type MessageRow = {
   id: string;
   sender_id: string;
-  receiver_id: string;
+  receiver_id: string | null;
+  group_id: string | null;
   content: string;
   created_at: string;
   type: string;
