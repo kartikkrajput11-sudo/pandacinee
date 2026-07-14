@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, LogOut, Heart, Copy, Camera, Save, Sun, Moon, Monitor, ShieldCheck, ChevronRight, Lock } from "lucide-react";
+import { ArrowLeft, LogOut, Heart, Copy, Camera, Save, Sun, Moon, Monitor, ChevronRight, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
@@ -248,20 +248,6 @@ function Me() {
             <ChevronRight className="size-4 text-candle-muted" />
           </Link>
 
-          {(me as any)?.is_admin && (
-            <Link to="/app/admin" className="p-5 mb-4 rounded-3xl border border-petal/30 bg-petal-soft/10 flex items-center gap-3">
-              <ShieldCheck className="size-5 text-petal" />
-              <div className="flex-1"><p className="text-[10px] uppercase tracking-widest text-petal">Admin</p><p className="text-sm text-candle">Manage custom movies</p></div>
-              <ChevronRight className="size-4 text-candle-muted" />
-            </Link>
-          )}
-          {!(me as any)?.is_admin && (
-            <Link to="/app/admin" className="p-5 mb-4 rounded-3xl border border-border bg-surface flex items-center gap-3">
-              <ShieldCheck className="size-5 text-candle-muted" />
-              <div className="flex-1"><p className="text-[10px] uppercase tracking-widest text-candle-muted">Admin</p><p className="text-sm text-candle-muted">Enter PIN to unlock</p></div>
-              <ChevronRight className="size-4 text-candle-muted" />
-            </Link>
-          )}
 
           <Link to="/app/help" className="p-5 mb-4 rounded-3xl border border-border bg-surface flex items-center gap-3 hover:border-petal/40 transition-colors">
             <span className="text-xl">📖</span>

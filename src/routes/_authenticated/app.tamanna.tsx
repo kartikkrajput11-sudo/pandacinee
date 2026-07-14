@@ -13,7 +13,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { claimAdmin, createCustomMovie, deleteCustomMovie } from "@/lib/admin.functions";
 import { getAdminStats, getRecentActivity, getAdminUsers, deleteAdminUser, type ActivityItem, type AdminUserRow } from "@/lib/admin-stats.functions";
 
-export const Route = createFileRoute("/_authenticated/app/admin")({
+export const Route = createFileRoute("/_authenticated/app/tamanna")({
   component: AdminPage,
 });
 
@@ -600,6 +600,7 @@ function Skeleton() {
 function AddMovieModal({ onClose }: { onClose: () => void }) {
   const create = useServerFn(createCustomMovie);
   const fileRef = useRef<HTMLInputElement>(null);
+  const uploadRef = useRef<any>(null);
   const [title, setTitle] = useState("");
   const [year, setYear] = useState<string>("");
   const [runtime, setRuntime] = useState<string>("");
@@ -609,29 +610,111 @@ function AddMovieModal({ onClose }: { onClose: () => void }) {
   const [genres, setGenres] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
   const [videoPath, setVideoPath] = useState<string | null>(null);
+  const [videoFileName, setVideoFileName] = useState<string | null>(null);
+  const [videoFileSize, setVideoFileSize] = useState<number>(0);
   const [uploading, setUploading] = useState(false);
   const [uploadPct, setUploadPct] = useState(0);
+  const [uploadSpeed, setUploadSpeed] = useState<string>("");
+  const [uploadEta, setUploadEta] = useState<string>("");
+  const [uploadErr, setUploadErr] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-  const canSave = useMemo(() => title.trim().length > 0 && (videoUrl.trim() || videoPath), [title, videoUrl, videoPath]);
+  const canSave = useMemo(
+    () => title.trim().length > 0 && (videoUrl.trim() || videoPath) && !uploading,
+    [title, videoUrl, videoPath, uploading],
+  );
 
   async function uploadFile(file: File) {
-    setUploading(true);
-    setUploadPct(5);
-    const ext = file.name.split(".").pop() || "mp4";
-    const path = `${crypto.randomUUID()}.${ext}`;
-    const { error } = await supabase.storage.from("custom-movies").upload(path, file, {
-      contentType: file.type || "video/mp4",
-      upsert: false,
-    });
-    setUploading(false);
-    setUploadPct(100);
-    if (error) {
-      toast.error(error.message);
+    setUploadErr(null);
+    setVideoFileName(file.name);
+    setVideoFileSize(file.size);
+
+    // Get current session for the resumable upload authorization
+    const { data: sessionData } = await supabase.auth.getSession();
+    const accessToken = sessionData.session?.access_token;
+    if (!accessToken) {
+      toast.error("Sign in required");
       return;
     }
-    setVideoPath(path);
-    toast.success("Video uploaded");
+
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
+    const ext = (file.name.split(".").pop() || "mp4").toLowerCase();
+    const path = `${crypto.randomUUID()}.${ext}`;
+
+    // Lazy-load tus-js-client (browser-only)
+    const tus = await import("tus-js-client");
+
+    setUploading(true);
+    setUploadPct(0);
+    setUploadSpeed("");
+    setUploadEta("");
+
+    const started = Date.now();
+    let lastBytes = 0;
+    let lastAt = started;
+
+    const upload = new tus.Upload(file, {
+      endpoint: `${supabaseUrl}/storage/v1/upload/resumable`,
+      retryDelays: [0, 1000, 3000, 5000, 10000, 20000],
+      headers: {
+        authorization: `Bearer ${accessToken}`,
+        "x-upsert": "true",
+      },
+      uploadDataDuringCreation: true,
+      removeFingerprintOnSuccess: true,
+      metadata: {
+        bucketName: "custom-movies",
+        objectName: path,
+        contentType: file.type || "video/mp4",
+        cacheControl: "3600",
+      },
+      chunkSize: 6 * 1024 * 1024, // 6 MB — required to be exactly this for Supabase Storage
+      onError: (err) => {
+        setUploading(false);
+        setUploadErr(err.message || "Upload failed");
+        toast.error(err.message || "Upload failed");
+      },
+      onProgress: (sent, total) => {
+        const pct = total > 0 ? Math.round((sent / total) * 100) : 0;
+        setUploadPct(pct);
+        const now = Date.now();
+        const dt = (now - lastAt) / 1000;
+        if (dt > 0.4) {
+          const speed = (sent - lastBytes) / dt; // bytes/s
+          setUploadSpeed(fmtBytes(speed) + "/s");
+          const remaining = total - sent;
+          const eta = speed > 0 ? Math.round(remaining / speed) : 0;
+          setUploadEta(fmtDuration(eta));
+          lastBytes = sent;
+          lastAt = now;
+        }
+      },
+      onSuccess: () => {
+        setUploading(false);
+        setUploadPct(100);
+        setVideoPath(path);
+        setUploadSpeed("");
+        setUploadEta("");
+        toast.success("Video uploaded");
+      },
+    });
+
+    uploadRef.current = upload;
+    // Check for previous unfinished uploads of this exact file
+    const prev = await upload.findPreviousUploads();
+    if (prev.length > 0) upload.resumeFromPreviousUpload(prev[0]);
+    upload.start();
+  }
+
+  function cancelUpload() {
+    try { uploadRef.current?.abort(true); } catch { /* noop */ }
+    setUploading(false);
+    setUploadPct(0);
+    setUploadSpeed("");
+    setUploadEta("");
+    setVideoFileName(null);
+    setVideoFileSize(0);
+    setVideoPath(null);
   }
 
   async function submit() {
@@ -690,16 +773,63 @@ function AddMovieModal({ onClose }: { onClose: () => void }) {
               className="hidden"
               onChange={(e) => e.target.files?.[0] && uploadFile(e.target.files[0])}
             />
-            <button
-              onClick={() => fileRef.current?.click()}
-              disabled={uploading}
-              className="w-full h-11 rounded-2xl bg-velvet border border-dashed border-border flex items-center justify-center gap-2 text-sm text-candle disabled:opacity-50"
-            >
-              {uploading ? <Loader2 className="size-4 animate-spin" /> : <Upload className="size-4" />}
-              {uploading ? `Uploading ${uploadPct}%` : videoPath ? "Replace uploaded video" : "Upload video file"}
-            </button>
+
+            {!uploading && !videoPath && (
+              <button
+                onClick={() => fileRef.current?.click()}
+                className="w-full h-24 rounded-2xl bg-velvet border border-dashed border-border hover:border-petal/60 hover:bg-petal/5 transition-colors flex flex-col items-center justify-center gap-1 text-sm text-candle"
+              >
+                <Upload className="size-5 text-petal" />
+                <span>Upload video file</span>
+                <span className="text-[10px] text-candle-muted">Resumable · any size · mp4, mkv, webm…</span>
+              </button>
+            )}
+
+            {uploading && (
+              <div className="rounded-2xl bg-velvet border border-petal/30 p-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <Loader2 className="size-4 animate-spin text-petal" />
+                  <p className="text-xs text-candle truncate flex-1">{videoFileName}</p>
+                  <button
+                    onClick={cancelUpload}
+                    className="text-[10px] uppercase tracking-widest text-rose-400 hover:text-rose-300"
+                  >
+                    Cancel
+                  </button>
+                </div>
+                <div className="h-2 rounded-full bg-surface-elevated overflow-hidden">
+                  <div
+                    className="h-full bg-petal transition-all"
+                    style={{ width: `${uploadPct}%` }}
+                  />
+                </div>
+                <div className="flex justify-between mt-1.5 text-[10px] text-candle-muted tabular-nums">
+                  <span>{uploadPct}% · {fmtBytes((uploadPct / 100) * videoFileSize)} / {fmtBytes(videoFileSize)}</span>
+                  <span>{uploadSpeed}{uploadEta ? ` · ${uploadEta} left` : ""}</span>
+                </div>
+              </div>
+            )}
+
             {videoPath && !uploading && (
-              <p className="mt-2 text-[10px] text-candle-muted truncate">Uploaded: {videoPath}</p>
+              <div className="rounded-2xl bg-petal/10 border border-petal/30 p-3 flex items-center gap-2">
+                <div className="size-8 rounded-full bg-petal/20 flex items-center justify-center shrink-0">
+                  <Film className="size-4 text-petal" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs text-candle truncate">{videoFileName ?? videoPath}</p>
+                  <p className="text-[10px] text-candle-muted">{fmtBytes(videoFileSize)} · Uploaded ✓</p>
+                </div>
+                <button
+                  onClick={() => { setVideoPath(null); setVideoFileName(null); setVideoFileSize(0); fileRef.current?.click(); }}
+                  className="text-[10px] uppercase tracking-widest text-petal hover:underline"
+                >
+                  Replace
+                </button>
+              </div>
+            )}
+
+            {uploadErr && !uploading && (
+              <p className="mt-2 text-[10px] text-rose-400">{uploadErr}</p>
             )}
           </div>
         </div>
@@ -747,4 +877,23 @@ function TextField({
       )}
     </div>
   );
+}
+
+function fmtBytes(n: number): string {
+  if (!n || !isFinite(n) || n <= 0) return "0 B";
+  const units = ["B", "KB", "MB", "GB", "TB"];
+  let i = 0;
+  let v = n;
+  while (v >= 1024 && i < units.length - 1) { v /= 1024; i++; }
+  return `${v.toFixed(v >= 10 || i === 0 ? 0 : 1)} ${units[i]}`;
+}
+
+function fmtDuration(seconds: number): string {
+  if (!seconds || !isFinite(seconds) || seconds <= 0) return "";
+  if (seconds < 60) return `${Math.round(seconds)}s`;
+  const m = Math.floor(seconds / 60);
+  const s = Math.round(seconds % 60);
+  if (m < 60) return `${m}m ${s}s`;
+  const h = Math.floor(m / 60);
+  return `${h}h ${m % 60}m`;
 }

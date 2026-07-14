@@ -16,6 +16,7 @@ import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/ap
 import { Route as AuthenticatedAppIndexRouteImport } from './routes/_authenticated/app.index'
 import { Route as AuthenticatedAppWishlistRouteImport } from './routes/_authenticated/app.wishlist'
 import { Route as AuthenticatedAppWatchRouteImport } from './routes/_authenticated/app.watch'
+import { Route as AuthenticatedAppTamannaRouteImport } from './routes/_authenticated/app.tamanna'
 import { Route as AuthenticatedAppScribbleRouteImport } from './routes/_authenticated/app.scribble'
 import { Route as AuthenticatedAppPuzzleRouteImport } from './routes/_authenticated/app.puzzle'
 import { Route as AuthenticatedAppPlayRouteImport } from './routes/_authenticated/app.play'
@@ -32,7 +33,6 @@ import { Route as AuthenticatedAppHelpRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedAppFriendsRouteImport } from './routes/_authenticated/app.friends'
 import { Route as AuthenticatedAppDailyChallengeRouteImport } from './routes/_authenticated/app.daily-challenge'
 import { Route as AuthenticatedAppAnniversaryRouteImport } from './routes/_authenticated/app.anniversary'
-import { Route as AuthenticatedAppAdminRouteImport } from './routes/_authenticated/app.admin'
 import { Route as AuthenticatedAppMoviesIndexRouteImport } from './routes/_authenticated/app.movies.index'
 import { Route as AuthenticatedAppChatIndexRouteImport } from './routes/_authenticated/app.chat.index'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
@@ -77,6 +77,11 @@ const AuthenticatedAppWishlistRoute =
 const AuthenticatedAppWatchRoute = AuthenticatedAppWatchRouteImport.update({
   id: '/watch',
   path: '/watch',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
+const AuthenticatedAppTamannaRoute = AuthenticatedAppTamannaRouteImport.update({
+  id: '/tamanna',
+  path: '/tamanna',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
 const AuthenticatedAppScribbleRoute =
@@ -165,11 +170,6 @@ const AuthenticatedAppAnniversaryRoute =
     path: '/anniversary',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
-const AuthenticatedAppAdminRoute = AuthenticatedAppAdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
-  getParentRoute: () => AuthenticatedAppRoute,
-} as any)
 const AuthenticatedAppMoviesIndexRoute =
   AuthenticatedAppMoviesIndexRouteImport.update({
     id: '/',
@@ -235,7 +235,6 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/app': typeof AuthenticatedAppRouteWithChildren
-  '/app/admin': typeof AuthenticatedAppAdminRoute
   '/app/anniversary': typeof AuthenticatedAppAnniversaryRoute
   '/app/daily-challenge': typeof AuthenticatedAppDailyChallengeRoute
   '/app/friends': typeof AuthenticatedAppFriendsRoute
@@ -252,6 +251,7 @@ export interface FileRoutesByFullPath {
   '/app/play': typeof AuthenticatedAppPlayRoute
   '/app/puzzle': typeof AuthenticatedAppPuzzleRoute
   '/app/scribble': typeof AuthenticatedAppScribbleRoute
+  '/app/tamanna': typeof AuthenticatedAppTamannaRoute
   '/app/watch': typeof AuthenticatedAppWatchRoute
   '/app/wishlist': typeof AuthenticatedAppWishlistRoute
   '/app/': typeof AuthenticatedAppIndexRoute
@@ -269,7 +269,6 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/app/admin': typeof AuthenticatedAppAdminRoute
   '/app/anniversary': typeof AuthenticatedAppAnniversaryRoute
   '/app/daily-challenge': typeof AuthenticatedAppDailyChallengeRoute
   '/app/friends': typeof AuthenticatedAppFriendsRoute
@@ -285,6 +284,7 @@ export interface FileRoutesByTo {
   '/app/play': typeof AuthenticatedAppPlayRoute
   '/app/puzzle': typeof AuthenticatedAppPuzzleRoute
   '/app/scribble': typeof AuthenticatedAppScribbleRoute
+  '/app/tamanna': typeof AuthenticatedAppTamannaRoute
   '/app/watch': typeof AuthenticatedAppWatchRoute
   '/app/wishlist': typeof AuthenticatedAppWishlistRoute
   '/app': typeof AuthenticatedAppIndexRoute
@@ -305,7 +305,6 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/_authenticated/app': typeof AuthenticatedAppRouteWithChildren
-  '/_authenticated/app/admin': typeof AuthenticatedAppAdminRoute
   '/_authenticated/app/anniversary': typeof AuthenticatedAppAnniversaryRoute
   '/_authenticated/app/daily-challenge': typeof AuthenticatedAppDailyChallengeRoute
   '/_authenticated/app/friends': typeof AuthenticatedAppFriendsRoute
@@ -322,6 +321,7 @@ export interface FileRoutesById {
   '/_authenticated/app/play': typeof AuthenticatedAppPlayRoute
   '/_authenticated/app/puzzle': typeof AuthenticatedAppPuzzleRoute
   '/_authenticated/app/scribble': typeof AuthenticatedAppScribbleRoute
+  '/_authenticated/app/tamanna': typeof AuthenticatedAppTamannaRoute
   '/_authenticated/app/watch': typeof AuthenticatedAppWatchRoute
   '/_authenticated/app/wishlist': typeof AuthenticatedAppWishlistRoute
   '/_authenticated/app/': typeof AuthenticatedAppIndexRoute
@@ -342,7 +342,6 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/app'
-    | '/app/admin'
     | '/app/anniversary'
     | '/app/daily-challenge'
     | '/app/friends'
@@ -359,6 +358,7 @@ export interface FileRouteTypes {
     | '/app/play'
     | '/app/puzzle'
     | '/app/scribble'
+    | '/app/tamanna'
     | '/app/watch'
     | '/app/wishlist'
     | '/app/'
@@ -376,7 +376,6 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
-    | '/app/admin'
     | '/app/anniversary'
     | '/app/daily-challenge'
     | '/app/friends'
@@ -392,6 +391,7 @@ export interface FileRouteTypes {
     | '/app/play'
     | '/app/puzzle'
     | '/app/scribble'
+    | '/app/tamanna'
     | '/app/watch'
     | '/app/wishlist'
     | '/app'
@@ -411,7 +411,6 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/_authenticated/app'
-    | '/_authenticated/app/admin'
     | '/_authenticated/app/anniversary'
     | '/_authenticated/app/daily-challenge'
     | '/_authenticated/app/friends'
@@ -428,6 +427,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/play'
     | '/_authenticated/app/puzzle'
     | '/_authenticated/app/scribble'
+    | '/_authenticated/app/tamanna'
     | '/_authenticated/app/watch'
     | '/_authenticated/app/wishlist'
     | '/_authenticated/app/'
@@ -499,6 +499,13 @@ declare module '@tanstack/react-router' {
       path: '/watch'
       fullPath: '/app/watch'
       preLoaderRoute: typeof AuthenticatedAppWatchRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/tamanna': {
+      id: '/_authenticated/app/tamanna'
+      path: '/tamanna'
+      fullPath: '/app/tamanna'
+      preLoaderRoute: typeof AuthenticatedAppTamannaRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/scribble': {
@@ -613,13 +620,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppAnniversaryRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
-    '/_authenticated/app/admin': {
-      id: '/_authenticated/app/admin'
-      path: '/admin'
-      fullPath: '/app/admin'
-      preLoaderRoute: typeof AuthenticatedAppAdminRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
     '/_authenticated/app/movies/': {
       id: '/_authenticated/app/movies/'
       path: '/'
@@ -724,7 +724,6 @@ const AuthenticatedAppMoviesRouteWithChildren =
   )
 
 interface AuthenticatedAppRouteChildren {
-  AuthenticatedAppAdminRoute: typeof AuthenticatedAppAdminRoute
   AuthenticatedAppAnniversaryRoute: typeof AuthenticatedAppAnniversaryRoute
   AuthenticatedAppDailyChallengeRoute: typeof AuthenticatedAppDailyChallengeRoute
   AuthenticatedAppFriendsRoute: typeof AuthenticatedAppFriendsRoute
@@ -741,6 +740,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppPlayRoute: typeof AuthenticatedAppPlayRoute
   AuthenticatedAppPuzzleRoute: typeof AuthenticatedAppPuzzleRoute
   AuthenticatedAppScribbleRoute: typeof AuthenticatedAppScribbleRoute
+  AuthenticatedAppTamannaRoute: typeof AuthenticatedAppTamannaRoute
   AuthenticatedAppWatchRoute: typeof AuthenticatedAppWatchRoute
   AuthenticatedAppWishlistRoute: typeof AuthenticatedAppWishlistRoute
   AuthenticatedAppIndexRoute: typeof AuthenticatedAppIndexRoute
@@ -753,7 +753,6 @@ interface AuthenticatedAppRouteChildren {
 }
 
 const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
-  AuthenticatedAppAdminRoute: AuthenticatedAppAdminRoute,
   AuthenticatedAppAnniversaryRoute: AuthenticatedAppAnniversaryRoute,
   AuthenticatedAppDailyChallengeRoute: AuthenticatedAppDailyChallengeRoute,
   AuthenticatedAppFriendsRoute: AuthenticatedAppFriendsRoute,
@@ -770,6 +769,7 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppPlayRoute: AuthenticatedAppPlayRoute,
   AuthenticatedAppPuzzleRoute: AuthenticatedAppPuzzleRoute,
   AuthenticatedAppScribbleRoute: AuthenticatedAppScribbleRoute,
+  AuthenticatedAppTamannaRoute: AuthenticatedAppTamannaRoute,
   AuthenticatedAppWatchRoute: AuthenticatedAppWatchRoute,
   AuthenticatedAppWishlistRoute: AuthenticatedAppWishlistRoute,
   AuthenticatedAppIndexRoute: AuthenticatedAppIndexRoute,
