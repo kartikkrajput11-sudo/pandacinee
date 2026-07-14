@@ -21,6 +21,7 @@ import {
   Check,
   Heart,
   MessageCircle,
+  Crown,
 } from "lucide-react";
 import { toast } from "sonner";
 import { tmdbMovie } from "@/lib/tmdb.functions";
@@ -100,8 +101,15 @@ function WatchMovie() {
     incomingReaction,
     clearIncomingReaction,
     sendReaction,
+    hostId,
+    claimHost,
+    releaseHost,
     drift,
   } = useWatchSync(me?.id ?? null, partner?.id ?? null, tmdbId, "movie");
+
+  const iAmHost = !!me && hostId === me.id;
+  const partnerIsHost = !!partner && hostId === partner.id;
+  const lastAppliedPeerEventRef = useRef<number>(0);
 
   useEffect(() => {
     fetchMovie({ data: { id: tmdbId } }).then(setMovie).catch(() => setMovie(null));
@@ -194,14 +202,43 @@ function WatchMovie() {
     return () => window.clearInterval(iv);
   }, [countdown, clearCountdown]);
 
-  const src = useMemo(() => SOURCES[sourceIdx].url(tmdbId, startAt), [sourceIdx, tmdbId, startAt]);
+  const [pausedByHost, setPausedByHost] = useState(false);
 
-  const applySeek = useCallback((time: number) => {
+  const src = useMemo(() => {
+    // When host paused, force a manual (no-autoplay) URL so playback stops at that time.
+    if (pausedByHost) return SOURCES[1].url(tmdbId, startAt);
+    return SOURCES[sourceIdx].url(tmdbId, startAt);
+  }, [sourceIdx, tmdbId, startAt, pausedByHost]);
+
+  const applySeek = useCallback((time: number, opts?: { pause?: boolean }) => {
     setStartAt(time);
+    setPausedByHost(!!opts?.pause);
     setStarted(true);
     setPlayerLoading(true);
     setIframeKey((k) => k + 1);
   }, []);
+
+  // Follower auto-sync: when partner is host, mirror their play/pause/seek
+  useEffect(() => {
+    if (!peer || !partnerIsHost || !me) return;
+    if (peer.updatedAt <= lastAppliedPeerEventRef.current) return;
+    const evt = peer.event;
+    // Only react to discrete transport events
+    if (evt !== "play" && evt !== "pause" && evt !== "seeked" && evt !== "timeupdate") return;
+    // For timeupdate, only re-sync if drift is significant
+    if (evt === "timeupdate") {
+      const d = Math.abs(mine.currentTime - peer.currentTime);
+      if (d < 6) return;
+    }
+    lastAppliedPeerEventRef.current = peer.updatedAt;
+    if (evt === "pause") {
+      applySeek(peer.currentTime, { pause: true });
+      toast.info(`${partner?.display_name.split(" ")[0]} paused`);
+    } else {
+      applySeek(peer.currentTime, { pause: false });
+      if (evt === "seeked") toast.info(`${partner?.display_name.split(" ")[0]} skipped`);
+    }
+  }, [peer, partnerIsHost, me, mine.currentTime, applySeek, partner]);
 
   async function inviteToWatch() {
     if (!me || !partner || !movie) return;
@@ -292,6 +329,16 @@ function WatchMovie() {
         <div className="flex-1 min-w-0">
           <p className="text-[10px] uppercase tracking-[0.3em] text-petal flex items-center gap-1.5">
             <Radio className="size-3 animate-pulse" /> Now Screening
+            {iAmHost && (
+              <span className="ml-2 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-petal text-velvet text-[9px] font-bold">
+                <Crown className="size-2.5" /> HOSTING
+              </span>
+            )}
+            {partnerIsHost && (
+              <span className="ml-2 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-petal/20 border border-petal/40 text-petal text-[9px] font-bold">
+                <Crown className="size-2.5" /> FOLLOWING
+              </span>
+            )}
           </p>
           <h1 className="font-serif text-lg md:text-2xl italic truncate text-candle">
             {movie?.title ?? "Loading…"}
@@ -494,24 +541,51 @@ function WatchMovie() {
           {/* Together tools */}
           {partner && (
             <div className="rounded-2xl border border-border bg-surface/40 backdrop-blur px-3 py-3">
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center justify-between mb-2 gap-2">
                 <span className="text-[10px] uppercase tracking-[0.3em] text-candle-muted">Together</span>
-                <label className="flex items-center gap-1.5 text-[10px] text-candle-muted cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={autoFollow}
-                    onChange={(e) => setAutoFollow(e.target.checked)}
-                    className="accent-petal"
-                  />
-                  Auto-follow {partnerFirst}
-                </label>
+                <div className="flex items-center gap-1.5 text-[10px]">
+                  <Crown className={`size-3 ${hostId ? "text-petal" : "text-candle-muted/60"}`} />
+                  <span className="text-candle-muted">
+                    Host:{" "}
+                    <span className={hostId ? "text-petal font-semibold" : ""}>
+                      {iAmHost ? "You" : partnerIsHost ? partnerFirst : "no one"}
+                    </span>
+                  </span>
+                </div>
               </div>
+
+              {/* Host claim / release */}
+              <div className="mb-2 flex items-center gap-2">
+                {!iAmHost ? (
+                  <button
+                    onClick={claimHost}
+                    className="flex-1 h-10 rounded-full bg-petal text-velvet text-xs font-semibold flex items-center justify-center gap-1.5 shadow-lg shadow-petal/30"
+                  >
+                    <Crown className="size-3.5" /> Take the reins
+                  </button>
+                ) : (
+                  <button
+                    onClick={releaseHost}
+                    className="flex-1 h-10 rounded-full bg-surface border border-petal/60 text-petal text-xs font-semibold flex items-center justify-center gap-1.5"
+                  >
+                    <Crown className="size-3.5 fill-petal" /> You're the host · release
+                  </button>
+                )}
+              </div>
+
+              {partnerIsHost && (
+                <div className="mb-2 rounded-xl bg-petal/10 border border-petal/30 px-3 py-2 text-[11px] text-candle flex items-center gap-2">
+                  <Crown className="size-3 text-petal shrink-0" />
+                  <span>Auto-following {partnerFirst} — their play, pause & skips control your screen.</span>
+                </div>
+              )}
+
               <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
                 <button
                   onClick={() => startCountdown(4)}
-                  className="shrink-0 h-9 px-4 rounded-full bg-petal text-velvet text-xs font-semibold flex items-center gap-1.5 shadow-lg shadow-petal/30"
+                  className="shrink-0 h-9 px-4 rounded-full bg-surface border border-border text-xs text-candle flex items-center gap-1.5"
                 >
-                  <Timer className="size-3.5" /> Press play together
+                  <Timer className="size-3.5" /> Countdown together
                 </button>
                 <button
                   onClick={syncToPartner}

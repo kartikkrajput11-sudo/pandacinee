@@ -28,7 +28,9 @@ export type PeerState = {
 export type SyncCommand =
   | { kind: "seekTo"; time: number; from: string }
   | { kind: "countdown"; startAt: number; from: string; time?: number }
-  | { kind: "requestSync"; from: string };
+  | { kind: "requestSync"; from: string }
+  | { kind: "claimHost"; from: string }
+  | { kind: "releaseHost"; from: string };
 
 export function useWatchSync(
   meId: string | null,
@@ -47,10 +49,13 @@ export function useWatchSync(
   const [countdown, setCountdown] = useState<{ startAt: number; time?: number; from: string } | null>(null);
   const [incomingSeek, setIncomingSeek] = useState<{ time: number; from: string; id: number } | null>(null);
   const [incomingReaction, setIncomingReaction] = useState<{ emoji: string; id: number } | null>(null);
+  const [hostId, setHostId] = useState<string | null>(null);
 
   const chRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const mineRef = useRef(mine);
   mineRef.current = mine;
+  const hostRef = useRef<string | null>(null);
+  hostRef.current = hostId;
 
   useEffect(() => {
     if (!meId || !partnerId || !movieId) return;
@@ -69,8 +74,15 @@ export function useWatchSync(
       } else if (cmd.kind === "countdown") {
         setCountdown({ startAt: cmd.startAt, time: cmd.time, from: cmd.from });
       } else if (cmd.kind === "requestSync") {
-        // reply with current state
         ch.send({ type: "broadcast", event: "state", payload: mineRef.current });
+        // Also announce host status so late joiner sees it
+        if (hostRef.current === meId) {
+          ch.send({ type: "broadcast", event: "cmd", payload: { kind: "claimHost", from: meId } });
+        }
+      } else if (cmd.kind === "claimHost") {
+        setHostId(cmd.from);
+      } else if (cmd.kind === "releaseHost") {
+        setHostId((prev) => (prev === cmd.from ? null : prev));
       }
     });
     ch.on("broadcast", { event: "reaction" }, ({ payload }) => {
@@ -133,6 +145,26 @@ export function useWatchSync(
     chRef.current?.send({ type: "broadcast", event: "reaction", payload: { emoji } });
   }, []);
 
+  const claimHost = useCallback(() => {
+    if (!meId) return;
+    setHostId(meId);
+    chRef.current?.send({
+      type: "broadcast",
+      event: "cmd",
+      payload: { kind: "claimHost", from: meId } satisfies SyncCommand,
+    });
+  }, [meId]);
+
+  const releaseHost = useCallback(() => {
+    if (!meId) return;
+    setHostId((prev) => (prev === meId ? null : prev));
+    chRef.current?.send({
+      type: "broadcast",
+      event: "cmd",
+      payload: { kind: "releaseHost", from: meId } satisfies SyncCommand,
+    });
+  }, [meId]);
+
   // drift (positive => I'm ahead of partner)
   const drift =
     peer && mine.duration > 0
@@ -153,6 +185,9 @@ export function useWatchSync(
     incomingReaction,
     clearIncomingReaction,
     sendReaction,
+    hostId,
+    claimHost,
+    releaseHost,
     drift,
   };
 }
