@@ -7,6 +7,7 @@ import { uploadChatMedia } from "@/lib/chat";
 import { typeMeta, type PunishmentLock } from "@/lib/punishment";
 import { VoiceRecorder } from "./VoiceRecorder";
 import { usePunishmentVerification, wipePunishment, type VerificationMessage } from "@/hooks/usePunishmentVerification";
+import { UnlockCelebration } from "./UnlockCelebration";
 
 type Props = {
   lock: PunishmentLock;
