@@ -1484,9 +1484,27 @@ function CatalogWatch({ id }: { id: string }) {
 }
 
 function CustomWatch({ customId }: { customId: string }) {
+  const search = Route.useSearch();
   const { data: prof } = useProfile();
   const me = prof?.profile;
-  const partner = prof?.partner;
+  const realPartner = prof?.partner;
+  const friendsQuery = useFriendships();
+  const partner = useMemo(() => {
+    const w = search.with;
+    if (!w) return realPartner ?? null;
+    if (realPartner && w === realPartner.id) return realPartner;
+    const p = friendsQuery.data?.profiles?.[w];
+    if (p) {
+      return {
+        id: p.id,
+        username: p.username,
+        display_name: p.display_name,
+        avatar_url: p.avatar_url,
+      } as typeof realPartner;
+    }
+    return realPartner ?? null;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search.with, realPartner?.id, friendsQuery.data?.profiles]);
   const [movie, setMovie] = useState<any>(null);
   const [videoSrc, setVideoSrc] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
