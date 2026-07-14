@@ -32,8 +32,8 @@ export const GAME_KINDS: GameKind[] = [
 
 export const GAMES: Record<GameKind, { name: string; emoji: string; body: string; ai?: boolean; href?: string; comingSoon?: boolean }> = {
   "paint-together": { name: "Paint Together", emoji: "🎨", body: "Live shared canvas.", href: "/app/paint" },
-  "scribble-guess": { name: "Scribble & Guess", emoji: "✏️", body: "Draw. Guess. Win.", comingSoon: true },
-  "daily-challenge": { name: "Daily Challenge", emoji: "🌞", body: "One prompt each day.", comingSoon: true },
+  "scribble-guess": { name: "Scribble & Guess", emoji: "✏️", body: "Draw. Guess. Win.", href: "/app/scribble" },
+  "daily-challenge": { name: "Daily Challenge", emoji: "🌞", body: "One prompt each day.", href: "/app/daily-challenge" },
   "memory-challenge": { name: "Memory Challenge", emoji: "📸", body: "Photo prompts together.", comingSoon: true },
   "puzzle-together": { name: "Puzzle Together", emoji: "🧩", body: "Solve jigsaws live.", comingSoon: true },
   "love-quiz": { name: "Love Quiz", emoji: "💘", body: "Quizzes from your memories.", comingSoon: true },
