@@ -1,10 +1,18 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { PandaLogo } from "@/components/PandaLogo";
 import { Petals } from "@/components/Petals";
+import { supabase } from "@/integrations/supabase/client";
 import heroImage from "@/assets/hero-couple.jpg";
 import mascotImage from "@/assets/panda-mascot.png";
 
 export const Route = createFileRoute("/")({
+  ssr: false,
+  beforeLoad: async () => {
+    const { data } = await supabase.auth.getSession();
+    if (data.session) {
+      throw redirect({ to: "/app" });
+    }
+  },
   head: () => ({
     meta: [
       { title: "PANDACINE — Cinema for two" },
