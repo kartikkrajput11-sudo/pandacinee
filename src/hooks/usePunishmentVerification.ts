@@ -50,7 +50,7 @@ export function usePunishmentVerification(lockId: string | null, meId: string | 
       }
     })();
 
-    const ch = db.channel(`pvm:${lockId}`);
+    const ch = db.channel(`pvm:${lockId}:${crypto.randomUUID()}`);
     ch.on(
       "postgres_changes",
       { event: "*", schema: "public", table: "punishment_verification_messages", filter: `lock_id=eq.${lockId}` },
