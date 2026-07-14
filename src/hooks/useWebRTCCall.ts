@@ -102,7 +102,9 @@ export function useWebRTCCall(peerId: string | null, mode: Mode = "video", isCal
           if (audioSender) {
             const params = audioSender.getParameters();
             params.encodings = params.encodings?.length ? params.encodings : [{}];
-            params.encodings[0].maxBitrate = 64_000; // 64 kbps stereo Opus
+            params.encodings[0].maxBitrate = 32_000; // 32 kbps mono Opus — clear voice, low jitter
+            params.encodings[0].priority = "high";
+            params.encodings[0].networkPriority = "high";
             await audioSender.setParameters(params).catch(() => {});
           }
           if (mode === "video") {
@@ -110,12 +112,14 @@ export function useWebRTCCall(peerId: string | null, mode: Mode = "video", isCal
             if (videoSender) {
               const params = videoSender.getParameters();
               params.encodings = params.encodings?.length ? params.encodings : [{}];
-              params.encodings[0].maxBitrate = 1_500_000; // 1.5 Mbps HD
-              params.degradationPreference = "balanced";
+              params.encodings[0].maxBitrate = 700_000; // 700 kbps — smooth on mobile networks
+              params.encodings[0].maxFramerate = 24;
+              params.degradationPreference = "maintain-framerate";
               await videoSender.setParameters(params).catch(() => {});
             }
           }
         } catch { /* non-fatal */ }
+
 
         const remote = new MediaStream();
         setRemoteStream(remote);
