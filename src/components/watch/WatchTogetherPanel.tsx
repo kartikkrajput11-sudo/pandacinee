@@ -52,8 +52,11 @@ export function WatchTogetherPanel({
   const [text, setText] = useState("");
   const [pickerOpen, setPickerOpen] = useState<null | "stickers" | "phrases">(null);
   const [opacityMode, setOpacityMode] = useState<"blur" | "clear" | "solid">("blur");
+  const [reactionsOpen, setReactionsOpen] = useState(false);
+  const [floaters, setFloaters] = useState<{ id: number; emoji: string; x: number }[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const floaterId = useRef(0);
 
   const { messages, send, remove, sendTyping, partnerTyping, partnerPresent } =
     useMovieChat(me.id, partner.id, movieId, mediaType);
@@ -110,8 +113,65 @@ export function WatchTogetherPanel({
     return () => document.removeEventListener("fullscreenchange", onChange);
   }, []);
 
+  const REACTIONS = ["❤️", "😂", "😱", "🔥", "🥹", "🍿", "👏", "💜"];
+  function burstReaction(emoji: string) {
+    const id = ++floaterId.current;
+    const x = 20 + Math.random() * 60; // 20%..80% of width
+    setFloaters((f) => [...f, { id, emoji, x }]);
+    window.setTimeout(() => setFloaters((f) => f.filter((it) => it.id !== id)), 3000);
+    // also share with partner as a sticker
+    send(emoji, "sticker").catch(() => {});
+  }
+
   const content = (
     <>
+      {/* Floating reaction emojis rising over the screen */}
+      {floaters.length > 0 && (
+        <div className="fixed inset-0 z-[45] pointer-events-none overflow-hidden">
+          {floaters.map((f) => (
+            <span
+              key={f.id}
+              className="absolute bottom-24 text-4xl animate-float-up drop-shadow-lg"
+              style={{ left: `${f.x}%` }}
+            >
+              {f.emoji}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {/* Reactions FAB — sits above chat FAB */}
+      {!inline && (
+        <div className="fixed bottom-44 right-4 z-40 flex flex-col items-end gap-2">
+          {reactionsOpen && (
+            <div className="flex flex-col items-center gap-1.5 rounded-full bg-velvet/90 backdrop-blur-xl border border-petal/40 p-2 shadow-2xl animate-fade-in">
+              {REACTIONS.map((e) => (
+                <button
+                  key={e}
+                  onClick={() => burstReaction(e)}
+                  className="text-2xl leading-none hover:scale-125 active:scale-95 transition-transform"
+                  aria-label={`React ${e}`}
+                >
+                  {e}
+                </button>
+              ))}
+            </div>
+          )}
+          <button
+            onClick={() => setReactionsOpen((o) => !o)}
+            className="size-12 rounded-full bg-velvet/90 backdrop-blur-xl border border-petal/40 shadow-2xl flex items-center justify-center text-xl hover:scale-105 transition"
+            aria-label="Instant reactions"
+          >
+            {reactionsOpen ? "×" : "😊"}
+          </button>
+          {reactionsOpen && (
+            <span className="text-[9px] uppercase tracking-[0.2em] text-candle-muted bg-velvet/70 px-2 py-0.5 rounded-full">
+              reactions
+            </span>
+          )}
+        </div>
+      )}
+
       {/* Toggle FAB (hidden in inline mode) */}
       {!inline && (
         <button
