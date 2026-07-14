@@ -140,11 +140,11 @@ export function WatchTogetherPanel({
         </div>
       )}
 
-      {/* Reactions FAB — sits above chat FAB */}
-      {!inline && (
-        <div className="fixed bottom-44 right-4 z-40 flex flex-col items-end gap-2">
+      {/* Reactions — only in fullscreen. Minimalist wordmark trigger. */}
+      {!inline && fsEl && (
+        <div className="fixed bottom-44 right-6 z-40 flex flex-col items-end gap-3">
           {reactionsOpen && (
-            <div className="flex flex-col items-center gap-1.5 rounded-full bg-velvet/90 backdrop-blur-xl border border-petal/40 p-2 shadow-2xl animate-fade-in">
+            <div className="flex flex-col items-center gap-2 rounded-full bg-black/40 backdrop-blur-2xl border border-white/10 px-2 py-3 shadow-2xl animate-fade-in">
               {REACTIONS.map((e) => (
                 <button
                   key={e}
@@ -159,16 +159,16 @@ export function WatchTogetherPanel({
           )}
           <button
             onClick={() => setReactionsOpen((o) => !o)}
-            className="size-12 rounded-full bg-velvet/90 backdrop-blur-xl border border-petal/40 shadow-2xl flex items-center justify-center text-xl hover:scale-105 transition"
+            className="group relative"
             aria-label="Instant reactions"
           >
-            {reactionsOpen ? "×" : "😊"}
-          </button>
-          {reactionsOpen && (
-            <span className="text-[9px] uppercase tracking-[0.2em] text-candle-muted bg-velvet/70 px-2 py-0.5 rounded-full">
-              reactions
+            <span
+              className="font-serif italic text-lg tracking-[0.18em] text-white/90 px-4 py-1.5 rounded-full bg-black/30 backdrop-blur-xl border border-white/15 shadow-lg hover:text-white hover:border-white/30 transition-all"
+              style={{ letterSpacing: "0.18em" }}
+            >
+              {reactionsOpen ? "close" : "Reactions"}
             </span>
-          )}
+          </button>
         </div>
       )}
 
