@@ -2,12 +2,14 @@ import { createFileRoute, Outlet, useLocation } from "@tanstack/react-router";
 import { BottomNav } from "@/components/BottomNav";
 import { IncomingCallListener } from "@/components/IncomingCallListener";
 import { OnboardingFlow } from "@/components/OnboardingFlow";
+import { usePresenceHeartbeat } from "@/hooks/usePresenceHeartbeat";
 
 export const Route = createFileRoute("/_authenticated/app")({
   component: AppShell,
 });
 
 function AppShell() {
+  usePresenceHeartbeat();
   const { pathname } = useLocation();
   // Hide bottom nav on chat conversations and calls (it overlaps the composer / call UI)
   const hideNav =
