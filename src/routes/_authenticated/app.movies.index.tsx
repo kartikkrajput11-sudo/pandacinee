@@ -75,7 +75,13 @@ function Movies() {
   const [feelGood, setFeelGood] = useState<TmdbMovie[]>([]);
   const [recent, setRecent] = useState<TmdbMovie[]>([]);
   const [custom, setCustom] = useState<CustomMovieRow[]>([]);
+  const [overrides, setOverrides] = useState<Map<number, CustomMovieRow>>(new Map());
   const [loading, setLoading] = useState(true);
+
+  const overlay = useMemo(
+    () => (list: TmdbMovie[]) => list.map((m) => applyOverride(m, overrides.get(m.id))),
+    [overrides],
+  );
 
   useEffect(() => { setInput(q); }, [q]);
 
