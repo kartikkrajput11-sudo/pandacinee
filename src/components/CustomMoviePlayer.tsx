@@ -31,6 +31,8 @@ type Props = {
     duration: number;
   }) => void;
   onReady?: (handle: CustomPlayerHandle) => void;
+  /** When true, only host controls playback: viewer cannot play/pause/seek/skip. */
+  locked?: boolean;
 };
 
 function fmt(sec: number): string {
@@ -45,7 +47,7 @@ function fmt(sec: number): string {
 
 const RATES = [0.5, 0.75, 1, 1.25, 1.5, 2];
 
-export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady }: Props) {
+export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, locked = false }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [playing, setPlaying] = useState(false);
@@ -143,10 +145,13 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady }: Pr
       if (e.target instanceof HTMLInputElement) return;
       if (e.key === " " || e.key === "k") {
         e.preventDefault();
+        if (locked) return;
         v.paused ? v.play() : v.pause();
       } else if (e.key === "ArrowRight") {
+        if (locked) return;
         v.currentTime = Math.min(v.duration || 0, v.currentTime + 10);
       } else if (e.key === "ArrowLeft") {
+        if (locked) return;
         v.currentTime = Math.max(0, v.currentTime - 10);
       } else if (e.key === "f") {
         toggleFullscreen();
@@ -157,15 +162,17 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady }: Pr
     };
     el.addEventListener("keydown", onKey);
     return () => el.removeEventListener("keydown", onKey);
-  }, [scheduleHide]);
+  }, [scheduleHide, locked]);
 
   function togglePlay() {
+    if (locked) return;
     const v = videoRef.current;
     if (!v) return;
     v.paused ? v.play().catch(() => {}) : v.pause();
   }
 
   function skip(delta: number) {
+    if (locked) return;
     const v = videoRef.current;
     if (!v) return;
     v.currentTime = Math.max(0, Math.min(v.duration || 0, v.currentTime + delta));
@@ -188,6 +195,7 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady }: Pr
   }
 
   function onScrub(e: React.ChangeEvent<HTMLInputElement>) {
+    if (locked) return;
     const v = videoRef.current;
     if (!v || !duration) return;
     const t = (Number(e.target.value) / 1000) * duration;
@@ -236,7 +244,7 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady }: Pr
         onWaiting={() => setBuffering(true)}
         onPlaying={() => setBuffering(false)}
         onEnded={(e) => onEvent?.({ event: "ended", currentTime: e.currentTarget.currentTime, duration: e.currentTarget.duration })}
-        onClick={togglePlay}
+        onClick={locked ? undefined : togglePlay}
       />
 
       {buffering && (
@@ -245,8 +253,8 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady }: Pr
         </div>
       )}
 
-      {/* Center play button when paused */}
-      {!playing && !buffering && (
+      {/* Center play button when paused (hidden for followers — host controls playback) */}
+      {!playing && !buffering && !locked && (
         <button
           onClick={togglePlay}
           aria-label="Play"
@@ -256,6 +264,15 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady }: Pr
             <Play className="size-7 md:size-9 fill-velvet ml-1" />
           </span>
         </button>
+      )}
+
+      {/* Follower lock hint when paused */}
+      {locked && !playing && !buffering && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/40 pointer-events-none">
+          <div className="px-4 py-2 rounded-full bg-black/60 border border-white/10 text-white/90 text-xs tracking-wide">
+            Host controls playback
+          </div>
+        </div>
       )}
 
       {/* Controls */}
@@ -282,8 +299,9 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady }: Pr
             onTouchStart={() => (scrubbing.current = true)}
             onTouchEnd={() => (scrubbing.current = false)}
             onChange={onScrub}
+            disabled={locked}
             aria-label="Seek"
-            className="absolute inset-0 w-full opacity-0 cursor-pointer h-6 -top-2"
+            className={`absolute inset-0 w-full opacity-0 h-6 -top-2 ${locked ? "cursor-not-allowed pointer-events-none" : "cursor-pointer"}`}
           />
           <div
             className="absolute -top-1 size-3.5 rounded-full bg-white shadow pointer-events-none transition-[left]"
@@ -292,15 +310,23 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady }: Pr
         </div>
 
         <div className="flex items-center gap-2 text-white text-xs">
-          <button onClick={togglePlay} aria-label={playing ? "Pause" : "Play"} className="size-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center">
-            {playing ? <Pause className="size-4 fill-white" /> : <Play className="size-4 fill-white ml-0.5" />}
-          </button>
-          <button onClick={() => skip(-10)} aria-label="Back 10 seconds" className="size-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center">
-            <RotateCcw className="size-4" />
-          </button>
-          <button onClick={() => skip(10)} aria-label="Forward 10 seconds" className="size-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center">
-            <RotateCw className="size-4" />
-          </button>
+          {!locked && (
+            <>
+              <button onClick={togglePlay} aria-label={playing ? "Pause" : "Play"} className="size-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center">
+                {playing ? <Pause className="size-4 fill-white" /> : <Play className="size-4 fill-white ml-0.5" />}
+              </button>
+              <button onClick={() => skip(-10)} aria-label="Back 10 seconds" className="size-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center">
+                <RotateCcw className="size-4" />
+              </button>
+              <button onClick={() => skip(10)} aria-label="Forward 10 seconds" className="size-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center">
+                <RotateCw className="size-4" />
+              </button>
+            </>
+          )}
+          {locked && (
+            <span className="text-[11px] text-white/70 tracking-wide">Host controls playback</span>
+          )}
+
 
           <div className="hidden sm:flex items-center gap-2 ml-1">
             <button
