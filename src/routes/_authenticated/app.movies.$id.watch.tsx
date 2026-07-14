@@ -450,6 +450,20 @@ function WatchMovie() {
     }
   }
 
+  async function inviteFriend(friendId: string, friendName: string) {
+    if (!me || !movie) return;
+    const link = `${window.location.origin}/app/movies/${tmdbId}/watch`;
+    const content = `🎬 Let's watch *${movie.title}* together 🍿\n${link}`;
+    const { error } = await supabase.from("messages").insert({
+      sender_id: me.id, receiver_id: friendId, content, type: "text",
+    });
+    if (error) { toast.error(error.message); return; }
+    toast.success(`Invite sent to ${friendName} 🍿`);
+    setFriendPickerOpen(false);
+    navigate({ to: "/app/chat/$peerId", params: { peerId: friendId } });
+  }
+
+
   function openFullscreen() {
     const el = document.getElementById("movie-frame");
     if (el && (el as any).requestFullscreen) (el as any).requestFullscreen();
