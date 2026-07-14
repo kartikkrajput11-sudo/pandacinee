@@ -16,6 +16,19 @@ const DIFFICULTIES = [
   { pieces: 25, label: "Expert", grid: 5 },
 ] as const;
 
+const DARE_SUGGESTIONS: string[] = [
+  "Send a cute selfie 🤳",
+  "Voice note singing our song 🎤",
+  "Write me a mini love poem 💌",
+  "Send our favorite memory in one sentence ✨",
+  "Pick our next date night 🎬",
+  "Cook (or order) my favorite meal 🍜",
+  "Make me a playlist of 5 songs 🎧",
+  "Do 10 push-ups 💪 & send proof",
+  "Do the dishes tonight 🧼",
+  "Give me a 5-min massage tomorrow 💆",
+];
+
 // A soft lavender / coral gradient with hearts — inline SVG so no network dep.
 const PUZZLE_SVG = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'>
   <defs>
@@ -79,8 +92,18 @@ function PuzzleTogether() {
 
   const activeImageUrl = customImage ?? PUZZLE_URL;
 
+  // Race state — puzzles are NOT synced; first to solve wins and can send a dare.
+  type Outcome = null | "winner" | "loser";
+  const [outcome, setOutcome] = useState<Outcome>(null);
+  const [partnerTime, setPartnerTime] = useState<number | null>(null);
+  const [dareText, setDareText] = useState("");
+  const [dareSent, setDareSent] = useState<string | null>(null);
+  const [dareReceived, setDareReceived] = useState<string | null>(null);
+  const [dareDone, setDareDone] = useState(false);
+
   const chRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
-  const applyingRemote = useRef(false);
+  const outcomeRef = useRef<Outcome>(null);
+  useEffect(() => { outcomeRef.current = outcome; }, [outcome]);
 
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 500);
@@ -111,44 +134,57 @@ function PuzzleTogether() {
         toast.success("Solved! 🧩");
         return prev;
       });
+      // Race: announce our finish time. If partner hasn't finished yet, we win.
+      chRef.current?.send({
+        type: "broadcast",
+        event: "solved",
+        payload: { by: me?.id, time: t, difficulty: total },
+      });
+      if (partner) {
+        if (outcomeRef.current === null) {
+          setOutcome("winner");
+          toast.success("🏆 You finished first! Send them a dare 💌");
+        }
+      }
     }
-  }, [slots, solved, startedAt, total]);
+  }, [slots, solved, startedAt, total, me?.id, partner]);
 
-  // Realtime pair channel
+  // Realtime pair channel — race + dare only, no piece sync.
   useEffect(() => {
     if (!me) return;
     const key = partner ? [me.id, partner.id].sort().join(":") : me.id;
     const ch = supabase.channel(`puzzle:${key}`, { config: { broadcast: { self: false } } });
-    ch.on("broadcast", { event: "state" }, ({ payload }) => {
-      const p = payload as { slots: number[]; grid: number };
-      if (p.slots.length !== slots.length) {
-        // difficulty mismatch — snap to partner's difficulty
-        const match = DIFFICULTIES.findIndex((d) => d.pieces === p.slots.length);
-        if (match >= 0) setDiffIdx(match);
-      }
-      applyingRemote.current = true;
-      setSlots(p.slots);
-      setSelected(null);
-      applyingRemote.current = false;
-    });
-    ch.subscribe(async (status) => {
-      if (status === "SUBSCRIBED") {
-        // announce our state on join so late joiner can adopt
-        ch.send({ type: "broadcast", event: "state", payload: { slots, grid } });
+    ch.on("broadcast", { event: "solved" }, ({ payload }) => {
+      const p = payload as { by: string; time: number; difficulty: number };
+      setPartnerTime(p.time);
+      // If I haven't solved yet, partner won this round.
+      if (outcomeRef.current === null) {
+        setOutcome("loser");
+        toast(`💐 Your partner finished in ${Math.floor(p.time / 60)}:${String(p.time % 60).padStart(2, "0")} — waiting for their dare…`);
       }
     });
+    ch.on("broadcast", { event: "dare" }, ({ payload }) => {
+      const p = payload as { text: string };
+      setDareReceived(p.text);
+      toast("💌 New dare from your partner!");
+    });
+    ch.on("broadcast", { event: "dare-done" }, () => {
+      toast.success("✅ Your partner completed the dare!");
+      setDareSent((prev) => prev); // keep displayed
+      setDareDone(true);
+    });
+    ch.on("broadcast", { event: "rematch" }, () => {
+      toast("🔄 Partner started a rematch");
+      resetLocal();
+    });
+    ch.subscribe();
     chRef.current = ch;
     return () => {
       supabase.removeChannel(ch);
       chRef.current = null;
     };
-    // Intentionally only bind to peer identity — we broadcast changes elsewhere.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [me?.id, partner?.id]);
-
-  function broadcast(next: number[]) {
-    chRef.current?.send({ type: "broadcast", event: "state", payload: { slots: next, grid } });
-  }
 
   function tapSlot(i: number) {
     if (solved) return;
@@ -165,18 +201,43 @@ function PuzzleTogether() {
     setSlots(next);
     setSelected(null);
     setMoves((m) => m + 1);
-    broadcast(next);
   }
 
-  function reshuffle() {
+  function resetLocal() {
     const next = shuffled(total);
     setSlots(next);
     setSelected(null);
     setMoves(0);
     setSolved(false);
     setStartedAt(Date.now());
-    broadcast(next);
+    setOutcome(null);
+    setPartnerTime(null);
+    setDareText("");
+    setDareSent(null);
+    setDareReceived(null);
+    setDareDone(false);
   }
+
+  function reshuffle() {
+    resetLocal();
+    chRef.current?.send({ type: "broadcast", event: "rematch", payload: {} });
+  }
+
+  function sendDare() {
+    const text = dareText.trim();
+    if (!text) return;
+    chRef.current?.send({ type: "broadcast", event: "dare", payload: { text } });
+    setDareSent(text);
+    setDareText("");
+    toast.success("Dare sent! 💌");
+  }
+
+  function markDareDone() {
+    chRef.current?.send({ type: "broadcast", event: "dare-done", payload: {} });
+    setDareDone(true);
+    toast.success("Marked as done ✨");
+  }
+
 
   async function onPickImage(file: File) {
     if (!file.type.startsWith("image/")) {
@@ -214,7 +275,8 @@ function PuzzleTogether() {
     setMoves(0);
     setSolved(false);
     setStartedAt(Date.now());
-    broadcast(next);
+    setOutcome(null);
+    setPartnerTime(null);
     toast.success("Photo loaded — puzzle ready");
   }
 
@@ -227,7 +289,8 @@ function PuzzleTogether() {
     setMoves(0);
     setSolved(false);
     setStartedAt(Date.now());
-    broadcast(next);
+    setOutcome(null);
+    setPartnerTime(null);
   }
 
 
@@ -392,11 +455,91 @@ function PuzzleTogether() {
         </div>
       )}
 
+      {/* Race outcome + dare flow (only with a partner) */}
+      {partner && outcome === "winner" && (
+        <div className="mt-4 rounded-3xl border border-petal/40 bg-petal-soft/60 p-5">
+          <p className="text-[10px] uppercase tracking-widest text-petal">You won 🏆</p>
+          <h3 className="font-serif italic text-xl text-candle mt-1">Send them a sweet dare</h3>
+          <p className="text-xs text-candle-muted mt-1">
+            Loser has to complete it. Keep it cute & couple-y 💕
+          </p>
+          {dareSent ? (
+            <div className="mt-3">
+              <p className="text-sm text-candle bg-white/60 rounded-2xl p-3 border border-petal/30">
+                💌 "{dareSent}"
+              </p>
+              <p className="text-[11px] text-candle-muted mt-2">
+                {dareDone ? "✅ They completed it!" : "Waiting for them to complete it…"}
+              </p>
+            </div>
+          ) : (
+            <>
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {DARE_SUGGESTIONS.map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => setDareText(s)}
+                    className="rounded-full bg-white/60 border border-petal/30 px-2.5 py-1 text-[11px] text-candle hover:border-petal"
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+              <div className="mt-3 flex gap-2">
+                <input
+                  value={dareText}
+                  onChange={(e) => setDareText(e.target.value)}
+                  maxLength={140}
+                  placeholder="Type a dare or pick one above…"
+                  className="flex-1 rounded-full bg-white/70 border border-petal/30 px-4 py-2 text-sm text-candle focus:outline-none focus:border-petal"
+                />
+                <button
+                  onClick={sendDare}
+                  disabled={!dareText.trim()}
+                  className="rounded-full bg-petal text-white px-4 py-2 text-sm font-semibold disabled:opacity-50"
+                >
+                  Send
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      {partner && outcome === "loser" && (
+        <div className="mt-4 rounded-3xl border border-border bg-surface p-5 text-center">
+          <p className="text-[10px] uppercase tracking-widest text-candle-muted">You lost this round 💫</p>
+          {partnerTime !== null && (
+            <p className="text-xs text-candle-muted mt-1">
+              Partner finished in {Math.floor(partnerTime / 60)}:{String(partnerTime % 60).padStart(2, "0")}
+            </p>
+          )}
+          {dareReceived ? (
+            <div className="mt-3">
+              <p className="font-serif italic text-lg text-candle">Your dare 💌</p>
+              <p className="text-sm text-candle bg-petal-soft rounded-2xl p-3 border border-petal/30 mt-2">
+                "{dareReceived}"
+              </p>
+              <button
+                onClick={markDareDone}
+                disabled={dareDone}
+                className="mt-3 rounded-full bg-petal text-white px-5 py-2 text-sm font-semibold disabled:opacity-50"
+              >
+                {dareDone ? "✅ Marked done" : "I did it ✨"}
+              </button>
+            </div>
+          ) : (
+            <p className="text-xs text-candle-muted mt-2">Waiting for their dare…</p>
+          )}
+        </div>
+      )}
+
       {bestTimes[total] !== undefined && !solved && (
         <p className="mt-4 text-[11px] text-candle-muted text-center">
           Best on {diff.label}: {Math.floor(bestTimes[total] / 60)}:{String(bestTimes[total] % 60).padStart(2, "0")}
         </p>
       )}
+
 
       {!partner && (
         <p className="mt-5 text-[11px] text-candle-muted text-center">
