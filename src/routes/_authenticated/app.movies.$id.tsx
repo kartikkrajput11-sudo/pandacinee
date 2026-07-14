@@ -342,3 +342,172 @@ function MovieDetail() {
   );
 }
 
+type CustomMovieRow = {
+  id: string;
+  title: string;
+  year: number | null;
+  overview: string | null;
+  poster_url: string | null;
+  backdrop_url: string | null;
+  runtime: number | null;
+  genres: string[] | null;
+};
+
+function CustomMovieDetail({ customId }: { customId: string }) {
+  const { data: prof } = useProfile();
+  const me = prof?.profile;
+  const partner = prof?.partner;
+  const navigate = useNavigate();
+  const [movie, setMovie] = useState<CustomMovieRow | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let alive = true;
+    supabase
+      .from("custom_movies")
+      .select("id, title, year, overview, poster_url, backdrop_url, runtime, genres")
+      .eq("id", customId)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!alive) return;
+        setMovie(data as CustomMovieRow | null);
+        setLoading(false);
+      });
+    return () => { alive = false; };
+  }, [customId]);
+
+  async function sendToPartner() {
+    if (!me || !partner || !movie) return;
+    const link = `${window.location.origin}/app/movies/custom:${movie.id}/watch`;
+    const content = `🎬 ${movie.title}${movie.year ? ` (${movie.year})` : ""}\n${movie.overview ?? ""}\n\n${link}`;
+    const { error } = await supabase.from("messages").insert({
+      sender_id: me.id, receiver_id: partner.id, content, type: "text",
+    });
+    if (error) toast.error(error.message);
+    else {
+      toast.success("Sent to " + partner.display_name);
+      navigate({ to: "/app/chat/$peerId", params: { peerId: partner.id } });
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="pt-10 px-5">
+        <header className="flex items-center gap-3 mb-5">
+          <Link to="/app/movies" search={{ q: "" }} className="text-candle-muted"><ArrowLeft className="size-5" /></Link>
+        </header>
+        <div className="aspect-[2/3] rounded-2xl bg-velvet animate-pulse" />
+      </div>
+    );
+  }
+
+  if (!movie) {
+    return (
+      <div className="pt-10 px-5 text-center">
+        <p className="text-candle-muted">Movie not found.</p>
+        <Link to="/app/movies" search={{ q: "" }} className="text-petal text-sm">Back to Movies</Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className="pb-28 min-h-screen bg-background">
+      <div className="relative h-[340px] w-full">
+        {movie.backdrop_url && (
+          <img src={movie.backdrop_url} alt="" className="absolute inset-0 w-full h-full object-cover opacity-70" />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+        <Link
+          to="/app/movies"
+          search={{ q: "" }}
+          className="absolute top-10 left-5 size-10 rounded-full bg-velvet/40 backdrop-blur-md border border-border flex items-center justify-center z-20"
+        >
+          <ArrowLeft className="size-5 text-candle" />
+        </Link>
+        <span className="absolute top-10 right-5 z-20 text-[10px] uppercase tracking-widest px-2 py-1 rounded-full bg-petal text-velvet font-bold">
+          Our Library
+        </span>
+      </div>
+
+      <div className="relative px-6 -mt-32 z-10">
+        <div className="flex items-end gap-5 mb-8">
+          <div className="w-28 shrink-0 aspect-[2/3] rounded-lg overflow-hidden border border-border bg-velvet shadow-[0_20px_50px_rgba(0,0,0,0.6)]">
+            {movie.poster_url && <img src={movie.poster_url} alt={movie.title} className="w-full h-full object-cover" />}
+          </div>
+          <div className="pb-2 min-w-0">
+            <h1 className="font-serif font-semibold tracking-tight leading-[0.95] text-4xl text-candle mb-3">
+              {movie.title}
+            </h1>
+            <div className="flex flex-wrap items-center gap-2 text-[10px] uppercase tracking-widest text-petal font-semibold">
+              {movie.year && <span>{movie.year}</span>}
+              {movie.year && movie.runtime ? <span className="opacity-30">•</span> : null}
+              {movie.runtime ? <span>{Math.floor(movie.runtime / 60)}h {movie.runtime % 60}m</span> : null}
+              <span className="opacity-30">•</span>
+              <span>Fully synced</span>
+            </div>
+            {movie.genres && movie.genres.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mt-3">
+                {movie.genres.slice(0, 3).map((g) => (
+                  <span key={g} className="text-[9px] px-2 py-0.5 rounded-full bg-surface border border-border text-candle">{g}</span>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <Link
+          to="/app/movies/$id/watch"
+          params={{ id: `custom:${movie.id}` }}
+          className="w-full flex items-center justify-center gap-3 py-4 rounded-2xl bg-petal text-velvet font-bold text-sm tracking-wide shadow-[0_20px_60px_-20px] shadow-petal/60 active:scale-[0.98] transition-transform"
+        >
+          <Play className="size-4 fill-velvet" />
+          PLAY MOVIE
+        </Link>
+
+        {movie.overview && (
+          <div className="mt-8">
+            <p className="text-sm text-candle/80 leading-relaxed font-light">{movie.overview}</p>
+          </div>
+        )}
+
+        <div className="grid grid-cols-2 gap-3 mt-8">
+          {partner ? (
+            <button
+              onClick={sendToPartner}
+              className="flex items-center justify-center gap-2 py-3 bg-surface border border-border rounded-xl text-[10px] font-semibold uppercase tracking-widest text-candle"
+            >
+              <Send className="size-3.5 opacity-60" /> Send to {partner.display_name.split(" ")[0]}
+            </button>
+          ) : (
+            <Link
+              to="/app/invite"
+              className="flex items-center justify-center gap-2 py-3 bg-surface border border-border rounded-xl text-[10px] font-semibold uppercase tracking-widest text-candle"
+            >
+              <Send className="size-3.5 opacity-60" /> Invite to share
+            </Link>
+          )}
+          <Link
+            to="/app/movies/$id/watch"
+            params={{ id: `custom:${movie.id}` }}
+            className="flex items-center justify-center gap-2 py-3 bg-surface border border-border rounded-xl text-[10px] font-semibold uppercase tracking-widest text-candle"
+          >
+            <Film className="size-3.5 opacity-60" /> Watch together
+          </Link>
+        </div>
+      </div>
+
+      {me && partner && (
+        <WatchTogetherPanel
+          me={me}
+          partner={partner}
+          movieId={0}
+          movieTitle={movie.title}
+          moviePoster={movie.poster_url}
+          mediaType="movie"
+        />
+      )}
+    </div>
+  );
+}
+
+
