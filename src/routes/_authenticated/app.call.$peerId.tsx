@@ -20,7 +20,6 @@ import { useProfile } from "@/hooks/useProfile";
 import { useChat } from "@/hooks/useChat";
 import { ChatBubble } from "@/components/chat/ChatBubble";
 import { ChatComposer } from "@/components/chat/ChatComposer";
-import { SignedImage } from "@/components/chat/SignedImage";
 import type { MessageRow } from "@/lib/chat";
 
 const searchSchema = z.object({
