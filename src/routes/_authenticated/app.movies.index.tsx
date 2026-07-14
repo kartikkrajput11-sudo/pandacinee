@@ -12,6 +12,17 @@ import {
 } from "@/lib/tmdb.functions";
 import { MovieCard, poster } from "./app.movies";
 import { readRecentMovies } from "@/lib/recent-movies";
+import { supabase } from "@/integrations/supabase/client";
+
+type CustomMovieRow = {
+  id: string;
+  title: string;
+  year: number | null;
+  poster_url: string | null;
+  backdrop_url: string | null;
+  overview: string | null;
+  runtime: number | null;
+};
 
 export const Route = createFileRoute("/_authenticated/app/movies/")({
   component: Movies,
