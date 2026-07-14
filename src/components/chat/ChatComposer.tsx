@@ -345,21 +345,34 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
         <button
           type="button"
           onClick={() => { setStickersOpen((s) => !s); setMenuOpen(false); }}
-          className="size-11 rounded-full bg-surface border border-border flex items-center justify-center text-petal"
+          className="size-11 rounded-full bg-surface border border-border flex items-center justify-center text-petal shrink-0"
         >
           <Smile className="size-4" />
+        </button>
+        <button
+          type="button"
+          onClick={() => setWhisper((w) => !w)}
+          className={`size-11 rounded-full flex items-center justify-center shrink-0 transition-colors ${
+            whisper ? "bg-petal text-velvet petal-glow" : "bg-surface border border-border text-petal"
+          }`}
+          title={whisper ? "Whisper on — text arrives blurred" : "Send as whisper (blurred until tapped)"}
+          aria-label="Toggle whisper mode"
+        >
+          {whisper ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
         </button>
         <div className="flex-1 relative">
           <input
             value={text}
             onChange={(e) => { setText(e.target.value); onTyping(e.target.value.length > 0); }}
             onBlur={() => onTyping(false)}
-            placeholder={`Message ${partnerName}…`}
-            className="w-full px-4 py-3 bg-surface border border-border rounded-full text-sm text-candle placeholder:text-candle-muted focus:outline-none focus:border-petal/60"
+            placeholder={whisper ? `Whisper to ${partnerName}…` : `Message ${partnerName}…`}
+            className={`w-full px-4 py-3 bg-surface border rounded-full text-sm text-candle placeholder:text-candle-muted focus:outline-none transition-colors ${
+              whisper ? "border-petal/70 focus:border-petal" : "border-border focus:border-petal/60"
+            }`}
           />
-          {disappearSecs && (
+          {(disappearSecs || whisper) && (
             <span className="absolute -top-2 right-3 text-[10px] px-1.5 py-0.5 rounded-full bg-petal text-velvet">
-              ⏱ {DISAPPEAR_OPTIONS.find((o) => o.seconds === disappearSecs)?.label}
+              {whisper ? "🤫 whisper" : `⏱ ${DISAPPEAR_OPTIONS.find((o) => o.seconds === disappearSecs)?.label}`}
             </span>
           )}
         </div>
