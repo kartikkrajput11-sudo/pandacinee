@@ -119,15 +119,14 @@ function Scribble() {
   function onGuessChange(next: string) {
     setGuess(next);
     if (!me || iAmDrawer || phase !== "playing") return;
-    const now = performance.now();
-    if (now - liveGuessThrottle.current < 120) return;
-    liveGuessThrottle.current = now;
+    // Send every keystroke so the drawer can detect a correct guess instantly.
     chRef.current?.send({
       type: "broadcast",
       event: "guess-live",
       payload: { by: me.id, name: me.display_name ?? "Partner", text: next },
     });
   }
+
   const remaining = endsAt ? Math.max(0, Math.ceil((endsAt - now) / 1000)) : 0;
 
   function redraw() {
