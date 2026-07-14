@@ -160,6 +160,7 @@ function WatchMovie() {
   const partnerIsHost = !!partner && hostId === partner.id;
   const lastAppliedPeerEventRef = useRef<number>(0);
   const customPlayerRef = useRef<CustomPlayerHandle | null>(null);
+  const suppressPlayerEventRef = useRef(false);
 
   useEffect(() => {
     let alive = true;
@@ -416,6 +417,12 @@ function WatchMovie() {
     setIframeKey((k) => k + 1);
   }, []);
 
+  const runSuppressedPlayerAction = useCallback((action: () => void, ms = 500) => {
+    suppressPlayerEventRef.current = true;
+    action();
+    window.setTimeout(() => { suppressPlayerEventRef.current = false; }, ms);
+  }, []);
+
   // Follower auto-sync: when partner is host, mirror their play/pause/seek
   useEffect(() => {
     if (!peer || !partnerIsHost || !me) return;
@@ -443,9 +450,11 @@ function WatchMovie() {
     // player handle so the follower keeps watching without a full remount.
     if (isPandacine && customPlayerRef.current) {
       const h = customPlayerRef.current;
-      if (Math.abs(h.currentTime() - peer.currentTime) > 1.5) h.seek(peer.currentTime);
-      if (evt === "pause") h.pause();
-      else h.play();
+      runSuppressedPlayerAction(() => {
+        if (Math.abs(h.currentTime() - peer.currentTime) > 1.5) h.seek(peer.currentTime);
+        if (evt === "pause") h.pause();
+        else h.play();
+      });
       if (evt === "seeked") toast.info(`${partner?.display_name.split(" ")[0]} skipped`);
       if (evt === "pause") toast.info(`${partner?.display_name.split(" ")[0]} paused`);
       return;
@@ -458,7 +467,7 @@ function WatchMovie() {
       applySeek(peer.currentTime, { pause: false });
       if (evt === "seeked") toast.info(`${partner?.display_name.split(" ")[0]} skipped`);
     }
-  }, [peer, partnerIsHost, me, mine.currentTime, applySeek, partner, isPandacine, started]);
+  }, [peer, partnerIsHost, me, mine.currentTime, applySeek, partner, isPandacine, started, runSuppressedPlayerAction]);
 
   async function sendWatchInviteMessage(receiverId: string) {
     if (!me || !movie) return { error: new Error("Missing data") };
@@ -790,11 +799,15 @@ function WatchMovie() {
                   key={`pandacine-${iframeKey}`}
                   src={pandacine.videoSrc}
                   poster={backdropUrl}
+                  startAt={startAt}
                   locked={!!hostId && !iAmHost}
                   onReady={(h) => { customPlayerRef.current = h; setPlayerLoading(false); }}
                   onEvent={(evt) => {
+                    if (suppressPlayerEventRef.current) return;
                     const now = Date.now();
                     const isDiscrete = evt.event === "play" || evt.event === "pause" || evt.event === "seeked" || evt.event === "ended";
+                    if (isDiscrete && partner && !hostId) claimHost();
+                    if (partnerIsHost && isDiscrete) return;
                     if (isDiscrete || now - lastPublishRef.current > 2000) {
                       lastPublishRef.current = now;
                       publish({ event: evt.event, currentTime: evt.currentTime, duration: evt.duration, sourceIdx });
