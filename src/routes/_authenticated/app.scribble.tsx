@@ -13,7 +13,7 @@ const WORDS = [
   "panda", "moon", "pizza", "guitar", "rocket", "sunflower", "castle", "ocean",
   "ice cream", "rainbow", "camera", "coffee", "book", "kite", "cactus", "cloud",
   "beach", "cupcake", "dragon", "unicorn", "bicycle", "balloon", "butterfly",
-  "cherry", "diamond", "elephant", "fireworks", "guitar", "hammock", "island",
+  "cherry", "diamond", "elephant", "fireworks", "hammock", "island",
   "jellyfish", "kitten", "lighthouse", "mermaid", "notebook", "octopus", "pencil",
   "quilt", "robot", "snowflake", "tulip", "umbrella", "volcano", "waterfall",
   "xylophone", "yacht", "zebra", "airplane", "backpack", "campfire", "donut",
@@ -22,16 +22,28 @@ const WORDS = [
   "violin", "wave", "yarn", "sunset", "forest", "candle", "clock", "compass",
 ];
 
-const ROUND_SECONDS = 90;
+const TIMER_CHOICES = [60, 90, 120] as const;
 const COLORS = ["#1f1f1f", "#8b5cf6", "#ec4899", "#22c55e", "#f59e0b", "#0ea5e9"];
 
 type Stroke = { by: string; color: string; size: number; erase: boolean; pts: { x: number; y: number }[] };
 type Msg = { id: string; by: string; name: string; text: string; correct?: boolean };
-type Phase = "idle" | "playing" | "over";
+type Phase = "idle" | "choosing" | "playing" | "over";
 
-function pickWord(exclude: string | null) {
-  const pool = exclude ? WORDS.filter((w) => w !== exclude) : WORDS;
-  return pool[Math.floor(Math.random() * pool.length)];
+function pick4(exclude: Set<string>) {
+  const pool = WORDS.filter((w) => !exclude.has(w));
+  const out: string[] = [];
+  while (out.length < 4 && pool.length) {
+    const i = Math.floor(Math.random() * pool.length);
+    out.push(pool.splice(i, 1)[0]);
+  }
+  return out;
+}
+
+function maskWord(word: string, revealed: Set<number>) {
+  return word
+    .split("")
+    .map((ch, i) => (ch === " " ? " " : revealed.has(i) ? ch : "•"))
+    .join(" ");
 }
 
 function Scribble() {
@@ -47,14 +59,18 @@ function Scribble() {
   const drawing = useRef<Stroke | null>(null);
 
   const [drawerId, setDrawerId] = useState<string | null>(null);
+  const [lastDrawerId, setLastDrawerId] = useState<string | null>(null);
   const [word, setWord] = useState<string | null>(null);
+  const [wordLen, setWordLen] = useState<number>(0);
+  const [choices, setChoices] = useState<string[]>([]);
   const [phase, setPhase] = useState<Phase>("idle");
+  const [roundSeconds, setRoundSeconds] = useState<number>(90);
   const [endsAt, setEndsAt] = useState<number | null>(null);
   const [now, setNow] = useState(Date.now());
   const [messages, setMessages] = useState<Msg[]>([]);
   const [guess, setGuess] = useState("");
   const [scores, setScores] = useState<Record<string, number>>({});
-  const [hint, setHint] = useState<string | null>(null);
+  const [revealed, setRevealed] = useState<Set<number>>(new Set());
 
   const chRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const iAmDrawer = drawerId === me?.id;
@@ -122,15 +138,16 @@ function Scribble() {
       redraw();
     });
     ch.on("broadcast", { event: "round" }, ({ payload }) => {
-      const p = payload as { drawerId: string; endsAt: number; wordLen: number };
+      const p = payload as { drawerId: string; endsAt: number; wordLen: number; seconds: number };
       setDrawerId(p.drawerId);
       setEndsAt(p.endsAt);
+      setRoundSeconds(p.seconds);
+      setWordLen(p.wordLen);
       setPhase("playing");
-      setHint(null);
+      setRevealed(new Set());
       setMessages([]);
       strokes.current = [];
       redraw();
-      // guesser doesn't know the word — only length
       if (p.drawerId !== me.id) setWord(null);
     });
     ch.on("broadcast", { event: "guess" }, ({ payload }) => {
@@ -144,10 +161,12 @@ function Scribble() {
       ]);
       setScores((s) => ({ ...s, [p.by]: (s[p.by] ?? 0) + 1 }));
       setPhase("over");
+      setLastDrawerId((prev) => drawerId ?? prev);
       setEndsAt(null);
     });
-    ch.on("broadcast", { event: "hint" }, ({ payload }) => {
-      setHint((payload as { hint: string }).hint);
+    ch.on("broadcast", { event: "reveal" }, ({ payload }) => {
+      const p = payload as { indices: number[] };
+      setRevealed(new Set(p.indices));
     });
     ch.subscribe();
     chRef.current = ch;
@@ -155,19 +174,44 @@ function Scribble() {
       supabase.removeChannel(ch);
       chRef.current = null;
     };
-  }, [me?.id, partner?.id]);
+  }, [me?.id, partner?.id, drawerId]);
 
   // Time out
   useEffect(() => {
     if (phase !== "playing" || !endsAt) return;
     if (now >= endsAt) {
       setPhase("over");
+      setLastDrawerId(drawerId);
       setMessages((m) => [
         ...m,
         { id: crypto.randomUUID(), by: "sys", name: "System", text: `Time! The word was “${word ?? "?"}”` },
       ]);
     }
-  }, [now, endsAt, phase, word]);
+  }, [now, endsAt, phase, word, drawerId]);
+
+  // Auto letter reveals — drawer broadcasts every ~ (roundSeconds/4) seconds
+  useEffect(() => {
+    if (phase !== "playing" || !iAmDrawer || !word || !endsAt) return;
+    const step = Math.max(15, Math.floor(roundSeconds / 4));
+    const tick = setInterval(() => {
+      const timeLeft = Math.ceil((endsAt - Date.now()) / 1000);
+      const elapsed = roundSeconds - timeLeft;
+      const target = Math.min(Math.floor(word.replace(/ /g, "").length / 2), Math.floor(elapsed / step));
+      setRevealed((cur) => {
+        if (cur.size >= target) return cur;
+        // pick a random hidden index (skip spaces)
+        const hidden: number[] = [];
+        for (let i = 0; i < word.length; i++) if (word[i] !== " " && !cur.has(i)) hidden.push(i);
+        if (!hidden.length) return cur;
+        const pickIdx = hidden[Math.floor(Math.random() * hidden.length)];
+        const next = new Set(cur);
+        next.add(pickIdx);
+        chRef.current?.send({ type: "broadcast", event: "reveal", payload: { indices: [...next] } });
+        return next;
+      });
+    }, 1000);
+    return () => clearInterval(tick);
+  }, [phase, iAmDrawer, word, endsAt, roundSeconds]);
 
   function pt(e: React.PointerEvent) {
     const c = canvasRef.current!;
@@ -194,23 +238,28 @@ function Scribble() {
     redraw();
   }
 
-  function startRound() {
+  function openChoices() {
     if (!me) return;
-    // I become the drawer of the next round
-    const newWord = pickWord(word);
-    setWord(newWord);
+    setChoices(pick4(new Set(word ? [word] : [])));
+    setPhase("choosing");
+  }
+
+  function confirmWord(w: string) {
+    if (!me) return;
+    setWord(w);
+    setWordLen(w.length);
     strokes.current = [];
     redraw();
-    const ends = Date.now() + ROUND_SECONDS * 1000;
+    const ends = Date.now() + roundSeconds * 1000;
     setDrawerId(me.id);
     setEndsAt(ends);
     setPhase("playing");
-    setHint(null);
+    setRevealed(new Set());
     setMessages([]);
     chRef.current?.send({
       type: "broadcast",
       event: "round",
-      payload: { drawerId: me.id, endsAt: ends, wordLen: newWord.length },
+      payload: { drawerId: me.id, endsAt: ends, wordLen: w.length, seconds: roundSeconds },
     });
     chRef.current?.send({ type: "broadcast", event: "clear", payload: {} });
   }
@@ -220,13 +269,13 @@ function Scribble() {
     const text = guess.trim();
     setGuess("");
     const isCorrect = word && text.toLowerCase() === word.toLowerCase();
-    // Broadcast the raw guess to the drawer
     const msg: Msg = { id: crypto.randomUUID(), by: me.id, name: me.display_name ?? "You", text };
     setMessages((m) => [...m, msg]);
     chRef.current?.send({ type: "broadcast", event: "guess", payload: msg });
     if (isCorrect) {
       setScores((s) => ({ ...s, [me.id]: (s[me.id] ?? 0) + 1 }));
       setPhase("over");
+      setLastDrawerId(drawerId);
       setEndsAt(null);
       chRef.current?.send({
         type: "broadcast",
@@ -237,24 +286,23 @@ function Scribble() {
     }
   }
 
-  function giveHint() {
-    if (!word || !iAmDrawer) return;
-    const revealed = word
-      .split("")
-      .map((ch, i) => (ch === " " || i === 0 || i === word.length - 1 ? ch : "•"))
-      .join("");
-    setHint(revealed);
-    chRef.current?.send({ type: "broadcast", event: "hint", payload: { hint: revealed } });
-  }
-
   const myScore = me ? scores[me.id] ?? 0 : 0;
   const theirScore = partner ? scores[partner.id] ?? 0 : 0;
-  const wordDisplay = useMemo(() => {
-    if (iAmDrawer) return word ?? "—";
-    if (hint) return hint;
-    if (phase === "playing" && endsAt) return "•".repeat(WORDS[0].length); // hidden
-    return "—";
-  }, [iAmDrawer, word, hint, phase, endsAt]);
+
+  const hintDisplay = useMemo(() => {
+    if (!wordLen) return "";
+    // Guesser view: word with revealed letters filled from actual word (received via wordLen only)
+    // We only know length + revealed indices; use the actual word if drawer, else masked pattern
+    if (iAmDrawer && word) return maskWord(word, new Set(Array.from({ length: word.length }, (_, i) => i)));
+    // For guesser we don't know letters — just show length with any revealed letters (drawer sends indices, not letters).
+    // To reveal actual letters we'd need to send letters; keep it simple: reveal count only.
+    const total = wordLen;
+    const shown = revealed.size;
+    return `${"•".repeat(total)}  (${shown}/${total} letters hinted)`;
+  }, [iAmDrawer, word, wordLen, revealed]);
+
+  // My turn to start (swap roles): if there is a lastDrawer and it's me, wait for partner.
+  const myTurnToStart = !partner || lastDrawerId !== me?.id;
 
   return (
     <div className="pt-10 px-4 pb-4">
@@ -288,10 +336,14 @@ function Scribble() {
             iAmDrawer ? (
               <>Draw: <span className="font-semibold text-petal">{word}</span></>
             ) : (
-              <>Guess: <span className="font-mono tracking-widest text-petal">{hint ?? "•".repeat((word ?? "").length || 5)}</span></>
+              <>Guess: <span className="font-mono tracking-widest text-petal text-xs">{hintDisplay}</span></>
             )
+          ) : phase === "choosing" ? (
+            <span className="text-candle-muted">Pick a word to draw…</span>
           ) : (
-            <span className="text-candle-muted">Tap "New round" to start</span>
+            <span className="text-candle-muted">
+              {myTurnToStart ? "Your turn to draw" : "Partner's turn to draw"}
+            </span>
           )}
         </div>
         <div className="text-candle-muted tabular-nums">
@@ -299,7 +351,7 @@ function Scribble() {
         </div>
       </div>
 
-      <div className="rounded-3xl overflow-hidden border border-border bg-white h-[45vh] touch-none">
+      <div className="rounded-3xl overflow-hidden border border-border bg-white h-[42vh] touch-none">
         <canvas
           ref={canvasRef}
           onPointerDown={onDown}
@@ -336,14 +388,8 @@ function Scribble() {
             </button>
           ))}
           <button
-            onClick={giveHint}
-            className="ml-auto rounded-full bg-surface border border-border px-3 py-1.5 text-xs flex items-center gap-1 text-candle"
-          >
-            <Sparkles className="size-3" /> Hint
-          </button>
-          <button
             onClick={() => { strokes.current = []; redraw(); chRef.current?.send({ type: "broadcast", event: "clear", payload: {} }); }}
-            className="rounded-full bg-surface border border-border px-3 py-1.5 text-xs flex items-center gap-1 text-candle"
+            className="ml-auto rounded-full bg-surface border border-border px-3 py-1.5 text-xs flex items-center gap-1 text-candle"
           >
             <RotateCcw className="size-3" /> Clear
           </button>
@@ -381,13 +427,52 @@ function Scribble() {
         </div>
       )}
 
+      {phase === "choosing" && (
+        <div className="mt-4 rounded-3xl border border-petal/30 bg-petal-soft/40 p-4">
+          <p className="text-[10px] uppercase tracking-widest text-petal mb-3 text-center">Choose one to draw</p>
+          <div className="grid grid-cols-2 gap-2">
+            {choices.map((w) => (
+              <button
+                key={w}
+                onClick={() => confirmWord(w)}
+                className="rounded-2xl bg-surface border border-border py-3 px-2 text-sm font-serif italic text-candle hover:border-petal transition"
+              >
+                {w}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {(phase === "idle" || phase === "over") && (
-        <button
-          onClick={startRound}
-          className="w-full mt-4 rounded-full bg-petal text-white py-3 font-semibold shadow-petal hover:brightness-110 transition"
-        >
-          {phase === "over" ? "Rematch — I draw" : "Start round — I draw"}
-        </button>
+        <div className="mt-4 space-y-3">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-[10px] uppercase tracking-widest text-petal">Round timer</span>
+            <div className="flex gap-1 p-1 rounded-full bg-surface border border-border">
+              {TIMER_CHOICES.map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setRoundSeconds(t)}
+                  className={`px-3 py-1 rounded-full text-xs transition ${roundSeconds === t ? "bg-petal text-white" : "text-candle-muted"}`}
+                >
+                  {t}s
+                </button>
+              ))}
+            </div>
+          </div>
+          <button
+            onClick={openChoices}
+            disabled={!myTurnToStart}
+            className="w-full rounded-full bg-petal text-white py-3 font-semibold shadow-petal hover:brightness-110 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            <Sparkles className="size-4" />
+            {phase === "over"
+              ? myTurnToStart
+                ? "Your turn — pick a word"
+                : "Waiting for partner…"
+              : "Start round — pick a word"}
+          </button>
+        </div>
       )}
     </div>
   );

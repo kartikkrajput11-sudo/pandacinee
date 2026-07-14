@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, Eraser, Download, RotateCcw, RotateCw, Trash2 } from "lucide-react";
+import { ArrowLeft, Eraser, Download, Palette, RotateCcw, RotateCw, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
@@ -74,6 +74,12 @@ function PaintTogether() {
       undone.current = [];
       redraw();
     });
+    ch.on("broadcast", { event: "undo" }, ({ payload }) => {
+      const id = (payload as { id: string }).id;
+      const idx = strokes.current.findIndex((s) => s.id === id);
+      if (idx >= 0) strokes.current.splice(idx, 1);
+      redraw();
+    });
     ch.subscribe();
     chRef.current = ch;
     return () => {
@@ -138,10 +144,17 @@ function PaintTogether() {
   }
 
   function undo() {
-    const s = strokes.current.pop();
-    if (s) undone.current.push(s);
-    redraw();
-    toast("Undo — local only");
+    // Undo only my own strokes, newest first — keeps partner's work intact.
+    for (let i = strokes.current.length - 1; i >= 0; i--) {
+      if (strokes.current[i].by === me?.id) {
+        const [s] = strokes.current.splice(i, 1);
+        undone.current.push(s);
+        chRef.current?.send({ type: "broadcast", event: "undo", payload: { id: s.id } });
+        redraw();
+        return;
+      }
+    }
+    toast("Nothing to undo");
   }
   function redo() {
     const s = undone.current.pop();
@@ -206,6 +219,19 @@ function PaintTogether() {
               aria-label={`Color ${c}`}
             />
           ))}
+          <label
+            className={`size-8 rounded-full border-2 flex items-center justify-center cursor-pointer relative overflow-hidden ${!erase && !COLORS.includes(color) ? "border-petal scale-110" : "border-border bg-surface"}`}
+            aria-label="Custom color"
+            style={!erase && !COLORS.includes(color) ? { background: color } : undefined}
+          >
+            <Palette className="size-4 mix-blend-difference text-white pointer-events-none" />
+            <input
+              type="color"
+              value={color}
+              onChange={(e) => { setColor(e.target.value); setErase(false); }}
+              className="absolute inset-0 opacity-0 cursor-pointer"
+            />
+          </label>
           <button
             onClick={() => setErase((e) => !e)}
             className={`size-8 rounded-full border-2 flex items-center justify-center ${erase ? "border-petal bg-petal-soft" : "border-border bg-surface"}`}
