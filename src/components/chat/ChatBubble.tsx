@@ -84,6 +84,9 @@ export function ChatBubble({
           {m.type === "image" && m.media_url && (
             <SignedImage path={m.media_url} className="rounded-xl max-w-[240px] max-h-[320px] object-cover" />
           )}
+          {m.type === "video" && m.media_url && (
+            <SignedVideo path={m.media_url} />
+          )}
           {m.type === "file" && (
             <div className="flex items-center gap-2" onClick={(e) => { e.stopPropagation(); downloadFile(); }}>
               <div className="size-9 rounded-full bg-velvet/20 flex items-center justify-center">
