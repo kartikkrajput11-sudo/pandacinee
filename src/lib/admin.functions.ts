@@ -23,6 +23,9 @@ const MovieInput = z.object({
   genres: z.array(z.string().min(1).max(40)).max(20).optional(),
   video_url: z.string().max(2000).optional().nullable(),
   video_storage_path: z.string().max(500).optional().nullable(),
+  tmdb_id: z.number().int().positive().optional().nullable(),
+  media_type: z.enum(["movie", "tv"]).optional(),
+  use_vidking: z.boolean().optional(),
 });
 
 export const createCustomMovie = createServerFn({ method: "POST" })

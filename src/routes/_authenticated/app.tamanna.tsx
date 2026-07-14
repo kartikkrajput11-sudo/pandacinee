@@ -30,6 +30,9 @@ type CustomMovie = {
   genres: string[];
   video_url: string | null;
   video_storage_path: string | null;
+  tmdb_id: number | null;
+  media_type: "movie" | "tv" | null;
+  use_vidking: boolean | null;
   created_at: string;
 };
 
@@ -656,6 +659,10 @@ function MovieModal({ initial, onClose }: { initial?: CustomMovie | null; onClos
   const [videoPath, setVideoPath] = useState<string | null>(initial?.video_storage_path ?? null);
   const [videoFileName, setVideoFileName] = useState<string | null>(initial?.video_storage_path ?? null);
   const [videoFileSize, setVideoFileSize] = useState<number>(0);
+  const [tmdbId, setTmdbId] = useState<number | null>(initial?.tmdb_id ?? null);
+  const [mediaType, setMediaType] = useState<"movie" | "tv">(initial?.media_type ?? "movie");
+  const [useVidking, setUseVidking] = useState<boolean>(initial?.use_vidking ?? false);
+  const [showPreview, setShowPreview] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadPct, setUploadPct] = useState(0);
   const [uploadSpeed, setUploadSpeed] = useState<string>("");
@@ -688,6 +695,9 @@ function MovieModal({ initial, onClose }: { initial?: CustomMovie | null; onClos
     setYear(m.release_date ? m.release_date.slice(0, 4) : "");
     if (m.poster_path) setPoster(`https://image.tmdb.org/t/p/w500${m.poster_path}`);
     if (m.backdrop_path) setBackdrop(`https://image.tmdb.org/t/p/w1280${m.backdrop_path}`);
+    setTmdbId(m.id);
+    setMediaType("movie");
+    setUseVidking(true); // default: play via VidKing when linked to TMDB
     setTmdbResults([]);
     setTmdbQ("");
     try {
@@ -697,12 +707,12 @@ function MovieModal({ initial, onClose }: { initial?: CustomMovie | null; onClos
         setGenres(detail.genres.map((g: any) => g.name).filter(Boolean).join(", "));
       }
     } catch { /* ignore */ }
-    toast.success(`Autofilled from TMDB · ${m.title}`);
+    toast.success(`Linked to TMDB · ${m.title} · VidKing ready`);
   }
 
   const canSave = useMemo(
-    () => title.trim().length > 0 && (isEdit || videoUrl.trim() || videoPath) && !uploading,
-    [title, videoUrl, videoPath, uploading, isEdit],
+    () => title.trim().length > 0 && (isEdit || videoUrl.trim() || videoPath || (useVidking && tmdbId)) && !uploading,
+    [title, videoUrl, videoPath, uploading, isEdit, useVidking, tmdbId],
   );
 
   async function uploadFile(file: File) {
@@ -812,6 +822,9 @@ function MovieModal({ initial, onClose }: { initial?: CustomMovie | null; onClos
         genres: genres.split(",").map((g) => g.trim()).filter(Boolean).slice(0, 20),
         video_url: videoUrl.trim() || null,
         video_storage_path: videoPath,
+        tmdb_id: tmdbId,
+        media_type: mediaType,
+        use_vidking: useVidking,
       };
       if (isEdit && initial) {
         await update({ data: { id: initial.id, ...payload } });
@@ -891,6 +904,72 @@ function MovieModal({ initial, onClose }: { initial?: CustomMovie | null; onClos
           <TextField label="Poster URL" value={poster} onChange={setPoster} placeholder="https://..." />
           <TextField label="Backdrop URL" value={backdrop} onChange={setBackdrop} placeholder="https://..." />
           <TextField label="Genres (comma separated)" value={genres} onChange={setGenres} placeholder="Romance, Comedy" />
+
+          {/* VidKing integration panel */}
+          <div className="rounded-2xl bg-velvet border border-border p-3 space-y-2">
+            <label className="text-[10px] uppercase tracking-widest text-petal flex items-center gap-1.5">
+              <Play className="size-3" /> VidKing / IMDb source
+            </label>
+            <div className="grid grid-cols-[1fr_auto] gap-2">
+              <input
+                value={tmdbId ?? ""}
+                onChange={(e) => setTmdbId(e.target.value ? Number(e.target.value.replace(/\D/g, "")) : null)}
+                placeholder="TMDB ID (e.g. 27205)"
+                inputMode="numeric"
+                className="h-10 px-3 rounded-full bg-surface border border-border text-sm text-candle focus:outline-none focus:border-petal/60"
+              />
+              <select
+                value={mediaType}
+                onChange={(e) => setMediaType(e.target.value as "movie" | "tv")}
+                className="h-10 px-3 rounded-full bg-surface border border-border text-xs text-candle focus:outline-none focus:border-petal/60"
+              >
+                <option value="movie">Movie</option>
+                <option value="tv">TV / Series</option>
+              </select>
+            </div>
+            <label className="flex items-center gap-2 text-xs text-candle cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={useVidking}
+                disabled={!tmdbId}
+                onChange={(e) => setUseVidking(e.target.checked)}
+                className="accent-petal size-4"
+              />
+              Play via VidKing embed (uses TMDB ID)
+            </label>
+            {tmdbId && (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setShowPreview((v) => !v)}
+                  className="h-8 px-3 rounded-full bg-surface-elevated border border-border text-[11px] text-candle flex items-center gap-1"
+                >
+                  <Play className="size-3" /> {showPreview ? "Hide preview" : "Test VidKing"}
+                </button>
+                <a
+                  href={`https://www.themoviedb.org/${mediaType}/${tmdbId}`}
+                  target="_blank" rel="noreferrer"
+                  className="text-[11px] text-petal underline"
+                >
+                  Open on TMDB ↗
+                </a>
+              </div>
+            )}
+            {showPreview && tmdbId && (
+              <div className="rounded-xl overflow-hidden border border-petal/30 bg-black aspect-video mt-2">
+                <iframe
+                  src={`https://www.vidking.net/embed/${mediaType}/${tmdbId}?color=9146ff`}
+                  className="w-full h-full"
+                  allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+            )}
+            <p className="text-[10px] text-candle-muted">
+              Link a TMDB/IMDb title so this entry can stream through VidKing without uploading a file. Uploaded video takes priority when both are set.
+            </p>
+          </div>
+
+
 
           <div>
             <label className="block text-[10px] uppercase tracking-widest text-petal mb-1.5">Video source *</label>
