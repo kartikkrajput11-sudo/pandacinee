@@ -209,7 +209,7 @@ function Movies() {
           <Rail
             title="Continue Watching"
             icon={<Clock className="size-3.5 text-petal" />}
-            movies={recent}
+            movies={overlay(recent)}
             variant="wide"
           />
         )}
@@ -217,49 +217,49 @@ function Movies() {
         <Rail
           title="Trending This Week"
           icon={<Flame className="size-3.5 text-petal" />}
-          movies={trendingList.slice(1)}
+          movies={overlay(trendingList.slice(1))}
           loading={loading}
         />
 
         <Rail
           title="Date Night · Romance"
           icon={<Heart className="size-3.5 text-petal" />}
-          movies={dateNight}
+          movies={overlay(dateNight)}
           loading={loading}
         />
 
         <Rail
           title="In Theaters Now"
           icon={<Play className="size-3.5 text-petal" />}
-          movies={nowPlaying}
+          movies={overlay(nowPlaying)}
           loading={loading}
         />
 
         <Rail
           title="Feel-Good · Comedy"
           icon={<Sparkles className="size-3.5 text-petal" />}
-          movies={feelGood}
+          movies={overlay(feelGood)}
           loading={loading}
         />
 
         <Rail
           title="Popular"
           icon={<Star className="size-3.5 text-petal" />}
-          movies={popular}
+          movies={overlay(popular)}
           loading={loading}
         />
 
         <Rail
           title="Edge of Your Seat · Thrillers"
           icon={<Ghost className="size-3.5 text-petal" />}
-          movies={thrillers}
+          movies={overlay(thrillers)}
           loading={loading}
         />
 
         <Rail
           title="Top Rated of All Time"
           icon={<Star className="size-3.5 text-petal" />}
-          movies={topRated}
+          movies={overlay(topRated)}
           loading={loading}
         />
 
