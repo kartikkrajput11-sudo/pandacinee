@@ -90,7 +90,12 @@ export function PunishmentLockDialog({ open, onClose, targetName, mePrefs, peerP
 
         {step === 1 && (
           <div className="grid grid-cols-2 gap-2">
-            {PUNISHMENT_TYPES.map((p) => (
+            {PUNISHMENT_TYPES.filter((p) => {
+              if (!p.optInKey) return true;
+              const meOK = mePrefs?.[p.optInKey] !== false;
+              const peerOK = peerPrefs?.[p.optInKey] !== false;
+              return meOK && peerOK;
+            }).map((p) => (
               <button
                 key={p.id}
                 onClick={() => pickType(p.id)}
@@ -99,6 +104,9 @@ export function PunishmentLockDialog({ open, onClose, targetName, mePrefs, peerP
                 <div className="text-2xl mb-1">{p.emoji}</div>
                 <p className="text-sm font-medium text-candle">{p.label}</p>
                 <p className="text-[10px] text-candle-muted mt-0.5">{p.hint}</p>
+                {p.mode === "verify" && (
+                  <p className="text-[9px] text-petal mt-1 uppercase tracking-widest">Verified</p>
+                )}
               </button>
             ))}
           </div>
