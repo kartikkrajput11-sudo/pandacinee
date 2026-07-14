@@ -78,6 +78,7 @@ function Call() {
   const [muted, setMuted] = useState(false);
   const [videoOff, setVideoOff] = useState(false);
   const [speakerOn, setSpeakerOn] = useState(true);
+  const [audioBlocked, setAudioBlocked] = useState(false);
   const [peer, setPeer] = useState<{ display_name: string; avatar_url: string | null }>({
     display_name: "",
     avatar_url: null,
