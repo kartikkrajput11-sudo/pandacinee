@@ -120,6 +120,7 @@ export function PunishmentVerificationChat({ lock, meId, partnerName, iAmLocked,
 
   async function handleVoice(path: string, ms: number) {
     setVoiceOpen(false);
+    if (iAmLocked && lockedOut) return toast.error(`You've used all ${LOCKED_MSG_LIMIT} notes.`);
     try {
       await sendMessage({
         kind: "voice",
@@ -134,6 +135,7 @@ export function PunishmentVerificationChat({ lock, meId, partnerName, iAmLocked,
 
   async function sendCard(t: (typeof CARD_TEMPLATES)[number], note: string) {
     setCardOpen(false);
+    if (iAmLocked && lockedOut) return toast.error(`You've used all ${LOCKED_MSG_LIMIT} notes.`);
     try {
       await sendMessage({
         kind: "card",
