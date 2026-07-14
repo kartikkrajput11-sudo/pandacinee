@@ -107,19 +107,40 @@ function Call() {
   }, [localStream]);
   useEffect(() => {
     if (!remoteStream) return;
-    // Attach remote stream to the video element (image) AND a dedicated audio
-    // element (voice). Hidden <video> tags drop audio on some browsers, so we
-    // always route the audio track through a real <audio> element that lives
-    // outside any conditional branch.
+    // Re-attach on every ontrack revision so newly arriving audio/video tracks
+    // are actually rendered. Some browsers (notably iOS Safari) won't start
+    // playback when tracks are added to an already-set MediaStream — the
+    // srcObject has to be assigned again.
     if (remoteRef.current) {
       remoteRef.current.srcObject = remoteStream;
-      remoteRef.current.play?.().catch(() => {});
+      const p = remoteRef.current.play?.();
+      if (p && typeof (p as Promise<void>).catch === "function") {
+        (p as Promise<void>).catch(() => {});
+      }
     }
     if (remoteAudioRef.current) {
       remoteAudioRef.current.srcObject = remoteStream;
-      remoteAudioRef.current.play?.().catch(() => {});
+      remoteAudioRef.current.muted = !speakerOn;
+      const p = remoteAudioRef.current.play?.();
+      if (p && typeof (p as Promise<void>).catch === "function") {
+        (p as Promise<void>).then(() => setAudioBlocked(false)).catch((err) => {
+          console.warn("Remote audio autoplay blocked", err);
+          if (speakerOn) setAudioBlocked(true);
+        });
+      }
     }
-  }, [remoteStream]);
+  }, [remoteStream, remoteRev, speakerOn]);
+
+  function enableSound() {
+    if (!remoteAudioRef.current) return;
+    remoteAudioRef.current.muted = false;
+    const p = remoteAudioRef.current.play?.();
+    if (p && typeof (p as Promise<void>).catch === "function") {
+      (p as Promise<void>).then(() => setAudioBlocked(false)).catch(() => {});
+    } else {
+      setAudioBlocked(false);
+    }
+  }
 
   useEffect(() => {
     (async () => {
