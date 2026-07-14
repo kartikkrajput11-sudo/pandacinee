@@ -12,6 +12,7 @@ import {
   Volume2,
   VolumeX,
   Signal,
+  SwitchCamera,
 } from "lucide-react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
@@ -69,7 +70,7 @@ function Call() {
   const navigate = useNavigate();
   const { data: profileData } = useProfile();
   const me = profileData?.profile;
-  const { localStream, remoteStream, status, error, hangup, toggleAudio, toggleVideo } = useWebRTCCall(
+  const { localStream, remoteStream, status, error, hangup, toggleAudio, toggleVideo, flipCamera } = useWebRTCCall(
     peerId,
     mode,
     role === "caller",
@@ -103,7 +104,11 @@ function Call() {
     if (localRef.current && localStream) localRef.current.srcObject = localStream;
   }, [localStream]);
   useEffect(() => {
-    if (remoteRef.current && remoteStream) remoteRef.current.srcObject = remoteStream;
+    if (remoteRef.current && remoteStream) {
+      remoteRef.current.srcObject = remoteStream;
+      // Some mobile browsers won't autoplay a stream that arrives after mount.
+      remoteRef.current.play?.().catch(() => {});
+    }
   }, [remoteStream]);
 
   useEffect(() => {
@@ -315,13 +320,18 @@ function Call() {
           </ControlButton>
 
           {mode === "video" ? (
-            <ControlButton
-              active={videoOff}
-              onClick={() => { toggleVideo(); setVideoOff((v) => !v); }}
-              label={videoOff ? "Camera on" : "Camera off"}
-            >
-              {videoOff ? <VideoOff className="size-5" /> : <Video className="size-5" />}
-            </ControlButton>
+            <>
+              <ControlButton
+                active={videoOff}
+                onClick={() => { toggleVideo(); setVideoOff((v) => !v); }}
+                label={videoOff ? "Camera on" : "Camera off"}
+              >
+                {videoOff ? <VideoOff className="size-5" /> : <Video className="size-5" />}
+              </ControlButton>
+              <ControlButton onClick={() => flipCamera()} label="Flip camera">
+                <SwitchCamera className="size-5" />
+              </ControlButton>
+            </>
           ) : (
             <ControlButton
               active={!speakerOn}

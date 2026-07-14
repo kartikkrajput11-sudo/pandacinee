@@ -1,17 +1,49 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
+// STUN + public TURN relays. TURN is critical for symmetric NAT / mobile
+// carriers where STUN-only fails. openrelay.metered.ca is a free public TURN.
 const ICE_SERVERS: RTCIceServer[] = [
   { urls: "stun:stun.l.google.com:19302" },
   { urls: "stun:stun1.l.google.com:19302" },
   { urls: "stun:stun.cloudflare.com:3478" },
+  {
+    urls: [
+      "turn:openrelay.metered.ca:80",
+      "turn:openrelay.metered.ca:443",
+      "turn:openrelay.metered.ca:443?transport=tcp",
+    ],
+    username: "openrelayproject",
+    credential: "openrelayproject",
+  },
 ];
 
 type Mode = "video" | "audio";
+type FacingMode = "user" | "environment";
 type SignalKind = "offer" | "answer" | "ice" | "hangup";
 
 function pairKey(a: string, b: string) {
   return [a, b].sort().join(":");
+}
+
+// High-quality audio: echo cancel, noise suppress, auto gain — the trio that
+// makes voice actually intelligible. Stereo + higher sample rate where the
+// browser allows it.
+const AUDIO_CONSTRAINTS: MediaTrackConstraints = {
+  echoCancellation: true,
+  noiseSuppression: true,
+  autoGainControl: true,
+  channelCount: { ideal: 2 },
+  sampleRate: { ideal: 48000 },
+};
+
+function videoConstraints(facing: FacingMode): MediaTrackConstraints {
+  return {
+    width: { ideal: 1280, max: 1920 },
+    height: { ideal: 720, max: 1080 },
+    frameRate: { ideal: 30, max: 30 },
+    facingMode: { ideal: facing },
+  };
 }
 
 export function useWebRTCCall(peerId: string | null, mode: Mode = "video", isCaller = true) {
@@ -19,12 +51,17 @@ export function useWebRTCCall(peerId: string | null, mode: Mode = "video", isCal
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
   const [status, setStatus] = useState<"idle" | "connecting" | "ringing" | "connected" | "ended" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
+  const [facing, setFacing] = useState<FacingMode>("user");
   const pcRef = useRef<RTCPeerConnection | null>(null);
   const meRef = useRef<string | null>(null);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const pendingIceRef = useRef<RTCIceCandidateInit[]>([]);
   const remoteSetRef = useRef(false);
   const offerSentRef = useRef(false);
+  const localStreamRef = useRef<MediaStream | null>(null);
+  const sendSignalRef = useRef<((kind: SignalKind, payload: unknown) => Promise<void>) | null>(null);
+  const isCallerRef = useRef(isCaller);
+  isCallerRef.current = isCaller;
 
   useEffect(() => {
     if (!peerId) return;
@@ -38,18 +75,45 @@ export function useWebRTCCall(peerId: string | null, mode: Mode = "video", isCal
         meRef.current = u.user.id;
 
         const stream = await navigator.mediaDevices.getUserMedia({
-          video: mode === "video",
-          audio: true,
+          video: mode === "video" ? videoConstraints("user") : false,
+          audio: AUDIO_CONSTRAINTS,
         });
         if (cancelled) {
           stream.getTracks().forEach((t) => t.stop());
           return;
         }
+        localStreamRef.current = stream;
         setLocalStream(stream);
 
-        const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
+        const pc = new RTCPeerConnection({
+          iceServers: ICE_SERVERS,
+          iceCandidatePoolSize: 4,
+          bundlePolicy: "max-bundle",
+          rtcpMuxPolicy: "require",
+        });
         pcRef.current = pc;
         stream.getTracks().forEach((t) => pc.addTrack(t, stream));
+
+        // Prefer higher-quality audio bitrate on the sender
+        try {
+          const audioSender = pc.getSenders().find((s) => s.track?.kind === "audio");
+          if (audioSender) {
+            const params = audioSender.getParameters();
+            params.encodings = params.encodings?.length ? params.encodings : [{}];
+            params.encodings[0].maxBitrate = 64_000; // 64 kbps stereo Opus
+            await audioSender.setParameters(params).catch(() => {});
+          }
+          if (mode === "video") {
+            const videoSender = pc.getSenders().find((s) => s.track?.kind === "video");
+            if (videoSender) {
+              const params = videoSender.getParameters();
+              params.encodings = params.encodings?.length ? params.encodings : [{}];
+              params.encodings[0].maxBitrate = 1_500_000; // 1.5 Mbps HD
+              params.degradationPreference = "balanced";
+              await videoSender.setParameters(params).catch(() => {});
+            }
+          }
+        } catch { /* non-fatal */ }
 
         const remote = new MediaStream();
         setRemoteStream(remote);
@@ -59,15 +123,15 @@ export function useWebRTCCall(peerId: string | null, mode: Mode = "video", isCal
           });
         };
 
-        // shared room channel keyed by sorted ids — both peers join the same channel
         const ch = supabase.channel(`call-room:${pairKey(meRef.current, peerId)}`, {
           config: { broadcast: { self: false, ack: false }, presence: { key: meRef.current } },
         });
         channelRef.current = ch;
 
-        async function sendSignal(kind: SignalKind, payload: unknown) {
+        const sendSignal = async (kind: SignalKind, payload: unknown) => {
           await ch.send({ type: "broadcast", event: kind, payload });
-        }
+        };
+        sendSignalRef.current = sendSignal;
 
         pc.onicecandidate = (ev) => {
           if (ev.candidate) void sendSignal("ice", ev.candidate.toJSON());
@@ -75,7 +139,25 @@ export function useWebRTCCall(peerId: string | null, mode: Mode = "video", isCal
         pc.onconnectionstatechange = () => {
           const s = pc.connectionState;
           if (s === "connected") setStatus("connected");
-          else if (s === "failed" || s === "disconnected" || s === "closed") setStatus("ended");
+          else if (s === "closed") setStatus("ended");
+        };
+        pc.oniceconnectionstatechange = async () => {
+          const s = pc.iceConnectionState;
+          if (s === "failed") {
+            // Try an ICE restart before giving up — only the caller re-offers
+            if (isCallerRef.current) {
+              try {
+                const offer = await pc.createOffer({ iceRestart: true });
+                await pc.setLocalDescription(offer);
+                await sendSignal("offer", offer);
+              } catch (e) {
+                console.warn("ICE restart failed", e);
+                setStatus("ended");
+              }
+            }
+          } else if (s === "disconnected") {
+            // Transient — WebRTC often recovers on its own within seconds
+          }
         };
 
         async function flushIce() {
@@ -95,6 +177,7 @@ export function useWebRTCCall(peerId: string | null, mode: Mode = "video", isCal
 
         ch.on("broadcast", { event: "offer" }, async (e) => {
           const offer = e.payload as RTCSessionDescriptionInit;
+          // Handle ICE-restart offers too (may arrive when already stable)
           await pc.setRemoteDescription(new RTCSessionDescription(offer));
           remoteSetRef.current = true;
           await flushIce();
@@ -120,17 +203,16 @@ export function useWebRTCCall(peerId: string | null, mode: Mode = "video", isCal
         ch.on("presence", { event: "sync" }, () => {
           const state = ch.presenceState() as Record<string, unknown[]>;
           const peerHere = Boolean(state[peerId] && state[peerId].length);
-          if (isCaller && peerHere && !offerSentRef.current) {
+          if (isCallerRef.current && peerHere && !offerSentRef.current) {
             void makeOffer();
           }
-          if (!peerHere && !isCaller) setStatus("ringing");
+          if (!peerHere && !isCallerRef.current) setStatus("ringing");
         });
 
         await ch.subscribe(async (s) => {
           if (s !== "SUBSCRIBED") return;
-          await ch.track({ joined_at: Date.now(), role: isCaller ? "caller" : "callee" });
-          // Fallback: if no presence sync within 1.5s, caller still offers (in case peer already there)
-          if (isCaller) {
+          await ch.track({ joined_at: Date.now(), role: isCallerRef.current ? "caller" : "callee" });
+          if (isCallerRef.current) {
             setTimeout(() => {
               const state = ch.presenceState() as Record<string, unknown[]>;
               if (state[peerId] && state[peerId].length && !offerSentRef.current) void makeOffer();
@@ -154,29 +236,57 @@ export function useWebRTCCall(peerId: string | null, mode: Mode = "video", isCal
       }
       pcRef.current?.close();
       pcRef.current = null;
-      setLocalStream((s) => {
-        s?.getTracks().forEach((t) => t.stop());
-        return null;
-      });
+      localStreamRef.current?.getTracks().forEach((t) => t.stop());
+      localStreamRef.current = null;
+      setLocalStream(null);
       offerSentRef.current = false;
       remoteSetRef.current = false;
       pendingIceRef.current = [];
+      sendSignalRef.current = null;
     };
-  }, [peerId, mode, isCaller]);
+  }, [peerId, mode]);
 
-  async function hangup() {
+  const hangup = useCallback(async () => {
     const ch = channelRef.current;
     if (ch) {
       try { await ch.send({ type: "broadcast", event: "hangup", payload: {} }); } catch { /* ignore */ }
     }
     setStatus("ended");
-  }
-  function toggleAudio() {
-    localStream?.getAudioTracks().forEach((t) => (t.enabled = !t.enabled));
-  }
-  function toggleVideo() {
-    localStream?.getVideoTracks().forEach((t) => (t.enabled = !t.enabled));
-  }
+  }, []);
 
-  return { localStream, remoteStream, status, error, hangup, toggleAudio, toggleVideo };
+  const toggleAudio = useCallback(() => {
+    localStreamRef.current?.getAudioTracks().forEach((t) => (t.enabled = !t.enabled));
+  }, []);
+
+  const toggleVideo = useCallback(() => {
+    localStreamRef.current?.getVideoTracks().forEach((t) => (t.enabled = !t.enabled));
+  }, []);
+
+  // Flip between front and back camera on mobile — replaces the sender track
+  // in-place so the peer sees the switch without renegotiating.
+  const flipCamera = useCallback(async () => {
+    if (mode !== "video") return;
+    const pc = pcRef.current;
+    const current = localStreamRef.current;
+    if (!pc || !current) return;
+    const next: FacingMode = facing === "user" ? "environment" : "user";
+    try {
+      const newStream = await navigator.mediaDevices.getUserMedia({
+        video: videoConstraints(next),
+        audio: false,
+      });
+      const newTrack = newStream.getVideoTracks()[0];
+      const sender = pc.getSenders().find((s) => s.track?.kind === "video");
+      if (sender) await sender.replaceTrack(newTrack);
+      // Swap into the local stream so the self-view updates
+      current.getVideoTracks().forEach((t) => { t.stop(); current.removeTrack(t); });
+      current.addTrack(newTrack);
+      setFacing(next);
+      setLocalStream(new MediaStream(current.getTracks()));
+    } catch (e) {
+      console.warn("Camera flip failed", e);
+    }
+  }, [facing, mode]);
+
+  return { localStream, remoteStream, status, error, hangup, toggleAudio, toggleVideo, flipCamera, facing };
 }
