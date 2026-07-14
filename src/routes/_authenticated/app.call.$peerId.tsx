@@ -104,7 +104,11 @@ function Call() {
     if (localRef.current && localStream) localRef.current.srcObject = localStream;
   }, [localStream]);
   useEffect(() => {
-    if (remoteRef.current && remoteStream) remoteRef.current.srcObject = remoteStream;
+    if (remoteRef.current && remoteStream) {
+      remoteRef.current.srcObject = remoteStream;
+      // Some mobile browsers won't autoplay a stream that arrives after mount.
+      remoteRef.current.play?.().catch(() => {});
+    }
   }, [remoteStream]);
 
   useEffect(() => {
