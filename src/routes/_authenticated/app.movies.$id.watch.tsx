@@ -115,6 +115,7 @@ function WatchMovie() {
   const [sleepMinutes, setSleepMinutes] = useState<number | null>(null);
   const [sleepAt, setSleepAt] = useState<number | null>(null);
   const [floaties, setFloaties] = useState<{ id: number; emoji: string; x: number; from: "me" | "partner" }[]>([]);
+  const [viewersOpen, setViewersOpen] = useState(false);
   const lastPublishRef = useRef(0);
 
   // TV series state (populated when the admin marked this TMDB id as media_type=tv)
