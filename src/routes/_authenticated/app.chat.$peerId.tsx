@@ -170,7 +170,22 @@ function ChatPeer() {
       <MoodBar me={me} partner={peer} />
 
       {activeLock && iAmLocker && (
-        <PunishmentLockBanner lock={activeLock} targetName={peerDisplay} onCancel={cancelLock} />
+        <PunishmentLockBanner
+          lock={activeLock}
+          targetName={peerDisplay}
+          onCancel={cancelLock}
+          onOpenVerification={isVerifyMode ? () => setVerifyOpen(true) : undefined}
+          hasPending={hasPendingSubmission}
+        />
+      )}
+      {activeLock && iAmLocked && isVerifyMode && !verifyOpen && (
+        <button
+          onClick={() => setVerifyOpen(true)}
+          className="w-full px-4 py-2 border-b border-petal/40 bg-petal-soft/20 text-xs text-petal font-semibold flex items-center justify-center gap-2"
+        >
+          <Lock className="size-3" />
+          Chat locked · Open Verification Chat →
+        </button>
       )}
 
       {pinned.length > 0 && (
