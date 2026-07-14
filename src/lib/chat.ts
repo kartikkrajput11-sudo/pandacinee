@@ -34,7 +34,12 @@ export function chatChannelKey(a: string, b: string) {
   return [a, b].sort().join(":");
 }
 
-export async function uploadChatMedia(file: Blob, userId: string, kind: "voice" | "image" | "file", ext: string) {
+export async function uploadChatMedia(
+  file: Blob,
+  userId: string,
+  kind: "voice" | "image" | "file" | "video",
+  ext: string,
+) {
   const path = `${userId}/${kind}/${crypto.randomUUID()}.${ext}`;
   const { error } = await supabase.storage.from("chat-media").upload(path, file, {
     contentType: file.type || undefined,
