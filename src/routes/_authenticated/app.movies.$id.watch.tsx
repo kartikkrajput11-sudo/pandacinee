@@ -22,6 +22,11 @@ import {
   Heart,
   MessageCircle,
   Crown,
+  ChevronLeft,
+  ChevronRight,
+  Tv,
+  Clock,
+  CalendarDays,
 } from "lucide-react";
 import { toast } from "sonner";
 import { tmdbMovie, tmdbTvDetail, tmdbTvSeason } from "@/lib/tmdb.functions";
