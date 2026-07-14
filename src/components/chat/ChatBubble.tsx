@@ -60,19 +60,110 @@ export function ChatBubble({
 
   const bare = isSticker || isWatchInvite || isGameInvite || isMovieWheel || isKiss || isNudge || isCall;
 
+  // ---- Gestures: long-press for actions, swipe for reply, double-tap for heart ----
+  const [dragX, setDragX] = useState(0);
+  const [heartPop, setHeartPop] = useState(0);
+  const gesture = useRef({ startX: 0, startY: 0, moved: false, longPressed: false, lastTapAt: 0, singleTapTimer: 0 });
+  const longPressTimer = useRef<number | null>(null);
+  const clearLongPress = () => {
+    if (longPressTimer.current) { window.clearTimeout(longPressTimer.current); longPressTimer.current = null; }
+  };
+  const isInteractiveTarget = (t: EventTarget | null) =>
+    !!(t as HTMLElement | null)?.closest?.("button, a, input, textarea, [data-no-gesture]");
+
+  const onPointerDown = (e: React.PointerEvent) => {
+    if (isInteractiveTarget(e.target)) return;
+    gesture.current.startX = e.clientX;
+    gesture.current.startY = e.clientY;
+    gesture.current.moved = false;
+    gesture.current.longPressed = false;
+    clearLongPress();
+    longPressTimer.current = window.setTimeout(() => {
+      gesture.current.longPressed = true;
+      setActionsOpen(true);
+      if ("vibrate" in navigator) navigator.vibrate?.(30);
+    }, 500);
+  };
+  const onPointerMove = (e: React.PointerEvent) => {
+    if (longPressTimer.current === null && !gesture.current.moved) return;
+    const dx = e.clientX - gesture.current.startX;
+    const dy = e.clientY - gesture.current.startY;
+    if (!gesture.current.moved && Math.hypot(dx, dy) > 8) {
+      gesture.current.moved = true;
+      clearLongPress();
+    }
+    if (gesture.current.moved && Math.abs(dx) > Math.abs(dy)) {
+      const clamped = mine ? Math.min(0, Math.max(-90, dx)) : Math.max(0, Math.min(90, dx));
+      setDragX(clamped);
+    }
+  };
+  const onPointerUp = () => {
+    clearLongPress();
+    const wasLP = gesture.current.longPressed;
+    const moved = gesture.current.moved;
+    const dx = dragX;
+    setDragX(0);
+    if (wasLP) return;
+    if (moved) {
+      if (Math.abs(dx) > 50) {
+        onReply(m);
+        if ("vibrate" in navigator) navigator.vibrate?.(20);
+      }
+      return;
+    }
+    // Tap
+    const now = Date.now();
+    if (now - gesture.current.lastTapAt < 300) {
+      if (gesture.current.singleTapTimer) window.clearTimeout(gesture.current.singleTapTimer);
+      gesture.current.singleTapTimer = 0;
+      gesture.current.lastTapAt = 0;
+      onReact(m, "❤️");
+      setHeartPop((n) => n + 1);
+      if ("vibrate" in navigator) navigator.vibrate?.(15);
+    } else {
+      gesture.current.lastTapAt = now;
+      gesture.current.singleTapTimer = window.setTimeout(() => {
+        if (isWhisper) setWhisperRevealed((v) => !v);
+        gesture.current.singleTapTimer = 0;
+      }, 260);
+    }
+  };
+  const onPointerCancel = () => { clearLongPress(); setDragX(0); };
+  const onContextMenu = (e: React.MouseEvent) => {
+    if (isInteractiveTarget(e.target)) return;
+    e.preventDefault();
+    setActionsOpen(true);
+  };
+
   return (
-    <div className={`group flex ${mine ? "justify-end" : "justify-start"} mt-1.5 px-1`}>
-      <div className="max-w-[80%] flex flex-col items-stretch">
+    <div className={`group flex ${mine ? "justify-end" : "justify-start"} mt-1.5 px-1 relative`}>
+      {dragX !== 0 && (
+        <div
+          className={`absolute top-1/2 -translate-y-1/2 ${mine ? "right-3" : "left-3"} size-8 rounded-full bg-petal/20 border border-petal/40 flex items-center justify-center text-petal pointer-events-none`}
+          style={{ opacity: Math.min(1, Math.abs(dragX) / 50) }}
+        >
+          <Reply className="size-4" />
+        </div>
+      )}
+      <div
+        className="max-w-[80%] flex flex-col items-stretch select-none"
+        style={{
+          transform: `translateX(${dragX}px)`,
+          transition: dragX === 0 ? "transform 200ms ease-out" : "none",
+          touchAction: "pan-y",
+        }}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerCancel}
+        onContextMenu={onContextMenu}
+      >
         {m.pinned && (
           <div className={`text-[10px] uppercase tracking-widest text-petal flex items-center gap-1 mb-0.5 ${mine ? "justify-end" : ""}`}>
             <Pin className="size-3" /> Pinned
           </div>
         )}
-        <button
-          onClick={() => {
-            if (isWhisper) { setWhisperRevealed((v) => !v); return; }
-            setActionsOpen((o) => !o);
-          }}
+        <div
           className={`relative text-left rounded-2xl text-sm leading-relaxed transition-colors ${
             isPandaSticker
               ? "bg-transparent p-0"
@@ -85,6 +176,15 @@ export function ChatBubble({
               : "bg-surface-elevated text-candle rounded-bl-md border border-border px-3 py-2"
           }`}
         >
+          {heartPop > 0 && (
+            <span
+              key={heartPop}
+              className="pointer-events-none absolute inset-0 flex items-center justify-center text-5xl animate-pulse-soft"
+              style={{ animation: "heartPop 700ms ease-out forwards" }}
+            >
+              ❤️
+            </span>
+          )}
           {replyTo && (
             <div className={`mb-1.5 px-2 py-1 rounded-lg text-xs border-l-2 ${mine ? "bg-velvet/20 border-velvet/40" : "bg-petal/10 border-petal/60"}`}>
               <p className="opacity-70 truncate">
