@@ -85,10 +85,12 @@ export const Route = createFileRoute("/_authenticated/app/movies/$id/watch")({
   validateSearch: (raw: Record<string, unknown>) => {
     const s = Number(raw.season);
     const e = Number(raw.episode);
+    const w = typeof raw.with === "string" && raw.with.length > 0 ? raw.with : undefined;
     return {
       season: Number.isFinite(s) && s > 0 ? Math.floor(s) : undefined,
       episode: Number.isFinite(e) && e > 0 ? Math.floor(e) : undefined,
-    } as { season?: number; episode?: number };
+      with: w,
+    } as { season?: number; episode?: number; with?: string };
   },
   component: WatchMovie,
 });
