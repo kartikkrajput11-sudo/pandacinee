@@ -611,6 +611,36 @@ export type Database = {
         }
         Relationships: []
       }
+      paint_gallery: {
+        Row: {
+          background: string | null
+          by_user: string
+          created_at: string
+          id: string
+          pair_key: string
+          strokes: Json
+          title: string | null
+        }
+        Insert: {
+          background?: string | null
+          by_user: string
+          created_at?: string
+          id?: string
+          pair_key: string
+          strokes: Json
+          title?: string | null
+        }
+        Update: {
+          background?: string | null
+          by_user?: string
+          created_at?: string
+          id?: string
+          pair_key?: string
+          strokes?: Json
+          title?: string | null
+        }
+        Relationships: []
+      }
       paint_strokes: {
         Row: {
           by_user: string
