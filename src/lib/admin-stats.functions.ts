@@ -132,8 +132,8 @@ export const getRecentActivity = createServerFn({ method: "GET" })
     for (const m of memories.data ?? []) ids.add(m.author_id);
     for (const m of moods.data ?? []) ids.add(m.user_id);
     for (const g of games.data ?? []) { ids.add(g.host_id); if (g.partner_id) ids.add(g.partner_id); }
-    for (const w of wl.data ?? []) if (w.created_by) ids.add(w.created_by);
-    for (const l of locks.data ?? []) { ids.add(l.locked_user_id); if (l.locker_id) ids.add(l.locker_id); }
+    for (const w of wl.data ?? []) if (w.owner_id) ids.add(w.owner_id);
+    for (const l of locks.data ?? []) { ids.add(l.target_id); if (l.locker_id) ids.add(l.locker_id); }
     for (const p of pairs.data ?? []) { ids.add(p.id); if (p.partner_id) ids.add(p.partner_id); }
 
     const { data: profs } = ids.size
@@ -203,7 +203,7 @@ export const getRecentActivity = createServerFn({ method: "GET" })
     for (const w of wl.data ?? []) {
       items.push({
         id: `wl-${w.id}`, kind: "wishlist", at: w.created_at,
-        actor: w.created_by ? { id: w.created_by, name: name(w.created_by), avatar: avatar(w.created_by) } : null,
+        actor: w.owner_id ? { id: w.owner_id, name: name(w.owner_id), avatar: avatar(w.owner_id) } : null,
         target: null, summary: `wished for "${w.title ?? "something"}"`,
       });
     }
@@ -211,8 +211,8 @@ export const getRecentActivity = createServerFn({ method: "GET" })
       items.push({
         id: `lock-${l.id}`, kind: "lock", at: l.created_at,
         actor: l.locker_id ? { id: l.locker_id, name: name(l.locker_id), avatar: avatar(l.locker_id) } : null,
-        target: { id: l.locked_user_id, name: name(l.locked_user_id) },
-        summary: `set a lock on ${name(l.locked_user_id) ?? "someone"}`,
+        target: { id: l.target_id, name: name(l.target_id) },
+        summary: `set a lock on ${name(l.target_id) ?? "someone"}`,
       });
     }
 
