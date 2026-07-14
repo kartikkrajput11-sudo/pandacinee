@@ -203,6 +203,7 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
             <p className="text-xs text-candle truncate">
               {replyTo.type === "voice" ? "🎙 Voice message" :
                replyTo.type === "image" ? "📷 Photo" :
+               replyTo.type === "video" ? "🎬 Video" :
                replyTo.type === "file" ? `📎 ${replyTo.content}` :
                replyTo.content}
             </p>
