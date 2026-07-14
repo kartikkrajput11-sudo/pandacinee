@@ -102,6 +102,10 @@ function PaintTogether() {
       if (idx >= 0) strokes.current.splice(idx, 1);
       redraw();
     });
+    ch.on("broadcast", { event: "reveal" }, ({ payload }) => {
+      const p = payload as { image: string; by: string };
+      setReveal(p);
+    });
     // When a peer joins, they announce presence and we resend our committed strokes.
     ch.on("broadcast", { event: "sync-request" }, () => {
       for (const s of strokes.current) {
