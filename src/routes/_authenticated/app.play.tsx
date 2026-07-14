@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
-import { GAMES, GameKind } from "@/lib/games";
+import { GAMES, GAME_KINDS } from "@/lib/games";
 import { useProfile } from "@/hooks/useProfile";
 
 export const Route = createFileRoute("/_authenticated/app/play")({
