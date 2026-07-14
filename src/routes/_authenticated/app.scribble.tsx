@@ -437,22 +437,6 @@ function Scribble() {
         </div>
       )}
 
-      {phase === "choosing" && (
-        <div className="mt-4 rounded-3xl border border-petal/30 bg-petal-soft/40 p-4">
-          <p className="text-[10px] uppercase tracking-widest text-petal mb-3 text-center">Choose one to draw</p>
-          <div className="grid grid-cols-2 gap-2">
-            {choices.map((w) => (
-              <button
-                key={w}
-                onClick={() => confirmWord(w)}
-                className="rounded-2xl bg-surface border border-border py-3 px-2 text-sm font-serif italic text-candle hover:border-petal transition"
-              >
-                {w}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
 
       {(phase === "idle" || phase === "over") && (
         <div className="mt-4 space-y-3">
