@@ -712,58 +712,83 @@ function NeverHaveIEver({ me, session, patch }: { me: string; session: Session; 
     patch({ ...s, card: c });
   }
 
+  const bestOf: number = s.bestOf ?? 10;
+  const round = (s.count ?? 0) + 1;
+  const matchDone = bestOf > 0 && (s.count ?? 0) >= bestOf;
+  function rematch() {
+    patch({ ...s, count: 0, card: null, picks: {}, tallies: { have: 0, havent: 0 }, history: [] });
+  }
+
   return (
     <div>
+      <MatchControls
+        round={round}
+        bestOf={bestOf}
+        onBestOf={(n) => patch({ ...s, bestOf: n })}
+        onRematch={rematch}
+        disabled={loading}
+      />
       <IntensityBar value={s.intensity ?? "playful"} onChange={(v) => patch({ ...s, intensity: v })} disabled={loading} />
       <p className="text-[10px] uppercase tracking-widest text-petal mb-2 text-center">
         🫶 Have {s.tallies?.have ?? 0} · Haven't {s.tallies?.havent ?? 0}
       </p>
-      <div className="p-6 rounded-3xl border border-border bg-surface mb-5 min-h-[180px] flex flex-col justify-center">
-        <p className="text-[10px] uppercase tracking-widest text-petal mb-2">Never have I ever…</p>
-        <p className="font-serif text-2xl italic leading-snug">
-          {s.card?.text ?? (loading ? "Crafting…" : "…")}
-        </p>
-      </div>
-      <div className="grid grid-cols-2 gap-3 mb-4">
-        {["I have", "I haven't"].map((label, i) => {
-          const selected = myPick === i;
-          const theirs = theirPick === i;
-          return (
+
+      {matchDone ? (
+        <MatchComplete
+          title={`${s.tallies?.have ?? 0} confessions · ${s.tallies?.havent ?? 0} nopes`}
+          subtitle="Trade stories about the ones you both did 👀"
+          onRematch={rematch}
+        />
+      ) : (
+        <>
+          <div className="p-6 rounded-3xl border border-border bg-surface mb-5 min-h-[180px] flex flex-col justify-center">
+            <p className="text-[10px] uppercase tracking-widest text-petal mb-2">Never have I ever…</p>
+            <p className="font-serif text-2xl italic leading-snug">
+              {s.card?.text ?? (loading ? "Crafting…" : "…")}
+            </p>
+          </div>
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            {["I have", "I haven't"].map((label, i) => {
+              const selected = myPick === i;
+              const theirs = theirPick === i;
+              return (
+                <button
+                  key={i}
+                  onClick={() => pick(i as 0 | 1)}
+                  disabled={myPick !== undefined || !s.card}
+                  className={`py-4 rounded-3xl border transition-all ${
+                    selected ? "border-petal bg-petal-soft" : "border-border bg-surface"
+                  } ${myPick !== undefined && !selected ? "opacity-50" : ""}`}
+                >
+                  <p className="font-serif italic text-lg">{label}</p>
+                  {bothPicked && theirs && (
+                    <p className="text-[10px] uppercase tracking-widest text-petal mt-1">Their pick</p>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+          <div className="flex gap-2">
+            {!bothPicked && myPick === undefined && theirPick === undefined && (
+              <button
+                onClick={skip}
+                disabled={loading || !s.card}
+                className="rounded-2xl bg-surface border border-border px-4 py-3.5 text-sm text-candle flex items-center gap-2 disabled:opacity-60"
+              >
+                <SkipForward className="size-4" /> Skip
+              </button>
+            )}
             <button
-              key={i}
-              onClick={() => pick(i as 0 | 1)}
-              disabled={myPick !== undefined || !s.card}
-              className={`py-4 rounded-3xl border transition-all ${
-                selected ? "border-petal bg-petal-soft" : "border-border bg-surface"
-              } ${myPick !== undefined && !selected ? "opacity-50" : ""}`}
+              onClick={next}
+              disabled={!bothPicked || loading}
+              className="flex-1 py-3.5 bg-petal text-velvet rounded-2xl font-semibold flex items-center justify-center gap-2 disabled:opacity-40"
             >
-              <p className="font-serif italic text-lg">{label}</p>
-              {bothPicked && theirs && (
-                <p className="text-[10px] uppercase tracking-widest text-petal mt-1">Their pick</p>
-              )}
+              {loading ? <Sparkles className="size-4 animate-pulse" /> : <RefreshCw className="size-4" />}
+              {loading ? "Crafting…" : "Next"}
             </button>
-          );
-        })}
-      </div>
-      <div className="flex gap-2">
-        {!bothPicked && myPick === undefined && theirPick === undefined && (
-          <button
-            onClick={skip}
-            disabled={loading || !s.card}
-            className="rounded-2xl bg-surface border border-border px-4 py-3.5 text-sm text-candle flex items-center gap-2 disabled:opacity-60"
-          >
-            <SkipForward className="size-4" /> Skip
-          </button>
-        )}
-        <button
-          onClick={next}
-          disabled={!bothPicked || loading}
-          className="flex-1 py-3.5 bg-petal text-velvet rounded-2xl font-semibold flex items-center justify-center gap-2 disabled:opacity-40"
-        >
-          {loading ? <Sparkles className="size-4 animate-pulse" /> : <RefreshCw className="size-4" />}
-          {loading ? "Crafting…" : "Next"}
-        </button>
-      </div>
+          </div>
+        </>
+      )}
       <HistoryStrip items={(s.history ?? []).map((h: any) => h.text)} />
     </div>
   );
