@@ -875,29 +875,44 @@ function WatchMovie() {
                 </div>
               )}
 
-              {/* Compact pill row: countdown + source + invite + whisper (fits on one line) */}
-              <div className="flex items-center gap-1.5 flex-nowrap whitespace-nowrap">
+              {/* Invite — same size & color as Take the reins */}
+              {partner ? (
+                <button
+                  onClick={inviteToWatch}
+                  className="mb-2 w-full h-10 rounded-full bg-petal text-velvet text-xs font-semibold flex items-center justify-center gap-1.5 shadow-lg shadow-petal/30"
+                >
+                  <Send className="size-3.5" /> Invite {partnerFirst}
+                </button>
+              ) : (
+                <Link
+                  to="/app/invite"
+                  className="mb-2 w-full h-10 rounded-full bg-petal text-velvet text-xs font-semibold flex items-center justify-center gap-1.5 shadow-lg shadow-petal/30"
+                >
+                  <Send className="size-3.5" /> Invite partner
+                </Link>
+              )}
+
+              {/* Equal trio: Countdown · Server · Whisper */}
+              <div className="grid grid-cols-3 gap-1.5">
                 <button
                   onClick={() => startCountdown(4)}
-                  title="Countdown together"
-                  className="shrink min-w-0 h-8 px-2.5 rounded-full bg-surface border border-border text-[10px] text-candle flex items-center gap-1"
+                  className="h-9 rounded-full bg-surface border border-border text-[11px] text-candle flex items-center justify-center gap-1 min-w-0 px-2"
                 >
                   <Timer className="size-3 shrink-0" />
                   <span className="truncate">Countdown</span>
                 </button>
 
-                {/* Source pill */}
-                <div className="relative shrink min-w-0">
+                <div className="relative min-w-0">
                   <button
                     onClick={() => setSourceMenuOpen((v) => !v)}
                     title={currentSource?.label ?? "Server"}
-                    className="h-8 px-2.5 rounded-full bg-surface border border-border text-[10px] text-candle flex items-center gap-1 max-w-full"
+                    className="w-full h-9 rounded-full bg-surface border border-border text-[11px] text-candle flex items-center justify-center gap-1 px-2"
                   >
                     <Server className="size-3 text-petal shrink-0" />
                     <span className="truncate">{currentSource?.label ?? "Server"}</span>
                   </button>
                   {sourceMenuOpen && (
-                    <div className="absolute z-20 top-full mt-2 left-0 min-w-[14rem] rounded-2xl bg-velvet border border-border shadow-2xl shadow-black/60 overflow-hidden">
+                    <div className="absolute z-20 top-full mt-2 left-1/2 -translate-x-1/2 min-w-[14rem] rounded-2xl bg-velvet border border-border shadow-2xl shadow-black/60 overflow-hidden">
                       {allSources.map((s, i) => (
                         <button
                           key={s.id}
@@ -920,37 +935,20 @@ function WatchMovie() {
                   )}
                 </div>
 
-                {/* Invite pill */}
                 {partner ? (
-                  <button
-                    onClick={inviteToWatch}
-                    title={`Invite ${partnerFirst}`}
-                    className="shrink min-w-0 h-8 px-2.5 rounded-full bg-petal text-velvet text-[10px] font-semibold flex items-center gap-1 shadow-lg shadow-petal/30"
-                  >
-                    <Send className="size-3 shrink-0" />
-                    <span className="truncate">Invite</span>
-                  </button>
-                ) : (
-                  <Link
-                    to="/app/invite"
-                    className="shrink min-w-0 h-8 px-2.5 rounded-full bg-petal text-velvet text-[10px] font-semibold flex items-center gap-1"
-                  >
-                    <Send className="size-3 shrink-0" />
-                    <span className="truncate">Invite</span>
-                  </Link>
-                )}
-
-                {/* Whisper pill */}
-                {partner && (
                   <Link
                     to="/app/chat/$peerId"
                     params={{ peerId: partner.id }}
-                    title={`Whisper ${partnerFirst}`}
-                    className="shrink min-w-0 h-8 px-2.5 rounded-full bg-surface border border-border text-[10px] text-candle flex items-center gap-1 hover:text-petal hover:border-petal/40 transition"
+                    className="h-9 rounded-full bg-surface border border-border text-[11px] text-candle flex items-center justify-center gap-1 hover:text-petal hover:border-petal/40 transition min-w-0 px-2"
                   >
                     <MessageCircle className="size-3 shrink-0" />
                     <span className="truncate">Whisper</span>
                   </Link>
+                ) : (
+                  <span className="h-9 rounded-full bg-surface/40 border border-border/50 text-[11px] text-candle-muted/60 flex items-center justify-center gap-1 min-w-0 px-2">
+                    <MessageCircle className="size-3 shrink-0" />
+                    <span className="truncate">Whisper</span>
+                  </span>
                 )}
               </div>
             </div>
