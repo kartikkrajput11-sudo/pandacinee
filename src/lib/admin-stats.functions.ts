@@ -28,13 +28,14 @@ export const getAdminStats = createServerFn({ method: "GET" })
   .handler(async ({ context }): Promise<AdminStats> => {
     await ensureAdmin(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const admin = supabaseAdmin as any;
     const now = Date.now();
     const d1 = new Date(now - 24 * 3600 * 1000).toISOString();
     const d7 = new Date(now - 7 * 24 * 3600 * 1000).toISOString();
     const d5min = new Date(now - 5 * 60 * 1000).toISOString();
 
     async function c(table: string, filter?: (q: any) => any) {
-      let q = supabaseAdmin.from(table).select("*", { count: "exact", head: true });
+      let q = admin.from(table).select("*", { count: "exact", head: true });
       if (filter) q = filter(q);
       const { count } = await q;
       return count ?? 0;
