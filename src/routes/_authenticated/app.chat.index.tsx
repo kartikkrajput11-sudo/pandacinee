@@ -1,7 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, MessageCircle, Heart, Users } from "lucide-react";
+import { useState } from "react";
+import { ArrowLeft, MessageCircle, Heart, Users, Plus, UsersRound } from "lucide-react";
 import { useChatThreads } from "@/hooks/useChatThreads";
 import { useProfile } from "@/hooks/useProfile";
+import { useGroups } from "@/hooks/useGroups";
+import { NewGroupDialog } from "@/components/chat/NewGroupDialog";
 
 export const Route = createFileRoute("/_authenticated/app/chat/")({
   component: ChatList,
@@ -10,7 +13,18 @@ export const Route = createFileRoute("/_authenticated/app/chat/")({
 function ChatList() {
   const { data: profileData } = useProfile();
   const me = profileData?.profile;
+  const partnerId = me?.partner_id ?? null;
   const { data: threads, isLoading } = useChatThreads();
+  const { data: groups, isLoading: groupsLoading } = useGroups();
+
+  const [showNewGroup, setShowNewGroup] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const partnerThread = threads?.find((t) => t.isPartner) ?? null;
+  const friendThreads = threads?.filter((t) => !t.isPartner) ?? [];
+
+  const totalEmpty =
+    !isLoading && !groupsLoading && !partnerThread && friendThreads.length === 0 && (groups?.length ?? 0) === 0;
 
   return (
     <div className="px-5 pt-10 pb-6">
@@ -20,23 +34,54 @@ function ChatList() {
           <p className="text-[10px] uppercase tracking-widest text-petal">Whispers</p>
           <h1 className="font-serif text-3xl italic">Chats</h1>
         </div>
-        <Link to="/app/friends" className="size-10 rounded-full bg-surface border border-border flex items-center justify-center text-petal">
+        <Link to="/app/friends" className="size-10 rounded-full bg-surface border border-border flex items-center justify-center text-petal" aria-label="Friends">
           <Users className="size-4" />
         </Link>
+        <div className="relative">
+          <button
+            onClick={() => setMenuOpen((s) => !s)}
+            className="size-10 rounded-full bg-petal text-velvet flex items-center justify-center"
+            aria-label="New"
+          >
+            <Plus className="size-4" />
+          </button>
+          {menuOpen && (
+            <>
+              <div className="fixed inset-0 z-30" onClick={() => setMenuOpen(false)} />
+              <div className="absolute right-0 mt-2 w-52 bg-velvet border border-border rounded-2xl shadow-xl overflow-hidden z-40">
+                <button
+                  onClick={() => { setMenuOpen(false); setShowNewGroup(true); }}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-sm hover:bg-surface"
+                >
+                  <UsersRound className="size-4 text-petal" /> New group
+                </button>
+                <Link
+                  to="/app/friends"
+                  onClick={() => setMenuOpen(false)}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-sm hover:bg-surface border-t border-border"
+                >
+                  <Users className="size-4 text-petal" /> Add friend
+                </Link>
+              </div>
+            </>
+          )}
+        </div>
       </header>
 
-      {isLoading && <div className="text-center py-12 text-candle-muted text-sm">Loading…</div>}
+      {(isLoading || groupsLoading) && (
+        <div className="text-center py-12 text-candle-muted text-sm">Loading…</div>
+      )}
 
-      {!isLoading && (!threads || threads.length === 0) && (
+      {totalEmpty && (
         <div className="text-center py-16">
           <div className="size-16 mx-auto mb-4 rounded-full bg-petal-soft flex items-center justify-center">
             <MessageCircle className="size-7 text-petal" />
           </div>
           <h2 className="font-serif text-xl italic mb-1">No chats yet</h2>
           <p className="text-sm text-candle-muted mb-5">
-            Pair with your partner or add friends to start whispering.
+            Pair with your partner, add friends, or start a group.
           </p>
-          <div className="flex justify-center gap-3">
+          <div className="flex justify-center gap-3 flex-wrap">
             {!me?.partner_id && (
               <Link to="/app/invite" className="px-5 py-2.5 bg-petal text-velvet rounded-full text-sm font-semibold">
                 Invite partner
@@ -45,59 +90,170 @@ function ChatList() {
             <Link to="/app/friends" className="px-5 py-2.5 bg-surface border border-border text-candle rounded-full text-sm font-semibold">
               Find friends
             </Link>
+            <button
+              onClick={() => setShowNewGroup(true)}
+              className="px-5 py-2.5 bg-surface border border-border text-candle rounded-full text-sm font-semibold"
+            >
+              New group
+            </button>
           </div>
         </div>
       )}
 
-      <div className="space-y-1.5">
-        {threads?.map((t) => (
-          <Link
-            key={t.peer.id}
-            to="/app/chat/$peerId"
-            params={{ peerId: t.peer.id }}
-            className={`flex items-center gap-3 p-3 rounded-2xl transition-colors hover:bg-surface ${
-              t.isPartner ? "bg-petal-soft/50 border border-petal/20" : "bg-surface/40 border border-transparent"
-            }`}
-          >
-            <div className="relative size-12 rounded-full bg-petal-soft flex items-center justify-center overflow-hidden shrink-0">
-              {t.peer.avatar_url ? (
-                <img src={t.peer.avatar_url} alt="" className="size-full object-cover" />
-              ) : (
-                <span className="text-xl">🐼</span>
-              )}
-              {t.isPartner && (
-                <span className="absolute -bottom-0.5 -right-0.5 size-5 rounded-full bg-petal text-velvet flex items-center justify-center">
-                  <Heart className="size-2.5 fill-current" />
-                </span>
-              )}
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <p className="font-serif italic text-base truncate">
-                  {t.isPartner && me?.partner_nickname ? me.partner_nickname : t.peer.display_name}
-                </p>
-                {t.last && (
-                  <span className="text-[10px] text-candle-muted shrink-0 ml-auto">
-                    {formatTime(t.last.created_at)}
-                  </span>
-                )}
-              </div>
-              <p className="text-xs text-candle-muted truncate">
-                {t.peer.mood && (
-                  <span className="text-petal mr-1">{t.peer.mood_emoji} {t.peer.mood} ·</span>
-                )}
-                {previewText(t.last, me?.id)}
-              </p>
-            </div>
-            {t.unread > 0 && (
-              <span className="size-5 rounded-full bg-petal text-velvet text-[10px] font-bold flex items-center justify-center shrink-0">
-                {t.unread > 9 ? "9+" : t.unread}
-              </span>
-            )}
-          </Link>
-        ))}
-      </div>
+      {/* Partner section — always first, highlighted */}
+      {partnerThread && (
+        <section className="mb-6">
+          <h3 className="text-[10px] uppercase tracking-widest text-petal mb-2 flex items-center gap-1">
+            <Heart className="size-2.5 fill-current" /> Your person
+          </h3>
+          <PartnerCard thread={partnerThread} nickname={me?.partner_nickname ?? null} />
+        </section>
+      )}
+
+      {/* Groups */}
+      {(groups?.length ?? 0) > 0 && (
+        <section className="mb-6">
+          <h3 className="text-[10px] uppercase tracking-widest text-candle-muted mb-2">
+            Circles · {groups?.length}
+          </h3>
+          <div className="space-y-1.5">
+            {groups!.map((g) => (
+              <GroupCard key={g.group.id} thread={g} meId={me?.id ?? ""} partnerId={partnerId} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Friends */}
+      {friendThreads.length > 0 && (
+        <section className="mb-6">
+          <h3 className="text-[10px] uppercase tracking-widest text-candle-muted mb-2">
+            Friends · {friendThreads.length}
+          </h3>
+          <div className="space-y-1.5">
+            {friendThreads.map((t) => (
+              <FriendCard key={t.peer.id} thread={t} meId={me?.id} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      <NewGroupDialog open={showNewGroup} onClose={() => setShowNewGroup(false)} />
     </div>
+  );
+}
+
+function PartnerCard({ thread, nickname }: { thread: ReturnType<typeof useChatThreads>["data"] extends (infer T)[] | undefined ? T : never; nickname: string | null }) {
+  return (
+    <Link
+      to="/app/chat/$peerId"
+      params={{ peerId: thread.peer.id }}
+      className="flex items-center gap-3 p-4 rounded-3xl bg-gradient-to-br from-petal-soft to-petal-soft/40 border border-petal/30 petal-glow"
+    >
+      <div className="relative size-14 rounded-full bg-petal-soft ring-2 ring-petal petal-glow flex items-center justify-center overflow-hidden shrink-0">
+        {thread.peer.avatar_url ? (
+          <img src={thread.peer.avatar_url} alt="" className="size-full object-cover" />
+        ) : (
+          <span className="text-2xl">🐼</span>
+        )}
+        <span className="absolute -bottom-0.5 -right-0.5 size-5 rounded-full bg-petal text-velvet flex items-center justify-center">
+          <Heart className="size-2.5 fill-current" />
+        </span>
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-[10px] uppercase tracking-widest text-petal">Partner</p>
+        <p className="font-serif italic text-lg text-candle truncate">
+          {nickname || thread.peer.display_name}
+        </p>
+        <p className="text-xs text-candle-muted truncate">
+          {thread.peer.mood ? `${thread.peer.mood_emoji} ${thread.peer.mood}` : previewText(thread.last, undefined)}
+        </p>
+      </div>
+      {thread.unread > 0 && (
+        <span className="min-w-[24px] h-6 px-2 rounded-full bg-petal text-velvet text-[11px] font-bold flex items-center justify-center shadow-[0_0_10px_rgba(236,120,155,0.6)]">
+          {thread.unread > 9 ? "9+" : thread.unread}
+        </span>
+      )}
+    </Link>
+  );
+}
+
+function FriendCard({ thread, meId }: { thread: NonNullable<ReturnType<typeof useChatThreads>["data"]>[number]; meId?: string }) {
+  return (
+    <Link
+      to="/app/chat/$peerId"
+      params={{ peerId: thread.peer.id }}
+      className="flex items-center gap-3 p-3 rounded-2xl bg-surface/40 border border-transparent hover:bg-surface transition-colors"
+    >
+      <div className="size-12 rounded-full bg-petal-soft flex items-center justify-center overflow-hidden shrink-0">
+        {thread.peer.avatar_url ? (
+          <img src={thread.peer.avatar_url} alt="" className="size-full object-cover" />
+        ) : (
+          <span className="text-xl">🐼</span>
+        )}
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <p className="font-serif italic text-base truncate">{thread.peer.display_name}</p>
+          {thread.last && (
+            <span className="text-[10px] text-candle-muted shrink-0 ml-auto">
+              {formatTime(thread.last.created_at)}
+            </span>
+          )}
+        </div>
+        <p className="text-xs text-candle-muted truncate">{previewText(thread.last, meId)}</p>
+      </div>
+      {thread.unread > 0 && (
+        <span className="size-5 rounded-full bg-petal text-velvet text-[10px] font-bold flex items-center justify-center shrink-0">
+          {thread.unread > 9 ? "9+" : thread.unread}
+        </span>
+      )}
+    </Link>
+  );
+}
+
+function GroupCard({ thread, meId, partnerId }: { thread: NonNullable<ReturnType<typeof useGroups>["data"]>[number]; meId: string; partnerId: string | null }) {
+  const hasPartner = partnerId ? thread.memberIds.includes(partnerId) : false;
+  const others = thread.members.filter((m) => m.id !== meId).slice(0, 3);
+  return (
+    <Link
+      to="/app/chat/group/$groupId"
+      params={{ groupId: thread.group.id }}
+      className={`flex items-center gap-3 p-3 rounded-2xl border transition-colors ${
+        hasPartner
+          ? "bg-petal-soft/30 border-petal/25"
+          : "bg-surface/40 border-transparent hover:bg-surface"
+      }`}
+    >
+      <div className={`relative size-12 rounded-full flex items-center justify-center shrink-0 text-2xl ${hasPartner ? "bg-petal-soft ring-2 ring-petal/40" : "bg-surface border border-border"}`}>
+        {thread.group.avatar_url || "💜"}
+        {hasPartner && (
+          <span className="absolute -bottom-0.5 -right-0.5 size-4 rounded-full bg-petal text-velvet flex items-center justify-center">
+            <Heart className="size-2 fill-current" />
+          </span>
+        )}
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <p className="font-serif italic text-base truncate">{thread.group.name}</p>
+          {thread.last && (
+            <span className="text-[10px] text-candle-muted shrink-0 ml-auto">
+              {formatTime(thread.last.created_at)}
+            </span>
+          )}
+        </div>
+        <p className="text-xs text-candle-muted truncate">
+          {thread.last
+            ? `${others.find((o) => o.id === thread.last!.sender_id)?.display_name?.split(" ")[0] ?? (thread.last.sender_id === meId ? "You" : "Someone")}: ${previewText(thread.last, meId)}`
+            : `${thread.memberIds.length} members`}
+        </p>
+      </div>
+      {thread.unread > 0 && (
+        <span className="size-5 rounded-full bg-petal text-velvet text-[10px] font-bold flex items-center justify-center shrink-0">
+          {thread.unread > 9 ? "9+" : thread.unread}
+        </span>
+      )}
+    </Link>
   );
 }
 
