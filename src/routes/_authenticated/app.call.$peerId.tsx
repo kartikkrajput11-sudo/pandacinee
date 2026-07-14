@@ -107,29 +107,34 @@ function Call() {
   }, [localStream]);
   useEffect(() => {
     if (!remoteStream) return;
-    // Re-attach on every ontrack revision so newly arriving audio/video tracks
-    // are actually rendered. Some browsers (notably iOS Safari) won't start
-    // playback when tracks are added to an already-set MediaStream — the
-    // srcObject has to be assigned again.
-    if (remoteRef.current) {
-      remoteRef.current.srcObject = remoteStream;
-      const p = remoteRef.current.play?.();
+    // Attach srcObject ONCE per stream identity. New tracks added to the same
+    // MediaStream propagate to the element automatically — re-assigning
+    // srcObject mid-call aborts the current playback ("play() interrupted by
+    // a new load request") and produces audible glitches / lag spikes.
+    const v = remoteRef.current;
+    if (v && v.srcObject !== remoteStream) {
+      v.srcObject = remoteStream;
+      const p = v.play?.();
       if (p && typeof (p as Promise<void>).catch === "function") {
         (p as Promise<void>).catch(() => {});
       }
     }
-    if (remoteAudioRef.current) {
-      remoteAudioRef.current.srcObject = remoteStream;
-      remoteAudioRef.current.muted = !speakerOn;
-      const p = remoteAudioRef.current.play?.();
+    const a = remoteAudioRef.current;
+    if (a && a.srcObject !== remoteStream) {
+      a.srcObject = remoteStream;
+      a.muted = !speakerOn;
+      const p = a.play?.();
       if (p && typeof (p as Promise<void>).catch === "function") {
         (p as Promise<void>).then(() => setAudioBlocked(false)).catch((err) => {
           console.warn("Remote audio autoplay blocked", err);
           if (speakerOn) setAudioBlocked(true);
         });
       }
+    } else if (a) {
+      a.muted = !speakerOn;
     }
-  }, [remoteStream, remoteRev, speakerOn]);
+  }, [remoteStream, speakerOn]);
+
 
   function enableSound() {
     if (!remoteAudioRef.current) return;
