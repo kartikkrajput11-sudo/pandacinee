@@ -247,7 +247,7 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
         onWaiting={() => setBuffering(true)}
         onPlaying={() => setBuffering(false)}
         onEnded={(e) => onEvent?.({ event: "ended", currentTime: e.currentTarget.currentTime, duration: e.currentTarget.duration })}
-        onClick={locked ? undefined : togglePlay}
+        onClick={locked && playing ? undefined : togglePlay}
       />
 
       {buffering && (
@@ -256,26 +256,24 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
         </div>
       )}
 
-      {/* Center play button when paused (hidden for followers — host controls playback) */}
-      {!playing && !buffering && !locked && (
+      {/* Center play button when paused. In locked (follower) mode the button
+          is still shown so followers can tap once to join playback — required
+          by browser autoplay policies. After that, host controls take over. */}
+      {!playing && !buffering && (
         <button
           onClick={togglePlay}
-          aria-label="Play"
+          aria-label={locked ? "Join playback" : "Play"}
           className="absolute inset-0 flex items-center justify-center bg-black/30"
         >
           <span className="size-16 md:size-20 rounded-full bg-petal text-velvet flex items-center justify-center shadow-2xl shadow-petal/40">
             <Play className="size-7 md:size-9 fill-velvet ml-1" />
           </span>
+          {locked && (
+            <span className="absolute bottom-16 md:bottom-20 px-3 py-1 rounded-full bg-black/60 border border-white/10 text-white/90 text-[11px] tracking-wide">
+              Tap once to join · host controls playback
+            </span>
+          )}
         </button>
-      )}
-
-      {/* Follower lock hint when paused */}
-      {locked && !playing && !buffering && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/40 pointer-events-none">
-          <div className="px-4 py-2 rounded-full bg-black/60 border border-white/10 text-white/90 text-xs tracking-wide">
-            Host controls playback
-          </div>
-        </div>
       )}
 
       {/* Controls */}
