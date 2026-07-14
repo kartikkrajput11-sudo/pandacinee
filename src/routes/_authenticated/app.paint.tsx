@@ -37,6 +37,7 @@ function PaintTogether() {
   const liveRemote = useRef<Map<string, Stroke>>(new Map());
   const chRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const liveThrottle = useRef<number>(0);
+  const [reveal, setReveal] = useState<{ image: string; by: string } | null>(null);
 
   function redraw() {
     const canvas = canvasRef.current;
