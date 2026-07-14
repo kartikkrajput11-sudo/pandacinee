@@ -875,25 +875,8 @@ function WatchMovie() {
                 </div>
               )}
 
-              {/* Invite — same size & color as Take the reins */}
-              {partner ? (
-                <button
-                  onClick={inviteToWatch}
-                  className="mb-2 w-full h-10 rounded-full bg-petal text-velvet text-xs font-semibold flex items-center justify-center gap-1.5 shadow-lg shadow-petal/30"
-                >
-                  <Send className="size-3.5" /> Invite {partnerFirst}
-                </button>
-              ) : (
-                <Link
-                  to="/app/invite"
-                  className="mb-2 w-full h-10 rounded-full bg-petal text-velvet text-xs font-semibold flex items-center justify-center gap-1.5 shadow-lg shadow-petal/30"
-                >
-                  <Send className="size-3.5" /> Invite partner
-                </Link>
-              )}
-
               {/* Equal trio: Countdown · Server · Whisper */}
-              <div className="grid grid-cols-3 gap-1.5">
+              <div className="grid grid-cols-3 gap-1.5 mb-2">
                 <button
                   onClick={() => startCountdown(4)}
                   className="h-9 rounded-full bg-surface border border-border text-[11px] text-candle flex items-center justify-center gap-1 min-w-0 px-2"
@@ -951,6 +934,23 @@ function WatchMovie() {
                   </span>
                 )}
               </div>
+
+              {/* Invite — same size & color as Take the reins, placed under trio */}
+              {partner ? (
+                <button
+                  onClick={inviteToWatch}
+                  className="w-full h-10 rounded-full bg-petal text-velvet text-xs font-semibold flex items-center justify-center gap-1.5 shadow-lg shadow-petal/30"
+                >
+                  <Send className="size-3.5" /> Invite {partnerFirst}
+                </button>
+              ) : (
+                <Link
+                  to="/app/invite"
+                  className="w-full h-10 rounded-full bg-petal text-velvet text-xs font-semibold flex items-center justify-center gap-1.5 shadow-lg shadow-petal/30"
+                >
+                  <Send className="size-3.5" /> Invite partner
+                </Link>
+              )}
             </div>
           )}
         </div>
