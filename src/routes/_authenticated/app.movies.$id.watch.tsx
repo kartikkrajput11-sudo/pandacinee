@@ -146,15 +146,16 @@ function WatchMovie() {
         fetchMovie({ data: { id: tmdbId } }).catch(() => null),
         supabase
           .from("custom_movies")
-          .select("title, overview, poster_url, backdrop_url, runtime, video_url, video_storage_path")
+          .select("id, title, overview, poster_url, backdrop_url, runtime, video_url, video_storage_path, media_type, tmdb_id")
           .eq("tmdb_id", tmdbId)
           .maybeSingle(),
       ]);
       if (!alive) return;
       const ov = ovRes.data as {
-        title?: string; overview?: string | null;
+        id?: string; title?: string; overview?: string | null;
         poster_url?: string | null; backdrop_url?: string | null; runtime?: number | null;
         video_url?: string | null; video_storage_path?: string | null;
+        media_type?: "movie" | "tv" | null;
       } | null;
       if (m && ov) {
         if (ov.title) m.title = ov.title;
@@ -165,20 +166,90 @@ function WatchMovie() {
       }
       setMovie(m);
 
-      // Resolve a Pandacine (self-hosted) video source when the admin has one
-      if (ov?.video_storage_path) {
+      const tv = ov?.media_type === "tv";
+      setIsTv(tv);
+      setCustomMovieId(ov?.id ?? null);
+
+      if (tv) {
+        // Load season list + per-episode admin overrides in parallel
+        const [detail, epsRes] = await Promise.all([
+          tvDetailFn({ data: { id: tmdbId } }).catch(() => null),
+          ov?.id
+            ? supabase.from("custom_episodes")
+                .select("season, episode, title, video_url, video_storage_path, use_vidking")
+                .eq("movie_id", ov.id)
+            : Promise.resolve({ data: [] } as any),
+        ]);
+        if (!alive) return;
+        if (detail?.seasons) {
+          const s = detail.seasons.filter((x: any) => x.season_number > 0);
+          setTvSeasons(s);
+          if (s.length && !s.find((x: any) => x.season_number === season)) setSeason(s[0].season_number);
+        }
+        setCustomEps(((epsRes as any).data ?? []) as any);
+      } else {
+        setTvSeasons([]);
+        setCustomEps([]);
+        // Movie: resolve Pandacine source from show-level fields
+        if (ov?.video_storage_path) {
+          const { data: signed } = await supabase.storage
+            .from("custom-movies")
+            .createSignedUrl(ov.video_storage_path, 60 * 60 * 6);
+          if (signed?.signedUrl) setPandacine({ videoSrc: signed.signedUrl, title: ov.title ?? null });
+        } else if (ov?.video_url) {
+          setPandacine({ videoSrc: ov.video_url, title: ov.title ?? null });
+        } else {
+          setPandacine(null);
+        }
+      }
+    })();
+    return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tmdbId]);
+
+  // Load episodes for the selected season (TV only)
+  useEffect(() => {
+    if (!isTv) return;
+    let alive = true;
+    (async () => {
+      try {
+        const eps = await tvSeasonFn({ data: { id: tmdbId, season } });
+        if (!alive) return;
+        setSeasonEps(eps as any);
+        // Snap episode to the first available if current is out of range
+        if (eps.length && !eps.find((e: any) => e.episode_number === episode)) {
+          setEpisode(eps[0].episode_number);
+        }
+      } catch { /* ignore */ }
+    })();
+    return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isTv, tmdbId, season]);
+
+  // Resolve Pandacine source for the current episode override (TV only)
+  useEffect(() => {
+    if (!isTv) return;
+    let alive = true;
+    (async () => {
+      const ov = customEps.find((r) => r.season === season && r.episode === episode);
+      if (!ov) { setPandacine(null); return; }
+      if (ov.video_storage_path) {
         const { data: signed } = await supabase.storage
           .from("custom-movies")
           .createSignedUrl(ov.video_storage_path, 60 * 60 * 6);
+        if (!alive) return;
         if (signed?.signedUrl) setPandacine({ videoSrc: signed.signedUrl, title: ov.title ?? null });
-      } else if (ov?.video_url) {
+        else setPandacine(null);
+      } else if (ov.video_url) {
         setPandacine({ videoSrc: ov.video_url, title: ov.title ?? null });
       } else {
         setPandacine(null);
       }
     })();
     return () => { alive = false; };
-  }, [tmdbId]);
+  }, [isTv, season, episode, customEps]);
+
+
 
   // Capture VidKing events, publish to partner (throttled)
   useEffect(() => {
