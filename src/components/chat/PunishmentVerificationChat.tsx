@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Lock, Send, ImageIcon, Video as VideoIcon, X, Check, RotateCcw, Palette, Mic } from "lucide-react";
 import { toast } from "sonner";
-import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { uploadChatMedia } from "@/lib/chat";
 import { typeMeta, type PunishmentLock } from "@/lib/punishment";
 import { VoiceRecorder } from "./VoiceRecorder";
 import { usePunishmentVerification, wipePunishment, type VerificationMessage } from "@/hooks/usePunishmentVerification";
 import { UnlockCelebration } from "./UnlockCelebration";
+import { DoodlePad } from "./DoodlePad";
+
 
 type Props = {
   lock: PunishmentLock;
