@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, Eraser, Download, Palette, RotateCcw, RotateCw, Trash2 } from "lucide-react";
+import { ArrowLeft, Eraser, Download, Palette, RotateCcw, RotateCw, Trash2, Sparkles, X, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
