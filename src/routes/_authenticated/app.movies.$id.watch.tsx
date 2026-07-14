@@ -159,6 +159,7 @@ function WatchMovie() {
   const iAmHost = !!me && hostId === me.id;
   const partnerIsHost = !!partner && hostId === partner.id;
   const lastAppliedPeerEventRef = useRef<number>(0);
+  const customPlayerRef = useRef<CustomPlayerHandle | null>(null);
 
   useEffect(() => {
     let alive = true;
