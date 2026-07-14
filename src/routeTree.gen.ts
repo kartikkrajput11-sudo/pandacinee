@@ -23,6 +23,7 @@ import { Route as AuthenticatedAppMoodRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedAppMemoriesRouteImport } from './routes/_authenticated/app.memories'
 import { Route as AuthenticatedAppMeRouteImport } from './routes/_authenticated/app.me'
 import { Route as AuthenticatedAppInviteRouteImport } from './routes/_authenticated/app.invite'
+import { Route as AuthenticatedAppHelpRouteImport } from './routes/_authenticated/app.help'
 import { Route as AuthenticatedAppFriendsRouteImport } from './routes/_authenticated/app.friends'
 import { Route as AuthenticatedAppAnniversaryRouteImport } from './routes/_authenticated/app.anniversary'
 import { Route as AuthenticatedAppAdminRouteImport } from './routes/_authenticated/app.admin'
@@ -106,6 +107,11 @@ const AuthenticatedAppInviteRoute = AuthenticatedAppInviteRouteImport.update({
   path: '/invite',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
+const AuthenticatedAppHelpRoute = AuthenticatedAppHelpRouteImport.update({
+  id: '/help',
+  path: '/help',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
 const AuthenticatedAppFriendsRoute = AuthenticatedAppFriendsRouteImport.update({
   id: '/friends',
   path: '/friends',
@@ -178,6 +184,7 @@ export interface FileRoutesByFullPath {
   '/app/admin': typeof AuthenticatedAppAdminRoute
   '/app/anniversary': typeof AuthenticatedAppAnniversaryRoute
   '/app/friends': typeof AuthenticatedAppFriendsRoute
+  '/app/help': typeof AuthenticatedAppHelpRoute
   '/app/invite': typeof AuthenticatedAppInviteRoute
   '/app/me': typeof AuthenticatedAppMeRoute
   '/app/memories': typeof AuthenticatedAppMemoriesRoute
@@ -203,6 +210,7 @@ export interface FileRoutesByTo {
   '/app/admin': typeof AuthenticatedAppAdminRoute
   '/app/anniversary': typeof AuthenticatedAppAnniversaryRoute
   '/app/friends': typeof AuthenticatedAppFriendsRoute
+  '/app/help': typeof AuthenticatedAppHelpRoute
   '/app/invite': typeof AuthenticatedAppInviteRoute
   '/app/me': typeof AuthenticatedAppMeRoute
   '/app/memories': typeof AuthenticatedAppMemoriesRoute
@@ -230,6 +238,7 @@ export interface FileRoutesById {
   '/_authenticated/app/admin': typeof AuthenticatedAppAdminRoute
   '/_authenticated/app/anniversary': typeof AuthenticatedAppAnniversaryRoute
   '/_authenticated/app/friends': typeof AuthenticatedAppFriendsRoute
+  '/_authenticated/app/help': typeof AuthenticatedAppHelpRoute
   '/_authenticated/app/invite': typeof AuthenticatedAppInviteRoute
   '/_authenticated/app/me': typeof AuthenticatedAppMeRoute
   '/_authenticated/app/memories': typeof AuthenticatedAppMemoriesRoute
@@ -258,6 +267,7 @@ export interface FileRouteTypes {
     | '/app/admin'
     | '/app/anniversary'
     | '/app/friends'
+    | '/app/help'
     | '/app/invite'
     | '/app/me'
     | '/app/memories'
@@ -283,6 +293,7 @@ export interface FileRouteTypes {
     | '/app/admin'
     | '/app/anniversary'
     | '/app/friends'
+    | '/app/help'
     | '/app/invite'
     | '/app/me'
     | '/app/memories'
@@ -309,6 +320,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/admin'
     | '/_authenticated/app/anniversary'
     | '/_authenticated/app/friends'
+    | '/_authenticated/app/help'
     | '/_authenticated/app/invite'
     | '/_authenticated/app/me'
     | '/_authenticated/app/memories'
@@ -436,6 +448,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppInviteRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/help': {
+      id: '/_authenticated/app/help'
+      path: '/help'
+      fullPath: '/app/help'
+      preLoaderRoute: typeof AuthenticatedAppHelpRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/friends': {
       id: '/_authenticated/app/friends'
       path: '/friends'
@@ -550,6 +569,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppAdminRoute: typeof AuthenticatedAppAdminRoute
   AuthenticatedAppAnniversaryRoute: typeof AuthenticatedAppAnniversaryRoute
   AuthenticatedAppFriendsRoute: typeof AuthenticatedAppFriendsRoute
+  AuthenticatedAppHelpRoute: typeof AuthenticatedAppHelpRoute
   AuthenticatedAppInviteRoute: typeof AuthenticatedAppInviteRoute
   AuthenticatedAppMeRoute: typeof AuthenticatedAppMeRoute
   AuthenticatedAppMemoriesRoute: typeof AuthenticatedAppMemoriesRoute
@@ -570,6 +590,7 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppAdminRoute: AuthenticatedAppAdminRoute,
   AuthenticatedAppAnniversaryRoute: AuthenticatedAppAnniversaryRoute,
   AuthenticatedAppFriendsRoute: AuthenticatedAppFriendsRoute,
+  AuthenticatedAppHelpRoute: AuthenticatedAppHelpRoute,
   AuthenticatedAppInviteRoute: AuthenticatedAppInviteRoute,
   AuthenticatedAppMeRoute: AuthenticatedAppMeRoute,
   AuthenticatedAppMemoriesRoute: AuthenticatedAppMemoriesRoute,
