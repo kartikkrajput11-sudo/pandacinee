@@ -181,6 +181,16 @@ function Scribble() {
   useEffect(() => { roundSecondsRef.current = roundSeconds; }, [roundSeconds]);
   useEffect(() => { revealedRef.current = revealed; }, [revealed]);
 
+  // Persistent leaderboard: when a winner is decided, record games_played (+1)
+  // and wins (+1 if that winner is me). Guard so we count once per game.
+  useEffect(() => {
+    if (!me || !winnerId) return;
+    if (winnerCountedRef.current === winnerId) return;
+    winnerCountedRef.current = winnerId;
+    void bumpMyStats({ games_played: 1, wins: winnerId === me.id ? 1 : 0 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [winnerId, me?.id]);
+
   const pairKey = me ? (partner ? [me.id, partner.id].sort().join(":") : me.id) : "";
   const storageKey = pairKey ? `scribble:${pairKey}` : "";
 
