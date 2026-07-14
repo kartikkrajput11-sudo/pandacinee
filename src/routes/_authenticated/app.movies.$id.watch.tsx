@@ -782,7 +782,7 @@ function WatchMovie() {
                   src={pandacine.videoSrc}
                   poster={backdropUrl}
                   locked={!!hostId && !iAmHost}
-                  onReady={() => setPlayerLoading(false)}
+                  onReady={(h) => { customPlayerRef.current = h; setPlayerLoading(false); }}
                   onEvent={(evt) => {
                     const now = Date.now();
                     const isDiscrete = evt.event === "play" || evt.event === "pause" || evt.event === "seeked" || evt.event === "ended";
