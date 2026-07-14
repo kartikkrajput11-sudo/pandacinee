@@ -201,6 +201,16 @@ function Scribble() {
       // Reveal the word to the drawer's UI too
       setWord(p.word);
       if (p.by !== me.id) toast.success(`${p.name} guessed “${p.word}”! Their turn to draw.`);
+      else {
+        // I'm the winner (auto-detected by drawer) — auto-start next round.
+        toast.success(`Correct! The word was “${p.word}” — your turn to draw!`);
+        const targetNow = (scores[me.id] ?? 0) + 1;
+        if (targetNow >= targetScore) return; // winner overlay handles it
+        setTimeout(() => {
+          const [next] = pick4(new Set([p.word]));
+          if (next) confirmWord(next);
+        }, 1400);
+      }
     });
     ch.on("broadcast", { event: "reveal" }, ({ payload }) => {
       const p = payload as { indices: number[] };
