@@ -234,6 +234,7 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
         className="absolute inset-0 w-full h-full object-contain bg-black"
         playsInline
         preload="auto"
+        autoPlay
         crossOrigin="anonymous"
         onLoadedMetadata={(e) => setDuration(e.currentTarget.duration || 0)}
         onTimeUpdate={(e) => {
