@@ -563,6 +563,7 @@ export type Database = {
           paired_at: string | null
           partner_id: string | null
           partner_nickname: string | null
+          punishment_lock_enabled: boolean
           read_receipts_enabled: boolean
           updated_at: string
           username: string
@@ -586,6 +587,7 @@ export type Database = {
           paired_at?: string | null
           partner_id?: string | null
           partner_nickname?: string | null
+          punishment_lock_enabled?: boolean
           read_receipts_enabled?: boolean
           updated_at?: string
           username: string
@@ -609,9 +611,58 @@ export type Database = {
           paired_at?: string | null
           partner_id?: string | null
           partner_nickname?: string | null
+          punishment_lock_enabled?: boolean
           read_receipts_enabled?: boolean
           updated_at?: string
           username?: string
+        }
+        Relationships: []
+      }
+      punishment_locks: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          expires_at: string | null
+          id: string
+          locker_id: string
+          max_duration_seconds: number | null
+          progress: number
+          prompt: string
+          required_count: number
+          status: Database["public"]["Enums"]["punishment_status"]
+          target_id: string
+          type: Database["public"]["Enums"]["punishment_type"]
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          locker_id: string
+          max_duration_seconds?: number | null
+          progress?: number
+          prompt: string
+          required_count?: number
+          status?: Database["public"]["Enums"]["punishment_status"]
+          target_id: string
+          type: Database["public"]["Enums"]["punishment_type"]
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          locker_id?: string
+          max_duration_seconds?: number | null
+          progress?: number
+          prompt?: string
+          required_count?: number
+          status?: Database["public"]["Enums"]["punishment_status"]
+          target_id?: string
+          type?: Database["public"]["Enums"]["punishment_type"]
+          updated_at?: string
         }
         Relationships: []
       }
@@ -816,6 +867,7 @@ export type Database = {
           paired_at: string | null
           partner_id: string | null
           partner_nickname: string | null
+          punishment_lock_enabled: boolean
           read_receipts_enabled: boolean
           updated_at: string
           username: string
@@ -848,7 +900,15 @@ export type Database = {
       unpair_partner: { Args: never; Returns: undefined }
     }
     Enums: {
-      [_ in never]: never
+      punishment_status: "active" | "completed" | "cancelled" | "expired"
+      punishment_type:
+        | "write"
+        | "compliment"
+        | "funny"
+        | "draw"
+        | "photo"
+        | "voice"
+        | "quiz"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -975,6 +1035,17 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      punishment_status: ["active", "completed", "cancelled", "expired"],
+      punishment_type: [
+        "write",
+        "compliment",
+        "funny",
+        "draw",
+        "photo",
+        "voice",
+        "quiz",
+      ],
+    },
   },
 } as const
