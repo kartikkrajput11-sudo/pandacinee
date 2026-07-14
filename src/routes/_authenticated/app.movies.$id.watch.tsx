@@ -1054,6 +1054,38 @@ function CatalogWatch({ id }: { id: string }) {
                 )}
               </div>
 
+              {/* Screen mirror — host streams their live tab to the friend */}
+              <div className="mb-2 flex items-center gap-2">
+                {!iAmSharing ? (
+                  <button
+                    onClick={async () => {
+                      try {
+                        await startShare();
+                        toast.success(`Mirroring your screen to ${partnerFirst} 📺`);
+                      } catch { /* handled in hook */ }
+                    }}
+                    disabled={partnerIsSharing}
+                    className="flex-1 h-10 rounded-full bg-surface border border-petal/40 hover:border-petal text-candle text-xs font-semibold flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
+                    title={partnerIsSharing ? `${partnerFirst} is already mirroring` : "Share your screen with your friend"}
+                  >
+                    <MonitorPlay className="size-3.5 text-petal" />
+                    {partnerIsSharing ? `${partnerFirst} is mirroring` : "Mirror my screen"}
+                  </button>
+                ) : (
+                  <button
+                    onClick={async () => { await stopShare(); toast.info("Screen mirror stopped"); }}
+                    className="flex-1 h-10 rounded-full bg-petal text-velvet text-xs font-semibold flex items-center justify-center gap-1.5 shadow-lg shadow-petal/30"
+                  >
+                    <X className="size-3.5" /> Stop mirroring
+                  </button>
+                )}
+              </div>
+              {shareStatus === "error" && (
+                <div className="mb-2 rounded-xl bg-rose-500/10 border border-rose-500/40 px-3 py-2 text-[11px] text-rose-200">
+                  Couldn't start screen mirror. On mobile, use desktop Chrome/Edge/Safari.
+                </div>
+              )}
+
               {partnerIsHost && (
                 <div className="mb-2 rounded-xl bg-petal/10 border border-petal/30 px-3 py-2 text-[11px] text-candle flex items-center gap-2">
                   <Crown className="size-3 text-petal shrink-0" />
