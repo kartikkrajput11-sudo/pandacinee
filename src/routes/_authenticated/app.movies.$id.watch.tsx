@@ -171,7 +171,7 @@ function WatchMovie() {
       }
       setMovie(m);
 
-      const tv = ov?.media_type === "tv";
+      const tv = ov?.media_type === "tv" || m?.media_type === "tv";
       setIsTv(tv);
       setCustomMovieId(ov?.id ?? null);
 

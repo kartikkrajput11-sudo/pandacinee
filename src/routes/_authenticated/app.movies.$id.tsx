@@ -61,7 +61,7 @@ function MovieDetail() {
       }
       if (!m) {
         m = await fetchMovie({ data: { id: Number(id) } }).catch(() => null);
-        if (m && !tv) setIsTv(false);
+        if (m && !tv && m.media_type === "tv") setIsTv(true);
       } else {
         // Normalise TV shape → the rest of the JSX reads `title` / `release_date`.
         m.title = m.name ?? m.original_name ?? m.title;
