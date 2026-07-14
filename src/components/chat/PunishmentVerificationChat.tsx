@@ -435,6 +435,13 @@ export function PunishmentVerificationChat({ lock, meId, partnerName, iAmLocked,
           </div>
         </div>
       )}
+
+      <DoodlePad
+        open={doodleOpen}
+        onClose={() => setDoodleOpen(false)}
+        onSend={handleDoodle}
+        sending={sending}
+      />
     </div>
   );
 }
