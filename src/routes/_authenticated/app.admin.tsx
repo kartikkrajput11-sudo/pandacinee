@@ -119,6 +119,363 @@ function AdminDashboard() {
   const [adding, setAdding] = useState(false);
   const del = useServerFn(deleteCustomMovie);
 
+type Tab = "overview" | "activity" | "users" | "library";
+
+function AdminDashboard() {
+  const [tab, setTab] = useState<Tab>("overview");
+
+  return (
+    <div className="pt-8 px-4 pb-24 max-w-5xl mx-auto">
+      <header className="flex items-center gap-3 mb-5">
+        <Link to="/app/me" className="text-candle-muted"><ArrowLeft className="size-5" /></Link>
+        <div className="flex-1 min-w-0">
+          <p className="text-[10px] uppercase tracking-widest text-petal flex items-center gap-1.5">
+            <ShieldCheck className="size-3" /> Admin console
+          </p>
+          <h1 className="font-serif text-3xl italic truncate">Pandacine HQ</h1>
+        </div>
+      </header>
+
+      <nav className="flex gap-1 mb-6 -mx-1 px-1 overflow-x-auto no-scrollbar sticky top-0 z-10 bg-background/80 backdrop-blur pt-1 pb-2">
+        {([
+          ["overview", LayoutDashboard, "Overview"],
+          ["activity", ActivityIcon, "Activity"],
+          ["users", Users, "Users"],
+          ["library", Film, "Library"],
+        ] as const).map(([k, Icon, label]) => {
+          const active = tab === k;
+          return (
+            <button
+              key={k}
+              onClick={() => setTab(k as Tab)}
+              className={`shrink-0 h-9 px-3.5 rounded-full flex items-center gap-1.5 text-xs font-semibold transition-colors ${
+                active
+                  ? "bg-petal text-velvet shadow-lg shadow-petal/30"
+                  : "bg-surface border border-border text-candle-muted hover:text-candle"
+              }`}
+            >
+              <Icon className="size-3.5" />
+              {label}
+            </button>
+          );
+        })}
+      </nav>
+
+      {tab === "overview" && <OverviewTab />}
+      {tab === "activity" && <ActivityTab />}
+      {tab === "users" && <UsersTab />}
+      {tab === "library" && <LibraryTab />}
+    </div>
+  );
+}
+
+// ─── Overview ────────────────────────────────────────────────────────────
+
+function OverviewTab() {
+  const fetchStats = useServerFn(getAdminStats);
+  const { data, isLoading, refetch, isFetching } = useQuery({
+    queryKey: ["admin", "stats"],
+    queryFn: () => fetchStats(),
+    refetchInterval: 15_000,
+  });
+
+  if (isLoading) return <Skeleton />;
+  if (!data) return <p className="text-candle-muted text-sm">No data.</p>;
+
+  return (
+    <div className="space-y-5">
+      <div className="flex items-center justify-between">
+        <p className="text-[10px] uppercase tracking-widest text-candle-muted">Live overview · refreshes every 15s</p>
+        <button
+          onClick={() => refetch()}
+          className="h-8 px-3 rounded-full bg-surface border border-border text-[11px] text-candle flex items-center gap-1.5"
+        >
+          <RefreshCw className={`size-3 ${isFetching ? "animate-spin" : ""}`} /> Refresh
+        </button>
+      </div>
+
+      <section>
+        <SectionLabel icon={<Users className="size-3 text-petal" />} title="People" />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <StatCard label="Total users" value={data.users.total} accent />
+          <StatCard label="Online now" value={data.users.online} sub="last 5 min" pulse={data.users.online > 0} />
+          <StatCard label="Paired" value={data.users.paired} sub={`${pct(data.users.paired, data.users.total)}% of users`} />
+          <StatCard label="New · 7d" value={data.users.last7d} sub={`+${data.users.last24h} today`} />
+        </div>
+      </section>
+
+      <section>
+        <SectionLabel icon={<MessageSquare className="size-3 text-petal" />} title="Messages" />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <StatCard label="Total sent" value={data.messages.total} accent />
+          <StatCard label="Today" value={data.messages.last24h} />
+          <StatCard label="This week" value={data.messages.last7d} />
+          <StatCard label="With media" value={data.messages.withMedia} sub="photos, voice, video" />
+        </div>
+      </section>
+
+      <section>
+        <SectionLabel icon={<Sparkles className="size-3 text-petal" />} title="Content across the app" />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <StatCard label="Custom movies" value={data.content.customMovies} icon={<Clapperboard className="size-3.5" />} />
+          <StatCard label="Memories saved" value={data.content.memories} icon={<Heart className="size-3.5" />} />
+          <StatCard label="Mood logs" value={data.content.moodLogs} icon={<Smile className="size-3.5" />} />
+          <StatCard label="Daily answers" value={data.content.dailyAnswers} icon={<Sparkles className="size-3.5" />} />
+          <StatCard label="Games played" value={data.content.games} icon={<Gamepad2 className="size-3.5" />} />
+          <StatCard label="Wishlist items" value={data.content.wishlist} icon={<Gift className="size-3.5" />} />
+          <StatCard label="Locks issued" value={data.content.locks} icon={<Lock className="size-3.5" />} />
+          <StatCard label="Watch rooms" value={data.content.watchRooms} icon={<Play className="size-3.5" />} />
+        </div>
+      </section>
+
+      {data.topSenders.length > 0 && (
+        <section>
+          <SectionLabel icon={<ActivityIcon className="size-3 text-petal" />} title="Top senders · last 7 days" />
+          <div className="rounded-2xl border border-border bg-surface divide-y divide-border">
+            {data.topSenders.map((s, i) => (
+              <div key={s.user_id} className="flex items-center gap-3 px-3 py-2.5">
+                <span className="text-[10px] font-bold text-petal w-5 text-center">#{i + 1}</span>
+                <span className="text-sm text-candle flex-1 truncate">{s.display_name ?? s.user_id.slice(0, 8)}</span>
+                <span className="text-xs text-candle-muted tabular-nums">{s.count} msgs</span>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+    </div>
+  );
+}
+
+function StatCard({ label, value, sub, accent, pulse, icon }: {
+  label: string; value: number; sub?: string; accent?: boolean; pulse?: boolean; icon?: React.ReactNode;
+}) {
+  return (
+    <div className={`rounded-2xl border p-3 ${accent ? "bg-petal/10 border-petal/30" : "bg-surface border-border"}`}>
+      <div className="flex items-center gap-1.5 mb-1">
+        {icon && <span className="text-petal">{icon}</span>}
+        <p className="text-[9px] uppercase tracking-widest text-candle-muted">{label}</p>
+        {pulse && <span className="size-1.5 rounded-full bg-green-400 animate-pulse ml-auto" />}
+      </div>
+      <p className={`font-serif text-3xl tabular-nums ${accent ? "text-petal" : "text-candle"}`}>{value.toLocaleString()}</p>
+      {sub && <p className="text-[10px] text-candle-muted mt-0.5">{sub}</p>}
+    </div>
+  );
+}
+
+function SectionLabel({ icon, title }: { icon: React.ReactNode; title: string }) {
+  return (
+    <h3 className="text-[10px] font-bold tracking-[0.2em] uppercase text-candle-muted mb-3 flex items-center gap-2.5">
+      {icon}
+      <span>{title}</span>
+      <div className="h-px flex-1 bg-border" />
+    </h3>
+  );
+}
+
+function pct(a: number, b: number) { return b > 0 ? Math.round((a / b) * 100) : 0; }
+
+// ─── Activity feed ───────────────────────────────────────────────────────
+
+function ActivityTab() {
+  const fetchActivity = useServerFn(getRecentActivity);
+  const { data, isLoading, refetch, isFetching, dataUpdatedAt } = useQuery({
+    queryKey: ["admin", "activity"],
+    queryFn: () => fetchActivity({ data: { limit: 80 } }),
+    refetchInterval: 10_000,
+  });
+
+  // Realtime pulse — invalidate on any insert into hot tables
+  useEffect(() => {
+    const ch = supabase
+      .channel("admin-activity")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, () => refetch())
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "profiles" }, () => refetch())
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "custom_movies" }, () => refetch())
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "memory_jar" }, () => refetch())
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "mood_log" }, () => refetch())
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [refetch]);
+
+  if (isLoading) return <Skeleton />;
+  const items = data ?? [];
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-[10px] uppercase tracking-widest text-candle-muted flex items-center gap-2">
+          <Circle className="size-2 fill-green-400 text-green-400 animate-pulse" />
+          Live feed · {items.length} events
+        </p>
+        <button onClick={() => refetch()} className="h-8 px-3 rounded-full bg-surface border border-border text-[11px] flex items-center gap-1.5">
+          <RefreshCw className={`size-3 ${isFetching ? "animate-spin" : ""}`} /> Now
+        </button>
+      </div>
+
+      {items.length === 0 && (
+        <div className="text-center py-16 rounded-3xl border border-dashed border-border">
+          <ActivityIcon className="size-8 text-candle-muted mx-auto mb-2" />
+          <p className="text-sm text-candle-muted">Nothing happening yet.</p>
+        </div>
+      )}
+
+      <ol className="space-y-2">
+        {items.map((it) => <ActivityRow key={it.id} item={it} />)}
+      </ol>
+
+      <p className="mt-4 text-[10px] text-candle-muted text-center">
+        Last updated {new Date(dataUpdatedAt).toLocaleTimeString()}
+      </p>
+    </div>
+  );
+}
+
+const ACTIVITY_META: Record<ActivityItem["kind"], { icon: React.ComponentType<any>; color: string; label: string }> = {
+  message: { icon: MessageSquare, color: "text-petal", label: "Message" },
+  signup: { icon: UserPlus, color: "text-green-400", label: "Signup" },
+  pair: { icon: Heart, color: "text-rose-400", label: "Paired" },
+  movie: { icon: Clapperboard, color: "text-petal", label: "Movie" },
+  memory: { icon: Sparkles, color: "text-amber-400", label: "Memory" },
+  mood: { icon: Smile, color: "text-sky-400", label: "Mood" },
+  game: { icon: Gamepad2, color: "text-purple-400", label: "Game" },
+  wishlist: { icon: Gift, color: "text-emerald-400", label: "Wish" },
+  lock: { icon: Lock, color: "text-rose-500", label: "Lock" },
+};
+
+function ActivityRow({ item }: { item: ActivityItem }) {
+  const meta = ACTIVITY_META[item.kind];
+  const Icon = meta.icon;
+  return (
+    <li className="flex items-start gap-3 rounded-2xl bg-surface border border-border px-3 py-2.5">
+      <div className={`size-8 rounded-full bg-velvet flex items-center justify-center shrink-0 ${meta.color}`}>
+        <Icon className="size-4" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm text-candle">
+          <span className="font-semibold">{item.actor?.name ?? "Someone"}</span>{" "}
+          <span className="text-candle-muted">{item.summary}</span>
+        </p>
+        <p className="text-[10px] text-candle-muted mt-0.5">
+          <span className={`uppercase tracking-widest ${meta.color}`}>{meta.label}</span>
+          <span className="mx-1.5 opacity-30">•</span>
+          {timeAgo(item.at)}
+        </p>
+      </div>
+    </li>
+  );
+}
+
+function timeAgo(iso: string) {
+  const diff = Date.now() - new Date(iso).getTime();
+  const s = Math.floor(diff / 1000);
+  if (s < 60) return `${s}s ago`;
+  const m = Math.floor(s / 60);
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  const d = Math.floor(h / 24);
+  return `${d}d ago`;
+}
+
+// ─── Users ────────────────────────────────────────────────────────────────
+
+function UsersTab() {
+  const fetchUsers = useServerFn(getAdminUsers);
+  const { data, isLoading, refetch, isFetching } = useQuery({
+    queryKey: ["admin", "users"],
+    queryFn: () => fetchUsers(),
+    refetchInterval: 30_000,
+  });
+  const [q, setQ] = useState("");
+
+  const filtered = useMemo(() => {
+    if (!data) return [];
+    const s = q.trim().toLowerCase();
+    if (!s) return data;
+    return data.filter((u) =>
+      (u.display_name ?? "").toLowerCase().includes(s) ||
+      (u.username ?? "").toLowerCase().includes(s) ||
+      u.id.toLowerCase().includes(s),
+    );
+  }, [data, q]);
+
+  if (isLoading) return <Skeleton />;
+
+  return (
+    <div>
+      <div className="flex items-center gap-2 mb-3">
+        <input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Search by name, username, or ID…"
+          className="flex-1 h-10 px-4 bg-surface border border-border rounded-full text-sm text-candle placeholder:text-candle-muted focus:outline-none focus:border-petal/60"
+        />
+        <button onClick={() => refetch()} className="h-10 px-3 rounded-full bg-surface border border-border text-[11px] flex items-center gap-1.5">
+          <RefreshCw className={`size-3 ${isFetching ? "animate-spin" : ""}`} /> Refresh
+        </button>
+      </div>
+      <p className="text-[10px] uppercase tracking-widest text-candle-muted mb-3">{filtered.length} users</p>
+
+      <div className="rounded-2xl border border-border bg-surface divide-y divide-border overflow-hidden">
+        {filtered.map((u) => <UserRow key={u.id} user={u} />)}
+        {filtered.length === 0 && (
+          <p className="text-center py-8 text-sm text-candle-muted">No users match.</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function UserRow({ user: u }: { user: AdminUserRow }) {
+  const online = u.last_seen_at && Date.now() - new Date(u.last_seen_at).getTime() < 5 * 60 * 1000;
+  return (
+    <Link
+      to="/app/user/$userId"
+      params={{ userId: u.id }}
+      className="flex items-center gap-3 px-3 py-3 hover:bg-petal/5 transition-colors"
+    >
+      <div className="relative shrink-0">
+        {u.avatar_url ? (
+          <img src={u.avatar_url} alt="" className="size-10 rounded-full object-cover border border-border" />
+        ) : (
+          <div className="size-10 rounded-full bg-petal/20 border border-border flex items-center justify-center text-petal font-serif italic">
+            {(u.display_name ?? "?")[0]}
+          </div>
+        )}
+        <span className={`absolute -bottom-0.5 -right-0.5 size-3 rounded-full border-2 border-surface ${online ? "bg-green-400" : "bg-candle-muted/40"}`} />
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-1.5">
+          <p className="text-sm font-semibold text-candle truncate">{u.display_name ?? "Unnamed"}</p>
+          {u.is_admin && (
+            <span className="text-[9px] uppercase tracking-widest px-1.5 py-0.5 rounded-full bg-petal text-velvet font-bold">Admin</span>
+          )}
+        </div>
+        <p className="text-[10px] text-candle-muted truncate">
+          @{u.username ?? "—"}
+          {u.partner_name && <> · 💞 {u.partner_name}</>}
+        </p>
+      </div>
+      <div className="text-right shrink-0">
+        <p className="text-xs text-candle tabular-nums">{u.message_count.toLocaleString()}</p>
+        <p className="text-[10px] text-candle-muted">msgs</p>
+      </div>
+      <div className="text-right shrink-0 hidden sm:block ml-3 w-20">
+        <p className="text-[10px] text-candle-muted">
+          {u.last_seen_at ? timeAgo(u.last_seen_at) : "never"}
+        </p>
+      </div>
+    </Link>
+  );
+}
+
+// ─── Library (existing custom-movies management) ─────────────────────────
+
+function LibraryTab() {
+  const qc = useQueryClient();
+  const [adding, setAdding] = useState(false);
+  const del = useServerFn(deleteCustomMovie);
+
   const { data: movies, isLoading } = useQuery({
     queryKey: ["custom-movies"],
     queryFn: async (): Promise<CustomMovie[]> => {
@@ -143,24 +500,20 @@ function AdminDashboard() {
   }
 
   return (
-    <div className="pt-10 px-5 pb-24 max-w-3xl mx-auto">
-      <header className="flex items-center gap-3 mb-6">
-        <Link to="/app/me" className="text-candle-muted">
-          <ArrowLeft className="size-5" />
-        </Link>
-        <div className="flex-1">
-          <p className="text-[10px] uppercase tracking-widest text-petal">Admin</p>
-          <h1 className="font-serif text-3xl italic">Your library</h1>
-        </div>
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-[10px] uppercase tracking-widest text-candle-muted">
+          {movies?.length ?? 0} movies in your private library
+        </p>
         <button
           onClick={() => setAdding(true)}
           className="h-10 px-4 rounded-full bg-petal text-velvet text-sm font-semibold flex items-center gap-1.5"
         >
           <Plus className="size-4" /> Add movie
         </button>
-      </header>
+      </div>
 
-      {isLoading && <div className="text-candle-muted text-sm">Loading…</div>}
+      {isLoading && <Skeleton />}
 
       {!isLoading && (!movies || movies.length === 0) && (
         <div className="text-center py-16 rounded-3xl border border-dashed border-border">
@@ -208,6 +561,16 @@ function AdminDashboard() {
       </div>
 
       {adding && <AddMovieModal onClose={() => { setAdding(false); qc.invalidateQueries({ queryKey: ["custom-movies"] }); }} />}
+    </div>
+  );
+}
+
+function Skeleton() {
+  return (
+    <div className="space-y-3">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <div key={i} className="h-16 rounded-2xl bg-surface animate-pulse" />
+      ))}
     </div>
   );
 }
