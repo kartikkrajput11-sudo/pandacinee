@@ -218,27 +218,31 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
       />
 
       {menuOpen && (
-        <div className="px-4 py-3 grid grid-cols-4 gap-2 border-b border-border/60 bg-surface/40">
-          <button onClick={() => imgRef.current?.click()} className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-surface border border-border text-candle">
+        <div className="px-4 py-3 grid grid-cols-5 gap-2 border-b border-border/60 bg-surface/40 animate-fade-in">
+          <button onClick={() => imgRef.current?.click()} className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-surface border border-border text-candle hover:border-petal/50 transition-colors">
             <ImageIcon className="size-5 text-petal" />
-            <span className="text-xs">Photo</span>
+            <span className="text-[11px]">Photo</span>
           </button>
-          <button onClick={() => fileRef.current?.click()} className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-surface border border-border text-candle">
+          <button onClick={() => vidRef.current?.click()} className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-surface border border-border text-candle hover:border-petal/50 transition-colors">
+            <VideoIcon className="size-5 text-petal" />
+            <span className="text-[11px]">Video</span>
+          </button>
+          <button onClick={() => fileRef.current?.click()} className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-surface border border-border text-candle hover:border-petal/50 transition-colors">
             <Paperclip className="size-5 text-petal" />
-            <span className="text-xs">File</span>
+            <span className="text-[11px]">File</span>
           </button>
           <button
             onClick={() => { setWatchPickerOpen(true); setMenuOpen(false); }}
             className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-petal-soft/40 border border-petal/40 text-candle"
           >
             <Film className="size-5 text-petal" />
-            <span className="text-xs">Watch</span>
+            <span className="text-[11px]">Watch</span>
           </button>
-          <button onClick={() => { setDisappearMenu((d) => !d); }} className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-surface border border-border text-candle relative">
+          <button onClick={() => { setDisappearMenu((d) => !d); }} className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-surface border border-border text-candle relative hover:border-petal/50 transition-colors">
             <Clock className="size-5 text-petal" />
-            <span className="text-xs">{disappearSecs ? "Vanish" : "Disappear"}</span>
+            <span className="text-[11px]">{disappearSecs ? "Vanish" : "Timer"}</span>
             {disappearMenu && (
-              <div className="absolute bottom-full mb-2 right-0 bg-surface-elevated border border-border rounded-2xl p-1 z-10 min-w-[120px]">
+              <div className="absolute bottom-full mb-2 right-0 bg-surface-elevated border border-border rounded-2xl p-1 z-10 min-w-[120px] shadow-lg">
                 {DISAPPEAR_OPTIONS.map((o) => (
                   <button
                     key={o.label}
