@@ -104,11 +104,14 @@ export type Database = {
           created_by: string
           genres: string[]
           id: string
+          media_type: string
           overview: string | null
           poster_url: string | null
           runtime: number | null
           title: string
+          tmdb_id: number | null
           updated_at: string
+          use_vidking: boolean
           video_storage_path: string | null
           video_url: string | null
           year: number | null
@@ -119,11 +122,14 @@ export type Database = {
           created_by: string
           genres?: string[]
           id?: string
+          media_type?: string
           overview?: string | null
           poster_url?: string | null
           runtime?: number | null
           title: string
+          tmdb_id?: number | null
           updated_at?: string
+          use_vidking?: boolean
           video_storage_path?: string | null
           video_url?: string | null
           year?: number | null
@@ -134,11 +140,14 @@ export type Database = {
           created_by?: string
           genres?: string[]
           id?: string
+          media_type?: string
           overview?: string | null
           poster_url?: string | null
           runtime?: number | null
           title?: string
+          tmdb_id?: number | null
           updated_at?: string
+          use_vidking?: boolean
           video_storage_path?: string | null
           video_url?: string | null
           year?: number | null
