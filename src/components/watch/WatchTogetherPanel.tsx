@@ -140,73 +140,71 @@ export function WatchTogetherPanel({
         </div>
       )}
 
-      {/* Reactions — only in fullscreen. Minimalist wordmark trigger. */}
-      {!inline && fsEl && (
-        <div className="fixed bottom-44 right-6 z-40 flex flex-col items-end gap-3">
-          {reactionsOpen && (
-            <div className="flex flex-col items-center gap-2 rounded-full bg-black/40 backdrop-blur-2xl border border-white/10 px-2 py-3 shadow-2xl animate-fade-in">
-              {REACTIONS.map((e) => (
-                <button
-                  key={e}
-                  onClick={() => burstReaction(e)}
-                  className="text-2xl leading-none hover:scale-125 active:scale-95 transition-transform"
-                  aria-label={`React ${e}`}
-                >
-                  {e}
-                </button>
-              ))}
-            </div>
-          )}
+      {/* Draggable stack: chat FAB (top) + Reactions (bottom, fullscreen only) */}
+      {!inline && (
+        <DraggableFab>
+          {/* Chat toggle */}
           <button
-            onClick={() => setReactionsOpen((o) => !o)}
-            className="group relative"
-            aria-label="Instant reactions"
+            onClick={() => setOpen((o) => !o)}
+            className="group block"
+            aria-label={open ? "Close discussion" : "Open discussion"}
           >
             <span
-              className="font-serif italic text-lg tracking-[0.18em] text-white/90 px-4 py-1.5 rounded-full bg-black/30 backdrop-blur-xl border border-white/15 shadow-lg hover:text-white hover:border-white/30 transition-all"
-              style={{ letterSpacing: "0.18em" }}
+              className={`relative flex items-center justify-center size-14 rounded-full transition-all duration-300 shadow-2xl ${
+                open
+                  ? "bg-velvet border border-petal/50 shadow-black/40"
+                  : "bg-petal shadow-petal/40 hover:scale-105"
+              }`}
             >
-              {reactionsOpen ? "close" : "Reactions"}
+              {!open && (
+                <span aria-hidden className="absolute inset-0 rounded-full bg-petal/40 blur-xl -z-10 group-hover:bg-petal/60 transition" />
+              )}
+              {open ? (
+                <X className="size-5 text-petal" />
+              ) : (
+                <MessageCircle className="size-6 text-velvet fill-velvet/10" />
+              )}
+              {!open && unread > 0 && (
+                <>
+                  <span aria-hidden className="absolute -top-1 -right-1 size-5 rounded-full bg-red-500 animate-ping opacity-75" />
+                  <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1.5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center border-2 border-velvet shadow-lg">
+                    {unread > 9 ? "9+" : unread}
+                  </span>
+                </>
+              )}
+              {!open && partnerPresent && unread === 0 && (
+                <span className="absolute -bottom-0.5 -right-0.5 size-3.5 rounded-full bg-green-400 border-2 border-velvet" />
+              )}
             </span>
           </button>
-        </div>
-      )}
 
-      {/* Toggle FAB (hidden in inline mode) */}
-      {!inline && (
-        <button
-          onClick={() => setOpen((o) => !o)}
-          className="fixed bottom-24 right-4 z-40 group"
-          aria-label={open ? "Close discussion" : "Open discussion"}
-        >
-          <span
-            className={`relative flex items-center justify-center size-14 rounded-full transition-all duration-300 shadow-2xl ${
-              open
-                ? "bg-velvet border border-petal/50 shadow-black/40"
-                : "bg-petal shadow-petal/40 hover:scale-105"
-            }`}
-          >
-            {!open && (
-              <span aria-hidden className="absolute inset-0 rounded-full bg-petal/40 blur-xl -z-10 group-hover:bg-petal/60 transition" />
-            )}
-            {open ? (
-              <X className="size-5 text-petal" />
-            ) : (
-              <MessageCircle className="size-6 text-velvet fill-velvet/10" />
-            )}
-            {!open && unread > 0 && (
-              <>
-                <span aria-hidden className="absolute -top-1 -right-1 size-5 rounded-full bg-red-500 animate-ping opacity-75" />
-                <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1.5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center border-2 border-velvet shadow-lg">
-                  {unread > 9 ? "9+" : unread}
-                </span>
-              </>
-            )}
-            {!open && partnerPresent && unread === 0 && (
-              <span className="absolute -bottom-0.5 -right-0.5 size-3.5 rounded-full bg-green-400 border-2 border-velvet" />
-            )}
-          </span>
-        </button>
+          {/* Reactions — fullscreen only, sits UNDER the chat FAB */}
+          {fsEl && (
+            <div className="mt-3 flex flex-col items-center gap-2">
+              {reactionsOpen && (
+                <div className="flex flex-col items-center gap-2 rounded-full bg-black/40 backdrop-blur-2xl border border-white/10 px-2 py-3 shadow-2xl animate-fade-in">
+                  {REACTIONS.map((e) => (
+                    <button
+                      key={e}
+                      onClick={() => burstReaction(e)}
+                      className="text-2xl leading-none hover:scale-125 active:scale-95 transition-transform"
+                      aria-label={`React ${e}`}
+                    >
+                      {e}
+                    </button>
+                  ))}
+                </div>
+              )}
+              <button
+                onClick={() => setReactionsOpen((o) => !o)}
+                aria-label="Instant reactions"
+                className="font-serif italic text-sm tracking-[0.2em] text-white/90 px-3 py-1 rounded-full bg-black/30 backdrop-blur-xl border border-white/15 shadow-lg hover:text-white hover:border-white/30 transition-all"
+              >
+                {reactionsOpen ? "close" : "Reactions"}
+              </button>
+            </div>
+          )}
+        </DraggableFab>
       )}
 
       {/* No dimming backdrop — keep the video visible while chatting */}
