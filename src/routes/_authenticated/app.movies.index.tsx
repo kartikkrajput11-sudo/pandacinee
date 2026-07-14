@@ -22,7 +22,23 @@ type CustomMovieRow = {
   backdrop_url: string | null;
   overview: string | null;
   runtime: number | null;
+  tmdb_id: number | null;
 };
+
+// Overlay admin-edited fields from custom_movies onto a raw TMDB result.
+function applyOverride(m: TmdbMovie, ov: CustomMovieRow | undefined): TmdbMovie {
+  if (!ov) return m;
+  return {
+    ...m,
+    title: ov.title || m.title,
+    overview: ov.overview ?? m.overview,
+    poster_path: ov.poster_url ? "__custom__" : m.poster_path,
+    backdrop_path: ov.backdrop_url ? "__custom_bd__" : m.backdrop_path,
+    // stash real URLs so poster() bypass works via a side channel
+    ...(ov.poster_url ? { __posterUrl: ov.poster_url } : {}),
+    ...(ov.backdrop_url ? { __backdropUrl: ov.backdrop_url } : {}),
+  } as TmdbMovie;
+}
 
 export const Route = createFileRoute("/_authenticated/app/movies/")({
   component: Movies,
