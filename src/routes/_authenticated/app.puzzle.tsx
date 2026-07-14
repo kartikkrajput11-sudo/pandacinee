@@ -16,6 +16,19 @@ const DIFFICULTIES = [
   { pieces: 25, label: "Expert", grid: 5 },
 ] as const;
 
+const DARE_SUGGESTIONS: string[] = [
+  "Send a cute selfie 🤳",
+  "Voice note singing our song 🎤",
+  "Write me a mini love poem 💌",
+  "Send our favorite memory in one sentence ✨",
+  "Pick our next date night 🎬",
+  "Cook (or order) my favorite meal 🍜",
+  "Make me a playlist of 5 songs 🎧",
+  "Do 10 push-ups 💪 & send proof",
+  "Do the dishes tonight 🧼",
+  "Give me a 5-min massage tomorrow 💆",
+];
+
 // A soft lavender / coral gradient with hearts — inline SVG so no network dep.
 const PUZZLE_SVG = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'>
   <defs>
