@@ -36,11 +36,17 @@ function MovieDetail() {
 
   useEffect(() => {
     if (isWatchRoute) return;
-    fetchMovie({ data: { id: Number(id) } }).then(setMovie).catch(() => setMovie(null));
+    fetchMovie({ data: { id: Number(id) } })
+      .then((m) => {
+        setMovie(m);
+        if (m?.id) trackRecentMovie(m.id);
+      })
+      .catch(() => setMovie(null));
     fetchSources({ data: { tmdbId: Number(id) } })
       .then((r) => setSources(r.sources))
       .catch(() => setSources([]));
   }, [id, isWatchRoute]);
+
 
   const regions = useMemo(() => Array.from(new Set(sources.map((s) => s.region))).sort(), [sources]);
   useEffect(() => { if (regions.length && !regions.includes(region)) setRegion(regions[0]); }, [regions]);
