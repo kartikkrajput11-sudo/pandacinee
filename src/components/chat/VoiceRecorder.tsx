@@ -167,7 +167,7 @@ export function VoiceRecorder({
     }
     setBusy(true);
     try {
-      const path = await uploadChatMedia(blobRef.current, userId, "voice", "webm");
+      const path = await uploadChatMedia(blobRef.current, userId, "voice", mimeRef.current.ext || "webm");
       await onSend(path, ms);
     } catch (err: any) {
       toast.error(err?.message ?? "Could not send voice note");
