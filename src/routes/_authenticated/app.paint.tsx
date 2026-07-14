@@ -221,9 +221,17 @@ function PaintTogether() {
     redraw();
   }
   function clearAll() {
-    strokes.current = [];
-    undone.current = [];
-    chRef.current?.send({ type: "broadcast", event: "clear", payload: {} });
+    // Clear only my strokes; partner's drawing stays intact.
+    const mine = strokes.current.filter((s) => s.by === me?.id);
+    if (mine.length === 0) {
+      toast("Nothing of yours to clear");
+      return;
+    }
+    strokes.current = strokes.current.filter((s) => s.by !== me?.id);
+    undone.current = [...undone.current, ...mine];
+    for (const s of mine) {
+      chRef.current?.send({ type: "broadcast", event: "undo", payload: { id: s.id } });
+    }
     redraw();
   }
   function download() {
