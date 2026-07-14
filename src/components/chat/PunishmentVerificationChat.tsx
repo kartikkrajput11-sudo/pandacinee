@@ -158,7 +158,7 @@ export function PunishmentVerificationChat({ lock, meId, partnerName, iAmLocked,
 
   return (
     <div className="fixed inset-0 z-40 bg-velvet/95 backdrop-blur flex flex-col animate-fade-in">
-      {celebrating && <Confetti />}
+      <UnlockCelebration trigger={celebrateTick || null} />
 
       {/* Header */}
       <header className="px-4 pt-6 pb-3 border-b border-border bg-velvet/80 backdrop-blur">
