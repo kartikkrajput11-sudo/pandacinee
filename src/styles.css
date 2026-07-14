@@ -233,6 +233,7 @@ html.theme-anim * {
   0% { transform: translate3d(0, 0, 0) scale(0.6); opacity: 0; }
   15% { opacity: 1; }
   100% { transform: translate3d(var(--kx, 0px), -180px, 0) scale(1.4) rotate(var(--kr, 0deg)); opacity: 0; }
+}
 @keyframes heartPop {
   0% { transform: scale(0.2); opacity: 0; }
   30% { transform: scale(1.4); opacity: 1; }
