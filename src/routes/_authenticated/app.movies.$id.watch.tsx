@@ -883,6 +883,72 @@ function WatchMovie() {
                   <Timer className="size-3.5" /> Countdown together
                 </button>
               </div>
+
+              {/* Source + invite + whisper — merged into Together */}
+              <div className="mt-3 pt-3 border-t border-border/60 grid gap-2">
+                <div className="grid grid-cols-2 gap-2">
+                  {/* Source dropdown */}
+                  <div className="relative">
+                    <button
+                      onClick={() => setSourceMenuOpen((v) => !v)}
+                      className="w-full h-11 rounded-2xl bg-surface/60 backdrop-blur border border-border text-candle text-xs font-medium flex items-center justify-center gap-2"
+                    >
+                      <Server className="size-3.5 text-petal" />
+                      <span className="truncate">{currentSource?.label ?? "Server"}</span>
+                    </button>
+                    {sourceMenuOpen && (
+                      <div className="absolute z-20 top-full mt-2 left-0 right-0 rounded-2xl bg-velvet border border-border shadow-2xl shadow-black/60 overflow-hidden">
+                        {allSources.map((s, i) => (
+                          <button
+                            key={s.id}
+                            onClick={() => switchSource(i)}
+                            className="w-full px-3 py-2.5 flex items-start gap-2 text-left hover:bg-petal/10 border-b border-border/50 last:border-0"
+                          >
+                            <Check className={`size-3.5 mt-0.5 shrink-0 ${i === sourceIdx ? "text-petal" : "text-transparent"}`} />
+                            <div className="min-w-0">
+                              <div className="text-xs text-candle font-medium flex items-center gap-1.5">
+                                {s.label}
+                                {s.kind === "pandacine" && (
+                                  <span className="text-[8px] uppercase tracking-widest px-1.5 py-0.5 rounded-full bg-petal/20 text-petal border border-petal/40">Ours</span>
+                                )}
+                              </div>
+                              <div className="text-[10px] text-candle-muted truncate">{s.hint}</div>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Invite */}
+                  {partner ? (
+                    <button
+                      onClick={inviteToWatch}
+                      className="h-11 rounded-2xl bg-petal text-velvet font-semibold text-xs flex items-center justify-center gap-2 shadow-lg shadow-petal/30"
+                    >
+                      <Send className="size-4" /> Invite {partnerFirst}
+                    </button>
+                  ) : (
+                    <Link
+                      to="/app/invite"
+                      className="h-11 rounded-2xl bg-petal text-velvet font-semibold text-xs flex items-center justify-center gap-2"
+                    >
+                      <Send className="size-4" /> Invite partner
+                    </Link>
+                  )}
+                </div>
+
+                {/* Whisper */}
+                {partner && (
+                  <Link
+                    to="/app/chat/$peerId"
+                    params={{ peerId: partner.id }}
+                    className="h-10 rounded-2xl bg-surface/40 backdrop-blur border border-border text-candle-muted text-xs flex items-center justify-center gap-2 hover:text-petal hover:border-petal/40 transition"
+                  >
+                    <MessageCircle className="size-3.5" /> Whisper to {partnerFirst}
+                  </Link>
+                )}
+              </div>
             </div>
           )}
         </div>
