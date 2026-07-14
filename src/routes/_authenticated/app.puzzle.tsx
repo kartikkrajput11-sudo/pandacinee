@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, RotateCw, Shuffle, Trophy } from "lucide-react";
+import { ArrowLeft, ImagePlus, RotateCw, Shuffle, Trophy, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
@@ -71,6 +71,13 @@ function PuzzleTogether() {
     if (typeof window === "undefined") return {};
     try { return JSON.parse(window.localStorage.getItem("pandacine-puzzle-best") ?? "{}"); } catch { return {}; }
   });
+  const [customImage, setCustomImage] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null;
+    try { return window.localStorage.getItem("pandacine-puzzle-image"); } catch { return null; }
+  });
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const activeImageUrl = customImage ?? PUZZLE_URL;
 
   const chRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const applyingRemote = useRef(false);
@@ -171,6 +178,59 @@ function PuzzleTogether() {
     broadcast(next);
   }
 
+  async function onPickImage(file: File) {
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please choose an image file");
+      return;
+    }
+    if (file.size > 6 * 1024 * 1024) {
+      toast.error("Image is too large (max 6 MB)");
+      return;
+    }
+    // Downscale + crop to square via canvas so puzzle pieces stay uniform.
+    const dataUrl: string = await new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        const size = 720;
+        const canvas = document.createElement("canvas");
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return reject(new Error("no ctx"));
+        const s = Math.min(img.width, img.height);
+        const sx = (img.width - s) / 2;
+        const sy = (img.height - s) / 2;
+        ctx.drawImage(img, sx, sy, s, s, 0, 0, size, size);
+        resolve(canvas.toDataURL("image/jpeg", 0.85));
+      };
+      img.onerror = reject;
+      img.src = URL.createObjectURL(file);
+    });
+    setCustomImage(dataUrl);
+    try { window.localStorage.setItem("pandacine-puzzle-image", dataUrl); } catch { /* quota */ }
+    const next = shuffled(total);
+    setSlots(next);
+    setSelected(null);
+    setMoves(0);
+    setSolved(false);
+    setStartedAt(Date.now());
+    broadcast(next);
+    toast.success("Photo loaded — puzzle ready");
+  }
+
+  function clearCustomImage() {
+    setCustomImage(null);
+    try { window.localStorage.removeItem("pandacine-puzzle-image"); } catch { /* ignore */ }
+    const next = shuffled(total);
+    setSlots(next);
+    setSelected(null);
+    setMoves(0);
+    setSolved(false);
+    setStartedAt(Date.now());
+    broadcast(next);
+  }
+
+
   const elapsed = Math.floor((solved ? 0 : now - startedAt) / 1000);
   const solvedTime = solved ? Math.floor((now - startedAt) / 1000) : 0;
 
@@ -225,6 +285,44 @@ function PuzzleTogether() {
         ))}
       </div>
 
+      <div className="flex items-center gap-2 mb-3">
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) void onPickImage(f);
+            e.target.value = "";
+          }}
+        />
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          className="rounded-full border border-petal/40 bg-petal-soft text-candle px-3 py-1.5 text-xs flex items-center gap-1.5 hover:border-petal transition"
+        >
+          <ImagePlus className="size-3.5" />
+          {customImage ? "Change photo" : "Use your photo"}
+        </button>
+        {customImage && (
+          <button
+            onClick={clearCustomImage}
+            className="rounded-full border border-border bg-surface text-candle-muted px-2.5 py-1.5 text-xs flex items-center gap-1 hover:text-candle"
+            aria-label="Remove photo"
+          >
+            <X className="size-3.5" />
+          </button>
+        )}
+        {customImage && (
+          <img
+            src={customImage}
+            alt="Puzzle preview"
+            className="ml-auto size-10 rounded-lg object-cover border border-border"
+          />
+        )}
+      </div>
+
+
       <div className="mx-auto" style={{ width: boardSize }}>
         <div
           className="grid rounded-2xl overflow-hidden border-2 border-border bg-surface shadow-petal"
@@ -241,7 +339,7 @@ function PuzzleTogether() {
                 selected === p.slotIdx ? "ring-2 ring-petal z-10 scale-95" : ""
               } ${solved ? "ring-0" : ""}`}
               style={{
-                backgroundImage: `url("${PUZZLE_URL}")`,
+                backgroundImage: `url("${activeImageUrl}")`,
                 backgroundSize,
                 backgroundPosition: `${p.bx} ${p.by}`,
                 outline: solved ? "none" : "1px solid rgba(255,255,255,0.05)",
