@@ -544,7 +544,7 @@ function CatalogWatch({ id }: { id: string }) {
       navigate({
         to: "/app/movies/$id/watch",
         params: { id: String(tmdbId) },
-        search: (prev) => ({ ...prev, with: friendId }),
+        search: (prev: Record<string, unknown>) => ({ ...prev, with: friendId }),
         replace: true,
       });
     }
