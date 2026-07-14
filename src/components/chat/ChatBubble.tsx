@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Heart, Pin, Trash2, Reply, Check, CheckCheck, Download, Zap, Phone, Video as VideoIcon, PhoneMissed } from "lucide-react";
+import { Heart, Pin, Trash2, Reply, Check, CheckCheck, Download, Zap, Phone, Video as VideoIcon, PhoneMissed, Clock } from "lucide-react";
 import { signMedia, type MessageRow } from "@/lib/chat";
 import { VoicePlayer } from "./VoicePlayer";
 import { SignedImage } from "./SignedImage";
@@ -22,6 +22,7 @@ export function ChatBubble({
   onReply,
   onPin,
   onDelete,
+  onVanish,
 }: {
   m: MessageRow;
   mine: boolean;
@@ -32,8 +33,10 @@ export function ChatBubble({
   onReply: (m: MessageRow) => void;
   onPin: (m: MessageRow) => void;
   onDelete: (m: MessageRow) => void;
+  onVanish?: (m: MessageRow, seconds: number | null) => void;
 }) {
   const [actionsOpen, setActionsOpen] = useState(false);
+  const [vanishOpen, setVanishOpen] = useState(false);
 
   async function downloadFile() {
     if (!m.media_url) return;
