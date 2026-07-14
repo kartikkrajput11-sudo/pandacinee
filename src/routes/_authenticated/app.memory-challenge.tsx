@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, Camera, Check, Flame, RotateCw, Trash2 } from "lucide-react";
+import { ArrowLeft, Camera, Check, Flame, RotateCw, Share2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/app/memory-challenge")({
@@ -171,6 +171,27 @@ function MemoryChallenge() {
                 className="flex-1 rounded-full bg-surface border border-border py-2.5 text-sm text-candle flex items-center justify-center gap-2"
               >
                 <RotateCw className="size-4" /> Replace
+              </button>
+              <button
+                onClick={async () => {
+                  try {
+                    const res = await fetch(todayEntry.dataUrl);
+                    const blob = await res.blob();
+                    const file = new File([blob], `memory-${todayEntry.date}.jpg`, { type: blob.type });
+                    const shareData: ShareData = { text: `Today's Pandacine memory: ${todayEntry.prompt} 🐼`, files: [file] };
+                    // @ts-expect-error canShare with files is supported at runtime
+                    if (navigator.share && (!navigator.canShare || navigator.canShare(shareData))) {
+                      await navigator.share(shareData);
+                    } else {
+                      await navigator.clipboard.writeText(todayEntry.prompt);
+                      toast.success("Prompt copied");
+                    }
+                  } catch {}
+                }}
+                className="rounded-full bg-surface border border-border px-4 py-2.5 text-sm text-candle"
+                aria-label="Share"
+              >
+                <Share2 className="size-4" />
               </button>
               <button
                 onClick={removeToday}
