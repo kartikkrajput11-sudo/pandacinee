@@ -240,35 +240,41 @@ function Scribble() {
       redraw();
       if (p.drawerId !== me.id) setWord(null);
     });
-    ch.on("broadcast", { event: "guess-live" }, ({ payload }) => {
-      const p = payload as { by: string; name: string; text: string };
+    const tryMatch = (by: string, name: string, text: string) => {
       const w = wordRef.current;
-      // Only the drawer holds the word; drawer checks the match.
-      if (!w) return;
-      if (p.text.trim().toLowerCase() !== w.toLowerCase()) return;
-      // Match — broadcast correct and update local state.
+      if (!w) return false;
+      const norm = (s: string) => s.trim().toLowerCase().replace(/\s+/g, " ");
+      if (norm(text) !== norm(w)) return false;
       chRef.current?.send({
         type: "broadcast",
         event: "correct",
-        payload: { by: p.by, word: w, name: p.name },
+        payload: { by, word: w, name },
       });
       setMessages((m) => [
         ...m,
-        { id: crypto.randomUUID(), by: p.by, name: p.name, text: `guessed “${w}”`, correct: true },
+        { id: crypto.randomUUID(), by, name, text: `guessed “${w}”`, correct: true },
       ]);
       setScores((s) => {
-        const next = { ...s, [p.by]: (s[p.by] ?? 0) + 1 };
-        if (next[p.by] >= targetScore) setWinnerId(p.by);
+        const next = { ...s, [by]: (s[by] ?? 0) + 1 };
+        if (next[by] >= targetScore) setWinnerId(by);
         return next;
       });
       setPhase("over");
       setLastDrawerId(drawerId);
       setEndsAt(null);
-      toast.success(`${p.name} guessed “${w}”! Their turn to draw.`);
+      toast.success(`${name} guessed “${w}”! Their turn to draw.`);
+      return true;
+    };
+    ch.on("broadcast", { event: "guess-live" }, ({ payload }) => {
+      const p = payload as { by: string; name: string; text: string };
+      tryMatch(p.by, p.name, p.text);
     });
     ch.on("broadcast", { event: "guess" }, ({ payload }) => {
-      setMessages((m) => [...m, payload as Msg]);
+      const p = payload as Msg;
+      setMessages((m) => [...m, p]);
+      tryMatch(p.by, p.name, p.text);
     });
+
     ch.on("broadcast", { event: "correct" }, ({ payload }) => {
       const p = payload as { by: string; word: string; name: string };
       setMessages((m) => [
