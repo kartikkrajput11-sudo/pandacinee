@@ -159,6 +159,7 @@ function WatchMovie() {
   const iAmHost = !!me && hostId === me.id;
   const partnerIsHost = !!partner && hostId === partner.id;
   const lastAppliedPeerEventRef = useRef<number>(0);
+  const customPlayerRef = useRef<CustomPlayerHandle | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -428,6 +429,19 @@ function WatchMovie() {
       if (d < 6) return;
     }
     lastAppliedPeerEventRef.current = peer.updatedAt;
+
+    // Pandacine (our own server): control the <video> directly through the
+    // player handle so the follower keeps watching without a full remount.
+    if (isPandacine && customPlayerRef.current && started) {
+      const h = customPlayerRef.current;
+      if (Math.abs(h.currentTime() - peer.currentTime) > 1.5) h.seek(peer.currentTime);
+      if (evt === "pause") h.pause();
+      else h.play();
+      if (evt === "seeked") toast.info(`${partner?.display_name.split(" ")[0]} skipped`);
+      if (evt === "pause") toast.info(`${partner?.display_name.split(" ")[0]} paused`);
+      return;
+    }
+
     if (evt === "pause") {
       applySeek(peer.currentTime, { pause: true });
       toast.info(`${partner?.display_name.split(" ")[0]} paused`);
@@ -435,7 +449,7 @@ function WatchMovie() {
       applySeek(peer.currentTime, { pause: false });
       if (evt === "seeked") toast.info(`${partner?.display_name.split(" ")[0]} skipped`);
     }
-  }, [peer, partnerIsHost, me, mine.currentTime, applySeek, partner]);
+  }, [peer, partnerIsHost, me, mine.currentTime, applySeek, partner, isPandacine, started]);
 
   async function sendWatchInviteMessage(receiverId: string) {
     if (!me || !movie) return { error: new Error("Missing data") };
@@ -768,7 +782,7 @@ function WatchMovie() {
                   src={pandacine.videoSrc}
                   poster={backdropUrl}
                   locked={!!hostId && !iAmHost}
-                  onReady={() => setPlayerLoading(false)}
+                  onReady={(h) => { customPlayerRef.current = h; setPlayerLoading(false); }}
                   onEvent={(evt) => {
                     const now = Date.now();
                     const isDiscrete = evt.event === "play" || evt.event === "pause" || evt.event === "seeked" || evt.event === "ended";
