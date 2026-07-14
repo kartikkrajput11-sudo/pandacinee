@@ -299,8 +299,9 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
             onTouchStart={() => (scrubbing.current = true)}
             onTouchEnd={() => (scrubbing.current = false)}
             onChange={onScrub}
+            disabled={locked}
             aria-label="Seek"
-            className="absolute inset-0 w-full opacity-0 cursor-pointer h-6 -top-2"
+            className={`absolute inset-0 w-full opacity-0 h-6 -top-2 ${locked ? "cursor-not-allowed pointer-events-none" : "cursor-pointer"}`}
           />
           <div
             className="absolute -top-1 size-3.5 rounded-full bg-white shadow pointer-events-none transition-[left]"
