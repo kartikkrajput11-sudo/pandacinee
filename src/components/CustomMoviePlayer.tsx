@@ -145,7 +145,8 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
       if (e.target instanceof HTMLInputElement) return;
       if (e.key === " " || e.key === "k") {
         e.preventDefault();
-        if (locked) return;
+        // In locked (follower) mode, allow only play — pause/seek stay host-controlled
+        if (locked && !v.paused) return;
         v.paused ? v.play() : v.pause();
       } else if (e.key === "ArrowRight") {
         if (locked) return;
@@ -165,9 +166,11 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
   }, [scheduleHide, locked]);
 
   function togglePlay() {
-    if (locked) return;
     const v = videoRef.current;
     if (!v) return;
+    // Followers can press play (to satisfy browser autoplay + join playback),
+    // but cannot pause — host controls pausing.
+    if (locked && !v.paused) return;
     v.paused ? v.play().catch(() => {}) : v.pause();
   }
 
