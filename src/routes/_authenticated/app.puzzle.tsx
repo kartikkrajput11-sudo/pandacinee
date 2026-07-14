@@ -248,7 +248,7 @@ function PuzzleTogether() {
                 selected === p.slotIdx ? "ring-2 ring-petal z-10 scale-95" : ""
               } ${solved ? "ring-0" : ""}`}
               style={{
-                backgroundImage: `url("${PUZZLE_URL}")`,
+                backgroundImage: `url("${activeImageUrl}")`,
                 backgroundSize,
                 backgroundPosition: `${p.bx} ${p.by}`,
                 outline: solved ? "none" : "1px solid rgba(255,255,255,0.05)",
