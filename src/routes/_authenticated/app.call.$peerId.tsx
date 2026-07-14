@@ -22,6 +22,27 @@ import { ChatBubble } from "@/components/chat/ChatBubble";
 import { ChatComposer } from "@/components/chat/ChatComposer";
 import type { MessageRow } from "@/lib/chat";
 
+function CallAvatar({ path, name }: { path: string | null; name: string }) {
+  const [url, setUrl] = useState<string | null>(null);
+  useEffect(() => {
+    let alive = true;
+    if (!path) { setUrl(null); return; }
+    if (path.startsWith("http")) { setUrl(path); return; }
+    supabase.storage.from("avatars").createSignedUrl(path, 3600).then(({ data }) => {
+      if (alive) setUrl(data?.signedUrl ?? null);
+    });
+    return () => { alive = false; };
+  }, [path]);
+  if (url) return <img src={url} alt="" className="w-full h-full object-cover" />;
+  return (
+    <div className="w-full h-full flex items-center justify-center">
+      <span className="font-serif text-6xl italic text-petal">
+        {name?.[0]?.toUpperCase() ?? "🐼"}
+      </span>
+    </div>
+  );
+}
+
 const searchSchema = z.object({
   role: z.enum(["caller", "callee"]).default("caller"),
   mode: z.enum(["video", "audio"]).default("video"),
