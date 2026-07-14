@@ -681,18 +681,8 @@ function WatchMovie() {
               </button>
             )}
 
-            {/* Floating reactions layer */}
-            <div className="absolute inset-0 pointer-events-none overflow-hidden">
-              {floaties.map((f) => (
-                <span
-                  key={f.id}
-                  className="absolute bottom-6 text-3xl md:text-4xl animate-float-up drop-shadow-[0_2px_12px_rgba(238,130,175,0.6)]"
-                  style={{ left: `${f.x}%` }}
-                >
-                  {f.emoji}
-                </span>
-              ))}
-            </div>
+
+
 
             {started && playerLoading && (
               <div className="absolute inset-0 pointer-events-none flex items-center justify-center bg-velvet/80">
