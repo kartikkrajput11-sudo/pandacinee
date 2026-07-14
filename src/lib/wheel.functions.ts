@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { generateText, Output } from "ai";
+import { generateText, Output, NoObjectGeneratedError } from "ai";
 import { z } from "zod";
 import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
 
@@ -52,20 +52,42 @@ export const wheelAiSuggest = createServerFn({ method: "POST" })
       ? `Vibe: ${data.vibe.trim()}.`
       : "Vibe: cozy couple movie night, mix of romance / feel-good / classic favorites.";
 
-    const { output } = await generateText({
-      model: gateway("google/gemini-2.5-flash"),
-      output: Output.object({
-        schema: z.object({
-          titles: z.array(z.string().min(1).max(80)).min(4).max(8),
+    let titles: string[] = [];
+    try {
+      const { output } = await generateText({
+        model: gateway("google/gemini-2.5-flash"),
+        output: Output.object({
+          schema: z.object({
+            titles: z.array(z.string()),
+          }),
         }),
-      }),
-      prompt:
-        `Pick ${data.count} real, well-known movies for two partners to spin a wheel and watch tonight. ` +
-        vibePrompt +
-        ` Return only real movie titles (no years, no punctuation, English titles preferred). Avoid duplicates.`,
-    });
+        prompt:
+          `Pick exactly ${data.count} real, well-known movies for two partners to spin a wheel and watch tonight. ` +
+          vibePrompt +
+          ` Return an object with a "titles" array of ${data.count} strings. Use only real movie titles (no years, no punctuation, English titles preferred). No duplicates.`,
+      });
+      titles = (output?.titles ?? []).map((t) => String(t).trim()).filter(Boolean).slice(0, data.count);
+    } catch (err) {
+      if (NoObjectGeneratedError.isInstance(err)) {
+        const raw = err.text ?? "";
+        try {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed?.titles)) {
+            titles = parsed.titles.map((t: unknown) => String(t).trim()).filter(Boolean).slice(0, data.count);
+          }
+        } catch {
+          // Extract quoted strings or bullet lines as a last resort
+          titles = Array.from(raw.matchAll(/"([^"\n]{2,80})"/g)).map((m) => m[1].trim());
+          if (titles.length === 0) {
+            titles = raw.split(/\r?\n/).map((l) => l.replace(/^\s*[-*\d.]+\s*/, "").trim()).filter((l) => l.length > 1 && l.length < 80);
+          }
+          titles = titles.slice(0, data.count);
+        }
+      } else {
+        throw err;
+      }
+    }
 
-    const titles = (output?.titles ?? []).slice(0, data.count);
     const results = await Promise.all(titles.map((t) => searchOne(t)));
     const seen = new Set<number>();
     const movies: TmdbLite[] = [];
