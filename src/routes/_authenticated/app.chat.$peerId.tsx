@@ -8,6 +8,7 @@ import { useChat } from "@/hooks/useChat";
 import { usePunishmentLock } from "@/hooks/usePunishmentLock";
 import { ChatBubble } from "@/components/chat/ChatBubble";
 import { ChatComposer } from "@/components/chat/ChatComposer";
+import { formatLastSeen } from "@/hooks/usePresenceHeartbeat";
 import { ChatSearch } from "@/components/chat/ChatSearch";
 import { MoodBar } from "@/components/chat/MoodBar";
 import { KissOverlay } from "@/components/chat/KissOverlay";
