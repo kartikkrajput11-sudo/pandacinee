@@ -162,13 +162,28 @@ function MovieDetail() {
             )}
           </div>
           <div className="pb-2 min-w-0">
+            {isTv && (
+              <span className="inline-flex items-center gap-1 h-5 px-2 rounded-full bg-petal/15 border border-petal/30 text-petal text-[9px] uppercase tracking-widest mb-2">
+                <Tv className="size-2.5" /> Series
+              </span>
+            )}
             <h1 className="font-serif font-semibold tracking-tight leading-[0.95] text-4xl text-candle mb-3">
               {movie.title}
             </h1>
             <div className="flex flex-wrap items-center gap-2 text-[10px] uppercase tracking-widest text-petal font-semibold">
               {movie.release_date && <span>{movie.release_date.slice(0, 4)}</span>}
-              {movie.release_date && movie.runtime ? <span className="opacity-30">•</span> : null}
-              {movie.runtime ? <span>{Math.floor(movie.runtime / 60)}h {movie.runtime % 60}m</span> : null}
+              {isTv && movie.number_of_seasons ? (
+                <>
+                  <span className="opacity-30">•</span>
+                  <span>{movie.number_of_seasons} {movie.number_of_seasons === 1 ? "season" : "seasons"}</span>
+                </>
+              ) : null}
+              {!isTv && movie.runtime ? (
+                <>
+                  {movie.release_date && <span className="opacity-30">•</span>}
+                  <span>{Math.floor(movie.runtime / 60)}h {movie.runtime % 60}m</span>
+                </>
+              ) : null}
               {movie.vote_average ? (
                 <>
                   <span className="opacity-30">•</span>
@@ -198,7 +213,7 @@ function MovieDetail() {
           className="w-full flex items-center justify-center gap-3 py-4 rounded-2xl bg-petal text-velvet font-bold text-sm tracking-wide shadow-[0_20px_60px_-20px] shadow-petal/60 active:scale-[0.98] transition-transform"
         >
           <Play className="size-4 fill-velvet" />
-          PLAY MOVIE
+          {isTv ? "WATCH SERIES" : "PLAY MOVIE"}
         </Link>
 
         {/* Synopsis */}
