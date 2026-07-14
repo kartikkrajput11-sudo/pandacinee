@@ -259,7 +259,7 @@ function Call() {
               <span className="absolute size-44 rounded-full bg-petal/15 animate-ping" />
               <div className="relative size-32 rounded-full bg-gradient-to-br from-petal-soft to-petal/40 border border-petal/40 overflow-hidden">
                 {peer.avatar_url ? (
-                  <SignedImage path={peer.avatar_url} className="w-full h-full object-cover" />
+                  <CallAvatar name={peer.display_name} path={peer.avatar_url} className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
                     <span className="font-serif text-5xl italic text-petal">
