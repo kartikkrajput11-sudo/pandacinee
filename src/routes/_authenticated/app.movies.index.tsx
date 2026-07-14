@@ -108,7 +108,7 @@ function Movies() {
   function updateSearch(patch: Partial<{ q: string; type: "all" | "movie" | "tv"; minRating: number }>) {
     navigate({
       to: "/app/movies",
-      search: (prev) => ({ ...prev, ...patch }),
+      search: (prev: { q: string; type: "all" | "movie" | "tv"; minRating: number }) => ({ ...prev, ...patch }),
     });
   }
 
