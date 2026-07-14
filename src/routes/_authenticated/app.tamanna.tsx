@@ -637,6 +637,13 @@ function LibraryTab() {
           }}
         />
       )}
+      {episodesFor && (
+        <EpisodesModal
+          movie={episodesFor}
+          onClose={() => setEpisodesFor(null)}
+        />
+      )}
+
     </div>
   );
 }
