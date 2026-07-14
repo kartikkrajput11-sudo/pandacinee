@@ -60,6 +60,33 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady }: Pr
   const [showControls, setShowControls] = useState(true);
   const hideTimer = useRef<number | null>(null);
   const scrubbing = useRef(false);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const gainNodeRef = useRef<GainNode | null>(null);
+  const sourceNodeRef = useRef<MediaElementAudioSourceNode | null>(null);
+
+  // Set up Web Audio gain node for volume boost (up to 300%)
+  const setupGain = useCallback(() => {
+    const v = videoRef.current;
+    if (!v || sourceNodeRef.current) return;
+    try {
+      const Ctx = (window.AudioContext || (window as any).webkitAudioContext);
+      if (!Ctx) return;
+      const ctx = new Ctx();
+      const src = ctx.createMediaElementSource(v);
+      const gain = ctx.createGain();
+      gain.gain.value = 1;
+      src.connect(gain).connect(ctx.destination);
+      audioCtxRef.current = ctx;
+      gainNodeRef.current = gain;
+      sourceNodeRef.current = src;
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      try { audioCtxRef.current?.close(); } catch {}
+    };
+  }, []);
 
   // Attach handle for parent sync control
   useEffect(() => {
@@ -184,7 +211,8 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady }: Pr
         poster={poster ?? undefined}
         className="absolute inset-0 w-full h-full object-contain bg-black"
         playsInline
-        preload="metadata"
+        preload="auto"
+        crossOrigin="anonymous"
         onLoadedMetadata={(e) => setDuration(e.currentTarget.duration || 0)}
         onTimeUpdate={(e) => {
           if (scrubbing.current) return;
@@ -290,21 +318,34 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady }: Pr
             <input
               type="range"
               min={0}
-              max={100}
+              max={300}
               value={muted ? 0 : Math.round(volume * 100)}
               onChange={(e) => {
                 const v = videoRef.current;
                 if (!v) return;
-                const val = Number(e.target.value) / 100;
-                v.volume = val;
+                setupGain();
+                try { audioCtxRef.current?.resume(); } catch {}
+                const pct = Number(e.target.value);
+                const val = pct / 100;
+                // Video element volume caps at 1; use gain node for >100%
+                v.volume = Math.min(1, val);
                 v.muted = val === 0;
+                if (gainNodeRef.current) {
+                  gainNodeRef.current.gain.value = val <= 1 ? 1 : val;
+                }
                 setVolume(val);
                 setMuted(val === 0);
               }}
-              className="w-20 accent-petal"
+              className="w-24 accent-petal"
               aria-label="Volume"
+              title={`${Math.round(volume * 100)}%${volume > 1 ? " (boosted)" : ""}`}
             />
+            {volume > 1 && (
+              <span className="text-[10px] text-petal font-semibold">{Math.round(volume * 100)}%</span>
+            )}
           </div>
+
+
 
           <div className="ml-auto flex items-center gap-2">
             <span className="tabular-nums text-white/90">
