@@ -600,6 +600,7 @@ function Skeleton() {
 function AddMovieModal({ onClose }: { onClose: () => void }) {
   const create = useServerFn(createCustomMovie);
   const fileRef = useRef<HTMLInputElement>(null);
+  const uploadRef = useRef<any>(null);
   const [title, setTitle] = useState("");
   const [year, setYear] = useState<string>("");
   const [runtime, setRuntime] = useState<string>("");
@@ -609,29 +610,111 @@ function AddMovieModal({ onClose }: { onClose: () => void }) {
   const [genres, setGenres] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
   const [videoPath, setVideoPath] = useState<string | null>(null);
+  const [videoFileName, setVideoFileName] = useState<string | null>(null);
+  const [videoFileSize, setVideoFileSize] = useState<number>(0);
   const [uploading, setUploading] = useState(false);
   const [uploadPct, setUploadPct] = useState(0);
+  const [uploadSpeed, setUploadSpeed] = useState<string>("");
+  const [uploadEta, setUploadEta] = useState<string>("");
+  const [uploadErr, setUploadErr] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-  const canSave = useMemo(() => title.trim().length > 0 && (videoUrl.trim() || videoPath), [title, videoUrl, videoPath]);
+  const canSave = useMemo(
+    () => title.trim().length > 0 && (videoUrl.trim() || videoPath) && !uploading,
+    [title, videoUrl, videoPath, uploading],
+  );
 
   async function uploadFile(file: File) {
-    setUploading(true);
-    setUploadPct(5);
-    const ext = file.name.split(".").pop() || "mp4";
-    const path = `${crypto.randomUUID()}.${ext}`;
-    const { error } = await supabase.storage.from("custom-movies").upload(path, file, {
-      contentType: file.type || "video/mp4",
-      upsert: false,
-    });
-    setUploading(false);
-    setUploadPct(100);
-    if (error) {
-      toast.error(error.message);
+    setUploadErr(null);
+    setVideoFileName(file.name);
+    setVideoFileSize(file.size);
+
+    // Get current session for the resumable upload authorization
+    const { data: sessionData } = await supabase.auth.getSession();
+    const accessToken = sessionData.session?.access_token;
+    if (!accessToken) {
+      toast.error("Sign in required");
       return;
     }
-    setVideoPath(path);
-    toast.success("Video uploaded");
+
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
+    const ext = (file.name.split(".").pop() || "mp4").toLowerCase();
+    const path = `${crypto.randomUUID()}.${ext}`;
+
+    // Lazy-load tus-js-client (browser-only)
+    const tus = await import("tus-js-client");
+
+    setUploading(true);
+    setUploadPct(0);
+    setUploadSpeed("");
+    setUploadEta("");
+
+    const started = Date.now();
+    let lastBytes = 0;
+    let lastAt = started;
+
+    const upload = new tus.Upload(file, {
+      endpoint: `${supabaseUrl}/storage/v1/upload/resumable`,
+      retryDelays: [0, 1000, 3000, 5000, 10000, 20000],
+      headers: {
+        authorization: `Bearer ${accessToken}`,
+        "x-upsert": "true",
+      },
+      uploadDataDuringCreation: true,
+      removeFingerprintOnSuccess: true,
+      metadata: {
+        bucketName: "custom-movies",
+        objectName: path,
+        contentType: file.type || "video/mp4",
+        cacheControl: "3600",
+      },
+      chunkSize: 6 * 1024 * 1024, // 6 MB — required to be exactly this for Supabase Storage
+      onError: (err) => {
+        setUploading(false);
+        setUploadErr(err.message || "Upload failed");
+        toast.error(err.message || "Upload failed");
+      },
+      onProgress: (sent, total) => {
+        const pct = total > 0 ? Math.round((sent / total) * 100) : 0;
+        setUploadPct(pct);
+        const now = Date.now();
+        const dt = (now - lastAt) / 1000;
+        if (dt > 0.4) {
+          const speed = (sent - lastBytes) / dt; // bytes/s
+          setUploadSpeed(fmtBytes(speed) + "/s");
+          const remaining = total - sent;
+          const eta = speed > 0 ? Math.round(remaining / speed) : 0;
+          setUploadEta(fmtDuration(eta));
+          lastBytes = sent;
+          lastAt = now;
+        }
+      },
+      onSuccess: () => {
+        setUploading(false);
+        setUploadPct(100);
+        setVideoPath(path);
+        setUploadSpeed("");
+        setUploadEta("");
+        toast.success("Video uploaded");
+      },
+    });
+
+    uploadRef.current = upload;
+    // Check for previous unfinished uploads of this exact file
+    const prev = await upload.findPreviousUploads();
+    if (prev.length > 0) upload.resumeFromPreviousUpload(prev[0]);
+    upload.start();
+  }
+
+  function cancelUpload() {
+    try { uploadRef.current?.abort(true); } catch { /* noop */ }
+    setUploading(false);
+    setUploadPct(0);
+    setUploadSpeed("");
+    setUploadEta("");
+    setVideoFileName(null);
+    setVideoFileSize(0);
+    setVideoPath(null);
   }
 
   async function submit() {
