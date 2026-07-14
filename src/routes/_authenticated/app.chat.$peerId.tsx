@@ -208,6 +208,7 @@ function ChatPeer() {
         onTyping={sendTyping}
         onSend={send}
       />
+      <KissOverlay trigger={kissTick} emoji={kissEmoji} />
     </div>
   );
 }
