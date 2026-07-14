@@ -257,9 +257,16 @@ function Scribble() {
         payload: { by, word: matchedWord, name },
       });
     }
+    const isMe = by === me?.id;
     setMessages((m) => [
       ...m,
-      { id: crypto.randomUUID(), by, name, text: `guessed “${matchedWord}”`, correct: true },
+      {
+        id: crypto.randomUUID(),
+        by,
+        name,
+        text: isMe ? "✅ You guessed the word!" : `🎉 ${name} guessed the word!`,
+        correct: true,
+      },
     ]);
     setScores((s) => {
       const next = { ...s, [by]: (s[by] ?? 0) + 1 };
@@ -271,12 +278,13 @@ function Scribble() {
     setEndsAt(null);
     setWord(matchedWord);
     setHintMask(matchedWord);
+    setRevealed(new Set(matchedWord.split("").map((_, i) => i)));
     setGuess("");
-    if (by === me?.id) {
-      toast.success(`Correct! The word was “${matchedWord}” — your turn to draw!`);
+    if (isMe) {
+      toast.success(`Correct! The word was "${matchedWord}" — your turn to draw!`);
       autoStartMyDrawTurn(matchedWord);
     } else {
-      toast.success(`${name} guessed “${matchedWord}”! Their turn to draw.`);
+      toast.success(`${name} guessed "${matchedWord}"! Their turn to draw.`);
     }
     return true;
   }
