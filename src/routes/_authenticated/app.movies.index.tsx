@@ -191,9 +191,14 @@ function Movies() {
 
   const featured = useMemo(() => {
     const source = type === "tv" ? tvTrend : trendingList;
-    const m = source[0];
-    return m ? applyOverride(m, overrides.get(m.id)) : undefined;
-  }, [type, trendingList, tvTrend, overrides]);
+    if (source.length === 0) return undefined;
+    // Skip titles already in Continue Watching so the hero always highlights
+    // a fresh trending pick, not one the user just watched.
+    const recentIds = new Set(recent.map((r) => r.id));
+    const pick = source.find((m) => !recentIds.has(m.id)) ?? source[0];
+    return applyOverride(pick, overrides.get(pick.id));
+  }, [type, trendingList, tvTrend, overrides, recent]);
+
 
   const showMovies = type !== "tv";
   const showShows = type !== "movie";
