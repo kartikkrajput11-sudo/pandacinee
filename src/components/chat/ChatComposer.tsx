@@ -265,7 +265,7 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
       />
 
       {menuOpen && (
-        <div className="px-4 py-3 grid grid-cols-5 gap-2 border-b border-border/60 bg-surface/40 animate-fade-in">
+        <div className="px-4 py-3 grid grid-cols-4 gap-2 border-b border-border/60 bg-surface/40 animate-fade-in">
           <button onClick={() => imgRef.current?.click()} className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-surface border border-border text-candle hover:border-petal/50 transition-colors">
             <ImageIcon className="size-5 text-petal" />
             <span className="text-[11px]">Photo</span>
@@ -284,6 +284,27 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
           >
             <Film className="size-5 text-petal" />
             <span className="text-[11px]">Watch</span>
+          </button>
+          <button
+            onClick={() => { setGamePickerOpen(true); setMenuOpen(false); }}
+            className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-petal-soft/40 border border-petal/40 text-candle"
+          >
+            <Gamepad2 className="size-5 text-petal" />
+            <span className="text-[11px]">Game</span>
+          </button>
+          <button
+            onClick={sendKiss}
+            className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-gradient-to-br from-petal/25 to-petal-soft/40 border border-petal/40 text-candle hover:from-petal/40 transition-colors"
+          >
+            <Heart className="size-5 text-petal fill-petal" />
+            <span className="text-[11px]">Kiss</span>
+          </button>
+          <button
+            onClick={sendNudge}
+            className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-surface border border-border text-candle hover:border-petal/50 transition-colors"
+          >
+            <Zap className="size-5 text-petal" />
+            <span className="text-[11px]">Nudge</span>
           </button>
           <button onClick={() => { setDisappearMenu((d) => !d); }} className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-surface border border-border text-candle relative hover:border-petal/50 transition-colors">
             <Clock className="size-5 text-petal" />
@@ -306,6 +327,8 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
       )}
 
       <WatchInvitePicker open={watchPickerOpen} onClose={() => setWatchPickerOpen(false)} onPick={sendWatchInvite} />
+      <GameInvitePicker open={gamePickerOpen} onClose={() => setGamePickerOpen(false)} onPick={sendGameInvite} />
+
 
 
       <form onSubmit={sendText} className="px-3 py-3 flex items-center gap-2">
