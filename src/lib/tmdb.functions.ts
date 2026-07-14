@@ -128,19 +128,19 @@ export type TmdbEpisode = {
 export const tmdbTvDetail = createServerFn({ method: "GET" })
   .inputValidator((d: { id: number }) => d)
   .handler(async ({ data }) => {
-    const r = await tmdb<{
+    const r = await tmdbOrNull<{
       id: number; name: string;
       number_of_seasons: number;
       seasons: { season_number: number; episode_count: number; name: string }[];
     }>(`/tv/${data.id}`);
-    return r;
+    return r; // null when the TMDB id isn't a TV show (e.g. movie id used by mistake)
   });
 
 export const tmdbTvSeason = createServerFn({ method: "GET" })
   .inputValidator((d: { id: number; season: number }) => d)
   .handler(async ({ data }) => {
-    const r = await tmdb<{ episodes: TmdbEpisode[] }>(`/tv/${data.id}/season/${data.season}`);
-    return r.episodes ?? [];
+    const r = await tmdbOrNull<{ episodes: TmdbEpisode[] }>(`/tv/${data.id}/season/${data.season}`);
+    return r?.episodes ?? [];
   });
 
 
