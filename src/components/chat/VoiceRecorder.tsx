@@ -52,18 +52,48 @@ export function VoiceRecorder({
     rafRef.current = requestAnimationFrame(tickAnalyser);
   }
 
+  function pickMime(): { mime: string; ext: string } {
+    // Safari/macOS reject audio/webm entirely. Probe in order so every
+    // browser lands on something MediaRecorder can actually emit.
+    const candidates: Array<{ mime: string; ext: string }> = [
+      { mime: "audio/webm;codecs=opus", ext: "webm" },
+      { mime: "audio/webm", ext: "webm" },
+      { mime: "audio/ogg;codecs=opus", ext: "ogg" },
+      { mime: "audio/mp4;codecs=mp4a.40.2", ext: "m4a" },
+      { mime: "audio/mp4", ext: "m4a" },
+      { mime: "audio/aac", ext: "aac" },
+    ];
+    const MR: any = (typeof window !== "undefined" && (window as any).MediaRecorder) || null;
+    if (MR?.isTypeSupported) {
+      for (const c of candidates) if (MR.isTypeSupported(c.mime)) return c;
+    }
+    return { mime: "", ext: "m4a" }; // let the browser pick its default
+  }
+
+  const mimeRef = useRef<{ mime: string; ext: string }>({ mime: "", ext: "webm" });
+
   async function start() {
     try {
+      if (typeof MediaRecorder === "undefined") {
+        toast.error("Voice notes aren't supported in this browser.");
+        return;
+      }
+      if (!navigator.mediaDevices?.getUserMedia) {
+        toast.error("Microphone unavailable on this device.");
+        return;
+      }
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
-      const mime = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
-        ? "audio/webm;codecs=opus"
-        : "audio/webm";
-      const rec = new MediaRecorder(stream, { mimeType: mime });
+      const picked = pickMime();
+      mimeRef.current = picked;
+      const rec = picked.mime
+        ? new MediaRecorder(stream, { mimeType: picked.mime })
+        : new MediaRecorder(stream);
       chunksRef.current = [];
       rec.ondataavailable = (e) => e.data.size > 0 && chunksRef.current.push(e.data);
       rec.onstop = () => {
-        blobRef.current = new Blob(chunksRef.current, { type: mime });
+        const type = rec.mimeType || picked.mime || "audio/mp4";
+        blobRef.current = new Blob(chunksRef.current, { type });
       };
       rec.start();
       recRef.current = rec;
@@ -85,8 +115,18 @@ export function VoiceRecorder({
       analyserRef.current = analyser;
       rafRef.current = requestAnimationFrame(tickAnalyser);
     } catch (err: any) {
-      toast.error(err?.message ?? "Microphone permission denied");
+      const msg =
+        err?.name === "NotAllowedError"
+          ? "Microphone permission denied."
+          : err?.name === "NotFoundError"
+          ? "No microphone found."
+          : err?.name === "NotSupportedError"
+          ? "This browser can't record voice notes."
+          : err?.message ?? "Couldn't start recording";
+      toast.error(msg);
       setRecording(false);
+      streamRef.current?.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
     }
   }
 
@@ -127,7 +167,7 @@ export function VoiceRecorder({
     }
     setBusy(true);
     try {
-      const path = await uploadChatMedia(blobRef.current, userId, "voice", "webm");
+      const path = await uploadChatMedia(blobRef.current, userId, "voice", mimeRef.current.ext || "webm");
       await onSend(path, ms);
     } catch (err: any) {
       toast.error(err?.message ?? "Could not send voice note");

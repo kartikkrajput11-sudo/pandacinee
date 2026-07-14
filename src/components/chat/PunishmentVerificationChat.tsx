@@ -280,7 +280,7 @@ export function PunishmentVerificationChat({ lock, meId, partnerName, iAmLocked,
           </div>
 
           {voiceOpen && (
-            <div className="mt-2 flex justify-center">
+            <div className="mt-2 w-full rounded-2xl border border-petal/40 bg-petal-soft/20 p-2 flex items-stretch">
               <VoiceRecorder userId={meId} onSend={handleVoice} />
             </div>
           )}
