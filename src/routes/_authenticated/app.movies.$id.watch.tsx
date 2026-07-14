@@ -329,6 +329,16 @@ function WatchMovie() {
         <div className="flex-1 min-w-0">
           <p className="text-[10px] uppercase tracking-[0.3em] text-petal flex items-center gap-1.5">
             <Radio className="size-3 animate-pulse" /> Now Screening
+            {iAmHost && (
+              <span className="ml-2 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-petal text-velvet text-[9px] font-bold">
+                <Crown className="size-2.5" /> HOSTING
+              </span>
+            )}
+            {partnerIsHost && (
+              <span className="ml-2 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-petal/20 border border-petal/40 text-petal text-[9px] font-bold">
+                <Crown className="size-2.5" /> FOLLOWING
+              </span>
+            )}
           </p>
           <h1 className="font-serif text-lg md:text-2xl italic truncate text-candle">
             {movie?.title ?? "Loading…"}
