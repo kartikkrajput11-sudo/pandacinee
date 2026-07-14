@@ -2,27 +2,34 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { PunishmentLock, PunishmentType } from "@/lib/punishment";
 
+// Cast helper — table types are regenerated after the migration runs.
+const db = supabase as unknown as {
+  from: (t: string) => any;
+  channel: (n: string) => any;
+  removeChannel: (c: any) => void;
+};
+
 export function usePunishmentLock(meId: string | null, peerId: string | null) {
   const [locks, setLocks] = useState<PunishmentLock[]>([]);
-  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const channelRef = useRef<any>(null);
 
   useEffect(() => {
     if (!meId || !peerId) return;
     let cancelled = false;
 
     (async () => {
-      const { data } = await supabase
-        .from("punishment_locks" as never)
+      const { data } = await db
+        .from("punishment_locks")
         .select("*")
         .or(
           `and(locker_id.eq.${meId},target_id.eq.${peerId}),and(locker_id.eq.${peerId},target_id.eq.${meId})`,
         )
         .order("created_at", { ascending: false })
         .limit(20);
-      if (!cancelled && data) setLocks(data as unknown as PunishmentLock[]);
+      if (!cancelled && data) setLocks(data as PunishmentLock[]);
     })();
 
-    const ch = supabase.channel(`punish:${[meId, peerId].sort().join(":")}`);
+    const ch = db.channel(`punish:${[meId, peerId].sort().join(":")}`);
     const applyRow = (row: PunishmentLock) => {
       const involvesPair =
         (row.locker_id === meId && row.target_id === peerId) ||
@@ -36,12 +43,12 @@ export function usePunishmentLock(meId: string | null, peerId: string | null) {
     ch.on(
       "postgres_changes",
       { event: "*", schema: "public", table: "punishment_locks" },
-      (payload) => {
+      (payload: any) => {
         if (payload.eventType === "DELETE") {
           const old = payload.old as { id: string };
           setLocks((prev) => prev.filter((x) => x.id !== old.id));
         } else {
-          applyRow(payload.new as unknown as PunishmentLock);
+          applyRow(payload.new as PunishmentLock);
         }
       },
     );
@@ -50,7 +57,7 @@ export function usePunishmentLock(meId: string | null, peerId: string | null) {
 
     return () => {
       cancelled = true;
-      supabase.removeChannel(ch);
+      db.removeChannel(ch);
       channelRef.current = null;
     };
   }, [meId, peerId]);
@@ -66,24 +73,15 @@ export function usePunishmentLock(meId: string | null, peerId: string | null) {
     );
   }, [locks]);
 
-  // Auto-expire client-side
   useEffect(() => {
     if (!activeLock?.expires_at) return;
     const remaining = new Date(activeLock.expires_at).getTime() - Date.now();
     if (remaining <= 0) {
-      supabase
-        .from("punishment_locks" as never)
-        .update({ status: "expired" })
-        .eq("id", activeLock.id)
-        .then();
+      db.from("punishment_locks").update({ status: "expired" }).eq("id", activeLock.id).then(() => {});
       return;
     }
     const t = window.setTimeout(() => {
-      supabase
-        .from("punishment_locks" as never)
-        .update({ status: "expired" })
-        .eq("id", activeLock.id)
-        .then();
+      db.from("punishment_locks").update({ status: "expired" }).eq("id", activeLock.id).then(() => {});
     }, remaining + 200);
     return () => window.clearTimeout(t);
   }, [activeLock?.id, activeLock?.expires_at]);
@@ -102,7 +100,7 @@ export function usePunishmentLock(meId: string | null, peerId: string | null) {
       const expires_at = input.max_duration_seconds
         ? new Date(Date.now() + input.max_duration_seconds * 1000).toISOString()
         : null;
-      const { error } = await (supabase as any).from("punishment_locks").insert({
+      const { error } = await db.from("punishment_locks").insert({
         locker_id: meId,
         target_id: peerId,
         type: input.type,
@@ -110,40 +108,39 @@ export function usePunishmentLock(meId: string | null, peerId: string | null) {
         required_count: input.required_count,
         max_duration_seconds: input.max_duration_seconds,
         expires_at,
-      } as never);
+      });
       if (error) throw error;
     },
     [meId, peerId],
   );
 
-  const incrementProgress = useCallback(async (lockId: string, current: number, next: number) => {
-    const { data, error } = await supabase
-      .from("punishment_locks" as never)
-      .update({ progress: next })
-      .eq("id", lockId)
-      .eq("progress", current)
-      .select()
-      .maybeSingle();
-    if (error) throw error;
-    return data as unknown as PunishmentLock | null;
-  }, []);
+  const incrementProgress = useCallback(
+    async (lockId: string, current: number, next: number) => {
+      const { data, error } = await db
+        .from("punishment_locks")
+        .update({ progress: next })
+        .eq("id", lockId)
+        .eq("progress", current)
+        .select()
+        .maybeSingle();
+      if (error) throw error;
+      return (data as PunishmentLock | null) ?? null;
+    },
+    [],
+  );
 
   const completeLock = useCallback(async (lockId: string) => {
-    await supabase
-      .from("punishment_locks" as never)
+    await db
+      .from("punishment_locks")
       .update({ status: "completed", completed_at: new Date().toISOString() })
       .eq("id", lockId);
-    // Auto-cleanup after a delay so the row doesn't clutter
     window.setTimeout(() => {
-      (supabase as any).from("punishment_locks").delete().eq("id", lockId).then();
+      db.from("punishment_locks").delete().eq("id", lockId).then(() => {});
     }, 30000);
   }, []);
 
   const cancelLock = useCallback(async (lockId: string) => {
-    await supabase
-      .from("punishment_locks" as never)
-      .update({ status: "cancelled" })
-      .eq("id", lockId);
+    await db.from("punishment_locks").update({ status: "cancelled" }).eq("id", lockId);
   }, []);
 
   return {
