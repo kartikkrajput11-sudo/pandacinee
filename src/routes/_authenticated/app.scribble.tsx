@@ -497,17 +497,29 @@ function Scribble() {
     const text = guess.trim();
     setGuess("");
     const name = me.display_name ?? "You";
+    const secret = wordRef.current;
+    // Debug — helps diagnose validation issues in the console.
+    // eslint-disable-next-line no-console
+    console.log("[scribble] guess submitted", {
+      received: text,
+      currentSecretWord: secret,
+      playerId: me.id,
+      drawerId: drawerIdRef.current,
+      match: secret ? guessesMatch(text, secret) : "no-word-yet",
+    });
     if (tryMatch(me.id, name, text, true)) return;
+    // Wrong (or word not yet synced): show private feedback to this player only.
+    toast.error("❌ Wrong guess. Try again.");
     const msg: Msg = { id: crypto.randomUUID(), by: me.id, name, text };
     setMessages((m) => [...m, msg]);
     chRef.current?.send({ type: "broadcast", event: "guess", payload: msg });
-    // Force an un-throttled guess-live so the drawer can validate this exact submission.
+    // Force an un-throttled guess-live so the drawer can validate this exact submission
+    // as a fallback in case the guesser never received the word (e.g. joined mid-round).
     chRef.current?.send({
       type: "broadcast",
       event: "guess-live",
       payload: { by: me.id, name, text },
     });
-    // Drawer will broadcast "correct" back if it matches; nothing else to do locally.
   }
 
 
