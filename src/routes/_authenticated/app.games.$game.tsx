@@ -369,7 +369,12 @@ function TruthOrDare({ me, session, patch }: { me: string; session: Session; pat
 
   async function next() {
     const c = await fetchCard(s.intensity ?? "playful");
-    patch({ ...s, count: (s.count ?? 0) + 1, card: c ?? TRUTH_OR_DARE[(s.count + 1) % TRUTH_OR_DARE.length] });
+    const history = [...(s.history ?? []), card].slice(-20);
+    patch({ ...s, count: (s.count ?? 0) + 1, card: c ?? TRUTH_OR_DARE[(s.count + 1) % TRUTH_OR_DARE.length], history });
+  }
+  async function skip() {
+    const c = await fetchCard(s.intensity ?? "playful");
+    patch({ ...s, card: c ?? TRUTH_OR_DARE[(s.count + 1) % TRUTH_OR_DARE.length] });
   }
 
   return (
@@ -380,15 +385,25 @@ function TruthOrDare({ me, session, patch }: { me: string; session: Session; pat
         <p className="font-serif text-2xl italic leading-snug">{card.text}</p>
         <p className="text-[10px] text-candle-muted">Card {(s.count ?? 0) + 1}</p>
       </div>
-      <button
-        onClick={next}
-        disabled={loading}
-        className="w-full py-3.5 bg-petal text-velvet rounded-2xl font-semibold flex items-center justify-center gap-2 disabled:opacity-60"
-      >
-        {loading ? <Sparkles className="size-4 animate-pulse" /> : <RefreshCw className="size-4" />}
-        {loading ? "Crafting…" : "Next card"}
-      </button>
+      <div className="flex gap-2">
+        <button
+          onClick={skip}
+          disabled={loading}
+          className="rounded-2xl bg-surface border border-border px-4 py-3.5 text-sm text-candle flex items-center gap-2 disabled:opacity-60"
+        >
+          <SkipForward className="size-4" /> Skip
+        </button>
+        <button
+          onClick={next}
+          disabled={loading}
+          className="flex-1 py-3.5 bg-petal text-velvet rounded-2xl font-semibold flex items-center justify-center gap-2 disabled:opacity-60"
+        >
+          {loading ? <Sparkles className="size-4 animate-pulse" /> : <RefreshCw className="size-4" />}
+          {loading ? "Crafting…" : "Next card"}
+        </button>
+      </div>
       <p className="text-xs text-candle-muted text-center mt-3">Both phones flip together.</p>
+      <HistoryStrip items={(s.history ?? []).map((h: any) => `${h.type}: ${h.text}`)} />
     </div>
   );
 }
