@@ -175,7 +175,7 @@ function Movies() {
           <p className="text-sm text-candle-muted text-center mt-10">No movies found.</p>
         ) : (
           <div className="grid grid-cols-3 gap-3">
-            {searchResults.map((m) => (
+            {overlay(searchResults).map((m) => (
               <MovieCard key={m.id} id={m.id} title={m.title} poster_path={m.poster_path} vote_average={m.vote_average} />
             ))}
           </div>
