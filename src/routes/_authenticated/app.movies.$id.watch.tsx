@@ -560,14 +560,6 @@ function WatchMovie() {
           </h1>
         </div>
         <button
-          onClick={() => setCinemaMode((v) => !v)}
-          className={`size-9 rounded-full backdrop-blur border flex items-center justify-center transition ${cinemaMode ? "bg-petal text-velvet border-petal" : "bg-surface/70 border-border text-candle"}`}
-          aria-label="Cinema mode"
-          title="Cinema mode"
-        >
-          <Moon className="size-4" />
-        </button>
-        <button
           onClick={openFullscreen}
           className="size-9 rounded-full bg-surface/70 backdrop-blur border border-border flex items-center justify-center text-candle"
           aria-label="Fullscreen"
@@ -578,7 +570,7 @@ function WatchMovie() {
 
       <div className="px-3 md:px-5 max-w-6xl mx-auto">
         {/* Partner sync bar */}
-        {partner && !cinemaMode && (
+        {partner && (
           <div className="mb-3 rounded-2xl border border-border bg-surface/60 backdrop-blur px-3 py-2.5 flex items-center gap-3">
             <div className="relative shrink-0">
               {partner.avatar_url ? (
