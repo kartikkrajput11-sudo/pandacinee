@@ -1023,6 +1023,31 @@ function MovieModal({ initial, onClose }: { initial?: CustomMovie | null; onClos
             </p>
           </div>
 
+          {/* Episodes manager — only for TV series */}
+          {mediaType === "tv" && (
+            <div className="rounded-2xl bg-velvet border border-border p-3 space-y-2">
+              <div className="flex items-center gap-1.5">
+                <Clapperboard className="size-3.5 text-petal" />
+                <label className="text-[10px] uppercase tracking-widest text-petal">
+                  Episodes — edit by season & number
+                </label>
+              </div>
+              {!existingId ? (
+                <p className="text-xs text-candle-muted">
+                  Save this show first — then episodes will appear here so you can edit them one by one.
+                </p>
+              ) : !tmdbId ? (
+                <p className="text-xs text-candle-muted">
+                  Add a TMDB TV ID above so seasons and episode metadata can load automatically.
+                </p>
+              ) : (
+                <EpisodesPanel movieId={existingId} tmdbId={tmdbId} compact />
+              )}
+            </div>
+          )}
+
+
+
 
 
           <div>
