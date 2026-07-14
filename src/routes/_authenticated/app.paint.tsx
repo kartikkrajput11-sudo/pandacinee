@@ -736,7 +736,7 @@ function PaintTogether() {
             {STAMPS.map((s) => (
               <button
                 key={s}
-                onClick={() => { setStampMode(s); setErase(false); setStampsOpen(false); }}
+                onClick={() => { setStampMode(s); setErase(false); setShapeMode(null); setStampsOpen(false); }}
                 className={`size-9 rounded-xl text-xl flex items-center justify-center hover:bg-petal-soft ${stampMode === s ? "bg-petal-soft ring-2 ring-petal" : ""}`}
               >
                 {s}
