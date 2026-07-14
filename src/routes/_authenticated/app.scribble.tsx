@@ -74,6 +74,7 @@ function Scribble() {
   const [revealed, setRevealed] = useState<Set<number>>(new Set());
   const [targetScore, setTargetScore] = useState<number>(5);
   const [winnerId, setWinnerId] = useState<string | null>(null);
+  const [hintMask, setHintMask] = useState<string>("");
 
   const chRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const wordRef = useRef<string | null>(null);
@@ -157,11 +158,12 @@ function Scribble() {
       redraw();
     });
     ch.on("broadcast", { event: "round" }, ({ payload }) => {
-      const p = payload as { drawerId: string; endsAt: number; wordLen: number; seconds: number };
+      const p = payload as { drawerId: string; endsAt: number; wordLen: number; seconds: number; mask: string };
       setDrawerId(p.drawerId);
       setEndsAt(p.endsAt);
       setRoundSeconds(p.seconds);
       setWordLen(p.wordLen);
+      setHintMask(p.mask);
       setPhase("playing");
       setRevealed(new Set());
       setMessages([]);
@@ -214,6 +216,7 @@ function Scribble() {
       setEndsAt(null);
       // Reveal the word to the drawer's UI too
       setWord(p.word);
+      setHintMask(p.word);
       if (p.by !== me.id) toast.success(`${p.name} guessed “${p.word}”! Their turn to draw.`);
       else {
         // I'm the winner (auto-detected by drawer) — auto-start next round.
@@ -223,12 +226,13 @@ function Scribble() {
         setTimeout(() => {
           const [next] = pick4(new Set([p.word]));
           if (next) confirmWord(next);
-        }, 1400);
+        }, 400);
       }
     });
     ch.on("broadcast", { event: "reveal" }, ({ payload }) => {
-      const p = payload as { indices: number[] };
+      const p = payload as { indices: number[]; mask: string };
       setRevealed(new Set(p.indices));
+      if (p.mask) setHintMask(p.mask);
     });
     ch.subscribe();
     chRef.current = ch;
@@ -268,7 +272,11 @@ function Scribble() {
         const pickIdx = hidden[Math.floor(Math.random() * hidden.length)];
         const next = new Set(cur);
         next.add(pickIdx);
-        chRef.current?.send({ type: "broadcast", event: "reveal", payload: { indices: [...next] } });
+        const mask = word
+          .split("")
+          .map((ch, i) => (ch === " " ? " " : next.has(i) ? ch : "•"))
+          .join("");
+        chRef.current?.send({ type: "broadcast", event: "reveal", payload: { indices: [...next], mask } });
         return next;
       });
     }, 1000);
@@ -318,10 +326,12 @@ function Scribble() {
     setPhase("playing");
     setRevealed(new Set());
     setMessages([]);
+    const initialMask = w.split("").map((ch) => (ch === " " ? " " : "•")).join("");
+    setHintMask(initialMask);
     chRef.current?.send({
       type: "broadcast",
       event: "round",
-      payload: { drawerId: me.id, endsAt: ends, wordLen: w.length, seconds: roundSeconds },
+      payload: { drawerId: me.id, endsAt: ends, wordLen: w.length, seconds: roundSeconds, mask: initialMask },
     });
     chRef.current?.send({ type: "broadcast", event: "clear", payload: {} });
   }
@@ -365,15 +375,13 @@ function Scribble() {
 
   const hintDisplay = useMemo(() => {
     if (!wordLen) return "";
-    // Guesser view: word with revealed letters filled from actual word (received via wordLen only)
-    // We only know length + revealed indices; use the actual word if drawer, else masked pattern
-    if (iAmDrawer && word) return maskWord(word, new Set(Array.from({ length: word.length }, (_, i) => i)));
-    // For guesser we don't know letters — just show length with any revealed letters (drawer sends indices, not letters).
-    // To reveal actual letters we'd need to send letters; keep it simple: reveal count only.
-    const total = wordLen;
-    const shown = revealed.size;
-    return `${"•".repeat(total)}  (${shown}/${total} letters hinted)`;
-  }, [iAmDrawer, word, wordLen, revealed]);
+    // Drawer sees the full word; guesser sees the shared mask (letters revealed as the drawer ticks).
+    const source = iAmDrawer && word ? word : hintMask;
+    return source
+      .split("")
+      .map((ch) => (ch === " " ? "  " : ch))
+      .join(" ");
+  }, [iAmDrawer, word, wordLen, hintMask]);
 
   // My turn to start (swap roles): if there is a lastDrawer and it's me, wait for partner.
   const myTurnToStart = !partner || lastDrawerId !== me?.id;
