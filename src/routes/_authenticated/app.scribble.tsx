@@ -76,7 +76,9 @@ function Scribble() {
   const [winnerId, setWinnerId] = useState<string | null>(null);
 
   const chRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const wordRef = useRef<string | null>(null);
   const iAmDrawer = drawerId === me?.id;
+  useEffect(() => { wordRef.current = word; }, [word]);
   const remaining = endsAt ? Math.max(0, Math.ceil((endsAt - now) / 1000)) : 0;
 
   function redraw() {
