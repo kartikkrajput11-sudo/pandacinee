@@ -140,6 +140,12 @@ function CatalogWatch({ id }: { id: string }) {
   const tvDetailFn = useServerFn(tmdbTvDetail);
   const tvSeasonFn = useServerFn(tmdbTvSeason);
 
+  const syncRoomId = customMovieId
+    ? `custom:${customMovieId}${isTv ? `:s${season}:e${episode}` : ""}`
+    : isTv
+      ? `tmdb:${tmdbId}:s${season}:e${episode}`
+      : `tmdb:${tmdbId}`;
+
 
   const {
     mine,
@@ -159,7 +165,7 @@ function CatalogWatch({ id }: { id: string }) {
     claimHost,
     releaseHost,
     drift,
-  } = useWatchSync(me?.id ?? null, partner?.id ?? null, tmdbId, "movie");
+  } = useWatchSync(me?.id ?? null, partner?.id ?? null, syncRoomId, isTv ? "tv" : "movie");
 
   const iAmHost = !!me && hostId === me.id;
   const partnerIsHost = !!partner && hostId === partner.id;
