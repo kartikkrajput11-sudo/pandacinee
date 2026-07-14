@@ -501,7 +501,7 @@ function CatalogWatch({ id }: { id: string }) {
     }
   }, [peer, partnerIsHost, me, mine.currentTime, applySeek, partner, isPandacine, started, customPlayerReady, runSuppressedPlayerAction]);
 
-  async function sendWatchInviteMessage(receiverId: string) {
+  async function sendWatchInviteMessage(receiverId: string, extra?: Record<string, unknown>) {
     if (!me || !movie) return { error: new Error("Missing data") };
     const media_meta = {
       tmdb_id: Number(tmdbId),
@@ -510,6 +510,7 @@ function CatalogWatch({ id }: { id: string }) {
       release_date: movie.release_date ?? movie.first_air_date ?? null,
       vote_average: movie.vote_average ?? null,
       overview: movie.overview ?? null,
+      ...(extra ?? {}),
     };
     return await supabase.from("messages").insert({
       sender_id: me.id,
@@ -530,13 +531,25 @@ function CatalogWatch({ id }: { id: string }) {
 
   async function inviteFriend(friendId: string, friendName: string) {
     if (!me || !movie) return;
-    const { error } = await sendWatchInviteMessage(friendId);
+    // Embed `with: me.id` so when the friend opens the invite, their watch
+    // page joins the same sync room keyed to this pair (not their partner).
+    const { error } = await sendWatchInviteMessage(friendId, { with: me.id });
     if (error) { toast.error(error.message); return; }
     const first = friendName.split(" ")[0];
     toast.success(`Invite sent — waiting for ${first} 🍿`);
     setFriendPickerOpen(false);
     setWaitingFor({ id: friendId, name: first });
+    // Move sender into the same shared room so both sides sync on this friend.
+    if (!realPartner || realPartner.id !== friendId) {
+      navigate({
+        to: "/app/movies/$id/watch",
+        params: { id: String(tmdbId) },
+        search: (prev) => ({ ...prev, with: friendId }),
+        replace: true,
+      });
+    }
   }
+
 
 
 
