@@ -6,11 +6,13 @@ import {
   ArrowLeft, ShieldCheck, Plus, Film, Trash2, Upload, Play, X, Loader2,
   Users, MessageSquare, Activity as ActivityIcon, LayoutDashboard, RefreshCw,
   Heart, Smile, Sparkles, Gamepad2, Gift, Lock, UserPlus, Clapperboard, Circle,
+  Pencil, Search,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
-import { claimAdmin, createCustomMovie, deleteCustomMovie } from "@/lib/admin.functions";
+import { claimAdmin, createCustomMovie, updateCustomMovie, deleteCustomMovie } from "@/lib/admin.functions";
+import { tmdbSearch, tmdbMovie, type TmdbMovie } from "@/lib/tmdb.functions";
 import { getAdminStats, getRecentActivity, getAdminUsers, deleteAdminUser, type ActivityItem, type AdminUserRow } from "@/lib/admin-stats.functions";
 
 export const Route = createFileRoute("/_authenticated/app/tamanna")({
@@ -496,6 +498,8 @@ function UserRow({ user: u }: { user: AdminUserRow }) {
 function LibraryTab() {
   const qc = useQueryClient();
   const [adding, setAdding] = useState(false);
+  const [editing, setEditing] = useState<CustomMovie | null>(null);
+  const [query, setQuery] = useState("");
   const del = useServerFn(deleteCustomMovie);
 
   const { data: movies, isLoading } = useQuery({
@@ -506,6 +510,17 @@ function LibraryTab() {
       return (data ?? []) as CustomMovie[];
     },
   });
+
+  const filtered = useMemo(() => {
+    if (!movies) return [];
+    const s = query.trim().toLowerCase();
+    if (!s) return movies;
+    return movies.filter((m) =>
+      m.title.toLowerCase().includes(s) ||
+      (m.genres ?? []).some((g) => g.toLowerCase().includes(s)) ||
+      String(m.year ?? "").includes(s),
+    );
+  }, [movies, query]);
 
   async function onDelete(m: CustomMovie) {
     if (!confirm(`Delete "${m.title}"? This cannot be undone.`)) return;
@@ -523,15 +538,25 @@ function LibraryTab() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-wrap items-center gap-2 mb-4">
         <p className="text-[10px] uppercase tracking-widest text-candle-muted">
-          {movies?.length ?? 0} movies in your private library
+          {movies?.length ?? 0} titles in library
         </p>
+        <div className="flex-1" />
+        <div className="relative">
+          <Search className="size-3.5 text-candle-muted absolute left-3 top-1/2 -translate-y-1/2" />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search library…"
+            className="h-9 pl-8 pr-3 rounded-full bg-surface border border-border text-xs text-candle w-40 sm:w-56 focus:outline-none focus:border-petal/60"
+          />
+        </div>
         <button
           onClick={() => setAdding(true)}
           className="h-10 px-4 rounded-full bg-petal text-velvet text-sm font-semibold flex items-center gap-1.5"
         >
-          <Plus className="size-4" /> Add movie
+          <Plus className="size-4" /> Add
         </button>
       </div>
 
@@ -540,16 +565,16 @@ function LibraryTab() {
       {!isLoading && (!movies || movies.length === 0) && (
         <div className="text-center py-16 rounded-3xl border border-dashed border-border">
           <Film className="size-8 text-petal mx-auto mb-3" />
-          <h2 className="font-serif italic text-xl mb-1">No custom movies yet</h2>
-          <p className="text-sm text-candle-muted mb-4">Add your first movie to watch together with full sync.</p>
+          <h2 className="font-serif italic text-xl mb-1">No titles yet</h2>
+          <p className="text-sm text-candle-muted mb-4">Search TMDB or upload a video to add your first title.</p>
           <button onClick={() => setAdding(true)} className="h-10 px-5 rounded-full bg-petal text-velvet text-sm font-semibold">
-            Add movie
+            Add title
           </button>
         </div>
       )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {movies?.map((m) => (
+        {filtered.map((m) => (
           <div key={m.id} className="rounded-2xl border border-border bg-surface overflow-hidden flex">
             <div className="w-24 shrink-0 bg-velvet">
               {m.poster_url ? (
@@ -562,7 +587,7 @@ function LibraryTab() {
               <p className="font-serif italic text-base truncate">{m.title}</p>
               <p className="text-[10px] text-candle-muted">{m.year ?? "—"} · {m.runtime ? `${m.runtime}m` : "unknown"}</p>
               <p className="text-xs text-candle-muted mt-1 line-clamp-2">{m.overview ?? "No description."}</p>
-              <div className="mt-auto pt-2 flex gap-2">
+              <div className="mt-auto pt-2 flex gap-2 flex-wrap">
                 <Link
                   to="/app/movies/$id/watch"
                   params={{ id: `custom:${m.id}` }}
@@ -571,8 +596,14 @@ function LibraryTab() {
                   <Play className="size-3 fill-velvet" /> Watch
                 </Link>
                 <button
+                  onClick={() => setEditing(m)}
+                  className="h-8 px-3 rounded-full bg-surface-elevated border border-border text-xs text-candle flex items-center gap-1 hover:border-petal/40"
+                >
+                  <Pencil className="size-3" /> Edit
+                </button>
+                <button
                   onClick={() => onDelete(m)}
-                  className="h-8 px-3 rounded-full bg-surface-elevated border border-border text-xs text-candle-muted flex items-center gap-1"
+                  className="h-8 px-3 rounded-full bg-surface-elevated border border-border text-xs text-rose-400 flex items-center gap-1 hover:border-rose-500/40"
                 >
                   <Trash2 className="size-3" /> Delete
                 </button>
@@ -582,7 +613,16 @@ function LibraryTab() {
         ))}
       </div>
 
-      {adding && <AddMovieModal onClose={() => { setAdding(false); qc.invalidateQueries({ queryKey: ["custom-movies"] }); }} />}
+      {(adding || editing) && (
+        <MovieModal
+          initial={editing}
+          onClose={() => {
+            setAdding(false);
+            setEditing(null);
+            qc.invalidateQueries({ queryKey: ["custom-movies"] });
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -597,20 +637,24 @@ function Skeleton() {
   );
 }
 
-function AddMovieModal({ onClose }: { onClose: () => void }) {
+function MovieModal({ initial, onClose }: { initial?: CustomMovie | null; onClose: () => void }) {
+  const isEdit = !!initial;
   const create = useServerFn(createCustomMovie);
+  const update = useServerFn(updateCustomMovie);
+  const searchTmdb = useServerFn(tmdbSearch);
+  const getTmdb = useServerFn(tmdbMovie);
   const fileRef = useRef<HTMLInputElement>(null);
   const uploadRef = useRef<any>(null);
-  const [title, setTitle] = useState("");
-  const [year, setYear] = useState<string>("");
-  const [runtime, setRuntime] = useState<string>("");
-  const [overview, setOverview] = useState("");
-  const [poster, setPoster] = useState("");
-  const [backdrop, setBackdrop] = useState("");
-  const [genres, setGenres] = useState("");
-  const [videoUrl, setVideoUrl] = useState("");
-  const [videoPath, setVideoPath] = useState<string | null>(null);
-  const [videoFileName, setVideoFileName] = useState<string | null>(null);
+  const [title, setTitle] = useState(initial?.title ?? "");
+  const [year, setYear] = useState<string>(initial?.year != null ? String(initial.year) : "");
+  const [runtime, setRuntime] = useState<string>(initial?.runtime != null ? String(initial.runtime) : "");
+  const [overview, setOverview] = useState(initial?.overview ?? "");
+  const [poster, setPoster] = useState(initial?.poster_url ?? "");
+  const [backdrop, setBackdrop] = useState(initial?.backdrop_url ?? "");
+  const [genres, setGenres] = useState((initial?.genres ?? []).join(", "));
+  const [videoUrl, setVideoUrl] = useState(initial?.video_url ?? "");
+  const [videoPath, setVideoPath] = useState<string | null>(initial?.video_storage_path ?? null);
+  const [videoFileName, setVideoFileName] = useState<string | null>(initial?.video_storage_path ?? null);
   const [videoFileSize, setVideoFileSize] = useState<number>(0);
   const [uploading, setUploading] = useState(false);
   const [uploadPct, setUploadPct] = useState(0);
@@ -619,9 +663,46 @@ function AddMovieModal({ onClose }: { onClose: () => void }) {
   const [uploadErr, setUploadErr] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
+  // TMDB autofill search
+  const [tmdbQ, setTmdbQ] = useState("");
+  const [tmdbLoading, setTmdbLoading] = useState(false);
+  const [tmdbResults, setTmdbResults] = useState<TmdbMovie[]>([]);
+
+  async function runTmdbSearch() {
+    const q = tmdbQ.trim();
+    if (!q) return;
+    setTmdbLoading(true);
+    try {
+      const r = await searchTmdb({ data: { q } });
+      setTmdbResults(r.slice(0, 8));
+    } catch {
+      toast.error("TMDB search failed");
+    } finally {
+      setTmdbLoading(false);
+    }
+  }
+
+  async function pickTmdb(m: TmdbMovie) {
+    setTitle(m.title);
+    setOverview(m.overview ?? "");
+    setYear(m.release_date ? m.release_date.slice(0, 4) : "");
+    if (m.poster_path) setPoster(`https://image.tmdb.org/t/p/w500${m.poster_path}`);
+    if (m.backdrop_path) setBackdrop(`https://image.tmdb.org/t/p/w1280${m.backdrop_path}`);
+    setTmdbResults([]);
+    setTmdbQ("");
+    try {
+      const detail: any = await getTmdb({ data: { id: m.id } });
+      if (detail?.runtime) setRuntime(String(detail.runtime));
+      if (Array.isArray(detail?.genres)) {
+        setGenres(detail.genres.map((g: any) => g.name).filter(Boolean).join(", "));
+      }
+    } catch { /* ignore */ }
+    toast.success(`Autofilled from TMDB · ${m.title}`);
+  }
+
   const canSave = useMemo(
-    () => title.trim().length > 0 && (videoUrl.trim() || videoPath) && !uploading,
-    [title, videoUrl, videoPath, uploading],
+    () => title.trim().length > 0 && (isEdit || videoUrl.trim() || videoPath) && !uploading,
+    [title, videoUrl, videoPath, uploading, isEdit],
   );
 
   async function uploadFile(file: File) {
@@ -721,20 +802,24 @@ function AddMovieModal({ onClose }: { onClose: () => void }) {
     if (!canSave) return;
     setSaving(true);
     try {
-      await create({
-        data: {
-          title: title.trim(),
-          year: year ? Number(year) : null,
-          runtime: runtime ? Number(runtime) : null,
-          overview: overview.trim() || null,
-          poster_url: poster.trim() || null,
-          backdrop_url: backdrop.trim() || null,
-          genres: genres.split(",").map((g) => g.trim()).filter(Boolean).slice(0, 20),
-          video_url: videoUrl.trim() || null,
-          video_storage_path: videoPath,
-        },
-      });
-      toast.success("Movie added");
+      const payload = {
+        title: title.trim(),
+        year: year ? Number(year) : null,
+        runtime: runtime ? Number(runtime) : null,
+        overview: overview.trim() || null,
+        poster_url: poster.trim() || null,
+        backdrop_url: backdrop.trim() || null,
+        genres: genres.split(",").map((g) => g.trim()).filter(Boolean).slice(0, 20),
+        video_url: videoUrl.trim() || null,
+        video_storage_path: videoPath,
+      };
+      if (isEdit && initial) {
+        await update({ data: { id: initial.id, ...payload } });
+        toast.success("Updated");
+      } else {
+        await create({ data: payload });
+        toast.success("Movie added");
+      }
       onClose();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Save failed");
@@ -747,8 +832,53 @@ function AddMovieModal({ onClose }: { onClose: () => void }) {
     <div className="fixed inset-0 z-50 bg-velvet/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-3">
       <div className="w-full max-w-lg max-h-[92vh] overflow-y-auto rounded-3xl bg-surface border border-border p-5 animate-fade-up">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-serif italic text-2xl">Add movie</h2>
+          <h2 className="font-serif italic text-2xl">{isEdit ? "Edit title" : "Add title"}</h2>
           <button onClick={onClose} className="size-9 rounded-full bg-surface-elevated flex items-center justify-center"><X className="size-4" /></button>
+        </div>
+
+        {/* TMDB autofill */}
+        <div className="mb-4 rounded-2xl bg-velvet border border-border p-3">
+          <label className="block text-[10px] uppercase tracking-widest text-petal mb-2 flex items-center gap-1.5">
+            <Search className="size-3" /> Autofill from TMDB / IMDb
+          </label>
+          <div className="flex gap-2">
+            <input
+              value={tmdbQ}
+              onChange={(e) => setTmdbQ(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); runTmdbSearch(); } }}
+              placeholder="Search a movie or show…"
+              className="flex-1 h-10 px-3 rounded-full bg-surface border border-border text-sm text-candle focus:outline-none focus:border-petal/60"
+            />
+            <button
+              onClick={runTmdbSearch}
+              disabled={!tmdbQ.trim() || tmdbLoading}
+              className="h-10 px-4 rounded-full bg-petal text-velvet text-xs font-bold disabled:opacity-50 flex items-center gap-1"
+            >
+              {tmdbLoading ? <Loader2 className="size-3 animate-spin" /> : <Search className="size-3" />}
+              Search
+            </button>
+          </div>
+          {tmdbResults.length > 0 && (
+            <div className="mt-2 max-h-48 overflow-y-auto space-y-1">
+              {tmdbResults.map((m) => (
+                <button
+                  key={m.id}
+                  onClick={() => pickTmdb(m)}
+                  className="w-full flex items-center gap-2 p-1.5 rounded-lg hover:bg-petal/10 text-left transition-colors"
+                >
+                  {m.poster_path ? (
+                    <img src={`https://image.tmdb.org/t/p/w92${m.poster_path}`} alt="" className="w-8 h-12 rounded object-cover" />
+                  ) : (
+                    <div className="w-8 h-12 rounded bg-surface flex items-center justify-center"><Film className="size-3 text-candle-muted" /></div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-candle truncate">{m.title}</p>
+                    <p className="text-[10px] text-candle-muted">{m.release_date?.slice(0, 4) ?? "—"} · ★ {m.vote_average?.toFixed(1) ?? "—"}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="space-y-3">
@@ -841,7 +971,7 @@ function AddMovieModal({ onClose }: { onClose: () => void }) {
             disabled={!canSave || saving}
             className="flex-1 h-11 rounded-full bg-petal text-velvet font-semibold text-sm disabled:opacity-50"
           >
-            {saving ? "Saving…" : "Add movie"}
+            {saving ? "Saving…" : isEdit ? "Save changes" : "Add movie"}
           </button>
         </div>
       </div>
