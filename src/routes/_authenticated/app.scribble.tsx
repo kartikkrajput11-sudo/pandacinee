@@ -48,7 +48,30 @@ function maskWord(word: string, revealed: Set<number>) {
 }
 
 function normalizeGuessText(text: string) {
-  return text.trim().toLowerCase().replace(/\s+/g, " ");
+  return text
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s]/gu, "") // strip punctuation
+    .trim()
+    .replace(/\s+/g, " ");
+}
+
+// Case-insensitive, punctuation-insensitive, allow common singular/plural swap.
+function guessesMatch(guess: string, secret: string) {
+  const g = normalizeGuessText(guess);
+  const s = normalizeGuessText(secret);
+  if (!g || !s) return false;
+  if (g === s) return true;
+  // singular/plural: apple <-> apples, berry <-> berries
+  const variants = (w: string) => {
+    const out = new Set<string>([w]);
+    if (w.endsWith("s")) out.add(w.slice(0, -1));
+    else out.add(w + "s");
+    if (w.endsWith("ies")) out.add(w.slice(0, -3) + "y");
+    if (w.endsWith("y")) out.add(w.slice(0, -1) + "ies");
+    if (w.endsWith("es")) out.add(w.slice(0, -2));
+    return out;
+  };
+  return variants(g).has(s) || variants(s).has(g);
 }
 
 function Scribble() {
@@ -234,9 +257,16 @@ function Scribble() {
         payload: { by, word: matchedWord, name },
       });
     }
+    const isMe = by === me?.id;
     setMessages((m) => [
       ...m,
-      { id: crypto.randomUUID(), by, name, text: `guessed “${matchedWord}”`, correct: true },
+      {
+        id: crypto.randomUUID(),
+        by,
+        name,
+        text: isMe ? "✅ You guessed the word!" : `🎉 ${name} guessed the word!`,
+        correct: true,
+      },
     ]);
     setScores((s) => {
       const next = { ...s, [by]: (s[by] ?? 0) + 1 };
@@ -248,12 +278,13 @@ function Scribble() {
     setEndsAt(null);
     setWord(matchedWord);
     setHintMask(matchedWord);
+    setRevealed(new Set(matchedWord.split("").map((_, i) => i)));
     setGuess("");
-    if (by === me?.id) {
-      toast.success(`Correct! The word was “${matchedWord}” — your turn to draw!`);
+    if (isMe) {
+      toast.success(`Correct! The word was "${matchedWord}" — your turn to draw!`);
       autoStartMyDrawTurn(matchedWord);
     } else {
-      toast.success(`${name} guessed “${matchedWord}”! Their turn to draw.`);
+      toast.success(`${name} guessed "${matchedWord}"! Their turn to draw.`);
     }
     return true;
   }
@@ -261,7 +292,7 @@ function Scribble() {
   function tryMatch(by: string, name: string, text: string, broadcast = true) {
     const w = wordRef.current;
     if (!w || roundResolvedRef.current) return false;
-    if (normalizeGuessText(text) !== normalizeGuessText(w)) return false;
+    if (!guessesMatch(text, w)) return false;
     return markCorrect(by, name, w, broadcast);
   }
 
@@ -328,17 +359,8 @@ function Scribble() {
     });
     ch.on("broadcast", { event: "timeout" }, ({ payload }) => {
       if (roundResolvedRef.current) return;
-      roundResolvedRef.current = true;
       const p = payload as { word: string };
-      wordRef.current = p.word;
-      setWord(p.word);
-      setHintMask(p.word);
-      setPhase("over");
-      setEndsAt(null);
-      setMessages((m) => [
-        ...m,
-        { id: crypto.randomUUID(), by: "sys", name: "System", text: `Time! The word was “${p.word}”` },
-      ]);
+      resolveTimeout(p.word);
     });
 
     ch.subscribe();
@@ -349,28 +371,40 @@ function Scribble() {
     };
   }, [me?.id, partner?.id]);
 
+  function resolveTimeout(w: string) {
+    if (roundResolvedRef.current) return;
+    roundResolvedRef.current = true;
+    wordRef.current = w;
+    setWord(w);
+    setHintMask(w);
+    setRevealed(new Set(w.split("").map((_, i) => i)));
+    setPhase("over");
+    setLastDrawerId(drawerIdRef.current);
+    setEndsAt(null);
+    setMessages((m) => [
+      ...m,
+      { id: crypto.randomUUID(), by: "sys", name: "System", text: `⏰ Time's up! The word was: ${w.toUpperCase()}` },
+    ]);
+    toast(`⏰ Time's up! The word was: ${w.toUpperCase()}`);
+  }
+
   // Time out
   useEffect(() => {
     if (phase !== "playing" || !endsAt) return;
     if (now >= endsAt) {
       if (roundResolvedRef.current) return;
-      roundResolvedRef.current = true;
-      setPhase("over");
-      setLastDrawerId(drawerId);
-      // Only the drawer knows the word — broadcast it so the guesser also sees it.
+      // Only the drawer knows the word — broadcast it so the guesser sees it too.
       if (iAmDrawer && word) {
         chRef.current?.send({
           type: "broadcast",
           event: "timeout",
           payload: { word },
         });
+        resolveTimeout(word);
       }
-      setMessages((m) => [
-        ...m,
-        { id: crypto.randomUUID(), by: "sys", name: "System", text: `Time! The word was “${word ?? "…"}”` },
-      ]);
+      // Guesser side: wait for the "timeout" broadcast which carries the word.
     }
-  }, [now, endsAt, phase, word, drawerId, iAmDrawer]);
+  }, [now, endsAt, phase, word, iAmDrawer]);
 
 
   // Auto letter reveals — drawer broadcasts every ~ (roundSeconds/4) seconds
