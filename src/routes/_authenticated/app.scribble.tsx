@@ -381,13 +381,15 @@ function Scribble() {
     ch.on("broadcast", { event: "sync-request" }, () => {
       // Only the active drawer answers, and only during a live round.
       if (drawerIdRef.current !== me.id) return;
-      if (!wordRef.current || !endsAt) return;
       const w = wordRef.current;
-      const mask = w.split("").map((ch2, i) => (ch2 === " " ? " " : revealed.has(i) ? ch2 : "•")).join("");
+      const ends = endsAtRef.current;
+      if (!w || !ends) return;
+      const rev = revealedRef.current;
+      const mask = w.split("").map((ch2, i) => (ch2 === " " ? " " : rev.has(i) ? ch2 : "•")).join("");
       chRef.current?.send({
         type: "broadcast",
         event: "round",
-        payload: { drawerId: me.id, endsAt, wordLen: w.length, seconds: roundSeconds, mask, word: w },
+        payload: { drawerId: me.id, endsAt: ends, wordLen: w.length, seconds: roundSecondsRef.current, mask, word: w },
       });
     });
 
