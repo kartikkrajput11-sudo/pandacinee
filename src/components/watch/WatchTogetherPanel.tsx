@@ -52,8 +52,11 @@ export function WatchTogetherPanel({
   const [text, setText] = useState("");
   const [pickerOpen, setPickerOpen] = useState<null | "stickers" | "phrases">(null);
   const [opacityMode, setOpacityMode] = useState<"blur" | "clear" | "solid">("blur");
+  const [reactionsOpen, setReactionsOpen] = useState(false);
+  const [floaters, setFloaters] = useState<{ id: number; emoji: string; x: number }[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const floaterId = useRef(0);
 
   const { messages, send, remove, sendTyping, partnerTyping, partnerPresent } =
     useMovieChat(me.id, partner.id, movieId, mediaType);
