@@ -145,10 +145,13 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
       if (e.target instanceof HTMLInputElement) return;
       if (e.key === " " || e.key === "k") {
         e.preventDefault();
+        if (locked) return;
         v.paused ? v.play() : v.pause();
       } else if (e.key === "ArrowRight") {
+        if (locked) return;
         v.currentTime = Math.min(v.duration || 0, v.currentTime + 10);
       } else if (e.key === "ArrowLeft") {
+        if (locked) return;
         v.currentTime = Math.max(0, v.currentTime - 10);
       } else if (e.key === "f") {
         toggleFullscreen();
@@ -159,15 +162,17 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
     };
     el.addEventListener("keydown", onKey);
     return () => el.removeEventListener("keydown", onKey);
-  }, [scheduleHide]);
+  }, [scheduleHide, locked]);
 
   function togglePlay() {
+    if (locked) return;
     const v = videoRef.current;
     if (!v) return;
     v.paused ? v.play().catch(() => {}) : v.pause();
   }
 
   function skip(delta: number) {
+    if (locked) return;
     const v = videoRef.current;
     if (!v) return;
     v.currentTime = Math.max(0, Math.min(v.duration || 0, v.currentTime + delta));
