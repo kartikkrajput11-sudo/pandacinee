@@ -339,6 +339,12 @@ function Scribble() {
       if (next[by] >= targetScoreRef.current) setWinnerId(by);
       return next;
     });
+    // Persistent leaderboard: bump my correct_guesses when I'm the one who guessed.
+    if (isMe) void bumpMyStats({ correct_guesses: 1 });
+      const next = { ...s, [by]: (s[by] ?? 0) + 1 };
+      if (next[by] >= targetScoreRef.current) setWinnerId(by);
+      return next;
+    });
     setPhase("over");
     setLastDrawerId(drawerIdRef.current);
     setEndsAt(null);
