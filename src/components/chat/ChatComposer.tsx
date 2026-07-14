@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import {
-  Plus, X, Image as ImageIcon, Paperclip, Smile, Send, Clock, Film,
+  Plus, X, Image as ImageIcon, Paperclip, Smile, Send, Film,
   Video as VideoIcon, Gamepad2, Heart, Zap, EyeOff, Eye, Disc3,
 } from "lucide-react";
 import { toast } from "sonner";
-import { uploadChatMedia, DISAPPEAR_OPTIONS, type MessageRow } from "@/lib/chat";
+import { uploadChatMedia, type MessageRow } from "@/lib/chat";
 import { VoiceRecorder } from "./VoiceRecorder";
 import { WatchInvitePicker } from "./WatchInvitePicker";
 import { EmojiPicker } from "./EmojiPicker";
