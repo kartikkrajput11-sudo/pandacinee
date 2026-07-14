@@ -347,10 +347,10 @@ function RockPaperScissors({ me, session, patch }: { me: string; session: Sessio
 
 function useCardFetcher(kind: "truth-or-dare" | "would-you-rather" | "this-or-that" | "never-have-i-ever" | "guess-me") {
   const [loading, setLoading] = useState(false);
-  async function fetchCard(intensity: Intensity): Promise<any | null> {
+  async function fetchCard(intensity: Intensity, type?: "truth" | "dare"): Promise<any | null> {
     setLoading(true);
     try {
-      const res = await generateGameCard({ data: { kind, intensity } });
+      const res = await generateGameCard({ data: { kind, intensity, ...(type ? { type } : {}) } });
       return (res as any).card;
     } catch (err: any) {
       toast.error(err?.message ?? "AI unavailable");
