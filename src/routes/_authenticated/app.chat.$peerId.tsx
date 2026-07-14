@@ -1,15 +1,19 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, Phone, Video, Pin, ChevronDown } from "lucide-react";
+import { ArrowLeft, Phone, Video, Pin, ChevronDown, Lock } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile, type Profile } from "@/hooks/useProfile";
 import { useChat } from "@/hooks/useChat";
+import { usePunishmentLock } from "@/hooks/usePunishmentLock";
 import { ChatBubble } from "@/components/chat/ChatBubble";
 import { ChatComposer } from "@/components/chat/ChatComposer";
 import { ChatSearch } from "@/components/chat/ChatSearch";
 import { MoodBar } from "@/components/chat/MoodBar";
 import { KissOverlay } from "@/components/chat/KissOverlay";
+import { PunishmentLockDialog } from "@/components/chat/PunishmentLockDialog";
+import { PunishmentLockOverlay } from "@/components/chat/PunishmentLockOverlay";
+import { PunishmentLockBanner } from "@/components/chat/PunishmentLockBanner";
 import type { MessageRow } from "@/lib/chat";
 
 export const Route = createFileRoute("/_authenticated/app/chat/$peerId")({
