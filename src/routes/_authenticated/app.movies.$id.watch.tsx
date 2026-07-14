@@ -1000,8 +1000,8 @@ function WatchMovie() {
             </div>
           )}
 
-          {/* Row: source menu + sleep timer + invite */}
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+          {/* Row: source menu + invite */}
+          <div className="grid grid-cols-2 gap-2">
             {/* Source dropdown */}
             <div className="relative">
               <button
@@ -1035,32 +1035,6 @@ function WatchMovie() {
               )}
             </div>
 
-            {/* Sleep timer */}
-            <div className="relative group">
-              <button className="w-full h-11 rounded-2xl bg-surface/60 backdrop-blur border border-border text-candle text-xs font-medium flex items-center justify-center gap-2">
-                <Moon className="size-3.5 text-petal" />
-                <span>{sleepMinutes ? `Sleep ${sleepMinutes}m` : "Sleep timer"}</span>
-              </button>
-              <div className="absolute z-20 top-full mt-2 left-0 right-0 rounded-2xl bg-velvet border border-border shadow-2xl shadow-black/60 overflow-hidden opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto group-focus-within:opacity-100 group-focus-within:pointer-events-auto transition">
-                {[15, 30, 45, 60, 90].map((m) => (
-                  <button
-                    key={m}
-                    onClick={() => setSleep(m)}
-                    className="w-full px-3 py-2 text-left text-xs text-candle hover:bg-petal/10 border-b border-border/50"
-                  >
-                    In {m} minutes
-                  </button>
-                ))}
-                {sleepMinutes && (
-                  <button
-                    onClick={() => setSleep(null)}
-                    className="w-full px-3 py-2 text-left text-xs text-rose-400 hover:bg-petal/10"
-                  >
-                    Cancel timer
-                  </button>
-                )}
-              </div>
-            </div>
 
             {/* Invite / chat */}
             {partner ? (
