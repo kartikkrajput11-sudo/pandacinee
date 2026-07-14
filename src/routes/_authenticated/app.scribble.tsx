@@ -446,7 +446,7 @@ function Scribble() {
   const hintDisplay = useMemo(() => {
     if (!wordLen) return "";
     // Drawer sees the full word; guesser sees the shared mask (letters revealed as the drawer ticks).
-    const source = iAmDrawer && word ? word : hintMask;
+    const source = (iAmDrawer && word ? word : hintMask) || "•".repeat(wordLen);
     return source
       .split("")
       .map((ch) => (ch === " " ? "  " : ch))
