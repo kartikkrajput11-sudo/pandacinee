@@ -32,9 +32,7 @@ function Play() {
       )}
 
       <div className="grid grid-cols-2 gap-3">
-        {(Object.keys(GAMES) as GameKind[])
-          .filter((k) => k !== "rock-paper-scissors")
-          .map((kind) => {
+        {GAME_KINDS.map((kind) => {
           const g = GAMES[kind];
           const cardCls =
             "aspect-square p-4 bg-surface rounded-3xl border border-border flex flex-col justify-between hover:border-petal/40 transition-colors relative overflow-hidden";
