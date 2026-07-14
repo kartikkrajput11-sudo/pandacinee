@@ -23,6 +23,7 @@ type Props = {
   replyTo: MessageRow | null;
   onClearReply: () => void;
   onTyping: (v: boolean) => void;
+  locked?: { reason: string } | null;
   onSend: (input: {
     content?: string;
     type?: "text" | "voice" | "image" | "video" | "file" | "sticker" | "watch_invite" | "game_invite" | "kiss" | "nudge" | "whisper" | "movie_wheel";
@@ -33,7 +34,7 @@ type Props = {
   }) => Promise<void>;
 };
 
-export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTyping, onSend }: Props) {
+export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTyping, onSend, locked }: Props) {
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
