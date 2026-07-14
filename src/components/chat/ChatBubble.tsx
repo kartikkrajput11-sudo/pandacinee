@@ -93,6 +93,7 @@ export function ChatBubble({
                  replyTo.type === "movie_wheel" ? "🎡 Movie wheel" :
                  replyTo.type === "kiss" ? "💋 kiss" :
                  replyTo.type === "whisper" ? "🤫 whisper" :
+                 replyTo.type === "sticker" && isPandaStickerContent(replyTo.content) ? "🐼 Sticker" :
                  replyTo.content}
               </p>
             </div>
