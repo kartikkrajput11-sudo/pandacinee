@@ -1474,86 +1474,9 @@ function CustomWatch({ customId }: { customId: string }) {
           </div>
         )}
       </div>
-
-      {/* Friend invite picker */}
-      {friendPickerOpen && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm p-3" onClick={() => setFriendPickerOpen(false)}>
-          <div
-            className="w-full max-w-sm rounded-3xl bg-velvet border border-border shadow-2xl overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between px-4 py-3 border-b border-border">
-              <div>
-                <p className="text-[10px] uppercase tracking-widest text-petal">Invite a friend</p>
-                <h3 className="font-serif italic text-lg text-candle">Pick a panda 🍿</h3>
-              </div>
-              <button
-                onClick={() => setFriendPickerOpen(false)}
-                className="size-8 rounded-full bg-surface flex items-center justify-center text-candle-muted hover:text-candle"
-                aria-label="Close"
-              >
-                <X className="size-4" />
-              </button>
-            </div>
-            <div className="max-h-[60vh] overflow-y-auto p-2">
-              {(() => {
-                const meId = friendsQuery.data?.me;
-                const profiles = friendsQuery.data?.profiles ?? {};
-                const accepted = (friendsQuery.data?.friendships ?? []).filter((f) => f.status === "accepted");
-                const friends = accepted
-                  .map((f) => (f.requester_id === meId ? f.addressee_id : f.requester_id))
-                  .filter((id) => id && id !== partner?.id)
-                  .map((id) => profiles[id])
-                  .filter(Boolean);
-                if (friendsQuery.isLoading) {
-                  return <p className="text-center text-sm text-candle-muted py-8">Loading…</p>;
-                }
-                if (friends.length === 0) {
-                  return (
-                    <div className="py-8 px-4 text-center">
-                      <p className="text-sm text-candle-muted mb-3">No friends yet 🥺</p>
-                      <Link
-                        to="/app/friends"
-                        onClick={() => setFriendPickerOpen(false)}
-                        className="inline-block px-5 py-2.5 bg-petal text-velvet rounded-full text-xs font-semibold"
-                      >
-                        Find friends
-                      </Link>
-                    </div>
-                  );
-                }
-                return (
-                  <ul className="space-y-1">
-                    {friends.map((f) => (
-                      <li key={f.id}>
-                        <button
-                          onClick={() => inviteFriend(f.id, f.display_name || f.username)}
-                          className="w-full flex items-center gap-3 p-2.5 rounded-2xl hover:bg-surface transition text-left"
-                        >
-                          {f.avatar_url ? (
-                            <img src={f.avatar_url} alt="" className="size-10 rounded-full object-cover" />
-                          ) : (
-                            <div className="size-10 rounded-full bg-petal/20 text-petal flex items-center justify-center font-serif text-sm">
-                              {(f.display_name || f.username || "?").slice(0, 1).toUpperCase()}
-                            </div>
-                          )}
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-candle truncate">{f.display_name || f.username}</p>
-                            <p className="text-[11px] text-candle-muted truncate">@{f.username}</p>
-                          </div>
-                          <Send className="size-4 text-petal shrink-0" />
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                );
-              })()}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
+
 
 
