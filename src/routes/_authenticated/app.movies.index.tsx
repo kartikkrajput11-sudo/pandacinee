@@ -61,6 +61,7 @@ function Movies() {
   const [thrillers, setThrillers] = useState<TmdbMovie[]>([]);
   const [feelGood, setFeelGood] = useState<TmdbMovie[]>([]);
   const [recent, setRecent] = useState<TmdbMovie[]>([]);
+  const [custom, setCustom] = useState<CustomMovieRow[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => { setInput(q); }, [q]);
