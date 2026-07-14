@@ -289,7 +289,7 @@ function Scribble() {
       strokes.current = [];
       redraw();
       setWord(p.word ?? null);
-    };
+    });
     ch.on("broadcast", { event: "guess-live" }, ({ payload }) => {
       const p = payload as { by: string; name: string; text: string };
       tryMatch(p.by, p.name, p.text);
