@@ -155,6 +155,31 @@ function Scribble() {
       redraw();
       if (p.drawerId !== me.id) setWord(null);
     });
+    ch.on("broadcast", { event: "guess-live" }, ({ payload }) => {
+      const p = payload as { by: string; name: string; text: string };
+      const w = wordRef.current;
+      // Only the drawer holds the word; drawer checks the match.
+      if (!w) return;
+      if (p.text.trim().toLowerCase() !== w.toLowerCase()) return;
+      // Match — broadcast correct and update local state.
+      chRef.current?.send({
+        type: "broadcast",
+        event: "correct",
+        payload: { by: p.by, word: w, name: p.name },
+      });
+      setMessages((m) => [
+        ...m,
+        { id: crypto.randomUUID(), by: p.by, name: p.name, text: `guessed “${w}”`, correct: true },
+      ]);
+      setScores((s) => {
+        const next = { ...s, [p.by]: (s[p.by] ?? 0) + 1 };
+        if (next[p.by] >= targetScore) setWinnerId(p.by);
+        return next;
+      });
+      setPhase("over");
+      setLastDrawerId(drawerId);
+      setEndsAt(null);
+      toast.success(`${p.name} guessed “${w}”! Their turn to draw.`);
     ch.on("broadcast", { event: "guess" }, ({ payload }) => {
       setMessages((m) => [...m, payload as Msg]);
     });
