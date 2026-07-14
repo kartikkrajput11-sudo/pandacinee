@@ -53,6 +53,16 @@ export function PunishmentVerificationChat({ lock, meId, partnerName, iAmLocked,
     [messages],
   );
 
+  // Temporary "note" chat cap — the locked partner only gets 10 sends here,
+  // so the verification chat itself feels locked.
+  const LOCKED_MSG_LIMIT = 10;
+  const lockedMsgsUsed = useMemo(
+    () => messages.filter((m) => m.sender_id === meId).length,
+    [messages, meId],
+  );
+  const lockedMsgsLeft = Math.max(0, LOCKED_MSG_LIMIT - lockedMsgsUsed);
+  const lockedOut = iAmLocked && lockedMsgsLeft === 0;
+
   const submissionKindFor = (type: string): "text" | "image" | "video" | "voice" | "card" | "drawing" => {
     switch (type) {
       case "photo":    return "image";
