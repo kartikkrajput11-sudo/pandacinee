@@ -532,13 +532,14 @@ function FeaturedHero({ movie, isTv = false }: { movie: TmdbMovie; isTv?: boolea
 }
 
 function Rail({
-  title, icon, movies, loading = false, variant = "poster",
+  title, icon, movies, loading = false, variant = "poster", tvBadge = false,
 }: {
   title: string;
   icon: React.ReactNode;
   movies: TmdbMovie[];
   loading?: boolean;
   variant?: "poster" | "wide";
+  tvBadge?: boolean;
 }) {
   if (!loading && movies.length === 0) return null;
   return (
