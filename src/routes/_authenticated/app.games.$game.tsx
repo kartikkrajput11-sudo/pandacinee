@@ -164,7 +164,14 @@ function GameRoute() {
 
 function initialState(game: GameKind) {
   if (game === "truth-or-dare")
-    return { count: 0, card: null as null | { type: "truth" | "dare"; text: string }, intensity: "playful" as Intensity, history: [] as { type: "truth" | "dare"; text: string }[] };
+    return {
+      count: 0,
+      card: null as null | { type: "truth" | "dare"; text: string },
+      intensity: "playful" as Intensity,
+      history: [] as { type: "truth" | "dare"; text: string }[],
+      tally: { truth: 0, dare: 0, skipped: 0 },
+      bestOf: 10,
+    };
   if (game === "this-or-that" || game === "would-you-rather")
     return {
       count: 0,
@@ -173,6 +180,7 @@ function initialState(game: GameKind) {
       score: { matches: 0, total: 0 },
       intensity: "playful" as Intensity,
       history: [] as { a: string; b: string }[],
+      bestOf: 10,
     };
   if (game === "never-have-i-ever")
     return {
@@ -182,11 +190,12 @@ function initialState(game: GameKind) {
       tallies: { have: 0, havent: 0 },
       intensity: "playful" as Intensity,
       history: [] as { text: string }[],
+      bestOf: 10,
     };
   if (game === "tic-tac-toe")
-    return { board: Array(9).fill(null), turn: "X", wins: { X: 0, O: 0, draws: 0 } };
+    return { board: Array(9).fill(null), turn: "X", wins: { X: 0, O: 0, draws: 0 }, bestOf: 5 };
   if (game === "rock-paper-scissors")
-    return { picks: {} as Record<string, RPSChoice>, round: 1, score: {} as Record<string, number> };
+    return { picks: {} as Record<string, RPSChoice>, round: 1, score: {} as Record<string, number>, bestOf: 5 };
   return {
     count: 0,
     card: null as null | { text: string },
@@ -195,7 +204,67 @@ function initialState(game: GameKind) {
     guess: null as string | null,
     revealed: false,
     intensity: "playful" as Intensity,
+    history: [] as { prompt: string; answer: string; guess: string; verdict: "right" | "close" | "wrong" | null }[],
+    tally: { right: 0, close: 0, wrong: 0 },
+    bestOf: 10,
   };
+}
+
+const BEST_OF_OPTIONS = [5, 10, 20, 0] as const;
+function MatchControls({
+  round,
+  bestOf,
+  onBestOf,
+  onRematch,
+  disabled,
+}: {
+  round: number;
+  bestOf: number;
+  onBestOf: (n: number) => void;
+  onRematch: () => void;
+  disabled?: boolean;
+}) {
+  const done = bestOf > 0 && round > bestOf;
+  return (
+    <div className="flex items-center justify-between gap-2 mb-3 text-xs">
+      <div className="flex items-center gap-1.5 text-candle-muted">
+        <span className="uppercase tracking-widest text-petal text-[10px]">Best of</span>
+        <select
+          value={bestOf}
+          onChange={(e) => onBestOf(Number(e.target.value))}
+          disabled={disabled}
+          className="bg-surface border border-border rounded-full px-2 py-0.5 text-xs text-candle"
+        >
+          {BEST_OF_OPTIONS.map((n) => (
+            <option key={n} value={n}>{n === 0 ? "∞" : n}</option>
+          ))}
+        </select>
+        <span className="ml-1">
+          Round <span className="text-candle">{Math.min(round, bestOf || round)}</span>
+          {bestOf > 0 ? <span className="text-candle-muted"> / {bestOf}</span> : null}
+        </span>
+      </div>
+      <button
+        onClick={onRematch}
+        disabled={disabled}
+        className="flex items-center gap-1 rounded-full border border-border bg-surface px-3 py-1 text-candle-muted hover:text-candle disabled:opacity-60"
+      >
+        <RefreshCw className="size-3" /> Rematch
+      </button>
+    </div>
+  );
+}
+function MatchComplete({ title, subtitle, onRematch }: { title: string; subtitle: string; onRematch: () => void }) {
+  return (
+    <div className="p-5 rounded-3xl border border-petal bg-petal-soft text-center mb-4">
+      <p className="text-[10px] uppercase tracking-widest text-petal mb-1">Match complete</p>
+      <p className="font-serif italic text-xl mb-1">{title}</p>
+      <p className="text-xs text-candle-muted mb-3">{subtitle}</p>
+      <button onClick={onRematch} className="px-5 py-2 bg-petal text-velvet rounded-full font-semibold text-sm inline-flex items-center gap-2">
+        <RefreshCw className="size-3.5" /> Rematch
+      </button>
+    </div>
+  );
 }
 
 function HistoryStrip({ items }: { items: string[] }) {
