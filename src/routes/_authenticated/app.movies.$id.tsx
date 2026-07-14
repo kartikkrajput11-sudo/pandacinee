@@ -369,7 +369,6 @@ function MovieDetail() {
                 >
                   <div className="aspect-[2/3] rounded-lg overflow-hidden bg-velvet border border-border shadow-xl">
                     {s.poster_path && (
-                    {s.poster_path && (
                       <img src={poster(s.poster_path, "w342")!} alt={s.title ?? s.name} className="w-full h-full object-cover" />
                     )}
                   </div>
