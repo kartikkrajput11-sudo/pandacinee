@@ -444,8 +444,8 @@ function RevealOverlay({
 
       {/* Card */}
       <div
-        className="relative w-full max-w-md rounded-3xl p-5 bg-gradient-to-b from-white/95 to-white/85 backdrop-blur-xl border border-white/60 shadow-2xl"
-        style={{ animation: "paint-reveal-pop 0.7s cubic-bezier(.2,1.2,.3,1) both" }}
+        className="relative w-full max-w-md rounded-3xl p-5 bg-gradient-to-b from-white/95 to-white/85 backdrop-blur-xl border-4 shadow-2xl"
+        style={{ animation: "paint-reveal-pop 0.7s cubic-bezier(.2,1.2,.3,1) both", borderColor: "#8b5cf6", boxShadow: "0 20px 60px rgba(139,92,246,0.5), 0 0 0 6px rgba(139,92,246,0.2)" }}
       >
         <button
           onClick={onClose}
