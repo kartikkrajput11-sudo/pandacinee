@@ -487,6 +487,15 @@ function CatalogWatch({ id }: { id: string }) {
     // to the host's timestamp. The viewer just taps 🔊 to unmute.
     if (!started) {
       if (evt === "pause") return;
+      // For Pandacine (our own <video>), we can force muted autoplay so
+      // playback truly starts together with the host. For third-party
+      // iframes (VidKing, etc.) we cannot inject muted, and browsers block
+      // autoplay-with-sound on a fresh load — so leave the big "Join"
+      // button visible; the pulsing CTA below makes it obvious.
+      if (!isPandacine) {
+        setStartAt(peer.currentTime);
+        return;
+      }
       pendingAutoJoinRef.current = peer.currentTime;
       setStartAt(peer.currentTime);
       setStarted(true);
