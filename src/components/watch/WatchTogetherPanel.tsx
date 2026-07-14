@@ -135,26 +135,27 @@ export function WatchTogetherPanel({
         </button>
       )}
 
-      {/* Backdrop (hidden in inline mode) */}
-      {open && !inline && (
-        <button
-          aria-label="Close"
-          onClick={() => setOpen(false)}
-          className="fixed inset-0 z-30 bg-black/40 backdrop-blur-sm animate-fade-in"
-        />
-      )}
+      {/* No dimming backdrop — keep the video visible while chatting */}
 
       {/* Drawer — inline (under the player) or floating bottom-sheet */}
       <div
         className={
           inline
             ? "w-full"
-            : `fixed z-40 inset-x-0 bottom-0 sm:inset-x-auto sm:right-4 sm:bottom-4 sm:w-[24rem]
+            : `fixed z-40 inset-x-0 bottom-0 sm:inset-x-auto sm:right-4 sm:bottom-4 sm:w-[22rem]
           transition-all duration-300 ease-out
           ${open ? "translate-y-0 opacity-100" : "translate-y-full opacity-0 pointer-events-none"}`
         }
       >
-        <div className={`${inline ? "rounded-2xl" : "mx-2 sm:mx-0 rounded-t-3xl sm:rounded-3xl"} bg-velvet/95 backdrop-blur-xl border border-petal/25 shadow-[0_-30px_80px_-20px_rgba(238,130,175,0.35)] flex flex-col ${inline ? "h-[560px]" : "max-h-[80vh]"} overflow-hidden`}>
+        <div className={`${inline ? "rounded-2xl" : "mx-2 sm:mx-0 rounded-t-3xl sm:rounded-3xl"} ${
+          inline
+            ? "bg-velvet/95 backdrop-blur-xl"
+            : opacityMode === "blur"
+              ? "bg-velvet/55 backdrop-blur-2xl backdrop-saturate-150"
+              : opacityMode === "clear"
+                ? "bg-velvet/20 backdrop-blur-sm"
+                : "bg-velvet/95 backdrop-blur-xl"
+        } border border-petal/25 shadow-[0_-30px_80px_-20px_rgba(238,130,175,0.35)] flex flex-col ${inline ? "h-[560px]" : "max-h-[55vh]"} overflow-hidden`}>
           {/* Grabber (only in floating mode) */}
           {!inline && (
             <div className="pt-2 pb-1 flex justify-center sm:hidden">
