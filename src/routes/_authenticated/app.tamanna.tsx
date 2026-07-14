@@ -802,20 +802,24 @@ function MovieModal({ initial, onClose }: { initial?: CustomMovie | null; onClos
     if (!canSave) return;
     setSaving(true);
     try {
-      await create({
-        data: {
-          title: title.trim(),
-          year: year ? Number(year) : null,
-          runtime: runtime ? Number(runtime) : null,
-          overview: overview.trim() || null,
-          poster_url: poster.trim() || null,
-          backdrop_url: backdrop.trim() || null,
-          genres: genres.split(",").map((g) => g.trim()).filter(Boolean).slice(0, 20),
-          video_url: videoUrl.trim() || null,
-          video_storage_path: videoPath,
-        },
-      });
-      toast.success("Movie added");
+      const payload = {
+        title: title.trim(),
+        year: year ? Number(year) : null,
+        runtime: runtime ? Number(runtime) : null,
+        overview: overview.trim() || null,
+        poster_url: poster.trim() || null,
+        backdrop_url: backdrop.trim() || null,
+        genres: genres.split(",").map((g) => g.trim()).filter(Boolean).slice(0, 20),
+        video_url: videoUrl.trim() || null,
+        video_storage_path: videoPath,
+      };
+      if (isEdit && initial) {
+        await update({ data: { id: initial.id, ...payload } });
+        toast.success("Updated");
+      } else {
+        await create({ data: payload });
+        toast.success("Movie added");
+      }
       onClose();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Save failed");
@@ -828,8 +832,53 @@ function MovieModal({ initial, onClose }: { initial?: CustomMovie | null; onClos
     <div className="fixed inset-0 z-50 bg-velvet/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-3">
       <div className="w-full max-w-lg max-h-[92vh] overflow-y-auto rounded-3xl bg-surface border border-border p-5 animate-fade-up">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-serif italic text-2xl">Add movie</h2>
+          <h2 className="font-serif italic text-2xl">{isEdit ? "Edit title" : "Add title"}</h2>
           <button onClick={onClose} className="size-9 rounded-full bg-surface-elevated flex items-center justify-center"><X className="size-4" /></button>
+        </div>
+
+        {/* TMDB autofill */}
+        <div className="mb-4 rounded-2xl bg-velvet border border-border p-3">
+          <label className="block text-[10px] uppercase tracking-widest text-petal mb-2 flex items-center gap-1.5">
+            <Search className="size-3" /> Autofill from TMDB / IMDb
+          </label>
+          <div className="flex gap-2">
+            <input
+              value={tmdbQ}
+              onChange={(e) => setTmdbQ(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); runTmdbSearch(); } }}
+              placeholder="Search a movie or show…"
+              className="flex-1 h-10 px-3 rounded-full bg-surface border border-border text-sm text-candle focus:outline-none focus:border-petal/60"
+            />
+            <button
+              onClick={runTmdbSearch}
+              disabled={!tmdbQ.trim() || tmdbLoading}
+              className="h-10 px-4 rounded-full bg-petal text-velvet text-xs font-bold disabled:opacity-50 flex items-center gap-1"
+            >
+              {tmdbLoading ? <Loader2 className="size-3 animate-spin" /> : <Search className="size-3" />}
+              Search
+            </button>
+          </div>
+          {tmdbResults.length > 0 && (
+            <div className="mt-2 max-h-48 overflow-y-auto space-y-1">
+              {tmdbResults.map((m) => (
+                <button
+                  key={m.id}
+                  onClick={() => pickTmdb(m)}
+                  className="w-full flex items-center gap-2 p-1.5 rounded-lg hover:bg-petal/10 text-left transition-colors"
+                >
+                  {m.poster_path ? (
+                    <img src={`https://image.tmdb.org/t/p/w92${m.poster_path}`} alt="" className="w-8 h-12 rounded object-cover" />
+                  ) : (
+                    <div className="w-8 h-12 rounded bg-surface flex items-center justify-center"><Film className="size-3 text-candle-muted" /></div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-candle truncate">{m.title}</p>
+                    <p className="text-[10px] text-candle-muted">{m.release_date?.slice(0, 4) ?? "—"} · ★ {m.vote_average?.toFixed(1) ?? "—"}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="space-y-3">
