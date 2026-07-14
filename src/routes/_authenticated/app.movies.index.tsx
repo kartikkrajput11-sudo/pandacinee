@@ -174,7 +174,7 @@ function Movies() {
         />
 
         {custom.length > 0 && (
-          <CustomRail title="Our Private Library" movies={custom} />
+          <CustomRail title="Fresh Arrivals" movies={custom} />
         )}
 
         {recent.length > 0 && (
