@@ -250,6 +250,18 @@ html.theme-anim * {
   70% { transform: scale(1.1); opacity: 1; }
   100% { transform: scale(1.6); opacity: 0; }
 }
+@keyframes partner-glow {
+  0%, 100% {
+    box-shadow:
+      0 0 0 1px color-mix(in oklab, var(--petal) 40%, transparent),
+      0 0 14px -2px color-mix(in oklab, var(--petal) 45%, transparent);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px color-mix(in oklab, var(--petal) 70%, transparent),
+      0 0 26px 2px color-mix(in oklab, var(--petal) 65%, transparent);
+  }
+}
 
 
 .animate-petal { animation: float-petal 12s linear infinite; }
@@ -268,3 +280,5 @@ html.theme-anim * {
 
 .animate-chat-shake { animation: chat-shake 0.7s cubic-bezier(.36,.07,.19,.97); }
 .animate-kiss { animation: kiss-float 2.2s ease-out forwards; }
+.animate-partner-glow { animation: partner-glow 2.6s ease-in-out infinite; }
+.font-partner { font-family: var(--font-serif); font-style: italic; letter-spacing: 0.01em; }

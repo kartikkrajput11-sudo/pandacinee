@@ -180,6 +180,7 @@ function GroupChat() {
                 replyTo={m.reply_to_id ? messagesById[m.reply_to_id] ?? null : null}
                 showAvatar={showAvatar}
                 isLast={isLastMine}
+                isPartner={isPartner && !mine}
                 onReact={react}
                 onReply={setReplyTo}
                 onPin={togglePin}
