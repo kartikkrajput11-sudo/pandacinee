@@ -23,6 +23,7 @@ const WORDS = [
 ];
 
 const TIMER_CHOICES = [60, 90, 120] as const;
+const TARGET_CHOICES = [3, 5, 7] as const;
 const COLORS = ["#1f1f1f", "#8b5cf6", "#ec4899", "#22c55e", "#f59e0b", "#0ea5e9"];
 
 type Stroke = { by: string; color: string; size: number; erase: boolean; pts: { x: number; y: number }[] };
