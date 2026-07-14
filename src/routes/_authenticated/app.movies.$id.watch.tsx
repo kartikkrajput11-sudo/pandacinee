@@ -1437,6 +1437,7 @@ function CustomWatch({ customId }: { customId: string }) {
   const handleRef = useRef<CustomPlayerHandle | null>(null);
   const suppressRef = useRef(false);
   const lastAppliedPeerEventRef = useRef<number>(0);
+  const lastPublishRef = useRef(0);
 
   const iAmHost = !!me && hostId === me.id;
   const partnerIsHost = !!partner && hostId === partner.id;
@@ -1459,14 +1460,18 @@ function CustomWatch({ customId }: { customId: string }) {
     return () => { alive = false; };
   }, [customId]);
 
+  const runSuppressed = useCallback((action: () => void, ms = 500) => {
+    suppressRef.current = true;
+    action();
+    window.setTimeout(() => { suppressRef.current = false; }, ms);
+  }, []);
+
   // Manual seek request
   useEffect(() => {
     if (!incomingSeek) return;
-    suppressRef.current = true;
-    handleRef.current?.seek(incomingSeek.time);
+    runSuppressed(() => handleRef.current?.seek(incomingSeek.time));
     clearIncomingSeek();
-    window.setTimeout(() => { suppressRef.current = false; }, 400);
-  }, [incomingSeek, clearIncomingSeek]);
+  }, [incomingSeek, clearIncomingSeek, runSuppressed]);
 
   // Follower: mirror host's discrete events + drift correction
   useEffect(() => {
@@ -1480,19 +1485,18 @@ function CustomWatch({ customId }: { customId: string }) {
     if (evt === "timeupdate") {
       const d = Math.abs(h.currentTime() - peer.currentTime);
       if (d < 2) return; // native drift is tight
-      suppressRef.current = true;
-      h.seek(peer.currentTime);
-      window.setTimeout(() => { suppressRef.current = false; }, 250);
+      lastAppliedPeerEventRef.current = peer.updatedAt;
+      runSuppressed(() => h.seek(peer.currentTime), 300);
       return;
     }
 
     lastAppliedPeerEventRef.current = peer.updatedAt;
-    suppressRef.current = true;
-    if (evt === "seeked") h.seek(peer.currentTime);
-    if (evt === "play") { h.seek(peer.currentTime); h.play(); }
-    if (evt === "pause") { h.seek(peer.currentTime); h.pause(); }
-    window.setTimeout(() => { suppressRef.current = false; }, 400);
-  }, [peer, partnerIsHost]);
+    runSuppressed(() => {
+      if (Math.abs(h.currentTime() - peer.currentTime) > 0.8) h.seek(peer.currentTime);
+      if (evt === "play" || evt === "seeked") h.play();
+      if (evt === "pause") h.pause();
+    });
+  }, [peer, partnerIsHost, runSuppressed]);
 
   // Countdown → both press play together
   const [countdownRemaining, setCountdownRemaining] = useState<number | null>(null);
@@ -1502,15 +1506,17 @@ function CustomWatch({ customId }: { customId: string }) {
       const rem = Math.ceil((countdown.startAt - Date.now()) / 1000);
       if (rem <= 0) {
         setCountdownRemaining(0);
-        if (typeof countdown.time === "number") handleRef.current?.seek(countdown.time);
-        handleRef.current?.play();
+        runSuppressed(() => {
+          if (typeof countdown.time === "number") handleRef.current?.seek(countdown.time);
+          handleRef.current?.play();
+        });
         setTimeout(() => { clearCountdown(); setCountdownRemaining(null); }, 800);
       } else setCountdownRemaining(rem);
     };
     tick();
     const iv = window.setInterval(tick, 250);
     return () => window.clearInterval(iv);
-  }, [countdown, clearCountdown]);
+  }, [countdown, clearCountdown, runSuppressed]);
 
   const partnerFirst = partner?.display_name.split(" ")[0] ?? "them";
   const driftAbs = drift != null ? Math.abs(drift) : null;
@@ -1521,11 +1527,25 @@ function CustomWatch({ customId }: { customId: string }) {
     currentTime: number;
     duration: number;
   }) {
-    // Only broadcast our own actions when we ARE the host, otherwise just publish state so partner can see our time
-    // For follower's suppressed programmatic events, don't republish.
-    if (suppressRef.current && (evt.event === "play" || evt.event === "pause" || evt.event === "seeked")) return;
+    if (suppressRef.current) return;
+    const isDiscrete = evt.event === "play" || evt.event === "pause" || evt.event === "seeked" || evt.event === "ended";
+    if (isDiscrete && partner && !hostId) claimHost();
+    if (partnerIsHost && isDiscrete) return;
+    if (!isDiscrete && Date.now() - lastPublishRef.current < 1500) return;
+    lastPublishRef.current = Date.now();
     publish({ event: evt.event, currentTime: evt.currentTime, duration: evt.duration, sourceIdx: 0 });
   }
+
+  const syncToPartner = () => {
+    if (!peer) return;
+    runSuppressed(() => handleRef.current?.seek(peer.currentTime));
+  };
+
+  const pullPartnerHere = () => {
+    const now = handleRef.current?.currentTime() ?? mine.currentTime;
+    sendSeek(now);
+    publish({ event: "seeked", currentTime: now, duration: handleRef.current?.duration() ?? mine.duration, sourceIdx: 0 });
+  };
 
   return (
     <div className="pt-8 pb-24 max-w-6xl mx-auto">
@@ -1638,14 +1658,14 @@ function CustomWatch({ customId }: { customId: string }) {
 
             <div className="flex items-center gap-2">
               <button
-                onClick={() => { if (peer) handleRef.current?.seek(peer.currentTime); }}
+                onClick={syncToPartner}
                 disabled={!peer}
                 className="flex-1 h-9 rounded-full bg-surface-elevated text-xs text-candle disabled:opacity-40"
               >
                 Jump to {partnerFirst}
               </button>
               <button
-                onClick={() => sendSeek(mine.currentTime)}
+                onClick={pullPartnerHere}
                 className="flex-1 h-9 rounded-full bg-surface border border-border text-xs text-candle"
               >
                 Pull them here
