@@ -41,9 +41,12 @@ function ChatPeer() {
 
   const { messages, loading, partnerTyping, partnerOnline, send, react, togglePin, remove, setVanish, sendTyping } =
     useChat(me?.id ?? null, peer?.id ?? null);
+  const { activeLock, iAmLocked, iAmLocker, createLock, incrementProgress, completeLock, cancelLock } =
+    usePunishmentLock(me?.id ?? null, peer?.id ?? null);
   const [replyTo, setReplyTo] = useState<MessageRow | null>(null);
   const [showPinned, setShowPinned] = useState(false);
   const [highlightId, setHighlightId] = useState<string | null>(null);
+  const [lockDialogOpen, setLockDialogOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const bubbleRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
