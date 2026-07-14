@@ -35,7 +35,7 @@ export type SyncCommand =
 export function useWatchSync(
   meId: string | null,
   partnerId: string | null,
-  movieId: number,
+  movieId: number | string,
   mediaType: "movie" | "tv" = "movie",
 ) {
   const [mine, setMine] = useState<PeerState>({
@@ -58,7 +58,7 @@ export function useWatchSync(
   hostRef.current = hostId;
 
   useEffect(() => {
-    if (!meId || !partnerId || !movieId) return;
+    if (!meId || !partnerId || movieId === 0 || movieId === "" || movieId == null) return;
     const topic = `watch-sync:${mediaType}:${movieId}:${[meId, partnerId].sort().join(":")}`;
     const ch = supabase.channel(topic, {
       config: { presence: { key: meId }, broadcast: { self: false } },
