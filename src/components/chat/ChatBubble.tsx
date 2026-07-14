@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { Heart, Pin, Trash2, Reply, Check, CheckCheck, Download } from "lucide-react";
+import { Heart, Pin, Trash2, Reply, Check, CheckCheck, Download, Zap } from "lucide-react";
 import { signMedia, type MessageRow } from "@/lib/chat";
 import { VoicePlayer } from "./VoicePlayer";
 import { SignedImage } from "./SignedImage";
 import { SignedVideo } from "./SignedVideo";
 import { WatchInviteCard } from "./WatchInviteCard";
+import { GameInviteCard } from "./GameInviteCard";
 
 
 const QUICK_REACTIONS = ["❤️", "😂", "🥺", "🔥", "🐼", "👍"];
