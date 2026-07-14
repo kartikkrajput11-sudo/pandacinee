@@ -36,6 +36,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/integrations/supabase/client";
 import { WatchTogetherPanel } from "@/components/watch/WatchTogetherPanel";
 import { useWatchSync, fmtTime } from "@/hooks/useWatchSync";
+import { useScreenShare } from "@/hooks/useScreenShare";
 import { CustomMoviePlayer, type CustomPlayerHandle } from "@/components/CustomMoviePlayer";
 import { useFriendships } from "@/hooks/useFriends";
 
@@ -187,6 +188,29 @@ function CatalogWatch({ id }: { id: string }) {
     releaseHost,
     drift,
   } = useWatchSync(me?.id ?? null, partner?.id ?? null, syncRoomId, isTv ? "tv" : "movie");
+
+  // Screen-mirror pipe: host can broadcast their live tab/player to the friend.
+  const {
+    localStream: shareLocalStream,
+    remoteStream: shareRemoteStream,
+    isSharing: iAmSharing,
+    sharerId,
+    status: shareStatus,
+    startShare,
+    stopShare,
+  } = useScreenShare(me?.id ?? null, partner?.id ?? null, String(syncRoomId));
+  const partnerIsSharing = !!sharerId && !!partner && sharerId === partner.id;
+  const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
+  useEffect(() => {
+    const el = remoteVideoRef.current;
+    if (!el) return;
+    if (partnerIsSharing && shareRemoteStream) {
+      el.srcObject = shareRemoteStream;
+      el.play().catch(() => {});
+    } else {
+      el.srcObject = null;
+    }
+  }, [partnerIsSharing, shareRemoteStream]);
 
   const iAmHost = !!me && hostId === me.id;
   const partnerIsHost = !!partner && hostId === partner.id;
@@ -917,6 +941,31 @@ function CatalogWatch({ id }: { id: string }) {
               </button>
             )}
 
+            {/* Screen-mirror overlay: partner is broadcasting their live player to us */}
+            {partnerIsSharing && (
+              <div className="absolute inset-0 z-30 bg-black">
+                <video
+                  ref={remoteVideoRef}
+                  autoPlay
+                  playsInline
+                  className="w-full h-full object-contain bg-black"
+                />
+                <div className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-petal/90 text-velvet text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5">
+                  <MonitorPlay className="size-3" /> Mirroring {partnerFirst}
+                </div>
+                {shareStatus === "connecting" && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-velvet/70 backdrop-blur-sm text-candle text-xs uppercase tracking-widest gap-2">
+                    <RefreshCw className="size-4 animate-spin text-petal" /> Connecting to {partnerFirst}'s screen…
+                  </div>
+                )}
+              </div>
+            )}
+            {iAmSharing && (
+              <div className="absolute top-3 left-3 z-30 px-2.5 py-1 rounded-full bg-petal text-velvet text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5">
+                <MonitorPlay className="size-3" /> Mirroring to {partnerFirst}
+              </div>
+            )}
+
 
 
 
@@ -1004,6 +1053,38 @@ function CatalogWatch({ id }: { id: string }) {
                   </button>
                 )}
               </div>
+
+              {/* Screen mirror — host streams their live tab to the friend */}
+              <div className="mb-2 flex items-center gap-2">
+                {!iAmSharing ? (
+                  <button
+                    onClick={async () => {
+                      try {
+                        await startShare();
+                        toast.success(`Mirroring your screen to ${partnerFirst} 📺`);
+                      } catch { /* handled in hook */ }
+                    }}
+                    disabled={partnerIsSharing}
+                    className="flex-1 h-10 rounded-full bg-surface border border-petal/40 hover:border-petal text-candle text-xs font-semibold flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
+                    title={partnerIsSharing ? `${partnerFirst} is already mirroring` : "Share your screen with your friend"}
+                  >
+                    <MonitorPlay className="size-3.5 text-petal" />
+                    {partnerIsSharing ? `${partnerFirst} is mirroring` : "Mirror my screen"}
+                  </button>
+                ) : (
+                  <button
+                    onClick={async () => { await stopShare(); toast.info("Screen mirror stopped"); }}
+                    className="flex-1 h-10 rounded-full bg-petal text-velvet text-xs font-semibold flex items-center justify-center gap-1.5 shadow-lg shadow-petal/30"
+                  >
+                    <X className="size-3.5" /> Stop mirroring
+                  </button>
+                )}
+              </div>
+              {shareStatus === "error" && (
+                <div className="mb-2 rounded-xl bg-rose-500/10 border border-rose-500/40 px-3 py-2 text-[11px] text-rose-200">
+                  Couldn't start screen mirror. On mobile, use desktop Chrome/Edge/Safari.
+                </div>
+              )}
 
               {partnerIsHost && (
                 <div className="mb-2 rounded-xl bg-petal/10 border border-petal/30 px-3 py-2 text-[11px] text-candle flex items-center gap-2">
