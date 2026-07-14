@@ -229,8 +229,9 @@ function Scribble() {
       }
     });
     ch.on("broadcast", { event: "reveal" }, ({ payload }) => {
-      const p = payload as { indices: number[] };
+      const p = payload as { indices: number[]; mask: string };
       setRevealed(new Set(p.indices));
+      if (p.mask) setHintMask(p.mask);
     });
     ch.subscribe();
     chRef.current = ch;
