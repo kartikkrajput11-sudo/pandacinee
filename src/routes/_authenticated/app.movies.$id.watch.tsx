@@ -27,6 +27,8 @@ import {
   Tv,
   Clock,
   CalendarDays,
+  Users,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { tmdbMovie, tmdbTvDetail, tmdbTvSeason } from "@/lib/tmdb.functions";
