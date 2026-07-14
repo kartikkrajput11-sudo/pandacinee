@@ -80,6 +80,10 @@ export function PunishmentVerificationChat({ lock, meId, partnerName, iAmLocked,
   async function sendText(asSubmission: boolean) {
     const val = text.trim();
     if (!val) return;
+    if (iAmLocked && lockedOut) {
+      toast.error(`You've used all ${LOCKED_MSG_LIMIT} notes — finish your ${lock.type} challenge to unlock.`);
+      return;
+    }
     setSending(true);
     try {
       await sendMessage({ kind: "text", content: val, submission: asSubmission });
@@ -96,6 +100,7 @@ export function PunishmentVerificationChat({ lock, meId, partnerName, iAmLocked,
     e.target.value = "";
     if (!file) return;
     if (file.size > 60 * 1024 * 1024) return toast.error("Keep it under 60MB");
+    if (iAmLocked && lockedOut) return toast.error(`You've used all ${LOCKED_MSG_LIMIT} notes.`);
     setSending(true);
     try {
       const ext = (file.name.split(".").pop() || (kind === "image" ? "jpg" : "mp4")).toLowerCase();
