@@ -690,6 +690,51 @@ function WatchMovie() {
           </div>
         </div>
 
+        {/* Season / Episode picker (TV only) */}
+        {isTv && tvSeasons.length > 0 && (
+          <div className="mt-3 rounded-2xl bg-surface/70 border border-border p-2.5">
+            <div className="flex items-center gap-2 mb-2">
+              <MonitorPlay className="size-3.5 text-petal" />
+              <p className="text-[10px] uppercase tracking-widest text-candle-muted">Season</p>
+              <select
+                value={season}
+                onChange={(e) => setSeason(Number(e.target.value))}
+                className="ml-1 h-7 px-2 rounded-full bg-velvet border border-border text-xs text-candle focus:outline-none focus:border-petal/60"
+              >
+                {tvSeasons.map((s) => (
+                  <option key={s.season_number} value={s.season_number}>S{s.season_number} · {s.episode_count} ep</option>
+                ))}
+              </select>
+            </div>
+            <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-0.5 px-0.5 snap-x">
+              {seasonEps.map((ep) => {
+                const active = ep.episode_number === episode;
+                const hasOverride = customEps.some((r) => r.season === season && r.episode === ep.episode_number);
+                return (
+                  <button
+                    key={ep.episode_number}
+                    onClick={() => setEpisode(ep.episode_number)}
+                    className={`shrink-0 snap-start h-9 min-w-[3rem] px-3 rounded-full text-xs border transition-colors ${
+                      active
+                        ? "bg-petal text-velvet border-petal"
+                        : "bg-velvet border-border text-candle hover:border-petal/40"
+                    }`}
+                    title={ep.name}
+                  >
+                    E{ep.episode_number}{hasOverride ? " ✦" : ""}
+                  </button>
+                );
+              })}
+            </div>
+            {seasonEps.find((e) => e.episode_number === episode)?.name && (
+              <p className="mt-1.5 text-[11px] text-candle-muted truncate">
+                E{episode} · {seasonEps.find((e) => e.episode_number === episode)?.name}
+              </p>
+            )}
+          </div>
+        )}
+
+
         {/* Floating reaction bar */}
         <div className="mt-3 flex items-center justify-center gap-1.5">
           {REACTIONS.map((emoji) => (
