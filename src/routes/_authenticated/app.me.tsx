@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
 import { useTheme, type ThemeMode } from "@/components/ThemeProvider";
+import { CATEGORY_SETTINGS } from "@/lib/punishment";
 
 export const Route = createFileRoute("/_authenticated/app/me")({
   component: Me,
