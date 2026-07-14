@@ -340,6 +340,15 @@ function Scribble() {
     });
     ch.on("broadcast", { event: "guess-live" }, ({ payload }) => {
       const p = payload as { by: string; name: string; text: string };
+      // Debug: only the drawer holds the secret word here.
+      // eslint-disable-next-line no-console
+      console.log("[scribble] drawer received guess-live", {
+        rawGuess: p.text,
+        normalizedGuess: normalizeGuessText(p.text),
+        secretWord: wordRef.current,
+        normalizedSecret: wordRef.current ? normalizeGuessText(wordRef.current) : null,
+        playerId: p.by,
+      });
       tryMatch(p.by, p.name, p.text);
     });
     ch.on("broadcast", { event: "guess" }, ({ payload }) => {
