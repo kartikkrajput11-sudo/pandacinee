@@ -97,6 +97,65 @@ export type Database = {
         }
         Relationships: []
       }
+      custom_episodes: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          episode: number
+          id: string
+          movie_id: string
+          overview: string | null
+          runtime: number | null
+          season: number
+          still_url: string | null
+          title: string | null
+          updated_at: string
+          use_vidking: boolean
+          video_storage_path: string | null
+          video_url: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          episode: number
+          id?: string
+          movie_id: string
+          overview?: string | null
+          runtime?: number | null
+          season: number
+          still_url?: string | null
+          title?: string | null
+          updated_at?: string
+          use_vidking?: boolean
+          video_storage_path?: string | null
+          video_url?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          episode?: number
+          id?: string
+          movie_id?: string
+          overview?: string | null
+          runtime?: number | null
+          season?: number
+          still_url?: string | null
+          title?: string | null
+          updated_at?: string
+          use_vidking?: boolean
+          video_storage_path?: string | null
+          video_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "custom_episodes_movie_id_fkey"
+            columns: ["movie_id"]
+            isOneToOne: false
+            referencedRelation: "custom_movies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       custom_movies: {
         Row: {
           backdrop_url: string | null
