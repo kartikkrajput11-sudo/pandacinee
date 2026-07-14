@@ -971,7 +971,7 @@ function MovieModal({ initial, onClose }: { initial?: CustomMovie | null; onClos
             disabled={!canSave || saving}
             className="flex-1 h-11 rounded-full bg-petal text-velvet font-semibold text-sm disabled:opacity-50"
           >
-            {saving ? "Saving…" : "Add movie"}
+            {saving ? "Saving…" : isEdit ? "Save changes" : "Add movie"}
           </button>
         </div>
       </div>
