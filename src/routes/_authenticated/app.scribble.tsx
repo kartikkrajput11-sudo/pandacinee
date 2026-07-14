@@ -84,11 +84,13 @@ function Scribble() {
   const wordRef = useRef<string | null>(null);
   const drawerIdRef = useRef<string | null>(null);
   const targetScoreRef = useRef(targetScore);
+  const scoresRef = useRef<Record<string, number>>({});
   const roundResolvedRef = useRef(false);
   const iAmDrawer = drawerId === me?.id;
   useEffect(() => { wordRef.current = word; }, [word]);
   useEffect(() => { drawerIdRef.current = drawerId; }, [drawerId]);
   useEffect(() => { targetScoreRef.current = targetScore; }, [targetScore]);
+  useEffect(() => { scoresRef.current = scores; }, [scores]);
 
   const pairKey = me ? (partner ? [me.id, partner.id].sort().join(":") : me.id) : "";
   const storageKey = pairKey ? `scribble:${pairKey}` : "";
@@ -127,6 +129,7 @@ function Scribble() {
   function onGuessChange(next: string) {
     setGuess(next);
     if (!me || iAmDrawer || phase !== "playing") return;
+    if (tryMatch(me.id, me.display_name ?? "You", next, true)) return;
     // Send every keystroke so the drawer can detect a correct guess instantly.
     chRef.current?.send({
       type: "broadcast",
@@ -305,7 +308,7 @@ function Scribble() {
       const accepted = markCorrect(p.by, p.name, p.word, false);
       if (accepted && p.by === me.id) {
         // I'm the winner (auto-detected by drawer) — auto-start next round.
-        const targetNow = (scores[me.id] ?? 0) + 1;
+        const targetNow = (scoresRef.current[me.id] ?? 0) + 1;
         if (targetNow >= targetScoreRef.current) return; // winner overlay handles it
         setTimeout(() => {
           const [next] = pick4(new Set([p.word]));
@@ -339,7 +342,7 @@ function Scribble() {
       supabase.removeChannel(ch);
       chRef.current = null;
     };
-  }, [me?.id, partner?.id, drawerId]);
+  }, [me?.id, partner?.id]);
 
   // Time out
   useEffect(() => {
