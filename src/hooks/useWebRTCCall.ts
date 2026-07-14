@@ -125,9 +125,6 @@ export function useWebRTCCall(peerId: string | null, mode: Mode = "video", isCal
         setRemoteStream(remote);
         pc.ontrack = (ev) => {
           let added = false;
-          // Prefer the streams the sender associated with the track, but fall
-          // back to attaching the individual track so audio still lands even
-          // when the peer transmits without an explicit MediaStream.
           const src = ev.streams[0];
           const tracks = src ? src.getTracks() : [ev.track];
           tracks.forEach((t) => {
@@ -136,8 +133,15 @@ export function useWebRTCCall(peerId: string | null, mode: Mode = "video", isCal
               added = true;
             }
           });
+          // Ask the browser for the lowest safe playout delay — smoother
+          // real-time audio/video with less lip-sync buffering.
+          try {
+            const r = ev.receiver as RTCRtpReceiver & { playoutDelayHint?: number };
+            if (typeof r.playoutDelayHint !== "undefined") r.playoutDelayHint = 0;
+          } catch { /* ignore */ }
           if (added) setRemoteRev((n) => n + 1);
         };
+
 
         const ch = supabase.channel(`call-room:${pairKey(meRef.current, peerId)}`, {
           config: { broadcast: { self: false, ack: false }, presence: { key: meRef.current } },
