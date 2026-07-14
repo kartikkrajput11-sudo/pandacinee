@@ -574,11 +574,6 @@ function WatchMovie() {
                 <p className="mt-3 text-xs text-candle-muted">with {partnerFirst} 💞</p>
               </div>
             )}
-            {started && slowPlayer && (
-              <div className="absolute left-3 right-3 bottom-3 rounded-2xl bg-velvet/90 border border-border px-3 py-2 text-[11px] text-candle-muted backdrop-blur">
-                Stuck? Try a different server from the ✦ menu below.
-              </div>
-            )}
           </div>
         </div>
 
