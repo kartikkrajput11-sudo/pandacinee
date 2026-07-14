@@ -109,11 +109,17 @@ function Scribble() {
   const targetScoreRef = useRef(targetScore);
   const scoresRef = useRef<Record<string, number>>({});
   const roundResolvedRef = useRef(false);
+  const endsAtRef = useRef<number | null>(null);
+  const roundSecondsRef = useRef<number>(90);
+  const revealedRef = useRef<Set<number>>(new Set());
   const iAmDrawer = drawerId === me?.id;
   useEffect(() => { wordRef.current = word; }, [word]);
   useEffect(() => { drawerIdRef.current = drawerId; }, [drawerId]);
   useEffect(() => { targetScoreRef.current = targetScore; }, [targetScore]);
   useEffect(() => { scoresRef.current = scores; }, [scores]);
+  useEffect(() => { endsAtRef.current = endsAt; }, [endsAt]);
+  useEffect(() => { roundSecondsRef.current = roundSeconds; }, [roundSeconds]);
+  useEffect(() => { revealedRef.current = revealed; }, [revealed]);
 
   const pairKey = me ? (partner ? [me.id, partner.id].sort().join(":") : me.id) : "";
   const storageKey = pairKey ? `scribble:${pairKey}` : "";
@@ -340,6 +346,15 @@ function Scribble() {
     });
     ch.on("broadcast", { event: "guess-live" }, ({ payload }) => {
       const p = payload as { by: string; name: string; text: string };
+      // Debug: only the drawer holds the secret word here.
+      // eslint-disable-next-line no-console
+      console.log("[scribble] drawer received guess-live", {
+        rawGuess: p.text,
+        normalizedGuess: normalizeGuessText(p.text),
+        secretWord: wordRef.current,
+        normalizedSecret: wordRef.current ? normalizeGuessText(wordRef.current) : null,
+        playerId: p.by,
+      });
       tryMatch(p.by, p.name, p.text);
     });
     ch.on("broadcast", { event: "guess" }, ({ payload }) => {
@@ -362,8 +377,28 @@ function Scribble() {
       const p = payload as { word: string };
       resolveTimeout(p.word);
     });
+    // Handshake: newly-joined guesser asks for the current round state.
+    ch.on("broadcast", { event: "sync-request" }, () => {
+      // Only the active drawer answers, and only during a live round.
+      if (drawerIdRef.current !== me.id) return;
+      const w = wordRef.current;
+      const ends = endsAtRef.current;
+      if (!w || !ends) return;
+      const rev = revealedRef.current;
+      const mask = w.split("").map((ch2, i) => (ch2 === " " ? " " : rev.has(i) ? ch2 : "•")).join("");
+      chRef.current?.send({
+        type: "broadcast",
+        event: "round",
+        payload: { drawerId: me.id, endsAt: ends, wordLen: w.length, seconds: roundSecondsRef.current, mask, word: w },
+      });
+    });
 
-    ch.subscribe();
+    ch.subscribe((status) => {
+      if (status === "SUBSCRIBED") {
+        // Request current state in case a round is already in progress.
+        ch.send({ type: "broadcast", event: "sync-request", payload: {} });
+      }
+    });
     chRef.current = ch;
     return () => {
       supabase.removeChannel(ch);
