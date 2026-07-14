@@ -116,7 +116,11 @@
   --input: #f3dfec;
 }
 
-
+/* Light theme — bump weight for stronger contrast on soft pastel bg */
+.light body { font-weight: 500; }
+.light p, .light span, .light label, .light li, .light a, .light button, .light input, .light textarea { font-weight: 500; }
+.light h1, .light h2, .light h3, .light h4, .light .font-serif { font-weight: 600; }
+.light .text-candle-muted { font-weight: 500; }
 
 
 /* Smooth 300ms theme transitions across the app */
