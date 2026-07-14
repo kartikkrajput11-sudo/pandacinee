@@ -8,16 +8,44 @@ function token() {
   return t;
 }
 
+class TmdbError extends Error {
+  status: number;
+  constructor(status: number, path: string, statusText?: string) {
+    super(`TMDB ${status}${statusText ? ` ${statusText}` : ""} for ${path}`);
+    this.status = status;
+    this.name = "TmdbError";
+  }
+}
+
 async function tmdb<T>(path: string, params: Record<string, string | number | undefined> = {}): Promise<T> {
   const url = new URL(BASE + path);
   for (const [k, v] of Object.entries(params)) {
     if (v !== undefined && v !== null && v !== "") url.searchParams.set(k, String(v));
   }
-  const res = await fetch(url.toString(), {
-    headers: { Authorization: `Bearer ${token()}`, accept: "application/json" },
-  });
-  if (!res.ok) throw new Error(`TMDB ${res.status}`);
-  return (await res.json()) as T;
+  let res: Response;
+  try {
+    res = await fetch(url.toString(), {
+      headers: { Authorization: `Bearer ${token()}`, accept: "application/json" },
+    });
+  } catch (e) {
+    throw new Error(`TMDB network error for ${path}: ${(e as Error)?.message ?? "unknown"}`);
+  }
+  if (!res.ok) throw new TmdbError(res.status, path, res.statusText);
+  try {
+    return (await res.json()) as T;
+  } catch (e) {
+    throw new Error(`TMDB invalid JSON for ${path}: ${(e as Error)?.message ?? "unknown"}`);
+  }
+}
+
+/** Returns null on 404, rethrows other errors. */
+async function tmdbOrNull<T>(path: string, params?: Record<string, string | number | undefined>): Promise<T | null> {
+  try {
+    return await tmdb<T>(path, params);
+  } catch (e) {
+    if (e instanceof TmdbError && e.status === 404) return null;
+    throw e;
+  }
 }
 
 export type TmdbMovie = {
@@ -100,19 +128,19 @@ export type TmdbEpisode = {
 export const tmdbTvDetail = createServerFn({ method: "GET" })
   .inputValidator((d: { id: number }) => d)
   .handler(async ({ data }) => {
-    const r = await tmdb<{
+    const r = await tmdbOrNull<{
       id: number; name: string;
       number_of_seasons: number;
       seasons: { season_number: number; episode_count: number; name: string }[];
     }>(`/tv/${data.id}`);
-    return r;
+    return r; // null when the TMDB id isn't a TV show (e.g. movie id used by mistake)
   });
 
 export const tmdbTvSeason = createServerFn({ method: "GET" })
   .inputValidator((d: { id: number; season: number }) => d)
   .handler(async ({ data }) => {
-    const r = await tmdb<{ episodes: TmdbEpisode[] }>(`/tv/${data.id}/season/${data.season}`);
-    return r.episodes ?? [];
+    const r = await tmdbOrNull<{ episodes: TmdbEpisode[] }>(`/tv/${data.id}/season/${data.season}`);
+    return r?.episodes ?? [];
   });
 
 
