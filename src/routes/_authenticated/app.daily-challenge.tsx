@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Check, Flame, Trophy } from "lucide-react";
+import { ArrowLeft, Check, Flame, Share2, Trophy } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/app/daily-challenge")({
@@ -150,21 +150,36 @@ function DailyChallenge() {
       <div className="rounded-3xl border border-petal/30 bg-gradient-to-br from-petal-soft to-transparent p-6 mb-4">
         <p className="text-[10px] uppercase tracking-widest text-petal mb-3">Today</p>
         <p className="font-serif italic text-2xl text-candle leading-snug">{challenge}</p>
-        <button
-          onClick={complete}
-          disabled={state.completedToday}
-          className={`mt-6 w-full rounded-full py-3 font-semibold transition ${
-            state.completedToday
-              ? "bg-surface text-candle-muted border border-border"
-              : "bg-petal text-white shadow-petal hover:brightness-110"
-          }`}
-        >
-          {state.completedToday ? (
-            <span className="inline-flex items-center gap-2"><Check className="size-4" /> Completed today</span>
-          ) : (
-            "Mark as done"
-          )}
-        </button>
+        <div className="mt-6 flex gap-2">
+          <button
+            onClick={complete}
+            disabled={state.completedToday}
+            className={`flex-1 rounded-full py-3 font-semibold transition ${
+              state.completedToday
+                ? "bg-surface text-candle-muted border border-border"
+                : "bg-petal text-white shadow-petal hover:brightness-110"
+            }`}
+          >
+            {state.completedToday ? (
+              <span className="inline-flex items-center gap-2"><Check className="size-4" /> Completed today</span>
+            ) : (
+              "Mark as done"
+            )}
+          </button>
+          <button
+            onClick={async () => {
+              const text = `Today's Pandacine challenge: "${challenge}" 🐼 · streak ${state.streak}d`;
+              try {
+                if (navigator.share) await navigator.share({ text });
+                else { await navigator.clipboard.writeText(text); toast.success("Copied to clipboard"); }
+              } catch {}
+            }}
+            className="rounded-full bg-surface border border-border px-4 py-3 text-sm text-candle"
+            aria-label="Share"
+          >
+            <Share2 className="size-4" />
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-3 mb-4">

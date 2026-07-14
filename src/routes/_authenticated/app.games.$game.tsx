@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowLeft, RefreshCw, Send, Sparkles } from "lucide-react";
+import { ArrowLeft, History, RefreshCw, Send, SkipForward, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
@@ -164,7 +164,7 @@ function GameRoute() {
 
 function initialState(game: GameKind) {
   if (game === "truth-or-dare")
-    return { count: 0, card: null as null | { type: "truth" | "dare"; text: string }, intensity: "playful" as Intensity };
+    return { count: 0, card: null as null | { type: "truth" | "dare"; text: string }, intensity: "playful" as Intensity, history: [] as { type: "truth" | "dare"; text: string }[] };
   if (game === "this-or-that" || game === "would-you-rather")
     return {
       count: 0,
@@ -172,6 +172,7 @@ function initialState(game: GameKind) {
       picks: {} as Record<string, 0 | 1>,
       score: { matches: 0, total: 0 },
       intensity: "playful" as Intensity,
+      history: [] as { a: string; b: string }[],
     };
   if (game === "never-have-i-ever")
     return {
@@ -180,6 +181,7 @@ function initialState(game: GameKind) {
       picks: {} as Record<string, 0 | 1>,
       tallies: { have: 0, havent: 0 },
       intensity: "playful" as Intensity,
+      history: [] as { text: string }[],
     };
   if (game === "tic-tac-toe")
     return { board: Array(9).fill(null), turn: "X", wins: { X: 0, O: 0, draws: 0 } };
@@ -194,6 +196,22 @@ function initialState(game: GameKind) {
     revealed: false,
     intensity: "playful" as Intensity,
   };
+}
+
+function HistoryStrip({ items }: { items: string[] }) {
+  if (!items.length) return null;
+  return (
+    <details className="mt-4 rounded-2xl border border-border bg-surface/50">
+      <summary className="cursor-pointer px-4 py-2.5 text-xs text-candle-muted flex items-center gap-2">
+        <History className="size-3.5" /> Recent cards ({items.length})
+      </summary>
+      <div className="px-4 pb-3 space-y-1.5 max-h-40 overflow-y-auto">
+        {items.slice(-8).reverse().map((t, i) => (
+          <p key={i} className="text-xs text-candle-muted italic">· {t}</p>
+        ))}
+      </div>
+    </details>
+  );
 }
 
 function IntensityBar({
@@ -351,7 +369,12 @@ function TruthOrDare({ me, session, patch }: { me: string; session: Session; pat
 
   async function next() {
     const c = await fetchCard(s.intensity ?? "playful");
-    patch({ ...s, count: (s.count ?? 0) + 1, card: c ?? TRUTH_OR_DARE[(s.count + 1) % TRUTH_OR_DARE.length] });
+    const history = [...(s.history ?? []), card].slice(-20);
+    patch({ ...s, count: (s.count ?? 0) + 1, card: c ?? TRUTH_OR_DARE[(s.count + 1) % TRUTH_OR_DARE.length], history });
+  }
+  async function skip() {
+    const c = await fetchCard(s.intensity ?? "playful");
+    patch({ ...s, card: c ?? TRUTH_OR_DARE[(s.count + 1) % TRUTH_OR_DARE.length] });
   }
 
   return (
@@ -362,15 +385,25 @@ function TruthOrDare({ me, session, patch }: { me: string; session: Session; pat
         <p className="font-serif text-2xl italic leading-snug">{card.text}</p>
         <p className="text-[10px] text-candle-muted">Card {(s.count ?? 0) + 1}</p>
       </div>
-      <button
-        onClick={next}
-        disabled={loading}
-        className="w-full py-3.5 bg-petal text-velvet rounded-2xl font-semibold flex items-center justify-center gap-2 disabled:opacity-60"
-      >
-        {loading ? <Sparkles className="size-4 animate-pulse" /> : <RefreshCw className="size-4" />}
-        {loading ? "Crafting…" : "Next card"}
-      </button>
+      <div className="flex gap-2">
+        <button
+          onClick={skip}
+          disabled={loading}
+          className="rounded-2xl bg-surface border border-border px-4 py-3.5 text-sm text-candle flex items-center gap-2 disabled:opacity-60"
+        >
+          <SkipForward className="size-4" /> Skip
+        </button>
+        <button
+          onClick={next}
+          disabled={loading}
+          className="flex-1 py-3.5 bg-petal text-velvet rounded-2xl font-semibold flex items-center justify-center gap-2 disabled:opacity-60"
+        >
+          {loading ? <Sparkles className="size-4 animate-pulse" /> : <RefreshCw className="size-4" />}
+          {loading ? "Crafting…" : "Next card"}
+        </button>
+      </div>
       <p className="text-xs text-candle-muted text-center mt-3">Both phones flip together.</p>
+      <HistoryStrip items={(s.history ?? []).map((h: any) => `${h.type}: ${h.text}`)} />
     </div>
   );
 }
@@ -405,13 +438,20 @@ function PairPick({
     const matches = (s.score?.matches ?? 0) + (match ? 1 : 0);
     const total = (s.score?.total ?? 0) + 1;
     const c = await fetchCard(s.intensity ?? "playful");
+    const history = [...(s.history ?? []), card].slice(-20);
     patch({
       ...s,
       count: (s.count ?? 0) + 1,
       card: c,
       picks: {},
       score: { matches, total },
+      history,
     });
+  }
+  async function skip() {
+    if (myPick !== undefined || theirPick !== undefined) return;
+    const c = await fetchCard(s.intensity ?? "playful");
+    patch({ ...s, card: c });
   }
 
   useEffect(() => {
@@ -453,17 +493,29 @@ function PairPick({
           <p className="font-serif italic text-lg">{match ? "Match! 💞" : "Different tastes 🫶"}</p>
         </div>
       )}
-      <button
-        onClick={next}
-        disabled={!bothPicked || loading}
-        className="w-full py-3.5 bg-petal text-velvet rounded-2xl font-semibold flex items-center justify-center gap-2 disabled:opacity-40"
-      >
-        {loading ? <Sparkles className="size-4 animate-pulse" /> : <RefreshCw className="size-4" />}
-        {loading ? "Crafting…" : "Next round"}
-      </button>
+      <div className="flex gap-2">
+        {!bothPicked && myPick === undefined && theirPick === undefined && (
+          <button
+            onClick={skip}
+            disabled={loading}
+            className="rounded-2xl bg-surface border border-border px-4 py-3.5 text-sm text-candle flex items-center gap-2 disabled:opacity-60"
+          >
+            <SkipForward className="size-4" /> Skip
+          </button>
+        )}
+        <button
+          onClick={next}
+          disabled={!bothPicked || loading}
+          className="flex-1 py-3.5 bg-petal text-velvet rounded-2xl font-semibold flex items-center justify-center gap-2 disabled:opacity-40"
+        >
+          {loading ? <Sparkles className="size-4 animate-pulse" /> : <RefreshCw className="size-4" />}
+          {loading ? "Crafting…" : "Next round"}
+        </button>
+      </div>
       {myPick === undefined && !bothPicked && (
         <p className="text-xs text-candle-muted text-center mt-3">Tap your pick — wait for your panda.</p>
       )}
+      <HistoryStrip items={(s.history ?? []).map((h: any) => `${h.a} vs ${h.b}`)} />
     </div>
   );
 }
@@ -491,7 +543,13 @@ function NeverHaveIEver({ me, session, patch }: { me: string; session: Session; 
     const have = (s.tallies?.have ?? 0) + (myPick === 0 ? 1 : 0) + (theirPick === 0 ? 1 : 0);
     const havent = (s.tallies?.havent ?? 0) + (myPick === 1 ? 1 : 0) + (theirPick === 1 ? 1 : 0);
     const c = await fetchCard(s.intensity ?? "playful");
-    patch({ ...s, count: (s.count ?? 0) + 1, card: c, picks: {}, tallies: { have, havent } });
+    const history = [...(s.history ?? []), s.card].filter(Boolean).slice(-20);
+    patch({ ...s, count: (s.count ?? 0) + 1, card: c, picks: {}, tallies: { have, havent }, history });
+  }
+  async function skip() {
+    if (myPick !== undefined || theirPick !== undefined) return;
+    const c = await fetchCard(s.intensity ?? "playful");
+    patch({ ...s, card: c });
   }
 
   return (
@@ -527,14 +585,26 @@ function NeverHaveIEver({ me, session, patch }: { me: string; session: Session; 
           );
         })}
       </div>
-      <button
-        onClick={next}
-        disabled={!bothPicked || loading}
-        className="w-full py-3.5 bg-petal text-velvet rounded-2xl font-semibold flex items-center justify-center gap-2 disabled:opacity-40"
-      >
-        {loading ? <Sparkles className="size-4 animate-pulse" /> : <RefreshCw className="size-4" />}
-        {loading ? "Crafting…" : "Next"}
-      </button>
+      <div className="flex gap-2">
+        {!bothPicked && myPick === undefined && theirPick === undefined && (
+          <button
+            onClick={skip}
+            disabled={loading || !s.card}
+            className="rounded-2xl bg-surface border border-border px-4 py-3.5 text-sm text-candle flex items-center gap-2 disabled:opacity-60"
+          >
+            <SkipForward className="size-4" /> Skip
+          </button>
+        )}
+        <button
+          onClick={next}
+          disabled={!bothPicked || loading}
+          className="flex-1 py-3.5 bg-petal text-velvet rounded-2xl font-semibold flex items-center justify-center gap-2 disabled:opacity-40"
+        >
+          {loading ? <Sparkles className="size-4 animate-pulse" /> : <RefreshCw className="size-4" />}
+          {loading ? "Crafting…" : "Next"}
+        </button>
+      </div>
+      <HistoryStrip items={(s.history ?? []).map((h: any) => h.text)} />
     </div>
   );
 }
