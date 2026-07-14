@@ -43,7 +43,11 @@ function applyOverride(m: TmdbMovie, ov: CustomMovieRow | undefined): TmdbMovie 
 
 export const Route = createFileRoute("/_authenticated/app/movies/")({
   component: Movies,
-  validateSearch: (s: Record<string, unknown>) => ({ q: typeof s.q === "string" ? s.q : "" }),
+  validateSearch: (s: Record<string, unknown>) => ({
+    q: typeof s.q === "string" ? s.q : "",
+    type: (s.type === "movie" || s.type === "tv" ? s.type : "all") as "all" | "movie" | "tv",
+    minRating: typeof s.minRating === "number" ? s.minRating : 0,
+  }),
 });
 
 // TMDB genre IDs
