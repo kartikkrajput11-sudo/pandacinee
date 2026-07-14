@@ -165,7 +165,6 @@ function PuzzleTogether() {
   const backgroundSize = `calc(${pieceSize} * ${grid}) calc(${pieceSize} * ${grid})`;
 
   const pieces = useMemo(() => {
-  const pieces = useMemo(() => {
     const denom = Math.max(1, grid - 1);
     return slots.map((pieceId, slotIdx) => {
       const px = pieceId % grid;
