@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Heart, Pin, Trash2, Reply, Check, CheckCheck, Download, Zap } from "lucide-react";
+import { Heart, Pin, Trash2, Reply, Check, CheckCheck, Download, Zap, Phone, Video as VideoIcon, PhoneMissed } from "lucide-react";
 import { signMedia, type MessageRow } from "@/lib/chat";
 import { VoicePlayer } from "./VoicePlayer";
 import { SignedImage } from "./SignedImage";
@@ -49,9 +49,10 @@ export function ChatBubble({
   const isKiss = m.type === "kiss";
   const isNudge = m.type === "nudge";
   const isWhisper = m.type === "whisper";
+  const isCall = m.type === "call";
   const [whisperRevealed, setWhisperRevealed] = useState(false);
 
-  const bare = isSticker || isWatchInvite || isGameInvite || isMovieWheel || isKiss || isNudge;
+  const bare = isSticker || isWatchInvite || isGameInvite || isMovieWheel || isKiss || isNudge || isCall;
 
   return (
     <div className={`group flex ${mine ? "justify-end" : "justify-start"} mt-1.5 px-1`}>
@@ -114,6 +115,40 @@ export function ChatBubble({
               <span className="text-xs font-medium">{mine ? "You sent a nudge 👋" : "Nudged you! 👋"}</span>
             </div>
           )}
+
+          {isCall && (() => {
+            const meta = (m.media_meta ?? {}) as { mode?: "video" | "audio"; outcome?: "missed" | "completed"; duration_sec?: number };
+            const missed = meta.outcome === "missed";
+            const isVideo = meta.mode === "video";
+            const Icon = missed ? PhoneMissed : isVideo ? VideoIcon : Phone;
+            const dur = meta.duration_sec ?? 0;
+            const durText = dur > 0
+              ? `${Math.floor(dur / 60).toString().padStart(2, "0")}:${(dur % 60).toString().padStart(2, "0")}`
+              : "";
+            const label = missed
+              ? mine ? `You called · no answer` : `Missed ${isVideo ? "video" : "voice"} call`
+              : `${isVideo ? "Video" : "Voice"} call`;
+            return (
+              <div className={`px-3.5 py-2 rounded-2xl border flex items-center gap-2.5 ${
+                missed
+                  ? "border-red-500/40 bg-red-500/10 text-red-300"
+                  : mine
+                    ? "border-velvet/30 bg-velvet/10 text-velvet"
+                    : "border-border bg-surface-elevated text-candle"
+              }`}>
+                <div className={`size-8 rounded-full flex items-center justify-center ${missed ? "bg-red-500/20" : "bg-petal/20"}`}>
+                  <Icon className={`size-4 ${missed ? "text-red-300" : "text-petal"}`} />
+                </div>
+                <div className="flex flex-col leading-tight">
+                  <span className="text-xs font-medium">{label}</span>
+                  {!missed && durText && (
+                    <span className="text-[10px] opacity-70 tabular-nums">{durText}</span>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
+
 
           {isWhisper && (
             <div className="relative">

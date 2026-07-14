@@ -128,12 +128,35 @@ function Call() {
     return () => window.clearInterval(id);
   }, [status]);
 
+  const loggedRef = useRef(false);
   useEffect(() => {
-    if (status === "ended") {
-      const t = setTimeout(() => navigate({ to: "/app" }), 800);
-      return () => clearTimeout(t);
+    if (status !== "ended") return;
+    if (loggedRef.current) return;
+    loggedRef.current = true;
+    // Only the caller writes the log message to avoid duplicates.
+    if (role === "caller") {
+      (async () => {
+        const { data: u } = await supabase.auth.getUser();
+        if (!u.user) return;
+        const durSec = connectedAtRef.current
+          ? Math.floor((Date.now() - connectedAtRef.current) / 1000)
+          : 0;
+        const outcome = connectedAtRef.current ? "completed" : "missed";
+        await supabase.from("messages").insert({
+          sender_id: u.user.id,
+          receiver_id: peerId,
+          type: "call",
+          content:
+            outcome === "missed"
+              ? `Missed ${mode} call`
+              : `${mode === "video" ? "Video" : "Voice"} call · ${fmtDuration(durSec)}`,
+          media_meta: { mode, outcome, duration_sec: durSec } as never,
+        });
+      })();
     }
-  }, [status, navigate]);
+    const t = setTimeout(() => navigate({ to: "/app" }), 800);
+    return () => clearTimeout(t);
+  }, [status, navigate, role, peerId, mode]);
 
   // Speaker toggle: mute the remote audio locally
   useEffect(() => {
