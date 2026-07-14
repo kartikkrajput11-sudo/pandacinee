@@ -274,7 +274,30 @@ function PuzzleTogether() {
           <p className="text-sm text-candle-muted mt-1">
             {Math.floor(solvedTime / 60)}:{String(solvedTime % 60).padStart(2, "0")} · {moves} moves
           </p>
+          {bestTimes[total] !== undefined && (
+            <p className="text-xs text-petal mt-2">
+              Best on {diff.label}: {Math.floor(bestTimes[total] / 60)}:{String(bestTimes[total] % 60).padStart(2, "0")}
+            </p>
+          )}
+          <button
+            onClick={async () => {
+              const text = `I solved the Pandacine ${diff.label} puzzle in ${Math.floor(solvedTime / 60)}:${String(solvedTime % 60).padStart(2, "0")} · ${moves} moves 🧩`;
+              try {
+                if (navigator.share) await navigator.share({ text });
+                else { await navigator.clipboard.writeText(text); toast.success("Copied to clipboard"); }
+              } catch {}
+            }}
+            className="mt-4 rounded-full bg-petal text-white px-5 py-2 text-sm font-semibold"
+          >
+            Share result
+          </button>
         </div>
+      )}
+
+      {bestTimes[total] !== undefined && !solved && (
+        <p className="mt-4 text-[11px] text-candle-muted text-center">
+          Best on {diff.label}: {Math.floor(bestTimes[total] / 60)}:{String(bestTimes[total] % 60).padStart(2, "0")}
+        </p>
       )}
 
       {!partner && (
