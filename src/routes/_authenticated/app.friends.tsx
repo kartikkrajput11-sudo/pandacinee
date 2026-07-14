@@ -87,9 +87,36 @@ function Friends() {
               const existing = friendships.find((f) => relatedId(f) === p.id);
               return (
                 <Row key={p.id} profile={p}>
-                  {existing ? (
+                  {existing?.status === "pending" && existing.addressee_id === me ? (
+                    <>
+                      <button
+                        onClick={() =>
+                          accept.mutate(existing.id, {
+                            onSuccess: () => toast.success("Request accepted"),
+                            onError: (e: any) => toast.error(e.message),
+                          })
+                        }
+                        className="size-9 rounded-full bg-petal text-velvet flex items-center justify-center"
+                        aria-label="Accept"
+                      >
+                        <Check className="size-4" />
+                      </button>
+                      <button
+                        onClick={() =>
+                          remove.mutate(existing.id, {
+                            onSuccess: () => toast.success("Request declined"),
+                            onError: (e: any) => toast.error(e.message),
+                          })
+                        }
+                        className="size-9 rounded-full bg-velvet border border-border text-candle-muted flex items-center justify-center"
+                        aria-label="Decline"
+                      >
+                        <X className="size-4" />
+                      </button>
+                    </>
+                  ) : existing ? (
                     <span className="text-[10px] uppercase tracking-widest text-candle-muted px-3 py-2">
-                      {existing.status}
+                      {existing.status === "pending" ? "Requested" : existing.status}
                     </span>
                   ) : (
                     <button
@@ -126,14 +153,24 @@ function Friends() {
               return (
                 <Row key={f.id} profile={p}>
                   <button
-                    onClick={() => accept.mutate(f.id)}
+                    onClick={() =>
+                      accept.mutate(f.id, {
+                        onSuccess: () => toast.success("Request accepted"),
+                        onError: (e: any) => toast.error(e.message),
+                      })
+                    }
                     className="size-9 rounded-full bg-petal text-velvet flex items-center justify-center"
                     aria-label="Accept"
                   >
                     <Check className="size-4" />
                   </button>
                   <button
-                    onClick={() => remove.mutate(f.id)}
+                    onClick={() =>
+                      remove.mutate(f.id, {
+                        onSuccess: () => toast.success("Request declined"),
+                        onError: (e: any) => toast.error(e.message),
+                      })
+                    }
                     className="size-9 rounded-full bg-velvet border border-border text-candle-muted flex items-center justify-center"
                     aria-label="Decline"
                   >

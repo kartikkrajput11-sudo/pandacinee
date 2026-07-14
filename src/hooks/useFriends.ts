@@ -35,10 +35,8 @@ export function useFriendships() {
       );
       const profiles: Record<string, FriendProfile> = {};
       if (ids.length) {
-        const { data: ps } = await supabase
-          .from("profiles")
-          .select("id,username,display_name,avatar_url")
-          .in("id", ids);
+        const { data: ps, error: profilesError } = await supabase.rpc("friend_profiles_for_me", { _ids: ids });
+        if (profilesError) throw profilesError;
         (ps ?? []).forEach((p) => (profiles[p.id] = p as FriendProfile));
       }
       return { me: u.user.id, friendships: (fs ?? []) as Friendship[], profiles };
