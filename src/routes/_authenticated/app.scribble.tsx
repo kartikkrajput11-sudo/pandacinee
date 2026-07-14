@@ -76,7 +76,23 @@ function Scribble() {
   const [winnerId, setWinnerId] = useState<string | null>(null);
 
   const chRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const wordRef = useRef<string | null>(null);
+  const liveGuessThrottle = useRef<number>(0);
   const iAmDrawer = drawerId === me?.id;
+  useEffect(() => { wordRef.current = word; }, [word]);
+
+  function onGuessChange(next: string) {
+    setGuess(next);
+    if (!me || iAmDrawer || phase !== "playing") return;
+    const now = performance.now();
+    if (now - liveGuessThrottle.current < 120) return;
+    liveGuessThrottle.current = now;
+    chRef.current?.send({
+      type: "broadcast",
+      event: "guess-live",
+      payload: { by: me.id, name: me.display_name ?? "Partner", text: next },
+    });
+  }
   const remaining = endsAt ? Math.max(0, Math.ceil((endsAt - now) / 1000)) : 0;
 
   function redraw() {
@@ -153,6 +169,32 @@ function Scribble() {
       redraw();
       if (p.drawerId !== me.id) setWord(null);
     });
+    ch.on("broadcast", { event: "guess-live" }, ({ payload }) => {
+      const p = payload as { by: string; name: string; text: string };
+      const w = wordRef.current;
+      // Only the drawer holds the word; drawer checks the match.
+      if (!w) return;
+      if (p.text.trim().toLowerCase() !== w.toLowerCase()) return;
+      // Match — broadcast correct and update local state.
+      chRef.current?.send({
+        type: "broadcast",
+        event: "correct",
+        payload: { by: p.by, word: w, name: p.name },
+      });
+      setMessages((m) => [
+        ...m,
+        { id: crypto.randomUUID(), by: p.by, name: p.name, text: `guessed “${w}”`, correct: true },
+      ]);
+      setScores((s) => {
+        const next = { ...s, [p.by]: (s[p.by] ?? 0) + 1 };
+        if (next[p.by] >= targetScore) setWinnerId(p.by);
+        return next;
+      });
+      setPhase("over");
+      setLastDrawerId(drawerId);
+      setEndsAt(null);
+      toast.success(`${p.name} guessed “${w}”! Their turn to draw.`);
+    });
     ch.on("broadcast", { event: "guess" }, ({ payload }) => {
       setMessages((m) => [...m, payload as Msg]);
     });
@@ -173,6 +215,16 @@ function Scribble() {
       // Reveal the word to the drawer's UI too
       setWord(p.word);
       if (p.by !== me.id) toast.success(`${p.name} guessed “${p.word}”! Their turn to draw.`);
+      else {
+        // I'm the winner (auto-detected by drawer) — auto-start next round.
+        toast.success(`Correct! The word was “${p.word}” — your turn to draw!`);
+        const targetNow = (scores[me.id] ?? 0) + 1;
+        if (targetNow >= targetScore) return; // winner overlay handles it
+        setTimeout(() => {
+          const [next] = pick4(new Set([p.word]));
+          if (next) confirmWord(next);
+        }, 1400);
+      }
     });
     ch.on("broadcast", { event: "reveal" }, ({ payload }) => {
       const p = payload as { indices: number[] };
@@ -435,7 +487,7 @@ function Scribble() {
         <div className="mt-3 flex gap-2">
           <input
             value={guess}
-            onChange={(e) => setGuess(e.target.value)}
+            onChange={(e) => onGuessChange(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && sendGuess()}
             placeholder="Type your guess…"
             className="flex-1 rounded-full bg-surface border border-border px-4 py-2.5 text-sm text-candle focus:outline-none focus:border-petal/50"
