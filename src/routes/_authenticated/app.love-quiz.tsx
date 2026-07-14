@@ -220,7 +220,6 @@ function LoveQuiz() {
           spinning={spinning}
           loading={loading}
           onSpin={spinWheel}
-          onSpin={spinWheel}
         />
       ) : s.phase === "playing" ? (
         <Playing
