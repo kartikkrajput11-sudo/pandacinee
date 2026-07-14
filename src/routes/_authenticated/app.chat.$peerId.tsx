@@ -18,6 +18,9 @@ import { PunishmentLockBanner } from "@/components/chat/PunishmentLockBanner";
 import { PunishmentVerificationChat } from "@/components/chat/PunishmentVerificationChat";
 import { usePunishmentVerification } from "@/hooks/usePunishmentVerification";
 import { typeMeta } from "@/lib/punishment";
+
+const LOCKED_MSG_LIMIT = 10;
+
 import type { MessageRow } from "@/lib/chat";
 
 export const Route = createFileRoute("/_authenticated/app/chat/$peerId")({
