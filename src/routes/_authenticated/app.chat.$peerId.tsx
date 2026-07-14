@@ -17,6 +17,7 @@ import { PunishmentLockOverlay } from "@/components/chat/PunishmentLockOverlay";
 import { PunishmentLockBanner } from "@/components/chat/PunishmentLockBanner";
 import { PunishmentVerificationChat } from "@/components/chat/PunishmentVerificationChat";
 import { usePunishmentVerification } from "@/hooks/usePunishmentVerification";
+import { UnlockCelebration } from "@/components/chat/UnlockCelebration";
 import { typeMeta } from "@/lib/punishment";
 
 const LOCKED_MSG_LIMIT = 10;
