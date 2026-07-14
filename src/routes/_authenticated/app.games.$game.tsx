@@ -396,16 +396,19 @@ function TicTacToe({ me, session, patch }: { me: string; session: Session; patch
 }
 
 function RockPaperScissors({ me, session, patch }: { me: string; session: Session; patch: (s: any) => void }) {
-  const s = session.state ?? { picks: {}, round: 1, score: {} };
+  const s = session.state ?? { picks: {}, round: 1, score: {}, bestOf: 5 };
   const otherId = session.host_id === me ? session.partner_id : session.host_id;
   const myPick = s.picks?.[me] as RPSChoice | undefined;
   const theirPick = s.picks?.[otherId] as RPSChoice | undefined;
   const both = myPick && theirPick;
   const myScore = s.score?.[me] ?? 0;
   const theirScore = s.score?.[otherId] ?? 0;
+  const bestOf: number = s.bestOf ?? 5;
+  const round: number = s.round ?? 1;
+  const matchDone = bestOf > 0 && round > bestOf;
 
   function pick(c: RPSChoice) {
-    if (myPick) return;
+    if (myPick || matchDone) return;
     patch({ ...s, picks: { ...s.picks, [me]: c } });
   }
   function next() {
@@ -414,41 +417,55 @@ function RockPaperScissors({ me, session, patch }: { me: string; session: Sessio
     const score = { ...(s.score ?? {}) };
     if (w === 0) score[me] = (score[me] ?? 0) + 1;
     else if (w === 1) score[otherId] = (score[otherId] ?? 0) + 1;
-    patch({ picks: {}, round: (s.round ?? 1) + 1, score });
+    patch({ ...s, picks: {}, round: (s.round ?? 1) + 1, score });
+  }
+  function rematch() {
+    patch({ ...s, picks: {}, round: 1, score: {} });
   }
   const result = both ? rpsWinner(myPick!, theirPick!) : null;
 
   return (
     <div>
+      <MatchControls round={round} bestOf={bestOf} onBestOf={(n) => patch({ ...s, bestOf: n })} onRematch={rematch} />
       <p className="text-[10px] uppercase tracking-widest text-petal mb-2 text-center">
-        Round {s.round ?? 1} · You {myScore} – {theirScore} Them
+        You {myScore} – {theirScore} Them
       </p>
-      <div className="grid grid-cols-3 gap-3 mb-5">
-        {RPS_CHOICES.map((c) => (
-          <button
-            key={c}
-            onClick={() => pick(c)}
-            disabled={!!myPick}
-            className={`aspect-square rounded-3xl border text-5xl flex items-center justify-center transition-all ${
-              myPick === c ? "border-petal bg-petal-soft" : "border-border bg-surface"
-            } ${myPick && myPick !== c ? "opacity-40" : ""}`}
-          >
-            {RPS_EMOJI[c]}
-          </button>
-        ))}
-      </div>
-      {both ? (
-        <div className="p-4 rounded-2xl border border-petal bg-petal-soft text-center mb-4">
-          <p className="font-serif italic text-xl">
-            {result === -1 ? "Tie 🤝" : result === 0 ? "You won 🎉" : "They won 🌸"}
-          </p>
-          <p className="text-xs text-candle-muted mt-1">{RPS_EMOJI[myPick!]} vs {RPS_EMOJI[theirPick!]}</p>
-          <button onClick={next} className="mt-3 px-5 py-2 bg-petal text-velvet rounded-full font-semibold">Next round</button>
-        </div>
-      ) : myPick ? (
-        <p className="text-sm text-candle-muted text-center">Locked in. Waiting on your panda…</p>
+      {matchDone ? (
+        <MatchComplete
+          title={myScore === theirScore ? "Draw match 🤝" : myScore > theirScore ? "You win the match 🎉" : "They win the match 🌸"}
+          subtitle={`Final ${myScore} – ${theirScore}`}
+          onRematch={rematch}
+        />
       ) : (
-        <p className="text-sm text-candle-muted text-center">Pick your weapon.</p>
+        <>
+          <div className="grid grid-cols-3 gap-3 mb-5">
+            {RPS_CHOICES.map((c) => (
+              <button
+                key={c}
+                onClick={() => pick(c)}
+                disabled={!!myPick}
+                className={`aspect-square rounded-3xl border text-5xl flex items-center justify-center transition-all ${
+                  myPick === c ? "border-petal bg-petal-soft" : "border-border bg-surface"
+                } ${myPick && myPick !== c ? "opacity-40" : ""}`}
+              >
+                {RPS_EMOJI[c]}
+              </button>
+            ))}
+          </div>
+          {both ? (
+            <div className="p-4 rounded-2xl border border-petal bg-petal-soft text-center mb-4">
+              <p className="font-serif italic text-xl">
+                {result === -1 ? "Tie 🤝" : result === 0 ? "You won 🎉" : "They won 🌸"}
+              </p>
+              <p className="text-xs text-candle-muted mt-1">{RPS_EMOJI[myPick!]} vs {RPS_EMOJI[theirPick!]}</p>
+              <button onClick={next} className="mt-3 px-5 py-2 bg-petal text-velvet rounded-full font-semibold">Next round</button>
+            </div>
+          ) : myPick ? (
+            <p className="text-sm text-candle-muted text-center">Locked in. Waiting on your panda…</p>
+          ) : (
+            <p className="text-sm text-candle-muted text-center">Pick your weapon.</p>
+          )}
+        </>
       )}
     </div>
   );
