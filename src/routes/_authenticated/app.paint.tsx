@@ -236,6 +236,43 @@ function PaintTogether() {
     a.click();
   }
 
+  function done() {
+    const canvas = canvasRef.current;
+    if (!canvas || !me) return;
+    if (strokes.current.length === 0) {
+      toast("Draw something first ✨");
+      return;
+    }
+    // Flatten onto white so the reveal shows the artwork, not a transparent PNG.
+    const off = document.createElement("canvas");
+    off.width = canvas.width;
+    off.height = canvas.height;
+    const ctx = off.getContext("2d")!;
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, off.width, off.height);
+    ctx.drawImage(canvas, 0, 0);
+    const image = off.toDataURL("image/png");
+    const payload = { image, by: me.id };
+    setReveal(payload);
+    chRef.current?.send({ type: "broadcast", event: "reveal", payload });
+  }
+
+  async function shareReveal() {
+    if (!reveal) return;
+    try {
+      const blob = await (await fetch(reveal.image)).blob();
+      const file = new File([blob], `pandacine-paint-${Date.now()}.png`, { type: "image/png" });
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file], title: "Our Paint Together masterpiece 🎨" });
+        return;
+      }
+    } catch { /* ignore */ }
+    const a = document.createElement("a");
+    a.href = reveal.image;
+    a.download = `pandacine-paint-${Date.now()}.png`;
+    a.click();
+  }
+
   return (
     <div className="pt-10 px-4 pb-4">
       <header className="flex items-center justify-between mb-4">
