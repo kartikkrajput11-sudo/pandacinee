@@ -310,15 +310,23 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
         </div>
 
         <div className="flex items-center gap-2 text-white text-xs">
-          <button onClick={togglePlay} aria-label={playing ? "Pause" : "Play"} className="size-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center">
-            {playing ? <Pause className="size-4 fill-white" /> : <Play className="size-4 fill-white ml-0.5" />}
-          </button>
-          <button onClick={() => skip(-10)} aria-label="Back 10 seconds" className="size-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center">
-            <RotateCcw className="size-4" />
-          </button>
-          <button onClick={() => skip(10)} aria-label="Forward 10 seconds" className="size-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center">
-            <RotateCw className="size-4" />
-          </button>
+          {!locked && (
+            <>
+              <button onClick={togglePlay} aria-label={playing ? "Pause" : "Play"} className="size-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center">
+                {playing ? <Pause className="size-4 fill-white" /> : <Play className="size-4 fill-white ml-0.5" />}
+              </button>
+              <button onClick={() => skip(-10)} aria-label="Back 10 seconds" className="size-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center">
+                <RotateCcw className="size-4" />
+              </button>
+              <button onClick={() => skip(10)} aria-label="Forward 10 seconds" className="size-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center">
+                <RotateCw className="size-4" />
+              </button>
+            </>
+          )}
+          {locked && (
+            <span className="text-[11px] text-white/70 tracking-wide">Host controls playback</span>
+          )}
+
 
           <div className="hidden sm:flex items-center gap-2 ml-1">
             <button
