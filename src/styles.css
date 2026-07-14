@@ -122,6 +122,13 @@
 .light h1, .light h2, .light h3, .light h4, .light .font-serif { font-weight: 600; }
 .light .text-candle-muted { font-weight: 500; }
 
+/* Themed scrollbar — blends into background instead of white */
+html { scrollbar-width: thin; scrollbar-color: var(--petal-soft) transparent; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: color-mix(in oklab, var(--petal) 40%, transparent); border-radius: 9999px; }
+::-webkit-scrollbar-thumb:hover { background: color-mix(in oklab, var(--petal) 60%, transparent); }
+
 
 /* Smooth 300ms theme transitions across the app */
 html.theme-anim,
