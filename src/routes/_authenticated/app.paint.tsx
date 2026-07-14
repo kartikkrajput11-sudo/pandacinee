@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, Eraser, Download, Palette, RotateCcw, RotateCw, Trash2 } from "lucide-react";
+import { ArrowLeft, Eraser, Download, Palette, RotateCcw, RotateCw, Trash2, Sparkles, X, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
@@ -37,6 +37,7 @@ function PaintTogether() {
   const liveRemote = useRef<Map<string, Stroke>>(new Map());
   const chRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const liveThrottle = useRef<number>(0);
+  const [reveal, setReveal] = useState<{ image: string; by: string } | null>(null);
 
   function redraw() {
     const canvas = canvasRef.current;
@@ -100,6 +101,10 @@ function PaintTogether() {
       const idx = strokes.current.findIndex((s) => s.id === id);
       if (idx >= 0) strokes.current.splice(idx, 1);
       redraw();
+    });
+    ch.on("broadcast", { event: "reveal" }, ({ payload }) => {
+      const p = payload as { image: string; by: string };
+      setReveal(p);
     });
     // When a peer joins, they announce presence and we resend our committed strokes.
     ch.on("broadcast", { event: "sync-request" }, () => {
@@ -231,6 +236,43 @@ function PaintTogether() {
     a.click();
   }
 
+  function done() {
+    const canvas = canvasRef.current;
+    if (!canvas || !me) return;
+    if (strokes.current.length === 0) {
+      toast("Draw something first ✨");
+      return;
+    }
+    // Flatten onto white so the reveal shows the artwork, not a transparent PNG.
+    const off = document.createElement("canvas");
+    off.width = canvas.width;
+    off.height = canvas.height;
+    const ctx = off.getContext("2d")!;
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, off.width, off.height);
+    ctx.drawImage(canvas, 0, 0);
+    const image = off.toDataURL("image/png");
+    const payload = { image, by: me.id };
+    setReveal(payload);
+    chRef.current?.send({ type: "broadcast", event: "reveal", payload });
+  }
+
+  async function shareReveal() {
+    if (!reveal) return;
+    try {
+      const blob = await (await fetch(reveal.image)).blob();
+      const file = new File([blob], `pandacine-paint-${Date.now()}.png`, { type: "image/png" });
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file], title: "Our Paint Together masterpiece 🎨" });
+        return;
+      }
+    } catch { /* ignore */ }
+    const a = document.createElement("a");
+    a.href = reveal.image;
+    a.download = `pandacine-paint-${Date.now()}.png`;
+    a.click();
+  }
+
   return (
     <div className="pt-10 px-4 pb-4">
       <header className="flex items-center justify-between mb-4">
@@ -313,8 +355,132 @@ function PaintTogether() {
           <button onClick={download} className="flex-1 rounded-full bg-surface border border-border py-2.5 text-sm flex items-center justify-center gap-2">
             <Download className="size-4" /> Save
           </button>
-          <button onClick={clearAll} className="rounded-full bg-petal text-white px-4 py-2.5 text-sm flex items-center gap-2">
+          <button onClick={clearAll} className="rounded-full bg-surface border border-border text-candle-muted px-4 py-2.5 text-sm flex items-center gap-2">
             <Trash2 className="size-4" />
+          </button>
+        </div>
+        <button
+          onClick={done}
+          className="w-full rounded-full py-3 text-sm font-medium text-white flex items-center justify-center gap-2 shadow-lg"
+          style={{ background: "linear-gradient(135deg,#ec4899,#8b5cf6 55%,#f59e0b)" }}
+        >
+          <Sparkles className="size-4" /> Done — Reveal Masterpiece
+        </button>
+      </div>
+
+      {reveal && (
+        <RevealOverlay
+          image={reveal.image}
+          fromPartner={reveal.by !== me?.id}
+          onClose={() => setReveal(null)}
+          onShare={shareReveal}
+        />
+      )}
+    </div>
+  );
+}
+
+function RevealOverlay({
+  image,
+  fromPartner,
+  onClose,
+  onShare,
+}: {
+  image: string;
+  fromPartner: boolean;
+  onClose: () => void;
+  onShare: () => void;
+}) {
+  const confetti = Array.from({ length: 60 }, (_, i) => i);
+  const palette = ["#ec4899", "#8b5cf6", "#f59e0b", "#22c55e", "#0ea5e9", "#ffffff"];
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-hidden animate-fade-in">
+      {/* Celebration background */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(circle at 20% 20%, rgba(236,72,153,0.55), transparent 55%), radial-gradient(circle at 80% 30%, rgba(139,92,246,0.55), transparent 55%), radial-gradient(circle at 50% 90%, rgba(245,158,11,0.5), transparent 55%), #0b0616",
+        }}
+      />
+      {/* Confetti */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        {confetti.map((i) => {
+          const left = (i * 37) % 100;
+          const delay = (i % 12) * 0.15;
+          const dur = 2.4 + ((i * 13) % 20) / 10;
+          const color = palette[i % palette.length];
+          const size = 6 + (i % 5) * 2;
+          return (
+            <span
+              key={i}
+              className="absolute top-[-10%] rounded-sm"
+              style={{
+                left: `${left}%`,
+                width: size,
+                height: size * 0.4,
+                background: color,
+                transform: `rotate(${(i * 47) % 360}deg)`,
+                animation: `paint-confetti ${dur}s linear ${delay}s infinite`,
+                opacity: 0.9,
+              }}
+            />
+          );
+        })}
+      </div>
+
+      <style>{`
+        @keyframes paint-confetti {
+          0% { transform: translateY(-20px) rotate(0deg); opacity: 0; }
+          10% { opacity: 1; }
+          100% { transform: translateY(110vh) rotate(720deg); opacity: 0.8; }
+        }
+        @keyframes paint-reveal-pop {
+          0% { transform: scale(0.6) rotate(-4deg); opacity: 0; }
+          60% { transform: scale(1.04) rotate(1deg); opacity: 1; }
+          100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+      `}</style>
+
+      {/* Card */}
+      <div
+        className="relative w-full max-w-md rounded-3xl p-5 bg-gradient-to-b from-white/95 to-white/85 backdrop-blur-xl border border-white/60 shadow-2xl"
+        style={{ animation: "paint-reveal-pop 0.7s cubic-bezier(.2,1.2,.3,1) both" }}
+      >
+        <button
+          onClick={onClose}
+          className="absolute top-3 right-3 size-8 rounded-full bg-black/10 hover:bg-black/20 flex items-center justify-center text-candle"
+          aria-label="Close"
+        >
+          <X className="size-4" />
+        </button>
+        <div className="text-center mb-3">
+          <p className="text-[10px] uppercase tracking-[0.3em] text-petal flex items-center justify-center gap-1">
+            <Sparkles className="size-3" /> Masterpiece
+          </p>
+          <h2 className="font-serif text-2xl italic text-candle mt-1">
+            {fromPartner ? "Your partner called it done" : "Beautifully done"}
+          </h2>
+          <p className="text-xs text-candle-muted mt-1">
+            {fromPartner ? "They revealed the final canvas ✨" : "A little something you made together 🎨"}
+          </p>
+        </div>
+        <div className="rounded-2xl overflow-hidden border border-border shadow-inner bg-white">
+          <img src={image} alt="Final painting" className="w-full h-auto block" />
+        </div>
+        <div className="mt-4 flex gap-2">
+          <button
+            onClick={onShare}
+            className="flex-1 rounded-full py-2.5 text-sm font-medium text-white flex items-center justify-center gap-2"
+            style={{ background: "linear-gradient(135deg,#ec4899,#8b5cf6)" }}
+          >
+            <Share2 className="size-4" /> Share
+          </button>
+          <button
+            onClick={onClose}
+            className="flex-1 rounded-full py-2.5 text-sm bg-surface border border-border text-candle"
+          >
+            Keep painting
           </button>
         </div>
       </div>
