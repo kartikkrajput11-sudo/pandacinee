@@ -498,6 +498,8 @@ function UserRow({ user: u }: { user: AdminUserRow }) {
 function LibraryTab() {
   const qc = useQueryClient();
   const [adding, setAdding] = useState(false);
+  const [editing, setEditing] = useState<CustomMovie | null>(null);
+  const [query, setQuery] = useState("");
   const del = useServerFn(deleteCustomMovie);
 
   const { data: movies, isLoading } = useQuery({
@@ -508,6 +510,17 @@ function LibraryTab() {
       return (data ?? []) as CustomMovie[];
     },
   });
+
+  const filtered = useMemo(() => {
+    if (!movies) return [];
+    const s = query.trim().toLowerCase();
+    if (!s) return movies;
+    return movies.filter((m) =>
+      m.title.toLowerCase().includes(s) ||
+      (m.genres ?? []).some((g) => g.toLowerCase().includes(s)) ||
+      String(m.year ?? "").includes(s),
+    );
+  }, [movies, query]);
 
   async function onDelete(m: CustomMovie) {
     if (!confirm(`Delete "${m.title}"? This cannot be undone.`)) return;
@@ -525,15 +538,25 @@ function LibraryTab() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-wrap items-center gap-2 mb-4">
         <p className="text-[10px] uppercase tracking-widest text-candle-muted">
-          {movies?.length ?? 0} movies in your private library
+          {movies?.length ?? 0} titles in library
         </p>
+        <div className="flex-1" />
+        <div className="relative">
+          <Search className="size-3.5 text-candle-muted absolute left-3 top-1/2 -translate-y-1/2" />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search library…"
+            className="h-9 pl-8 pr-3 rounded-full bg-surface border border-border text-xs text-candle w-40 sm:w-56 focus:outline-none focus:border-petal/60"
+          />
+        </div>
         <button
           onClick={() => setAdding(true)}
           className="h-10 px-4 rounded-full bg-petal text-velvet text-sm font-semibold flex items-center gap-1.5"
         >
-          <Plus className="size-4" /> Add movie
+          <Plus className="size-4" /> Add
         </button>
       </div>
 
@@ -542,16 +565,16 @@ function LibraryTab() {
       {!isLoading && (!movies || movies.length === 0) && (
         <div className="text-center py-16 rounded-3xl border border-dashed border-border">
           <Film className="size-8 text-petal mx-auto mb-3" />
-          <h2 className="font-serif italic text-xl mb-1">No custom movies yet</h2>
-          <p className="text-sm text-candle-muted mb-4">Add your first movie to watch together with full sync.</p>
+          <h2 className="font-serif italic text-xl mb-1">No titles yet</h2>
+          <p className="text-sm text-candle-muted mb-4">Search TMDB or upload a video to add your first title.</p>
           <button onClick={() => setAdding(true)} className="h-10 px-5 rounded-full bg-petal text-velvet text-sm font-semibold">
-            Add movie
+            Add title
           </button>
         </div>
       )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {movies?.map((m) => (
+        {filtered.map((m) => (
           <div key={m.id} className="rounded-2xl border border-border bg-surface overflow-hidden flex">
             <div className="w-24 shrink-0 bg-velvet">
               {m.poster_url ? (
@@ -564,7 +587,7 @@ function LibraryTab() {
               <p className="font-serif italic text-base truncate">{m.title}</p>
               <p className="text-[10px] text-candle-muted">{m.year ?? "—"} · {m.runtime ? `${m.runtime}m` : "unknown"}</p>
               <p className="text-xs text-candle-muted mt-1 line-clamp-2">{m.overview ?? "No description."}</p>
-              <div className="mt-auto pt-2 flex gap-2">
+              <div className="mt-auto pt-2 flex gap-2 flex-wrap">
                 <Link
                   to="/app/movies/$id/watch"
                   params={{ id: `custom:${m.id}` }}
@@ -573,8 +596,14 @@ function LibraryTab() {
                   <Play className="size-3 fill-velvet" /> Watch
                 </Link>
                 <button
+                  onClick={() => setEditing(m)}
+                  className="h-8 px-3 rounded-full bg-surface-elevated border border-border text-xs text-candle flex items-center gap-1 hover:border-petal/40"
+                >
+                  <Pencil className="size-3" /> Edit
+                </button>
+                <button
                   onClick={() => onDelete(m)}
-                  className="h-8 px-3 rounded-full bg-surface-elevated border border-border text-xs text-candle-muted flex items-center gap-1"
+                  className="h-8 px-3 rounded-full bg-surface-elevated border border-border text-xs text-rose-400 flex items-center gap-1 hover:border-rose-500/40"
                 >
                   <Trash2 className="size-3" /> Delete
                 </button>
@@ -584,7 +613,16 @@ function LibraryTab() {
         ))}
       </div>
 
-      {adding && <AddMovieModal onClose={() => { setAdding(false); qc.invalidateQueries({ queryKey: ["custom-movies"] }); }} />}
+      {(adding || editing) && (
+        <MovieModal
+          initial={editing}
+          onClose={() => {
+            setAdding(false);
+            setEditing(null);
+            qc.invalidateQueries({ queryKey: ["custom-movies"] });
+          }}
+        />
+      )}
     </div>
   );
 }
