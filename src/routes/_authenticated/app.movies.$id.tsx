@@ -92,6 +92,16 @@ function MovieDetail() {
     return () => { alive = false; };
   }, [id]);
 
+  // Load season episodes when this is a TV series
+  useEffect(() => {
+    if (!isTv || !movie?.id) { setSeasonEps([]); return; }
+    let alive = true;
+    fetchSeasonEps({ data: { id: Number(id), season: selectedSeason } })
+      .then((eps) => { if (alive) setSeasonEps(eps ?? []); })
+      .catch(() => { if (alive) setSeasonEps([]); });
+    return () => { alive = false; };
+  }, [isTv, movie?.id, selectedSeason, id]);
+
 
   const regions = useMemo(() => Array.from(new Set(sources.map((s) => s.region))).sort(), [sources]);
   useEffect(() => { if (regions.length && !regions.includes(region)) setRegion(regions[0]); }, [regions]);
