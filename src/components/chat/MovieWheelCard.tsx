@@ -152,7 +152,7 @@ export function MovieWheelCard({ m, mine }: { m: MessageRow; mine: boolean }) {
                 )}
                 {winnerEntry?.tmdb_id && (
                   <Link
-                    to="/app/movie/$id"
+                    to="/app/movies/$id"
                     params={{ id: String(winnerEntry.tmdb_id) }}
                     onClick={(e) => e.stopPropagation()}
                     className="mt-1 inline-flex items-center gap-1 text-[11px] text-petal hover:underline"
