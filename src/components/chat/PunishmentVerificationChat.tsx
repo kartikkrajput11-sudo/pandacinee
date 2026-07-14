@@ -35,7 +35,7 @@ export function PunishmentVerificationChat({ lock, meId, partnerName, iAmLocked,
   const [voiceOpen, setVoiceOpen] = useState(false);
   const [retryFor, setRetryFor] = useState<VerificationMessage | null>(null);
   const [retryNote, setRetryNote] = useState("");
-  const [celebrating, setCelebrating] = useState(false);
+  const [celebrateTick, setCelebrateTick] = useState(0);
   const imgRef = useRef<HTMLInputElement>(null);
   const vidRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
