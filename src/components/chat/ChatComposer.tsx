@@ -36,7 +36,7 @@ type Props = {
   }) => Promise<void>;
 };
 
-export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTyping, onSend, locked }: Props) {
+export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTyping, onSend, locked, lockedHint }: Props) {
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
