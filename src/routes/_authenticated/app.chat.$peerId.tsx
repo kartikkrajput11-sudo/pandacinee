@@ -14,6 +14,9 @@ import { KissOverlay } from "@/components/chat/KissOverlay";
 import { PunishmentLockDialog } from "@/components/chat/PunishmentLockDialog";
 import { PunishmentLockOverlay } from "@/components/chat/PunishmentLockOverlay";
 import { PunishmentLockBanner } from "@/components/chat/PunishmentLockBanner";
+import { PunishmentVerificationChat } from "@/components/chat/PunishmentVerificationChat";
+import { usePunishmentVerification } from "@/hooks/usePunishmentVerification";
+import { typeMeta } from "@/lib/punishment";
 import type { MessageRow } from "@/lib/chat";
 
 export const Route = createFileRoute("/_authenticated/app/chat/$peerId")({
@@ -47,8 +50,21 @@ function ChatPeer() {
   const [showPinned, setShowPinned] = useState(false);
   const [highlightId, setHighlightId] = useState<string | null>(null);
   const [lockDialogOpen, setLockDialogOpen] = useState(false);
+  const [verifyOpen, setVerifyOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const bubbleRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  const isVerifyMode = !!activeLock && typeMeta(activeLock.type).mode === "verify";
+  const { messages: verifMessages } = usePunishmentVerification(
+    isVerifyMode ? activeLock!.id : null,
+    me?.id ?? null,
+  );
+  const hasPendingSubmission = verifMessages.some((m) => m.submission && m.approved === null);
+
+  // Auto-open verification chat for the locked partner so they immediately land in it.
+  useEffect(() => {
+    if (isVerifyMode && iAmLocked) setVerifyOpen(true);
+  }, [isVerifyMode, iAmLocked]);
 
   const messagesById = useMemo(() => {
     const map: Record<string, MessageRow> = {};
@@ -154,7 +170,22 @@ function ChatPeer() {
       <MoodBar me={me} partner={peer} />
 
       {activeLock && iAmLocker && (
-        <PunishmentLockBanner lock={activeLock} targetName={peerDisplay} onCancel={cancelLock} />
+        <PunishmentLockBanner
+          lock={activeLock}
+          targetName={peerDisplay}
+          onCancel={cancelLock}
+          onOpenVerification={isVerifyMode ? () => setVerifyOpen(true) : undefined}
+          hasPending={hasPendingSubmission}
+        />
+      )}
+      {activeLock && iAmLocked && isVerifyMode && !verifyOpen && (
+        <button
+          onClick={() => setVerifyOpen(true)}
+          className="w-full px-4 py-2 border-b border-petal/40 bg-petal-soft/20 text-xs text-petal font-semibold flex items-center justify-center gap-2"
+        >
+          <Lock className="size-3" />
+          Chat locked · Open Verification Chat →
+        </button>
       )}
 
       {pinned.length > 0 && (
@@ -233,7 +264,7 @@ function ChatPeer() {
       />
       <KissOverlay trigger={kissTick} emoji={kissEmoji} />
 
-      {activeLock && iAmLocked && (
+      {activeLock && iAmLocked && !isVerifyMode && (
         <PunishmentLockOverlay
           lock={activeLock}
           meId={me.id}
@@ -244,10 +275,24 @@ function ChatPeer() {
         />
       )}
 
+      {activeLock && isVerifyMode && verifyOpen && (
+        <PunishmentVerificationChat
+          lock={activeLock}
+          meId={me.id}
+          partnerName={peerDisplay}
+          iAmLocked={iAmLocked}
+          iAmLocker={iAmLocker}
+          onClose={() => setVerifyOpen(false)}
+          onCancel={iAmLocker ? () => cancelLock(activeLock.id) : undefined}
+        />
+      )}
+
       <PunishmentLockDialog
         open={lockDialogOpen}
         onClose={() => setLockDialogOpen(false)}
         targetName={peerDisplay}
+        mePrefs={me as unknown as Record<string, boolean>}
+        peerPrefs={peer as unknown as Record<string, boolean>}
         onCreate={createLock}
       />
     </div>
