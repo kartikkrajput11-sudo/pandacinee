@@ -428,15 +428,28 @@ function PaintTogether() {
       });
     }
     if (!drawing.current) return;
-    drawing.current.pts.push(p);
+    if (drawing.current.shape) {
+      drawing.current.pts[1] = p;
+    } else {
+      drawing.current.pts.push(p);
+    }
     redraw();
     if (now - liveThrottle.current > 33) {
       liveThrottle.current = now;
-      chRef.current?.send({
-        type: "broadcast",
-        event: "stroke-point",
-        payload: { id: drawing.current.id, pts: [p] },
-      });
+      if (drawing.current.shape) {
+        // For shapes, resend the whole stroke so partner sees preview update.
+        chRef.current?.send({
+          type: "broadcast",
+          event: "stroke-start",
+          payload: drawing.current,
+        });
+      } else {
+        chRef.current?.send({
+          type: "broadcast",
+          event: "stroke-point",
+          payload: { id: drawing.current.id, pts: [p] },
+        });
+      }
     }
   }
 
