@@ -132,12 +132,18 @@ function Movies() {
     }
 
     // Custom (admin-uploaded) movies from our library — shown as normal movies.
+    // Plus, any row with a tmdb_id becomes an override for that TMDB entry.
     supabase
       .from("custom_movies")
-      .select("id, title, year, poster_url, backdrop_url, overview, runtime")
+      .select("id, title, year, poster_url, backdrop_url, overview, runtime, tmdb_id")
       .order("created_at", { ascending: false })
       .then(({ data }) => {
-        if (alive && data) setCustom(data as CustomMovieRow[]);
+        if (!alive || !data) return;
+        const rows = data as CustomMovieRow[];
+        setCustom(rows.filter((r) => !r.tmdb_id)); // only truly-custom titles in the "Fresh Arrivals" rail
+        const map = new Map<number, CustomMovieRow>();
+        for (const r of rows) if (r.tmdb_id) map.set(r.tmdb_id, r);
+        setOverrides(map);
       });
 
     return () => { alive = false; };
