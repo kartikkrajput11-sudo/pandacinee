@@ -119,8 +119,8 @@ export const getRecentActivity = createServerFn({ method: "GET" })
       supabaseAdmin.from("memory_jar").select("id, title, author_id, created_at").order("created_at", { ascending: false }).limit(20),
       supabaseAdmin.from("mood_log").select("id, user_id, emoji, label, created_at").order("created_at", { ascending: false }).limit(20),
       supabaseAdmin.from("game_sessions").select("id, host_id, partner_id, game, created_at").order("created_at", { ascending: false }).limit(20),
-      supabaseAdmin.from("wishlist_items").select("id, created_by, title, created_at").order("created_at", { ascending: false }).limit(20),
-      supabaseAdmin.from("punishment_locks").select("id, locked_user_id, locker_id, created_at").order("created_at", { ascending: false }).limit(20),
+      supabaseAdmin.from("wishlist_items").select("id, owner_id, title, created_at").order("created_at", { ascending: false }).limit(20),
+      supabaseAdmin.from("punishment_locks").select("id, target_id, locker_id, created_at").order("created_at", { ascending: false }).limit(20),
       supabaseAdmin.from("profiles").select("id, display_name, avatar_url, partner_id, paired_at").not("paired_at", "is", null).order("paired_at", { ascending: false }).limit(20),
     ]);
 
