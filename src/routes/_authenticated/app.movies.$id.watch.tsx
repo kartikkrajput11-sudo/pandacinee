@@ -520,6 +520,20 @@ function CatalogWatch({ id }: { id: string }) {
     }
   }, [peer, partnerIsHost, me, mine.currentTime, applySeek, partner, isPandacine, started, customPlayerReady, runSuppressedPlayerAction]);
 
+  // When the custom player mounts after an auto-join, mute + seek + play.
+  useEffect(() => {
+    if (pendingAutoJoinRef.current == null) return;
+    const h = customPlayerRef.current;
+    if (!h) return;
+    const t = pendingAutoJoinRef.current;
+    pendingAutoJoinRef.current = null;
+    runSuppressedPlayerAction(() => {
+      h.setMuted(true);
+      h.seek(t);
+      h.play();
+    }, 800);
+  }, [customPlayerReady, runSuppressedPlayerAction]);
+
   async function sendWatchInviteMessage(receiverId: string, extra?: Record<string, unknown>) {
     if (!me || !movie) return { error: new Error("Missing data") };
     const media_meta = {
