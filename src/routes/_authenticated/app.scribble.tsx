@@ -462,9 +462,9 @@ function Scribble() {
             <Sparkles className="size-4" />
             {phase === "over"
               ? myTurnToStart
-                ? "Your turn — pick a word"
+                ? "Your turn — start drawing"
                 : "Waiting for partner…"
-              : "Start round — pick a word"}
+              : "Start round"}
           </button>
         </div>
       )}
