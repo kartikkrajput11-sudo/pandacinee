@@ -120,6 +120,7 @@ function WatchMovie() {
   const [floaties, setFloaties] = useState<{ id: number; emoji: string; x: number; from: "me" | "partner" }[]>([]);
   const [viewersOpen, setViewersOpen] = useState(false);
   const [friendPickerOpen, setFriendPickerOpen] = useState(false);
+  const [waitingFor, setWaitingFor] = useState<{ id: string; name: string } | null>(null);
   const friendsQuery = useFriendships();
   const lastPublishRef = useRef(0);
 
