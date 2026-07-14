@@ -39,23 +39,37 @@ const SOURCES: Source[] = [
     id: "vidking-auto",
     label: "Velvet HD",
     hint: "Autoplay enabled — recommended",
-    url: (id, t) =>
-      `https://www.vidking.net/embed/movie/${id}?color=9146ff&autoPlay=true${t ? `&progress=${Math.floor(t)}` : ""}`,
+    url: (id, t, mt, s, e) => {
+      const base = mt === "tv" && s != null && e != null
+        ? `https://www.vidking.net/embed/tv/${id}/${s}/${e}`
+        : `https://www.vidking.net/embed/movie/${id}`;
+      return `${base}?color=9146ff&autoPlay=true${t ? `&progress=${Math.floor(t)}` : ""}`;
+    },
   },
   {
     id: "vidking-manual",
     label: "Velvet Manual",
     hint: "Press play inside the player",
-    url: (id, t) =>
-      `https://www.vidking.net/embed/movie/${id}?color=9146ff${t ? `&progress=${Math.floor(t)}` : ""}`,
+    url: (id, t, mt, s, e) => {
+      const base = mt === "tv" && s != null && e != null
+        ? `https://www.vidking.net/embed/tv/${id}/${s}/${e}`
+        : `https://www.vidking.net/embed/movie/${id}`;
+      return `${base}?color=9146ff${t ? `&progress=${Math.floor(t)}` : ""}`;
+    },
   },
   {
     id: "vidking-clean",
     label: "Basic",
     hint: "Minimal fallback embed",
-    url: (id, t) => `https://www.vidking.net/embed/movie/${id}${t ? `?progress=${Math.floor(t)}` : ""}`,
+    url: (id, t, mt, s, e) => {
+      const base = mt === "tv" && s != null && e != null
+        ? `https://www.vidking.net/embed/tv/${id}/${s}/${e}`
+        : `https://www.vidking.net/embed/movie/${id}`;
+      return `${base}${t ? `?progress=${Math.floor(t)}` : ""}`;
+    },
   },
 ];
+
 
 const REACTIONS = ["❤️", "🔥", "😂", "😱", "🥰", "🍿"];
 
