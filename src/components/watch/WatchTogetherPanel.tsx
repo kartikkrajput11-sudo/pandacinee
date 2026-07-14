@@ -50,6 +50,7 @@ export function WatchTogetherPanel({
   const [open, setOpen] = useState(inline);
   const [text, setText] = useState("");
   const [pickerOpen, setPickerOpen] = useState<null | "stickers" | "phrases">(null);
+  const [opacityMode, setOpacityMode] = useState<"blur" | "clear" | "solid">("blur");
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
