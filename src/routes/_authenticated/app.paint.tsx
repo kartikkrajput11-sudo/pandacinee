@@ -160,7 +160,8 @@ function PaintTogether() {
   function pt(e: React.PointerEvent) {
     const c = canvasRef.current!;
     const r = c.getBoundingClientRect();
-    return { x: e.clientX - r.left, y: e.clientY - r.top };
+    // Store as ratios (0..1) so the partner sees strokes at the same relative spot on any screen.
+    return { x: (e.clientX - r.left) / r.width, y: (e.clientY - r.top) / r.height };
   }
 
   function onDown(e: React.PointerEvent) {
