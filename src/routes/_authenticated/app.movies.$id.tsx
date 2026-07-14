@@ -221,14 +221,26 @@ function MovieDetail() {
         </div>
 
         {/* Primary CTA */}
-        <Link
-          to="/app/movies/$id/watch"
-          params={{ id: String(movie.id) }}
-          className="w-full flex items-center justify-center gap-3 py-4 rounded-2xl bg-petal text-velvet font-bold text-sm tracking-wide shadow-[0_20px_60px_-20px] shadow-petal/60 active:scale-[0.98] transition-transform"
-        >
-          <Play className="size-4 fill-velvet" />
-          {isTv ? "WATCH SERIES" : "PLAY MOVIE"}
-        </Link>
+        {isTv ? (
+          <Link
+            to="/app/movies/$id/watch"
+            params={{ id: String(movie.id) }}
+            search={{ season: 1, episode: 1 }}
+            className="w-full flex items-center justify-center gap-3 py-4 rounded-2xl bg-petal text-velvet font-bold text-sm tracking-wide shadow-[0_20px_60px_-20px] shadow-petal/60 active:scale-[0.98] transition-transform"
+          >
+            <Play className="size-4 fill-velvet" />
+            PLAY S1·E1
+          </Link>
+        ) : (
+          <Link
+            to="/app/movies/$id/watch"
+            params={{ id: String(movie.id) }}
+            className="w-full flex items-center justify-center gap-3 py-4 rounded-2xl bg-petal text-velvet font-bold text-sm tracking-wide shadow-[0_20px_60px_-20px] shadow-petal/60 active:scale-[0.98] transition-transform"
+          >
+            <Play className="size-4 fill-velvet" />
+            PLAY MOVIE
+          </Link>
+        )}
 
         {/* Synopsis */}
         {movie.overview && (
