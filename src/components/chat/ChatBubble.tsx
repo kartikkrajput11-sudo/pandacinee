@@ -84,6 +84,7 @@ export function ChatBubble({
                  replyTo.type === "video" ? "🎬 Video" :
                  replyTo.type === "file" ? `📎 ${replyTo.content}` :
                  replyTo.type === "game_invite" ? `🎮 ${replyTo.content}` :
+                 replyTo.type === "movie_wheel" ? "🎡 Movie wheel" :
                  replyTo.type === "kiss" ? "💋 kiss" :
                  replyTo.type === "whisper" ? "🤫 whisper" :
                  replyTo.content}
