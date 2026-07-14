@@ -442,11 +442,91 @@ function PuzzleTogether() {
         </div>
       )}
 
+      {/* Race outcome + dare flow (only with a partner) */}
+      {partner && outcome === "winner" && (
+        <div className="mt-4 rounded-3xl border border-petal/40 bg-petal-soft/60 p-5">
+          <p className="text-[10px] uppercase tracking-widest text-petal">You won 🏆</p>
+          <h3 className="font-serif italic text-xl text-candle mt-1">Send them a sweet dare</h3>
+          <p className="text-xs text-candle-muted mt-1">
+            Loser has to complete it. Keep it cute & couple-y 💕
+          </p>
+          {dareSent ? (
+            <div className="mt-3">
+              <p className="text-sm text-candle bg-white/60 rounded-2xl p-3 border border-petal/30">
+                💌 "{dareSent}"
+              </p>
+              <p className="text-[11px] text-candle-muted mt-2">
+                {dareDone ? "✅ They completed it!" : "Waiting for them to complete it…"}
+              </p>
+            </div>
+          ) : (
+            <>
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {DARE_SUGGESTIONS.map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => setDareText(s)}
+                    className="rounded-full bg-white/60 border border-petal/30 px-2.5 py-1 text-[11px] text-candle hover:border-petal"
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+              <div className="mt-3 flex gap-2">
+                <input
+                  value={dareText}
+                  onChange={(e) => setDareText(e.target.value)}
+                  maxLength={140}
+                  placeholder="Type a dare or pick one above…"
+                  className="flex-1 rounded-full bg-white/70 border border-petal/30 px-4 py-2 text-sm text-candle focus:outline-none focus:border-petal"
+                />
+                <button
+                  onClick={sendDare}
+                  disabled={!dareText.trim()}
+                  className="rounded-full bg-petal text-white px-4 py-2 text-sm font-semibold disabled:opacity-50"
+                >
+                  Send
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      {partner && outcome === "loser" && (
+        <div className="mt-4 rounded-3xl border border-border bg-surface p-5 text-center">
+          <p className="text-[10px] uppercase tracking-widest text-candle-muted">You lost this round 💫</p>
+          {partnerTime !== null && (
+            <p className="text-xs text-candle-muted mt-1">
+              Partner finished in {Math.floor(partnerTime / 60)}:{String(partnerTime % 60).padStart(2, "0")}
+            </p>
+          )}
+          {dareReceived ? (
+            <div className="mt-3">
+              <p className="font-serif italic text-lg text-candle">Your dare 💌</p>
+              <p className="text-sm text-candle bg-petal-soft rounded-2xl p-3 border border-petal/30 mt-2">
+                "{dareReceived}"
+              </p>
+              <button
+                onClick={markDareDone}
+                disabled={dareDone}
+                className="mt-3 rounded-full bg-petal text-white px-5 py-2 text-sm font-semibold disabled:opacity-50"
+              >
+                {dareDone ? "✅ Marked done" : "I did it ✨"}
+              </button>
+            </div>
+          ) : (
+            <p className="text-xs text-candle-muted mt-2">Waiting for their dare…</p>
+          )}
+        </div>
+      )}
+
       {bestTimes[total] !== undefined && !solved && (
         <p className="mt-4 text-[11px] text-candle-muted text-center">
           Best on {diff.label}: {Math.floor(bestTimes[total] / 60)}:{String(bestTimes[total] % 60).padStart(2, "0")}
         </p>
       )}
+
 
       {!partner && (
         <p className="mt-5 text-[11px] text-candle-muted text-center">
