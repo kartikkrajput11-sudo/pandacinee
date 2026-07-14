@@ -232,6 +232,8 @@ function Me() {
 
           <ThemeSection />
 
+          <PunishmentLockToggle me={me} onSaved={() => queryClient.invalidateQueries({ queryKey: ["profile"] })} />
+
           <Link to="/app/partner" className="p-5 mb-4 rounded-3xl border border-border bg-surface flex items-center gap-3 hover:border-petal/40 transition-colors">
             <Heart className="size-5 text-petal" />
             <div className="flex-1 min-w-0">
