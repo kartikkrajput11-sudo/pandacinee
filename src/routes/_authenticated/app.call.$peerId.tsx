@@ -327,6 +327,15 @@ function Call() {
           </div>
         )}
 
+        {audioBlocked && !error && (
+          <button
+            onClick={enableSound}
+            className="absolute bottom-32 left-4 right-4 p-3 bg-petal text-velvet rounded-2xl text-sm font-semibold flex items-center justify-center gap-2 shadow-xl animate-fade-in"
+          >
+            <Volume2 className="size-4" /> Tap to hear {peer.display_name || "them"}
+          </button>
+        )}
+
         {error && (
           <div className="absolute bottom-32 left-4 right-4 p-3 bg-surface/90 backdrop-blur border border-petal/40 rounded-2xl text-sm text-candle text-center">
             {error}
