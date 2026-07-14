@@ -43,7 +43,13 @@ export function ChatBubble({
 
   const isSticker = m.type === "sticker";
   const isWatchInvite = m.type === "watch_invite";
+  const isGameInvite = m.type === "game_invite";
+  const isKiss = m.type === "kiss";
+  const isNudge = m.type === "nudge";
+  const isWhisper = m.type === "whisper";
+  const [whisperRevealed, setWhisperRevealed] = useState(false);
 
+  const bare = isSticker || isWatchInvite || isGameInvite || isKiss || isNudge;
 
   return (
     <div className={`group flex ${mine ? "justify-end" : "justify-start"} mt-1.5 px-1`}>
@@ -54,11 +60,14 @@ export function ChatBubble({
           </div>
         )}
         <button
-          onClick={() => setActionsOpen((o) => !o)}
+          onClick={() => {
+            if (isWhisper) { setWhisperRevealed((v) => !v); return; }
+            setActionsOpen((o) => !o);
+          }}
           className={`relative text-left rounded-2xl text-sm leading-relaxed transition-colors ${
             isSticker
               ? "bg-transparent p-0 text-6xl leading-none"
-              : isWatchInvite
+              : bare
               ? "bg-transparent p-0"
               : mine
               ? "bg-petal text-velvet rounded-br-md px-3 py-2"
@@ -72,6 +81,9 @@ export function ChatBubble({
                  replyTo.type === "image" ? "📷 Photo" :
                  replyTo.type === "video" ? "🎬 Video" :
                  replyTo.type === "file" ? `📎 ${replyTo.content}` :
+                 replyTo.type === "game_invite" ? `🎮 ${replyTo.content}` :
+                 replyTo.type === "kiss" ? "💋 kiss" :
+                 replyTo.type === "whisper" ? "🤫 whisper" :
                  replyTo.content}
               </p>
             </div>
@@ -80,6 +92,41 @@ export function ChatBubble({
           {m.type === "text" && <p className="whitespace-pre-wrap break-words">{m.content}</p>}
           {m.type === "sticker" && <span>{m.content}</span>}
           {isWatchInvite && <WatchInviteCard m={m} mine={mine} />}
+          {isGameInvite && <GameInviteCard m={m} mine={mine} />}
+
+          {isKiss && (
+            <div className={`px-4 py-3 rounded-2xl border ${mine ? "border-velvet/30 bg-velvet/10 text-velvet" : "border-petal/40 bg-petal-soft/30 text-candle"} flex items-center gap-3`}>
+              <span className="text-4xl animate-pulse-soft">{m.content || "💋"}</span>
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.25em] text-petal">Kiss</p>
+                <p className="text-xs">{mine ? "You sent a kiss" : "You got a kiss"}</p>
+              </div>
+            </div>
+          )}
+
+          {isNudge && (
+            <div className={`px-4 py-2.5 rounded-2xl border flex items-center gap-2 ${mine ? "border-velvet/30 bg-velvet/10 text-velvet" : "border-petal/40 bg-petal-soft/30 text-candle"}`}>
+              <Zap className="size-4 text-petal" />
+              <span className="text-xs font-medium">{mine ? "You sent a nudge 👋" : "Nudged you! 👋"}</span>
+            </div>
+          )}
+
+          {isWhisper && (
+            <div className="relative">
+              <p
+                className={`whitespace-pre-wrap break-words select-none transition-all duration-300 ${
+                  whisperRevealed ? "blur-0" : "blur-md"
+                }`}
+              >
+                {m.content}
+              </p>
+              {!whisperRevealed && (
+                <span className={`absolute inset-0 flex items-center justify-center text-[10px] uppercase tracking-[0.25em] pointer-events-none ${mine ? "text-velvet/70" : "text-petal"}`}>
+                  🤫 tap to reveal
+                </span>
+              )}
+            </div>
+          )}
 
           {m.type === "voice" && m.media_url && (
             <VoicePlayer path={m.media_url} durationMs={(m.media_meta as any)?.duration_ms} />
@@ -102,6 +149,7 @@ export function ChatBubble({
             </div>
           )}
         </button>
+
 
         {reactionsEntries.length > 0 && (
           <div className={`flex gap-1 mt-1 ${mine ? "justify-end" : ""}`}>
