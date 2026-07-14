@@ -317,12 +317,21 @@ function Scribble() {
     if (now >= endsAt) {
       setPhase("over");
       setLastDrawerId(drawerId);
+      // Only the drawer knows the word — broadcast it so the guesser also sees it.
+      if (iAmDrawer && word) {
+        chRef.current?.send({
+          type: "broadcast",
+          event: "timeout",
+          payload: { word },
+        });
+      }
       setMessages((m) => [
         ...m,
-        { id: crypto.randomUUID(), by: "sys", name: "System", text: `Time! The word was “${word ?? "?"}”` },
+        { id: crypto.randomUUID(), by: "sys", name: "System", text: `Time! The word was “${word ?? "…"}”` },
       ]);
     }
-  }, [now, endsAt, phase, word, drawerId]);
+  }, [now, endsAt, phase, word, drawerId, iAmDrawer]);
+
 
   // Auto letter reveals — drawer broadcasts every ~ (roundSeconds/4) seconds
   useEffect(() => {
