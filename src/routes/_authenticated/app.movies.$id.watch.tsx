@@ -121,6 +121,7 @@ function CatalogWatch({ id }: { id: string }) {
   const [sourceMenuOpen, setSourceMenuOpen] = useState(false);
   const [sleepMinutes, setSleepMinutes] = useState<number | null>(null);
   const [sleepAt, setSleepAt] = useState<number | null>(null);
+  const [customPlayerReady, setCustomPlayerReady] = useState(0);
   const [floaties, setFloaties] = useState<{ id: number; emoji: string; x: number; from: "me" | "partner" }[]>([]);
   const [viewersOpen, setViewersOpen] = useState(false);
   const [friendPickerOpen, setFriendPickerOpen] = useState(false);
@@ -471,7 +472,7 @@ function CatalogWatch({ id }: { id: string }) {
       applySeek(peer.currentTime, { pause: false });
       if (evt === "seeked") toast.info(`${partner?.display_name.split(" ")[0]} skipped`);
     }
-  }, [peer, partnerIsHost, me, mine.currentTime, applySeek, partner, isPandacine, started, runSuppressedPlayerAction]);
+  }, [peer, partnerIsHost, me, mine.currentTime, applySeek, partner, isPandacine, started, customPlayerReady, runSuppressedPlayerAction]);
 
   async function sendWatchInviteMessage(receiverId: string) {
     if (!me || !movie) return { error: new Error("Missing data") };
@@ -805,7 +806,7 @@ function CatalogWatch({ id }: { id: string }) {
                   poster={backdropUrl}
                   startAt={startAt}
                   locked={!!hostId && !iAmHost}
-                  onReady={(h) => { customPlayerRef.current = h; setPlayerLoading(false); }}
+                  onReady={(h) => { customPlayerRef.current = h; setCustomPlayerReady((n) => n + 1); setPlayerLoading(false); }}
                   onEvent={(evt) => {
                     if (suppressPlayerEventRef.current) return;
                     const now = Date.now();
@@ -1445,6 +1446,7 @@ function CustomWatch({ customId }: { customId: string }) {
   const [movie, setMovie] = useState<any>(null);
   const [videoSrc, setVideoSrc] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [playerReady, setPlayerReady] = useState(0);
 
   const {
     mine, peer, partnerOnline, publish, sendSeek, sendCountdown, countdown, clearCountdown,
@@ -1513,7 +1515,7 @@ function CustomWatch({ customId }: { customId: string }) {
       if (evt === "play") h.play();
       if (evt === "pause") h.pause();
     });
-  }, [peer, partnerIsHost, runSuppressed]);
+  }, [peer, partnerIsHost, playerReady, runSuppressed]);
 
   // Countdown → both press play together
   const [countdownRemaining, setCountdownRemaining] = useState<number | null>(null);
@@ -1609,7 +1611,7 @@ function CustomWatch({ customId }: { customId: string }) {
               src={videoSrc}
               poster={movie?.backdrop_url ?? movie?.poster_url ?? null}
               locked={!!hostId && !iAmHost}
-              onReady={(h) => (handleRef.current = h)}
+              onReady={(h) => { handleRef.current = h; setPlayerReady((n) => n + 1); }}
               onEvent={handleEvent}
             />
           ) : (
