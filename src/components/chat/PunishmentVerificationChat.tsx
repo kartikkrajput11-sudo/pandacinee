@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Lock, Send, ImageIcon, Video as VideoIcon, X, Check, RotateCcw, Palette, Mic } from "lucide-react";
 import { toast } from "sonner";
-import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { uploadChatMedia } from "@/lib/chat";
 import { typeMeta, type PunishmentLock } from "@/lib/punishment";
 import { VoiceRecorder } from "./VoiceRecorder";
 import { usePunishmentVerification, wipePunishment, type VerificationMessage } from "@/hooks/usePunishmentVerification";
 import { UnlockCelebration } from "./UnlockCelebration";
+import { DoodlePad } from "./DoodlePad";
+
 
 type Props = {
   lock: PunishmentLock;
@@ -33,6 +34,7 @@ export function PunishmentVerificationChat({ lock, meId, partnerName, iAmLocked,
   const [sending, setSending] = useState(false);
   const [cardOpen, setCardOpen] = useState(false);
   const [voiceOpen, setVoiceOpen] = useState(false);
+  const [doodleOpen, setDoodleOpen] = useState(false);
   const [retryFor, setRetryFor] = useState<VerificationMessage | null>(null);
   const [retryNote, setRetryNote] = useState("");
   const [celebrateTick, setCelebrateTick] = useState(0);
@@ -145,6 +147,25 @@ export function PunishmentVerificationChat({ lock, meId, partnerName, iAmLocked,
       });
     } catch (err: any) {
       toast.error(err?.message ?? "Failed");
+    }
+  }
+
+  async function handleDoodle(blob: Blob) {
+    if (iAmLocked && lockedOut) { toast.error(`You've used all ${LOCKED_MSG_LIMIT} notes.`); return; }
+    setSending(true);
+    try {
+      const path = await uploadChatMedia(blob, meId, "image", "png");
+      await sendMessage({
+        kind: "drawing",
+        media_url: path,
+        media_meta: { mime: "image/png", size: blob.size },
+        submission: requiredKind === "drawing",
+      });
+      setDoodleOpen(false);
+    } catch (err: any) {
+      toast.error(err?.message ?? "Failed to send doodle");
+    } finally {
+      setSending(false);
     }
   }
 
@@ -269,14 +290,15 @@ export function PunishmentVerificationChat({ lock, meId, partnerName, iAmLocked,
                 💌
               </button>
               {(lock.type === "draw" || lock.type === "creative") && (
-                <Link
-                  to="/app/paint"
-                  className="size-10 rounded-full bg-velvet border border-border flex items-center justify-center text-candle"
-                  aria-label="Open Paint Together"
-                  title="Open Paint Together"
+                <button
+                  onClick={() => setDoodleOpen(true)}
+                  disabled={lockedOut}
+                  className="size-10 rounded-full bg-velvet border border-border flex items-center justify-center text-candle disabled:opacity-50"
+                  aria-label="Draw a doodle"
+                  title="Draw a doodle"
                 >
                   <Palette className="size-4" />
-                </Link>
+                </button>
               )}
             </div>
             <textarea
@@ -413,6 +435,13 @@ export function PunishmentVerificationChat({ lock, meId, partnerName, iAmLocked,
           </div>
         </div>
       )}
+
+      <DoodlePad
+        open={doodleOpen}
+        onClose={() => setDoodleOpen(false)}
+        onSend={handleDoodle}
+        sending={sending}
+      />
     </div>
   );
 }
