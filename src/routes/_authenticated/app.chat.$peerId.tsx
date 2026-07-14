@@ -118,7 +118,7 @@ function ChatPeer() {
 
 
   if (isLoading || peerQ.isLoading) {
-    return <div className="flex flex-col h-[calc(100vh-7rem)] items-center justify-center text-candle-muted">Loading…</div>;
+    return <div className="flex flex-col h-screen items-center justify-center text-candle-muted">Loading…</div>;
   }
   if (!me) return null;
   if (!peer) {
@@ -134,7 +134,7 @@ function ChatPeer() {
   const peerDisplay = (isPartner && me.partner_nickname) ? me.partner_nickname : peer.display_name;
 
   return (
-    <div className={`flex flex-col h-[calc(100vh-7rem)] ${shake ? "animate-chat-shake" : ""}`}>
+    <div className={`flex flex-col h-screen ${shake ? "animate-chat-shake" : ""}`}>
       <header className="relative px-4 pt-6 pb-3 flex items-center gap-2 border-b border-border bg-velvet/80 backdrop-blur sticky top-0 z-10">
         <Link to="/app/chat" className="text-candle-muted"><ArrowLeft className="size-5" /></Link>
         <div className="size-10 rounded-full bg-petal-soft flex items-center justify-center overflow-hidden">
