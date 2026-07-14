@@ -163,6 +163,9 @@ function Scribble() {
       setPhase("over");
       setLastDrawerId((prev) => drawerId ?? prev);
       setEndsAt(null);
+      // Reveal the word to the drawer's UI too
+      setWord(p.word);
+      if (p.by !== me.id) toast.success(`${p.name} guessed “${p.word}”! Their turn to draw.`);
     });
     ch.on("broadcast", { event: "reveal" }, ({ payload }) => {
       const p = payload as { indices: number[] };
@@ -282,7 +285,14 @@ function Scribble() {
         event: "correct",
         payload: { by: me.id, word, name: me.display_name ?? "Partner" },
       });
-      toast.success("Correct! +1");
+      toast.success(`Correct! The word was “${word}” — your turn to draw!`);
+      // Auto-prompt the new drawer (me, the correct guesser) after a short beat
+      setTimeout(() => {
+        setChoices(pick4(new Set(word ? [word] : [])));
+        setPhase("choosing");
+      }, 1400);
+    } else {
+      toast.error("Not quite — keep guessing!");
     }
   }
 
