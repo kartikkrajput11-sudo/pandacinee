@@ -67,6 +67,10 @@ function PuzzleTogether() {
   const [solved, setSolved] = useState(false);
   const [startedAt, setStartedAt] = useState<number>(() => Date.now());
   const [now, setNow] = useState(Date.now());
+  const [bestTimes, setBestTimes] = useState<Record<number, number>>(() => {
+    if (typeof window === "undefined") return {};
+    try { return JSON.parse(window.localStorage.getItem("pandacine-puzzle-best") ?? "{}"); } catch { return {}; }
+  });
 
   const chRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const applyingRemote = useRef(false);
@@ -88,9 +92,20 @@ function PuzzleTogether() {
   useEffect(() => {
     if (slots.length && slots.every((v, i) => v === i) && !solved) {
       setSolved(true);
-      toast.success("Solved! 🧩");
+      const t = Math.floor((Date.now() - startedAt) / 1000);
+      setBestTimes((prev) => {
+        const cur = prev[total];
+        if (!cur || t < cur) {
+          const next = { ...prev, [total]: t };
+          try { window.localStorage.setItem("pandacine-puzzle-best", JSON.stringify(next)); } catch {}
+          toast.success("New best time! 🏆");
+          return next;
+        }
+        toast.success("Solved! 🧩");
+        return prev;
+      });
     }
-  }, [slots, solved]);
+  }, [slots, solved, startedAt, total]);
 
   // Realtime pair channel
   useEffect(() => {
