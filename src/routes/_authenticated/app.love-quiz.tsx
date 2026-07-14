@@ -219,7 +219,7 @@ function LoveQuiz() {
           seed={s.spinSeed}
           spinning={spinning}
           loading={loading}
-          landed={null}
+          landed={null as unknown as string}
           onSpin={spinWheel}
         />
       ) : s.phase === "playing" ? (
