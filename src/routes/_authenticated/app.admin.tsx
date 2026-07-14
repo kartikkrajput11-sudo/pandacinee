@@ -11,7 +11,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
 import { claimAdmin, createCustomMovie, deleteCustomMovie } from "@/lib/admin.functions";
-import { getAdminStats, getRecentActivity, getAdminUsers, type ActivityItem, type AdminUserRow } from "@/lib/admin-stats.functions";
+import { getAdminStats, getRecentActivity, getAdminUsers, deleteAdminUser, type ActivityItem, type AdminUserRow } from "@/lib/admin-stats.functions";
 
 export const Route = createFileRoute("/_authenticated/app/admin")({
   component: AdminPage,
