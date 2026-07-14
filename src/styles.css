@@ -252,5 +252,11 @@ html.theme-anim * {
 .animate-flame { animation: flame-flicker 2.4s ease-in-out infinite; transform-origin: 50% 90%; }
 .animate-glow-breath { animation: glow-breath 3.6s ease-in-out infinite; }
 .animate-shine { animation: shine-sweep 2.8s ease-in-out infinite; }
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+}
+
 .animate-chat-shake { animation: chat-shake 0.7s cubic-bezier(.36,.07,.19,.97); }
 .animate-kiss { animation: kiss-float 2.2s ease-out forwards; }
