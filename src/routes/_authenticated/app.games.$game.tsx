@@ -438,13 +438,20 @@ function PairPick({
     const matches = (s.score?.matches ?? 0) + (match ? 1 : 0);
     const total = (s.score?.total ?? 0) + 1;
     const c = await fetchCard(s.intensity ?? "playful");
+    const history = [...(s.history ?? []), card].slice(-20);
     patch({
       ...s,
       count: (s.count ?? 0) + 1,
       card: c,
       picks: {},
       score: { matches, total },
+      history,
     });
+  }
+  async function skip() {
+    if (myPick !== undefined || theirPick !== undefined) return;
+    const c = await fetchCard(s.intensity ?? "playful");
+    patch({ ...s, card: c });
   }
 
   useEffect(() => {
@@ -486,17 +493,29 @@ function PairPick({
           <p className="font-serif italic text-lg">{match ? "Match! 💞" : "Different tastes 🫶"}</p>
         </div>
       )}
-      <button
-        onClick={next}
-        disabled={!bothPicked || loading}
-        className="w-full py-3.5 bg-petal text-velvet rounded-2xl font-semibold flex items-center justify-center gap-2 disabled:opacity-40"
-      >
-        {loading ? <Sparkles className="size-4 animate-pulse" /> : <RefreshCw className="size-4" />}
-        {loading ? "Crafting…" : "Next round"}
-      </button>
+      <div className="flex gap-2">
+        {!bothPicked && myPick === undefined && theirPick === undefined && (
+          <button
+            onClick={skip}
+            disabled={loading}
+            className="rounded-2xl bg-surface border border-border px-4 py-3.5 text-sm text-candle flex items-center gap-2 disabled:opacity-60"
+          >
+            <SkipForward className="size-4" /> Skip
+          </button>
+        )}
+        <button
+          onClick={next}
+          disabled={!bothPicked || loading}
+          className="flex-1 py-3.5 bg-petal text-velvet rounded-2xl font-semibold flex items-center justify-center gap-2 disabled:opacity-40"
+        >
+          {loading ? <Sparkles className="size-4 animate-pulse" /> : <RefreshCw className="size-4" />}
+          {loading ? "Crafting…" : "Next round"}
+        </button>
+      </div>
       {myPick === undefined && !bothPicked && (
         <p className="text-xs text-candle-muted text-center mt-3">Tap your pick — wait for your panda.</p>
       )}
+      <HistoryStrip items={(s.history ?? []).map((h: any) => `${h.a} vs ${h.b}`)} />
     </div>
   );
 }
