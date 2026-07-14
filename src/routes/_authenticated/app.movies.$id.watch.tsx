@@ -100,8 +100,15 @@ function WatchMovie() {
     incomingReaction,
     clearIncomingReaction,
     sendReaction,
+    hostId,
+    claimHost,
+    releaseHost,
     drift,
   } = useWatchSync(me?.id ?? null, partner?.id ?? null, tmdbId, "movie");
+
+  const iAmHost = !!me && hostId === me.id;
+  const partnerIsHost = !!partner && hostId === partner.id;
+  const lastAppliedPeerEventRef = useRef<number>(0);
 
   useEffect(() => {
     fetchMovie({ data: { id: tmdbId } }).then(setMovie).catch(() => setMovie(null));
