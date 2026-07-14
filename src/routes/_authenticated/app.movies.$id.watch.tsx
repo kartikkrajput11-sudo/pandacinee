@@ -92,6 +92,7 @@ export const Route = createFileRoute("/_authenticated/app/movies/$id/watch")({
 
 function WatchMovie() {
   const { id } = Route.useParams();
+  const search = Route.useSearch();
   const isCustom = id.startsWith("custom:");
   const tmdbId = Number(id);
   const fetchMovie = useServerFn(tmdbMovie);
