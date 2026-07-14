@@ -21,6 +21,7 @@ import {
   Check,
   Heart,
   MessageCircle,
+  Crown,
 } from "lucide-react";
 import { toast } from "sonner";
 import { tmdbMovie } from "@/lib/tmdb.functions";
