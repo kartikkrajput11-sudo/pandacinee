@@ -289,16 +289,9 @@ function ChatPeer() {
         onClearReply={() => setReplyTo(null)}
         onTyping={sendTyping}
         onSend={send}
-        locked={
-          iAmLocked && activeLock && lockedMsgsUsed >= LOCKED_MSG_LIMIT
-            ? { reason: `You've used all ${LOCKED_MSG_LIMIT} locked-chat messages — complete your ${activeLock.type} challenge to unlock.` }
-            : null
-        }
-        lockedHint={
-          iAmLocked && activeLock
-            ? `Locked chat · ${Math.max(0, LOCKED_MSG_LIMIT - lockedMsgsUsed)}/${LOCKED_MSG_LIMIT} messages left`
-            : null
-        }
+        locked={null}
+        lockedHint={null}
+
 
       />
       <KissOverlay trigger={kissTick} emoji={kissEmoji} />
