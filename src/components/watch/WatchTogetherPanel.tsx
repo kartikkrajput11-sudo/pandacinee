@@ -37,6 +37,7 @@ export function WatchTogetherPanel({
   movieTitle,
   moviePoster,
   mediaType = "movie",
+  inline = false,
 }: {
   me: Profile;
   partner: Profile;
@@ -44,8 +45,9 @@ export function WatchTogetherPanel({
   movieTitle: string;
   moviePoster?: string | null;
   mediaType?: "movie" | "tv";
+  inline?: boolean;
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(inline);
   const [text, setText] = useState("");
   const [pickerOpen, setPickerOpen] = useState<null | "stickers" | "phrases">(null);
   const scrollRef = useRef<HTMLDivElement>(null);
