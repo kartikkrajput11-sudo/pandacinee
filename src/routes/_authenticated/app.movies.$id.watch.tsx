@@ -85,10 +85,12 @@ export const Route = createFileRoute("/_authenticated/app/movies/$id/watch")({
   validateSearch: (raw: Record<string, unknown>) => {
     const s = Number(raw.season);
     const e = Number(raw.episode);
+    const w = typeof raw.with === "string" && raw.with.length > 0 ? raw.with : undefined;
     return {
       season: Number.isFinite(s) && s > 0 ? Math.floor(s) : undefined,
       episode: Number.isFinite(e) && e > 0 ? Math.floor(e) : undefined,
-    } as { season?: number; episode?: number };
+      with: w,
+    } as { season?: number; episode?: number; with?: string };
   },
   component: WatchMovie,
 });
@@ -106,7 +108,27 @@ function CatalogWatch({ id }: { id: string }) {
   const fetchMovie = useServerFn(tmdbMovie);
   const { data: prof } = useProfile();
   const me = prof?.profile;
-  const partner = prof?.partner;
+  const realPartner = prof?.partner;
+  const friendsQuery = useFriendships();
+  // Co-viewer: if `?with=<userId>` is present and points at a friend (or the
+  // real partner), sync against that person instead of the default partner.
+  // This lets non-partner friends watch together via a chat invite.
+  const partner = useMemo(() => {
+    const w = search.with;
+    if (!w) return realPartner ?? null;
+    if (realPartner && w === realPartner.id) return realPartner;
+    const p = friendsQuery.data?.profiles?.[w];
+    if (p) {
+      return {
+        id: p.id,
+        username: p.username,
+        display_name: p.display_name,
+        avatar_url: p.avatar_url,
+      } as typeof realPartner;
+    }
+    return realPartner ?? null;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search.with, realPartner?.id, friendsQuery.data?.profiles]);
   const navigate = useNavigate();
   const [movie, setMovie] = useState<any>(null);
   const [pandacine, setPandacine] = useState<{ videoSrc: string; title: string | null } | null>(null);
@@ -126,7 +148,6 @@ function CatalogWatch({ id }: { id: string }) {
   const [viewersOpen, setViewersOpen] = useState(false);
   const [friendPickerOpen, setFriendPickerOpen] = useState(false);
   const [waitingFor, setWaitingFor] = useState<{ id: string; name: string } | null>(null);
-  const friendsQuery = useFriendships();
   const lastPublishRef = useRef(0);
 
   // TV series state (populated when the admin marked this TMDB id as media_type=tv)
@@ -480,7 +501,7 @@ function CatalogWatch({ id }: { id: string }) {
     }
   }, [peer, partnerIsHost, me, mine.currentTime, applySeek, partner, isPandacine, started, customPlayerReady, runSuppressedPlayerAction]);
 
-  async function sendWatchInviteMessage(receiverId: string) {
+  async function sendWatchInviteMessage(receiverId: string, extra?: Record<string, unknown>) {
     if (!me || !movie) return { error: new Error("Missing data") };
     const media_meta = {
       tmdb_id: Number(tmdbId),
@@ -489,6 +510,7 @@ function CatalogWatch({ id }: { id: string }) {
       release_date: movie.release_date ?? movie.first_air_date ?? null,
       vote_average: movie.vote_average ?? null,
       overview: movie.overview ?? null,
+      ...(extra ?? {}),
     };
     return await supabase.from("messages").insert({
       sender_id: me.id,
@@ -509,13 +531,25 @@ function CatalogWatch({ id }: { id: string }) {
 
   async function inviteFriend(friendId: string, friendName: string) {
     if (!me || !movie) return;
-    const { error } = await sendWatchInviteMessage(friendId);
+    // Embed `with: me.id` so when the friend opens the invite, their watch
+    // page joins the same sync room keyed to this pair (not their partner).
+    const { error } = await sendWatchInviteMessage(friendId, { with: me.id });
     if (error) { toast.error(error.message); return; }
     const first = friendName.split(" ")[0];
     toast.success(`Invite sent — waiting for ${first} 🍿`);
     setFriendPickerOpen(false);
     setWaitingFor({ id: friendId, name: first });
+    // Move sender into the same shared room so both sides sync on this friend.
+    if (!realPartner || realPartner.id !== friendId) {
+      navigate({
+        to: "/app/movies/$id/watch",
+        params: { id: String(tmdbId) },
+        search: (prev: Record<string, unknown>) => ({ ...prev, with: friendId }),
+        replace: true,
+      });
+    }
   }
+
 
 
 
@@ -1450,9 +1484,27 @@ function CatalogWatch({ id }: { id: string }) {
 }
 
 function CustomWatch({ customId }: { customId: string }) {
+  const search = Route.useSearch();
   const { data: prof } = useProfile();
   const me = prof?.profile;
-  const partner = prof?.partner;
+  const realPartner = prof?.partner;
+  const friendsQuery = useFriendships();
+  const partner = useMemo(() => {
+    const w = search.with;
+    if (!w) return realPartner ?? null;
+    if (realPartner && w === realPartner.id) return realPartner;
+    const p = friendsQuery.data?.profiles?.[w];
+    if (p) {
+      return {
+        id: p.id,
+        username: p.username,
+        display_name: p.display_name,
+        avatar_url: p.avatar_url,
+      } as typeof realPartner;
+    }
+    return realPartner ?? null;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search.with, realPartner?.id, friendsQuery.data?.profiles]);
   const [movie, setMovie] = useState<any>(null);
   const [videoSrc, setVideoSrc] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);

@@ -10,6 +10,7 @@ type InviteMeta = {
   release_date?: string | null;
   vote_average?: number;
   overview?: string;
+  with?: string;
 };
 
 export function WatchInviteCard({ m, mine }: { m: MessageRow; mine: boolean }) {
@@ -52,6 +53,7 @@ export function WatchInviteCard({ m, mine }: { m: MessageRow; mine: boolean }) {
         <Link
           to="/app/movies/$id/watch"
           params={{ id: String(meta.tmdb_id) }}
+          search={meta.with ? { with: meta.with } : undefined}
           className="flex items-center justify-center gap-2 mx-3 mb-3 py-2 rounded-full bg-petal text-velvet text-xs font-semibold petal-glow"
         >
           <Play className="size-3.5 fill-current" />
