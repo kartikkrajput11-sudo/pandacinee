@@ -180,7 +180,10 @@ function WatchMovie() {
   useEffect(() => {
     if (!started) return;
     setSlowPlayer(false);
-    const t = window.setTimeout(() => setSlowPlayer(true), 14000);
+    const t = window.setTimeout(() => {
+      setSlowPlayer(true);
+      toast("Stuck? Try a different server from the ✦ menu below.", { duration: 5000 });
+    }, 14000);
     return () => window.clearTimeout(t);
   }, [started, sourceIdx, iframeKey]);
 
