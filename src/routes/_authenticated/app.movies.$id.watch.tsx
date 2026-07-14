@@ -954,22 +954,33 @@ function WatchMovie() {
                 )}
               </div>
 
-              {/* Invite — same size & color as Take the reins, placed under trio */}
-              {partner ? (
+              {/* Invite row — partner + friends */}
+              <div className="grid grid-cols-2 gap-1.5">
+                {partner ? (
+                  <button
+                    onClick={inviteToWatch}
+                    className="h-10 rounded-full bg-petal text-velvet text-xs font-semibold flex items-center justify-center gap-1.5 shadow-lg shadow-petal/30 min-w-0 px-2"
+                  >
+                    <Send className="size-3.5 shrink-0" />
+                    <span className="truncate">Invite {partnerFirst}</span>
+                  </button>
+                ) : (
+                  <Link
+                    to="/app/invite"
+                    className="h-10 rounded-full bg-petal text-velvet text-xs font-semibold flex items-center justify-center gap-1.5 shadow-lg shadow-petal/30 min-w-0 px-2"
+                  >
+                    <Send className="size-3.5 shrink-0" />
+                    <span className="truncate">Invite partner</span>
+                  </Link>
+                )}
                 <button
-                  onClick={inviteToWatch}
-                  className="w-full h-10 rounded-full bg-petal text-velvet text-xs font-semibold flex items-center justify-center gap-1.5 shadow-lg shadow-petal/30"
+                  onClick={() => setFriendPickerOpen(true)}
+                  className="h-10 rounded-full bg-surface border border-petal/40 text-petal text-xs font-semibold flex items-center justify-center gap-1.5 min-w-0 px-2 hover:bg-petal/10"
                 >
-                  <Send className="size-3.5" /> Invite {partnerFirst}
+                  <Users className="size-3.5 shrink-0" />
+                  <span className="truncate">Invite a friend</span>
                 </button>
-              ) : (
-                <Link
-                  to="/app/invite"
-                  className="w-full h-10 rounded-full bg-petal text-velvet text-xs font-semibold flex items-center justify-center gap-1.5 shadow-lg shadow-petal/30"
-                >
-                  <Send className="size-3.5" /> Invite partner
-                </Link>
-              )}
+              </div>
             </div>
           )}
 
