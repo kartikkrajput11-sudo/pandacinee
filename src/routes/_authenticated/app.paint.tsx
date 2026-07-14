@@ -1012,6 +1012,7 @@ function ReplayCanvas({
         ctx.globalAlpha = 1;
         ctx.globalCompositeOperation = "source-over";
         return;
+      }
       ctx.beginPath();
       ctx.strokeStyle = s.erase ? "#ffffff" : s.color;
       ctx.lineWidth = s.size * (w / 400);
