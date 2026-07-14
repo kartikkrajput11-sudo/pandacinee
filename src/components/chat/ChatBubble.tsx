@@ -6,6 +6,7 @@ import { SignedImage } from "./SignedImage";
 import { SignedVideo } from "./SignedVideo";
 import { WatchInviteCard } from "./WatchInviteCard";
 import { GameInviteCard } from "./GameInviteCard";
+import { MovieWheelCard } from "./MovieWheelCard";
 
 
 const QUICK_REACTIONS = ["❤️", "😂", "🥺", "🔥", "🐼", "👍"];
@@ -44,12 +45,13 @@ export function ChatBubble({
   const isSticker = m.type === "sticker";
   const isWatchInvite = m.type === "watch_invite";
   const isGameInvite = m.type === "game_invite";
+  const isMovieWheel = m.type === "movie_wheel";
   const isKiss = m.type === "kiss";
   const isNudge = m.type === "nudge";
   const isWhisper = m.type === "whisper";
   const [whisperRevealed, setWhisperRevealed] = useState(false);
 
-  const bare = isSticker || isWatchInvite || isGameInvite || isKiss || isNudge;
+  const bare = isSticker || isWatchInvite || isGameInvite || isMovieWheel || isKiss || isNudge;
 
   return (
     <div className={`group flex ${mine ? "justify-end" : "justify-start"} mt-1.5 px-1`}>
@@ -82,6 +84,7 @@ export function ChatBubble({
                  replyTo.type === "video" ? "🎬 Video" :
                  replyTo.type === "file" ? `📎 ${replyTo.content}` :
                  replyTo.type === "game_invite" ? `🎮 ${replyTo.content}` :
+                 replyTo.type === "movie_wheel" ? "🎡 Movie wheel" :
                  replyTo.type === "kiss" ? "💋 kiss" :
                  replyTo.type === "whisper" ? "🤫 whisper" :
                  replyTo.content}
@@ -93,6 +96,7 @@ export function ChatBubble({
           {m.type === "sticker" && <span>{m.content}</span>}
           {isWatchInvite && <WatchInviteCard m={m} mine={mine} />}
           {isGameInvite && <GameInviteCard m={m} mine={mine} />}
+          {isMovieWheel && <MovieWheelCard m={m} mine={mine} />}
 
           {isKiss && (
             <div className={`px-4 py-3 rounded-2xl border ${mine ? "border-velvet/30 bg-velvet/10 text-velvet" : "border-petal/40 bg-petal-soft/30 text-candle"} flex items-center gap-3`}>

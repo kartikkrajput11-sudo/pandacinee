@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import {
   Plus, X, Image as ImageIcon, Paperclip, Smile, Send, Clock, Film,
-  Video as VideoIcon, Gamepad2, Heart, Zap, EyeOff, Eye,
+  Video as VideoIcon, Gamepad2, Heart, Zap, EyeOff, Eye, Disc3,
 } from "lucide-react";
 import { toast } from "sonner";
 import { uploadChatMedia, DISAPPEAR_OPTIONS, type MessageRow } from "@/lib/chat";
@@ -9,6 +9,7 @@ import { VoiceRecorder } from "./VoiceRecorder";
 import { WatchInvitePicker } from "./WatchInvitePicker";
 import { EmojiPicker } from "./EmojiPicker";
 import { GameInvitePicker, type GamePick } from "./GameInvitePicker";
+import { MovieWheelPicker, type WheelEntry } from "./MovieWheelPicker";
 import type { TmdbMovie } from "@/lib/tmdb.functions";
 
 const KISS_EMOJIS = ["💋", "💜", "🌸", "🫧", "💫", "🐼", "🌷", "🫶"];
@@ -22,7 +23,7 @@ type Props = {
   onTyping: (v: boolean) => void;
   onSend: (input: {
     content?: string;
-    type?: "text" | "voice" | "image" | "video" | "file" | "sticker" | "watch_invite" | "game_invite" | "kiss" | "nudge" | "whisper";
+    type?: "text" | "voice" | "image" | "video" | "file" | "sticker" | "watch_invite" | "game_invite" | "kiss" | "nudge" | "whisper" | "movie_wheel";
     media_url?: string | null;
     media_meta?: Record<string, unknown> | null;
     reply_to_id?: string | null;
@@ -39,6 +40,7 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
   const [disappearMenu, setDisappearMenu] = useState(false);
   const [watchPickerOpen, setWatchPickerOpen] = useState(false);
   const [gamePickerOpen, setGamePickerOpen] = useState(false);
+  const [wheelOpen, setWheelOpen] = useState(false);
   const [whisper, setWhisper] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const imgRef = useRef<HTMLInputElement>(null);
@@ -103,6 +105,25 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
       onClearReply();
     } catch (err: any) {
       toast.error(err?.message ?? "Failed to send invite");
+    }
+  }
+
+  async function sendMovieWheel(entries: WheelEntry[]) {
+    setWheelOpen(false);
+    setMenuOpen(false);
+    const winner_index = Math.floor(Math.random() * entries.length);
+    const winner = entries[winner_index];
+    try {
+      await onSend({
+        type: "movie_wheel",
+        content: `🎡 Movie wheel · ${entries.length} picks`,
+        media_meta: { entries, winner_index, winner_title: winner?.title },
+        reply_to_id: replyTo?.id ?? null,
+        disappear_seconds: disappearSecs,
+      });
+      onClearReply();
+    } catch (err: any) {
+      toast.error(err?.message ?? "Failed to send wheel");
     }
   }
 
@@ -293,6 +314,13 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
             <span className="text-[11px]">Game</span>
           </button>
           <button
+            onClick={() => { setWheelOpen(true); setMenuOpen(false); }}
+            className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-gradient-to-br from-petal/30 to-petal-soft/40 border border-petal/40 text-candle hover:from-petal/50 transition-colors"
+          >
+            <Disc3 className="size-5 text-petal" />
+            <span className="text-[11px]">Wheel</span>
+          </button>
+          <button
             onClick={sendKiss}
             className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-gradient-to-br from-petal/25 to-petal-soft/40 border border-petal/40 text-candle hover:from-petal/40 transition-colors"
           >
@@ -328,6 +356,7 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
 
       <WatchInvitePicker open={watchPickerOpen} onClose={() => setWatchPickerOpen(false)} onPick={sendWatchInvite} />
       <GameInvitePicker open={gamePickerOpen} onClose={() => setGamePickerOpen(false)} onPick={sendGameInvite} />
+      <MovieWheelPicker open={wheelOpen} onClose={() => setWheelOpen(false)} onSend={sendMovieWheel} />
 
 
 
