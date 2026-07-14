@@ -286,12 +286,12 @@ function Call() {
             <p className="mt-1 text-xs uppercase tracking-widest text-candle-muted">
               {isConnected ? "in your ear" : statusLabel}
             </p>
-            {/* Hidden audio-only playback */}
-            {mode === "audio" && (
-              <video ref={remoteRef} autoPlay playsInline className="hidden" />
-            )}
           </div>
         )}
+
+        {/* Dedicated remote-audio element — always mounted so the peer's
+            voice plays even in video mode or before the video track arrives. */}
+        <audio ref={remoteAudioRef} autoPlay playsInline className="hidden" />
 
         {mode === "video" && !remoteStream && (
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
