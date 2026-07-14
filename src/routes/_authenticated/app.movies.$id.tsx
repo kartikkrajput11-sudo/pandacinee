@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { ArrowLeft, Send, Film, Play, ExternalLink, Tv } from "lucide-react";
 import { toast } from "sonner";
-import { tmdbMovie, tmdbTvFull } from "@/lib/tmdb.functions";
+import { tmdbMovie, tmdbTvFull, tmdbTvSeason } from "@/lib/tmdb.functions";
 import { watchmodeSources, type WatchSource } from "@/lib/watchmode.functions";
 import { poster } from "./app.movies";
 import { useProfile } from "@/hooks/useProfile";
