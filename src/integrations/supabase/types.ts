@@ -924,6 +924,15 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      friend_profiles_for_me: {
+        Args: { _ids: string[] }
+        Returns: {
+          avatar_url: string
+          display_name: string
+          id: string
+          username: string
+        }[]
+      }
       has_answered_on: {
         Args: { _date: string; _user: string }
         Returns: boolean
