@@ -70,7 +70,7 @@ function Call() {
   const navigate = useNavigate();
   const { data: profileData } = useProfile();
   const me = profileData?.profile;
-  const { localStream, remoteStream, status, error, hangup, toggleAudio, toggleVideo, flipCamera } = useWebRTCCall(
+  const { localStream, remoteStream, remoteRev, status, error, hangup, toggleAudio, toggleVideo, flipCamera } = useWebRTCCall(
     peerId,
     mode,
     role === "caller",
@@ -78,6 +78,7 @@ function Call() {
   const [muted, setMuted] = useState(false);
   const [videoOff, setVideoOff] = useState(false);
   const [speakerOn, setSpeakerOn] = useState(true);
+  const [audioBlocked, setAudioBlocked] = useState(false);
   const [peer, setPeer] = useState<{ display_name: string; avatar_url: string | null }>({
     display_name: "",
     avatar_url: null,
@@ -106,19 +107,40 @@ function Call() {
   }, [localStream]);
   useEffect(() => {
     if (!remoteStream) return;
-    // Attach remote stream to the video element (image) AND a dedicated audio
-    // element (voice). Hidden <video> tags drop audio on some browsers, so we
-    // always route the audio track through a real <audio> element that lives
-    // outside any conditional branch.
+    // Re-attach on every ontrack revision so newly arriving audio/video tracks
+    // are actually rendered. Some browsers (notably iOS Safari) won't start
+    // playback when tracks are added to an already-set MediaStream — the
+    // srcObject has to be assigned again.
     if (remoteRef.current) {
       remoteRef.current.srcObject = remoteStream;
-      remoteRef.current.play?.().catch(() => {});
+      const p = remoteRef.current.play?.();
+      if (p && typeof (p as Promise<void>).catch === "function") {
+        (p as Promise<void>).catch(() => {});
+      }
     }
     if (remoteAudioRef.current) {
       remoteAudioRef.current.srcObject = remoteStream;
-      remoteAudioRef.current.play?.().catch(() => {});
+      remoteAudioRef.current.muted = !speakerOn;
+      const p = remoteAudioRef.current.play?.();
+      if (p && typeof (p as Promise<void>).catch === "function") {
+        (p as Promise<void>).then(() => setAudioBlocked(false)).catch((err) => {
+          console.warn("Remote audio autoplay blocked", err);
+          if (speakerOn) setAudioBlocked(true);
+        });
+      }
     }
-  }, [remoteStream]);
+  }, [remoteStream, remoteRev, speakerOn]);
+
+  function enableSound() {
+    if (!remoteAudioRef.current) return;
+    remoteAudioRef.current.muted = false;
+    const p = remoteAudioRef.current.play?.();
+    if (p && typeof (p as Promise<void>).catch === "function") {
+      (p as Promise<void>).then(() => setAudioBlocked(false)).catch(() => {});
+    } else {
+      setAudioBlocked(false);
+    }
+  }
 
   useEffect(() => {
     (async () => {
@@ -303,6 +325,15 @@ function Call() {
             </div>
             <p className="mt-6 font-serif italic text-xl">{peer.display_name || "Connecting…"}</p>
           </div>
+        )}
+
+        {audioBlocked && !error && (
+          <button
+            onClick={enableSound}
+            className="absolute bottom-32 left-4 right-4 p-3 bg-petal text-velvet rounded-2xl text-sm font-semibold flex items-center justify-center gap-2 shadow-xl animate-fade-in"
+          >
+            <Volume2 className="size-4" /> Tap to hear {peer.display_name || "them"}
+          </button>
         )}
 
         {error && (
