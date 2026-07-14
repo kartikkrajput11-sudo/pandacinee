@@ -34,6 +34,7 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
   const [watchPickerOpen, setWatchPickerOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const imgRef = useRef<HTMLInputElement>(null);
+  const vidRef = useRef<HTMLInputElement>(null);
 
   async function sendWatchInvite(movie: TmdbMovie) {
     setWatchPickerOpen(false);
