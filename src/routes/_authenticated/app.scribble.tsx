@@ -24,7 +24,28 @@ const WORDS = [
 
 const TIMER_CHOICES = [60, 90, 120] as const;
 const TARGET_CHOICES = [3, 5, 7] as const;
-const COLORS = ["#1f1f1f", "#8b5cf6", "#ec4899", "#22c55e", "#f59e0b", "#0ea5e9"];
+const COLORS = [
+  "#1f1f1f", // ink
+  "#ffffff", // white
+  "#6b7280", // gray
+  "#ef4444", // red
+  "#f97316", // orange
+  "#f59e0b", // amber
+  "#eab308", // yellow
+  "#84cc16", // lime
+  "#22c55e", // green
+  "#14b8a6", // teal
+  "#06b6d4", // cyan
+  "#0ea5e9", // sky
+  "#3b82f6", // blue
+  "#6366f1", // indigo
+  "#8b5cf6", // violet
+  "#a855f7", // purple
+  "#ec4899", // pink
+  "#f43f5e", // rose
+  "#92400e", // brown
+  "#f5deb3", // wheat / skin
+];
 
 type Stroke = { by: string; color: string; size: number; erase: boolean; pts: { x: number; y: number }[] };
 type Msg = { id: string; by: string; name: string; text: string; correct?: boolean };
@@ -665,36 +686,64 @@ function Scribble() {
       </div>
 
       {iAmDrawer && phase === "playing" && (
-        <div className="mt-3 flex gap-2 flex-wrap items-center">
-          {COLORS.map((c) => (
+        <div className="mt-3 rounded-2xl border border-border bg-surface/70 backdrop-blur p-2.5 space-y-2">
+          {/* Color palette */}
+          <div className="flex gap-1.5 flex-wrap">
+            {COLORS.map((c) => {
+              const active = color === c && !erase;
+              return (
+                <button
+                  key={c}
+                  onClick={() => { setColor(c); setErase(false); }}
+                  className={`size-6 rounded-full border-2 transition-transform ${active ? "border-petal scale-125 ring-2 ring-petal/40" : "border-border/60 hover:scale-110"}`}
+                  style={{ background: c, boxShadow: c === "#ffffff" ? "inset 0 0 0 1px rgba(0,0,0,0.15)" : undefined }}
+                  aria-label={`Color ${c}`}
+                />
+              );
+            })}
+          </div>
+
+          {/* Tools row */}
+          <div className="flex items-center gap-2 flex-wrap">
             <button
-              key={c}
-              onClick={() => { setColor(c); setErase(false); }}
-              className={`size-7 rounded-full border-2 ${color === c && !erase ? "border-petal scale-110" : "border-border"}`}
-              style={{ background: c }}
-            />
-          ))}
-          <button
-            onClick={() => setErase((e) => !e)}
-            className={`size-7 rounded-full border-2 flex items-center justify-center ${erase ? "border-petal bg-petal-soft" : "border-border bg-surface"}`}
-          >
-            <Eraser className="size-3.5" />
-          </button>
-          {[3, 6, 12].map((n) => (
-            <button
-              key={n}
-              onClick={() => setSize(n)}
-              className={`size-7 rounded-full flex items-center justify-center border ${size === n ? "border-petal" : "border-border"}`}
+              onClick={() => setErase((e) => !e)}
+              className={`h-8 px-2.5 rounded-full border flex items-center gap-1.5 text-xs ${erase ? "border-petal bg-petal-soft text-petal" : "border-border bg-velvet text-candle"}`}
+              aria-label="Eraser"
+              title="Eraser"
             >
-              <span className="rounded-full bg-candle" style={{ width: n, height: n }} />
+              <Eraser className="size-3.5" />
+              <span>Eraser</span>
             </button>
-          ))}
-          <button
-            onClick={() => { strokes.current = []; redraw(); chRef.current?.send({ type: "broadcast", event: "clear", payload: {} }); persist(); }}
-            className="ml-auto rounded-full bg-surface border border-border px-3 py-1.5 text-xs flex items-center gap-1 text-candle"
-          >
-            <RotateCcw className="size-3" /> Clear
-          </button>
+
+            <div className="h-6 w-px bg-border" />
+
+            <span className="text-[10px] uppercase tracking-widest text-candle-muted">Brush</span>
+            {[3, 6, 12, 20].map((n) => (
+              <button
+                key={n}
+                onClick={() => setSize(n)}
+                className={`size-8 rounded-full flex items-center justify-center border transition ${size === n ? "border-petal bg-petal-soft/40 scale-105" : "border-border bg-velvet hover:border-petal/50"}`}
+                aria-label={`Brush size ${n}`}
+              >
+                <span
+                  className="rounded-full"
+                  style={{
+                    width: Math.min(n, 18),
+                    height: Math.min(n, 18),
+                    background: erase ? "#ffffff" : color,
+                    border: erase ? "1px solid var(--border, #d4d4d8)" : undefined,
+                  }}
+                />
+              </button>
+            ))}
+
+            <button
+              onClick={() => { strokes.current = []; redraw(); chRef.current?.send({ type: "broadcast", event: "clear", payload: {} }); persist(); }}
+              className="ml-auto h-8 rounded-full bg-velvet border border-border px-3 text-xs flex items-center gap-1 text-candle hover:border-petal/50"
+            >
+              <RotateCcw className="size-3" /> Clear
+            </button>
+          </div>
         </div>
       )}
 
