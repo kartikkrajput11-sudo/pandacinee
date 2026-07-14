@@ -174,7 +174,7 @@ function LoveQuiz() {
     const otherDone = (answers[otherId]?.length ?? 0) >= s.questions.length;
 
     let phase: Phase = s.phase;
-    let currentPlayer = s.currentPlayer;
+    let currentPlayer: string | null = s.currentPlayer;
     if (iDone && otherDone) {
       phase = "reveal";
       currentPlayer = null;
