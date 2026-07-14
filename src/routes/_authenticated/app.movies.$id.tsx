@@ -369,10 +369,11 @@ function MovieDetail() {
                 >
                   <div className="aspect-[2/3] rounded-lg overflow-hidden bg-velvet border border-border shadow-xl">
                     {s.poster_path && (
-                      <img src={poster(s.poster_path, "w342")!} alt={s.title} className="w-full h-full object-cover" />
+                    {s.poster_path && (
+                      <img src={poster(s.poster_path, "w342")!} alt={s.title ?? s.name} className="w-full h-full object-cover" />
                     )}
                   </div>
-                  <p className="text-[10px] text-candle truncate mt-2 font-medium">{s.title}</p>
+                  <p className="text-[10px] text-candle truncate mt-2 font-medium">{s.title ?? s.name}</p>
                 </Link>
               ))}
             </div>
