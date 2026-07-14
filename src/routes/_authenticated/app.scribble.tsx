@@ -522,3 +522,110 @@ function Scribble() {
     </div>
   );
 }
+
+function WinnerOverlay({
+  isMe,
+  winnerName,
+  myScore,
+  theirScore,
+  onClose,
+}: {
+  isMe: boolean;
+  winnerName: string;
+  myScore: number;
+  theirScore: number;
+  onClose: () => void;
+}) {
+  const confetti = Array.from({ length: 60 }, (_, i) => i);
+  const palette = ["#ec4899", "#8b5cf6", "#f59e0b", "#22c55e", "#0ea5e9", "#ffffff"];
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-hidden animate-fade-in">
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(circle at 20% 20%, rgba(236,72,153,0.55), transparent 55%), radial-gradient(circle at 80% 30%, rgba(139,92,246,0.55), transparent 55%), radial-gradient(circle at 50% 90%, rgba(245,158,11,0.5), transparent 55%), #0b0616",
+        }}
+      />
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        {confetti.map((i) => {
+          const left = (i * 37) % 100;
+          const delay = (i % 12) * 0.15;
+          const dur = 2.4 + ((i * 13) % 20) / 10;
+          const color = palette[i % palette.length];
+          const size = 6 + (i % 5) * 2;
+          return (
+            <span
+              key={i}
+              className="absolute top-[-10%] rounded-sm"
+              style={{
+                left: `${left}%`,
+                width: size,
+                height: size * 0.4,
+                background: color,
+                transform: `rotate(${(i * 47) % 360}deg)`,
+                animation: `scribble-confetti ${dur}s linear ${delay}s infinite`,
+                opacity: 0.9,
+              }}
+            />
+          );
+        })}
+      </div>
+      <style>{`
+        @keyframes scribble-confetti {
+          0% { transform: translateY(-20px) rotate(0deg); opacity: 0; }
+          10% { opacity: 1; }
+          100% { transform: translateY(110vh) rotate(720deg); opacity: 0.8; }
+        }
+        @keyframes scribble-winner-pop {
+          0% { transform: scale(0.6) rotate(-4deg); opacity: 0; }
+          60% { transform: scale(1.04) rotate(1deg); opacity: 1; }
+          100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+      `}</style>
+
+      <div
+        className="relative w-full max-w-md rounded-3xl p-6 bg-gradient-to-b from-white/95 to-white/85 backdrop-blur-xl border-4 shadow-2xl text-center"
+        style={{
+          animation: "scribble-winner-pop 0.7s cubic-bezier(.2,1.2,.3,1) both",
+          borderColor: "#8b5cf6",
+          boxShadow: "0 20px 60px rgba(139,92,246,0.5), 0 0 0 6px rgba(139,92,246,0.2)",
+        }}
+      >
+        <button
+          onClick={onClose}
+          className="absolute top-3 right-3 size-8 rounded-full bg-black/10 hover:bg-black/20 flex items-center justify-center text-candle"
+          aria-label="Close"
+        >
+          <X className="size-4" />
+        </button>
+        <Crown className="mx-auto size-10 text-amber-500 mb-1" />
+        <p className="text-[10px] uppercase tracking-[0.3em] text-petal">Winner</p>
+        <h2 className="font-serif text-3xl italic mt-1" style={{ color: "#8b5cf6" }}>
+          {isMe ? "You win! 🎉" : `${winnerName} wins`}
+        </h2>
+        <p className="text-xs text-candle-muted mt-2">
+          {isMe ? "The crown is yours, artist ✨" : "Great guessing — rematch?"}
+        </p>
+        <div className="mt-4 flex items-center justify-center gap-6 text-candle">
+          <div>
+            <p className="text-[10px] uppercase tracking-widest text-candle-muted">You</p>
+            <p className="font-serif text-2xl">{myScore}</p>
+          </div>
+          <span className="text-candle-muted">·</span>
+          <div>
+            <p className="text-[10px] uppercase tracking-widest text-candle-muted">Partner</p>
+            <p className="font-serif text-2xl">{theirScore}</p>
+          </div>
+        </div>
+        <button
+          onClick={onClose}
+          className="mt-5 w-full rounded-full py-3 text-sm font-medium text-white flex items-center justify-center gap-2 shadow-lg"
+          style={{ background: "linear-gradient(135deg,#ec4899,#8b5cf6)" }}
+        >
+          <Sparkles className="size-4" /> Play again
+        </button>
+      </div>
+    </div>
+  );
+}
