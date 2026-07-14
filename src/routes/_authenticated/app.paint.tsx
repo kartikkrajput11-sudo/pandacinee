@@ -53,14 +53,19 @@ function PaintTogether() {
   }
 
   function drawStroke(ctx: CanvasRenderingContext2D, s: Stroke) {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const w = canvas.getBoundingClientRect().width;
+    const h = canvas.getBoundingClientRect().height;
     ctx.beginPath();
     ctx.strokeStyle = s.erase ? "#ffffff" : s.color;
-    ctx.lineWidth = s.size;
+    // Scale line width by canvas width so it looks the same on any screen.
+    ctx.lineWidth = s.size * (w / 400);
     ctx.globalCompositeOperation = s.erase ? "destination-out" : "source-over";
     const pts = s.pts;
     if (pts.length === 0) return;
-    ctx.moveTo(pts[0].x, pts[0].y);
-    for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+    ctx.moveTo(pts[0].x * w, pts[0].y * h);
+    for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x * w, pts[i].y * h);
     ctx.stroke();
     ctx.globalCompositeOperation = "source-over";
   }
