@@ -351,17 +351,6 @@ function Call() {
 
         <audio ref={remoteAudioRef} autoPlay playsInline className="hidden" />
 
-        {mode === "video" && !remoteStream && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-            <div className="relative flex items-center justify-center">
-              <span className="absolute size-48 rounded-full bg-amber-300/10 animate-ping" />
-              <div className="relative size-32 rounded-full bg-gradient-to-br from-amber-100/30 to-rose-900/40 border border-amber-200/30 overflow-hidden shadow-[0_0_60px_rgba(251,191,36,0.2)]">
-                <CallAvatar path={peer.avatar_url} name={peer.display_name} />
-              </div>
-            </div>
-            <p className="mt-8 font-serif italic text-2xl text-amber-100/90">{peer.display_name || "Connecting…"}</p>
-          </div>
-        )}
 
         {audioBlocked && !error && (
           <button
