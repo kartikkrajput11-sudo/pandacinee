@@ -1207,6 +1207,16 @@ function WatchMovie() {
         </div>
       </div>
 
+      {me && partner && movie && (
+        <WatchTogetherPanel
+          me={me}
+          partner={partner}
+          movieId={tmdbId}
+          movieTitle={movie.title}
+          moviePoster={movie.poster_path ? (/^https?:\/\//i.test(movie.poster_path) ? movie.poster_path : `https://image.tmdb.org/t/p/w154${movie.poster_path}`) : null}
+          mediaType={isTv ? "tv" : "movie"}
+        />
+      )}
     </div>
   );
 }
