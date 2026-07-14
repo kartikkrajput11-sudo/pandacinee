@@ -591,6 +591,7 @@ function Scribble() {
 
   function confirmWord(w: string) {
     if (!me) return;
+    void bumpMyStats({ rounds_drawn: 1 });
     roundResolvedRef.current = false;
     wordRef.current = w;
     drawerIdRef.current = me.id;
