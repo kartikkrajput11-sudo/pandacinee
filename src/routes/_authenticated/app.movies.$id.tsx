@@ -41,7 +41,20 @@ function MovieDetail() {
 
   useEffect(() => {
     fetchMovie({ data: { id: Number(id) } })
-      .then((m) => {
+      .then(async (m) => {
+        // Overlay admin-edited fields from custom_movies
+        const { data: ov } = await supabase
+          .from("custom_movies")
+          .select("title, overview, poster_url, backdrop_url, runtime")
+          .eq("tmdb_id", Number(id))
+          .maybeSingle();
+        if (ov && m) {
+          if (ov.title) m.title = ov.title;
+          if (ov.overview != null) m.overview = ov.overview;
+          if (ov.poster_url) m.poster_path = ov.poster_url;
+          if (ov.backdrop_url) m.backdrop_path = ov.backdrop_url;
+          if (ov.runtime) m.runtime = ov.runtime;
+        }
         setMovie(m);
         if (m?.id) trackRecentMovie(m.id);
       })

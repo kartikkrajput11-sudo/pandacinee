@@ -6,6 +6,7 @@ export const Route = createFileRoute("/_authenticated/app/movies")({
 
 export function poster(path: string | null, size: "w185" | "w342" | "w500" | "original" = "w342") {
   if (!path) return null;
+  if (/^https?:\/\//i.test(path)) return path;
   return `https://image.tmdb.org/t/p/${size}${path}`;
 }
 

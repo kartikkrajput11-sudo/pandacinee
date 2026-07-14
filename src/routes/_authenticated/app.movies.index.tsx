@@ -22,7 +22,20 @@ type CustomMovieRow = {
   backdrop_url: string | null;
   overview: string | null;
   runtime: number | null;
+  tmdb_id: number | null;
 };
+
+// Overlay admin-edited fields from custom_movies onto a raw TMDB result.
+function applyOverride(m: TmdbMovie, ov: CustomMovieRow | undefined): TmdbMovie {
+  if (!ov) return m;
+  return {
+    ...m,
+    title: ov.title || m.title,
+    overview: ov.overview ?? m.overview,
+    poster_path: ov.poster_url ?? m.poster_path,
+    backdrop_path: ov.backdrop_url ?? m.backdrop_path,
+  };
+}
 
 export const Route = createFileRoute("/_authenticated/app/movies/")({
   component: Movies,
@@ -62,7 +75,13 @@ function Movies() {
   const [feelGood, setFeelGood] = useState<TmdbMovie[]>([]);
   const [recent, setRecent] = useState<TmdbMovie[]>([]);
   const [custom, setCustom] = useState<CustomMovieRow[]>([]);
+  const [overrides, setOverrides] = useState<Map<number, CustomMovieRow>>(new Map());
   const [loading, setLoading] = useState(true);
+
+  const overlay = useMemo(
+    () => (list: TmdbMovie[]) => list.map((m) => applyOverride(m, overrides.get(m.id))),
+    [overrides],
+  );
 
   useEffect(() => { setInput(q); }, [q]);
 
@@ -113,12 +132,18 @@ function Movies() {
     }
 
     // Custom (admin-uploaded) movies from our library — shown as normal movies.
+    // Plus, any row with a tmdb_id becomes an override for that TMDB entry.
     supabase
       .from("custom_movies")
-      .select("id, title, year, poster_url, backdrop_url, overview, runtime")
+      .select("id, title, year, poster_url, backdrop_url, overview, runtime, tmdb_id")
       .order("created_at", { ascending: false })
       .then(({ data }) => {
-        if (alive && data) setCustom(data as CustomMovieRow[]);
+        if (!alive || !data) return;
+        const rows = data as CustomMovieRow[];
+        setCustom(rows.filter((r) => !r.tmdb_id)); // only truly-custom titles in the "Fresh Arrivals" rail
+        const map = new Map<number, CustomMovieRow>();
+        for (const r of rows) if (r.tmdb_id) map.set(r.tmdb_id, r);
+        setOverrides(map);
       });
 
     return () => { alive = false; };
@@ -129,7 +154,10 @@ function Movies() {
     navigate({ to: "/app/movies", search: { q: input.trim() } });
   }
 
-  const featured = useMemo(() => trendingList[0], [trendingList]);
+  const featured = useMemo(() => {
+    const m = trendingList[0];
+    return m ? applyOverride(m, overrides.get(m.id)) : undefined;
+  }, [trendingList, overrides]);
 
   // Search results view
   if (q.trim()) {
@@ -147,7 +175,7 @@ function Movies() {
           <p className="text-sm text-candle-muted text-center mt-10">No movies found.</p>
         ) : (
           <div className="grid grid-cols-3 gap-3">
-            {searchResults.map((m) => (
+            {overlay(searchResults).map((m) => (
               <MovieCard key={m.id} id={m.id} title={m.title} poster_path={m.poster_path} vote_average={m.vote_average} />
             ))}
           </div>
@@ -181,7 +209,7 @@ function Movies() {
           <Rail
             title="Continue Watching"
             icon={<Clock className="size-3.5 text-petal" />}
-            movies={recent}
+            movies={overlay(recent)}
             variant="wide"
           />
         )}
@@ -189,56 +217,56 @@ function Movies() {
         <Rail
           title="Trending This Week"
           icon={<Flame className="size-3.5 text-petal" />}
-          movies={trendingList.slice(1)}
+          movies={overlay(trendingList.slice(1))}
           loading={loading}
         />
 
         <Rail
           title="Date Night · Romance"
           icon={<Heart className="size-3.5 text-petal" />}
-          movies={dateNight}
+          movies={overlay(dateNight)}
           loading={loading}
         />
 
         <Rail
           title="In Theaters Now"
           icon={<Play className="size-3.5 text-petal" />}
-          movies={nowPlaying}
+          movies={overlay(nowPlaying)}
           loading={loading}
         />
 
         <Rail
           title="Feel-Good · Comedy"
           icon={<Sparkles className="size-3.5 text-petal" />}
-          movies={feelGood}
+          movies={overlay(feelGood)}
           loading={loading}
         />
 
         <Rail
           title="Popular"
           icon={<Star className="size-3.5 text-petal" />}
-          movies={popular}
+          movies={overlay(popular)}
           loading={loading}
         />
 
         <Rail
           title="Edge of Your Seat · Thrillers"
           icon={<Ghost className="size-3.5 text-petal" />}
-          movies={thrillers}
+          movies={overlay(thrillers)}
           loading={loading}
         />
 
         <Rail
           title="Top Rated of All Time"
           icon={<Star className="size-3.5 text-petal" />}
-          movies={topRated}
+          movies={overlay(topRated)}
           loading={loading}
         />
 
         <Rail
           title="Coming Soon"
           icon={<Calendar className="size-3.5 text-petal" />}
-          movies={upcoming}
+          movies={overlay(upcoming)}
           loading={loading}
         />
 

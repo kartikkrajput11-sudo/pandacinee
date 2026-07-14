@@ -73,6 +73,7 @@ function WatchMovie() {
   const partner = prof?.partner;
   const navigate = useNavigate();
   const [movie, setMovie] = useState<any>(null);
+  const [pandacine, setPandacine] = useState<{ videoSrc: string; title: string | null } | null>(null);
   const [sourceIdx, setSourceIdx] = useState(0);
   const [iframeKey, setIframeKey] = useState(0);
   const [started, setStarted] = useState(false);
@@ -112,7 +113,44 @@ function WatchMovie() {
   const lastAppliedPeerEventRef = useRef<number>(0);
 
   useEffect(() => {
-    fetchMovie({ data: { id: tmdbId } }).then(setMovie).catch(() => setMovie(null));
+    let alive = true;
+    (async () => {
+      const [m, ovRes] = await Promise.all([
+        fetchMovie({ data: { id: tmdbId } }).catch(() => null),
+        supabase
+          .from("custom_movies")
+          .select("title, overview, poster_url, backdrop_url, runtime, video_url, video_storage_path")
+          .eq("tmdb_id", tmdbId)
+          .maybeSingle(),
+      ]);
+      if (!alive) return;
+      const ov = ovRes.data as {
+        title?: string; overview?: string | null;
+        poster_url?: string | null; backdrop_url?: string | null; runtime?: number | null;
+        video_url?: string | null; video_storage_path?: string | null;
+      } | null;
+      if (m && ov) {
+        if (ov.title) m.title = ov.title;
+        if (ov.overview != null) m.overview = ov.overview;
+        if (ov.poster_url) m.poster_path = ov.poster_url;
+        if (ov.backdrop_url) m.backdrop_path = ov.backdrop_url;
+        if (ov.runtime) m.runtime = ov.runtime;
+      }
+      setMovie(m);
+
+      // Resolve a Pandacine (self-hosted) video source when the admin has one
+      if (ov?.video_storage_path) {
+        const { data: signed } = await supabase.storage
+          .from("custom-movies")
+          .createSignedUrl(ov.video_storage_path, 60 * 60 * 6);
+        if (signed?.signedUrl) setPandacine({ videoSrc: signed.signedUrl, title: ov.title ?? null });
+      } else if (ov?.video_url) {
+        setPandacine({ videoSrc: ov.video_url, title: ov.title ?? null });
+      } else {
+        setPandacine(null);
+      }
+    })();
+    return () => { alive = false; };
   }, [tmdbId]);
 
   // Capture VidKing events, publish to partner (throttled)
@@ -204,11 +242,36 @@ function WatchMovie() {
 
   const [pausedByHost, setPausedByHost] = useState(false);
 
+  // Merge Pandacine (self-hosted) as an extra source in front of the VidKing sources.
+  const allSources = useMemo(() => {
+    const list: { id: string; label: string; hint: string; kind: "pandacine" | "vidking"; buildUrl?: (id: number, t?: number) => string }[] = [];
+    if (pandacine) {
+      list.push({
+        id: "pandacine",
+        label: "Pandacine",
+        hint: "Our own server — sync-ready",
+        kind: "pandacine",
+      });
+    }
+    for (const s of SOURCES) list.push({ id: s.id, label: s.label, hint: s.hint, kind: "vidking", buildUrl: s.url });
+    return list;
+  }, [pandacine]);
+
+  // Clamp sourceIdx when the list changes.
+  useEffect(() => {
+    if (sourceIdx >= allSources.length) setSourceIdx(0);
+  }, [allSources.length, sourceIdx]);
+
+  const currentSource = allSources[sourceIdx] ?? allSources[0];
+  const isPandacine = currentSource?.kind === "pandacine";
+
   const src = useMemo(() => {
+    if (!currentSource || currentSource.kind === "pandacine") return "";
     // When host paused, force a manual (no-autoplay) URL so playback stops at that time.
     if (pausedByHost) return SOURCES[1].url(tmdbId, startAt);
-    return SOURCES[sourceIdx].url(tmdbId, startAt);
-  }, [sourceIdx, tmdbId, startAt, pausedByHost]);
+    return currentSource.buildUrl!(tmdbId, startAt);
+  }, [currentSource, tmdbId, startAt, pausedByHost]);
+
 
   const applySeek = useCallback((time: number, opts?: { pause?: boolean }) => {
     setStartAt(time);
@@ -302,7 +365,9 @@ function WatchMovie() {
   const driftAbs = drift != null ? Math.abs(drift) : null;
   const inSync = driftAbs != null && driftAbs < 3;
   const partnerFirst = partner?.display_name.split(" ")[0] ?? "them";
-  const backdropUrl = movie?.backdrop_path ? `https://image.tmdb.org/t/p/w1280${movie.backdrop_path}` : null;
+  const backdropUrl = movie?.backdrop_path
+    ? (/^https?:\/\//i.test(movie.backdrop_path) ? movie.backdrop_path : `https://image.tmdb.org/t/p/w1280${movie.backdrop_path}`)
+    : null;
 
   return (
     <div className={`relative min-h-screen pt-6 pb-24 transition-colors duration-500 ${cinemaMode ? "bg-black" : ""}`}>
@@ -430,16 +495,33 @@ function WatchMovie() {
           <div aria-hidden className="absolute -inset-2 rounded-[28px] bg-petal/20 blur-3xl opacity-60 pointer-events-none" />
           <div className="relative rounded-2xl md:rounded-3xl overflow-hidden bg-black border border-petal/30 aspect-video shadow-[0_30px_80px_-20px_rgba(238,130,175,0.35)]">
             {started ? (
-              <iframe
-                id="movie-frame"
-                key={`${sourceIdx}-${iframeKey}`}
-                src={src}
-                frameBorder={0}
-                className="absolute inset-0 w-full h-full"
-                allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
-                onLoad={() => setPlayerLoading(false)}
-                allowFullScreen
-              />
+              isPandacine && pandacine ? (
+                <CustomMoviePlayer
+                  key={`pandacine-${iframeKey}`}
+                  src={pandacine.videoSrc}
+                  poster={backdropUrl}
+                  onReady={() => setPlayerLoading(false)}
+                  onEvent={(evt) => {
+                    const now = Date.now();
+                    const isDiscrete = evt.event === "play" || evt.event === "pause" || evt.event === "seeked" || evt.event === "ended";
+                    if (isDiscrete || now - lastPublishRef.current > 2000) {
+                      lastPublishRef.current = now;
+                      publish({ event: evt.event, currentTime: evt.currentTime, duration: evt.duration, sourceIdx });
+                    }
+                  }}
+                />
+              ) : (
+                <iframe
+                  id="movie-frame"
+                  key={`${sourceIdx}-${iframeKey}`}
+                  src={src}
+                  frameBorder={0}
+                  className="absolute inset-0 w-full h-full"
+                  allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+                  onLoad={() => setPlayerLoading(false)}
+                  allowFullScreen
+                />
+              )
             ) : (
               <button
                 onClick={() => { setStarted(true); setPlayerLoading(true); }}
@@ -458,7 +540,7 @@ function WatchMovie() {
                   <Play className="size-8 md:size-10 fill-velvet ml-1" />
                 </span>
                 <span className="text-candle font-serif italic text-lg md:text-xl">Raise the curtain</span>
-                <span className="text-candle-muted text-[11px] uppercase tracking-[0.25em]">{SOURCES[sourceIdx].label}</span>
+                <span className="text-candle-muted text-[11px] uppercase tracking-[0.25em]">{currentSource?.label ?? "Loading"}</span>
               </button>
             )}
 
@@ -613,11 +695,11 @@ function WatchMovie() {
                 className="w-full h-11 rounded-2xl bg-surface/60 backdrop-blur border border-border text-candle text-xs font-medium flex items-center justify-center gap-2"
               >
                 <Server className="size-3.5 text-petal" />
-                <span className="truncate">{SOURCES[sourceIdx].label}</span>
+                <span className="truncate">{currentSource?.label ?? "Server"}</span>
               </button>
               {sourceMenuOpen && (
                 <div className="absolute z-20 top-full mt-2 left-0 right-0 rounded-2xl bg-velvet border border-border shadow-2xl shadow-black/60 overflow-hidden">
-                  {SOURCES.map((s, i) => (
+                  {allSources.map((s, i) => (
                     <button
                       key={s.id}
                       onClick={() => switchSource(i)}
@@ -625,7 +707,12 @@ function WatchMovie() {
                     >
                       <Check className={`size-3.5 mt-0.5 shrink-0 ${i === sourceIdx ? "text-petal" : "text-transparent"}`} />
                       <div className="min-w-0">
-                        <div className="text-xs text-candle font-medium">{s.label}</div>
+                        <div className="text-xs text-candle font-medium flex items-center gap-1.5">
+                          {s.label}
+                          {s.kind === "pandacine" && (
+                            <span className="text-[8px] uppercase tracking-widest px-1.5 py-0.5 rounded-full bg-petal/20 text-petal border border-petal/40">Ours</span>
+                          )}
+                        </div>
                         <div className="text-[10px] text-candle-muted truncate">{s.hint}</div>
                       </div>
                     </button>
@@ -698,7 +785,7 @@ function WatchMovie() {
           partner={partner}
           movieId={tmdbId}
           movieTitle={movie.title}
-          moviePoster={movie.poster_path ? `https://image.tmdb.org/t/p/w154${movie.poster_path}` : null}
+          moviePoster={movie.poster_path ? (/^https?:\/\//i.test(movie.poster_path) ? movie.poster_path : `https://image.tmdb.org/t/p/w154${movie.poster_path}`) : null}
           mediaType="movie"
         />
       )}
