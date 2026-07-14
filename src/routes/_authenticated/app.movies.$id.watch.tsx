@@ -95,11 +95,15 @@ export const Route = createFileRoute("/_authenticated/app/movies/$id/watch")({
 
 function WatchMovie() {
   const { id } = Route.useParams();
-  const search = Route.useSearch();
   const isCustom = id.startsWith("custom:");
+  if (isCustom) return <CustomWatch customId={id.slice("custom:".length)} />;
+  return <CatalogWatch id={id} />;
+}
+
+function CatalogWatch({ id }: { id: string }) {
+  const search = Route.useSearch();
   const tmdbId = Number(id);
   const fetchMovie = useServerFn(tmdbMovie);
-  if (isCustom) return <CustomWatch customId={id.slice("custom:".length)} />;
   const { data: prof } = useProfile();
   const me = prof?.profile;
   const partner = prof?.partner;
