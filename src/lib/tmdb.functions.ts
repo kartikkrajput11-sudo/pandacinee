@@ -114,6 +114,78 @@ export const tmdbMoviesBatch = createServerFn({ method: "GET" })
     return results.filter((m): m is TmdbMovie => !!m);
   });
 
+// ---------------- TV ----------------
+
+// Normalised TV row to reuse existing MovieCard shape (title / release_date).
+export type TmdbTv = TmdbMovie & { media_type: "tv" };
+
+function tvToMovieShape(t: any): TmdbTv {
+  return {
+    id: t.id,
+    title: t.name ?? t.original_name ?? "Untitled",
+    overview: t.overview ?? "",
+    poster_path: t.poster_path ?? null,
+    backdrop_path: t.backdrop_path ?? null,
+    release_date: t.first_air_date ?? null,
+    vote_average: t.vote_average ?? 0,
+    vote_count: t.vote_count ?? 0,
+    genre_ids: t.genre_ids,
+    media_type: "tv",
+  };
+}
+
+export const tmdbTvTrending = createServerFn({ method: "GET" })
+  .inputValidator((d: { window?: "day" | "week" } | undefined) => d ?? {})
+  .handler(async ({ data }) => {
+    const r = await tmdb<{ results: any[] }>(`/trending/tv/${data.window ?? "week"}`);
+    return r.results.slice(0, 20).map(tvToMovieShape);
+  });
+
+export const tmdbTvCategory = createServerFn({ method: "GET" })
+  .inputValidator((d: { kind: "popular" | "top_rated" | "on_the_air" | "airing_today" }) => d)
+  .handler(async ({ data }) => {
+    const r = await tmdb<{ results: any[] }>(`/tv/${data.kind}`);
+    return r.results.slice(0, 20).map(tvToMovieShape);
+  });
+
+export const tmdbTvDiscover = createServerFn({ method: "GET" })
+  .inputValidator((d: { genre?: number; sort?: string }) => d)
+  .handler(async ({ data }) => {
+    const r = await tmdb<{ results: any[] }>(`/discover/tv`, {
+      with_genres: data.genre,
+      sort_by: data.sort ?? "popularity.desc",
+      include_adult: "false",
+      "vote_count.gte": 50,
+    });
+    return r.results.slice(0, 20).map(tvToMovieShape);
+  });
+
+/** Multi search — returns movies + tv shows in a movie-shaped list with `media_type`. */
+export const tmdbMulti = createServerFn({ method: "GET" })
+  .inputValidator((d: { q: string }) => d)
+  .handler(async ({ data }) => {
+    if (!data.q.trim()) return [] as (TmdbMovie & { media_type: "movie" | "tv" })[];
+    const r = await tmdb<{ results: any[] }>(`/search/multi`, { query: data.q, include_adult: "false" });
+    return r.results
+      .filter((x) => x.media_type === "movie" || x.media_type === "tv")
+      .slice(0, 40)
+      .map((x) => x.media_type === "tv"
+        ? tvToMovieShape(x)
+        : ({ ...x, media_type: "movie" as const })
+      );
+  });
+
+/** Full TV detail with credits / videos / similar for the detail page. */
+export const tmdbTvFull = createServerFn({ method: "GET" })
+  .inputValidator((d: { id: number }) => d)
+  .handler(async ({ data }) => {
+    const r = await tmdbOrNull<any>(`/tv/${data.id}`, {
+      append_to_response: "credits,videos,similar",
+    });
+    return r;
+  });
+
+
 export type TmdbEpisode = {
   id: number;
   name: string;
