@@ -437,32 +437,43 @@ function WatchMovie() {
     }
   }, [peer, partnerIsHost, me, mine.currentTime, applySeek, partner]);
 
+  async function sendWatchInviteMessage(receiverId: string) {
+    if (!me || !movie) return { error: new Error("Missing data") };
+    const media_meta = {
+      tmdb_id: Number(tmdbId),
+      media_type: isTv ? "tv" : "movie",
+      poster_path: movie.poster_path ?? null,
+      release_date: movie.release_date ?? movie.first_air_date ?? null,
+      vote_average: movie.vote_average ?? null,
+      overview: movie.overview ?? null,
+    };
+    return await supabase.from("messages").insert({
+      sender_id: me.id,
+      receiver_id: receiverId,
+      content: movie.title,
+      type: "watch_invite",
+      media_meta: media_meta as never,
+    });
+  }
+
   async function inviteToWatch() {
     if (!me || !partner || !movie) return;
-    const link = `${window.location.origin}/app/movies/${tmdbId}/watch`;
-    const content = `🎬 Let's watch *${movie.title}* together 💞\n${link}`;
-    const { error } = await supabase.from("messages").insert({
-      sender_id: me.id, receiver_id: partner.id, content, type: "text",
-    });
-    if (error) toast.error(error.message);
-    else {
-      toast.success("Invite sent — press play together 🍿");
-      navigate({ to: "/app/chat/$peerId", params: { peerId: partner.id } });
-    }
+    const { error } = await sendWatchInviteMessage(partner.id);
+    if (error) { toast.error(error.message); return; }
+    toast.success(`Invite sent — waiting for ${partnerFirst} 🍿`);
+    setWaitingFor({ id: partner.id, name: partnerFirst });
   }
 
   async function inviteFriend(friendId: string, friendName: string) {
     if (!me || !movie) return;
-    const link = `${window.location.origin}/app/movies/${tmdbId}/watch`;
-    const content = `🎬 Let's watch *${movie.title}* together 🍿\n${link}`;
-    const { error } = await supabase.from("messages").insert({
-      sender_id: me.id, receiver_id: friendId, content, type: "text",
-    });
+    const { error } = await sendWatchInviteMessage(friendId);
     if (error) { toast.error(error.message); return; }
-    toast.success(`Invite sent to ${friendName} 🍿`);
+    const first = friendName.split(" ")[0];
+    toast.success(`Invite sent — waiting for ${first} 🍿`);
     setFriendPickerOpen(false);
-    navigate({ to: "/app/chat/$peerId", params: { peerId: friendId } });
+    setWaitingFor({ id: friendId, name: first });
   }
+
 
 
   function openFullscreen() {
