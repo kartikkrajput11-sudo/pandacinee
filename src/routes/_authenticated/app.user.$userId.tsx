@@ -155,6 +155,21 @@ function UserProfilePage() {
         </div>
       )}
 
+      {!isMe && (
+        <button
+          onClick={toggleBlock}
+          disabled={busy}
+          className={`w-full mt-2 h-11 rounded-full border flex items-center justify-center gap-2 text-sm font-semibold transition-colors disabled:opacity-60 ${
+            isBlocked
+              ? "border-border bg-surface text-candle hover:bg-surface-elevated"
+              : "border-red-500/40 bg-red-500/10 text-red-400 hover:bg-red-500/20"
+          }`}
+        >
+          {isBlocked ? <ShieldCheck className="size-4" /> : <Ban className="size-4" />}
+          {isBlocked ? "Unblock" : "Block user"}
+        </button>
+      )}
+
       {isPartner && (
         <Link
           to="/app/partner"
