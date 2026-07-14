@@ -101,19 +101,19 @@
 }
 
 .light {
-  /* Light Purple background; cards stay light/white for contrast */
-  --velvet: #d9c2ff;
-  --background: #d9c2ff;
+  /* Light Purple + Pink — soft dreamy daylight */
+  --velvet: #f3e6ff;
+  --background: #f6e9ff;
   --surface: #ffffff;
-  --surface-elevated: #f6f0ff;
-  --foreground: #2a1a4a;
-  --candle: #2a1a4a;
-  --candle-muted: #6b5b8a;
-  --petal: #7c3aed;
-  --petal-soft: #ede4ff;
-  --lavender: #a78bfa;
-  --border: #e6dcff;
-  --input: #f2ebff;
+  --surface-elevated: #fdf2fb;
+  --foreground: #3d1f4f;
+  --candle: #3d1f4f;
+  --candle-muted: #7a5a8f;
+  --petal: #ec4899;
+  --petal-soft: #fce7f3;
+  --lavender: #c4a3ff;
+  --border: #f0d9f2;
+  --input: #faecf7;
 }
 
 
