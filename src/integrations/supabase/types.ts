@@ -1158,6 +1158,10 @@ export type Database = {
           read_ct: number
         }[]
       }
+      revoke_admin: {
+        Args: { _pin: string; _target: string }
+        Returns: boolean
+      }
       search_profiles: {
         Args: { _q: string }
         Returns: {

@@ -435,6 +435,7 @@ function UserRow({ user: u }: { user: AdminUserRow }) {
   const qc = useQueryClient();
   const del = useServerFn(deleteAdminUser);
   const [busy, setBusy] = useState(false);
+  const [revoking, setRevoking] = useState(false);
 
   async function onDelete(e: React.MouseEvent) {
     e.preventDefault();
@@ -450,6 +451,28 @@ function UserRow({ user: u }: { user: AdminUserRow }) {
       toast.error(err instanceof Error ? err.message : "Delete failed");
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function onRevokeAdmin(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    const pin = window.prompt(`Enter security code to remove admin from ${u.display_name ?? u.username ?? "this user"}:`);
+    if (pin === null) return;
+    setRevoking(true);
+    try {
+      const { data, error } = await supabase.rpc("revoke_admin", { _target: u.id, _pin: pin });
+      if (error) throw error;
+      if (data === true) {
+        toast.success("Admin removed");
+        qc.invalidateQueries({ queryKey: ["admin", "users"] });
+      } else {
+        toast.error("Incorrect security code");
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not remove admin");
+    } finally {
+      setRevoking(false);
     }
   }
 
@@ -488,17 +511,30 @@ function UserRow({ user: u }: { user: AdminUserRow }) {
           </p>
         </div>
       </Link>
-      <button
-        onClick={onDelete}
-        disabled={busy || u.is_admin}
-        title={u.is_admin ? "Cannot delete an admin" : "Delete user"}
-        className="shrink-0 size-9 rounded-full bg-velvet border border-border text-rose-400 hover:bg-rose-500/10 hover:border-rose-500/40 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
-      >
-        {busy ? <Loader2 className="size-4 animate-spin" /> : <Trash2 className="size-4" />}
-      </button>
+      {u.is_admin ? (
+        <button
+          onClick={onRevokeAdmin}
+          disabled={revoking}
+          title="Remove admin (requires code)"
+          className="shrink-0 h-9 px-3 rounded-full bg-velvet border border-petal/40 text-petal text-[10px] uppercase tracking-widest font-bold hover:bg-petal/10 disabled:opacity-50 flex items-center gap-1.5 transition-colors"
+        >
+          {revoking ? <Loader2 className="size-3.5 animate-spin" /> : <ShieldCheck className="size-3.5" />}
+          Revoke
+        </button>
+      ) : (
+        <button
+          onClick={onDelete}
+          disabled={busy}
+          title="Delete user"
+          className="shrink-0 size-9 rounded-full bg-velvet border border-border text-rose-400 hover:bg-rose-500/10 hover:border-rose-500/40 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
+        >
+          {busy ? <Loader2 className="size-4 animate-spin" /> : <Trash2 className="size-4" />}
+        </button>
+      )}
     </div>
   );
 }
+
 
 // ─── Library (existing custom-movies management) ─────────────────────────
 
