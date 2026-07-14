@@ -53,3 +53,36 @@ export const tmdbMovie = createServerFn({ method: "GET" })
     const movie = await tmdb<any>(`/movie/${data.id}`, { append_to_response: "credits,videos,similar" });
     return movie;
   });
+
+export const tmdbCategory = createServerFn({ method: "GET" })
+  .inputValidator((d: { kind: "popular" | "top_rated" | "upcoming" | "now_playing" }) => d)
+  .handler(async ({ data }) => {
+    const r = await tmdb<{ results: TmdbMovie[] }>(`/movie/${data.kind}`);
+    return r.results.slice(0, 20);
+  });
+
+export const tmdbDiscover = createServerFn({ method: "GET" })
+  .inputValidator((d: { genre?: number; sort?: string; year?: number }) => d)
+  .handler(async ({ data }) => {
+    const r = await tmdb<{ results: TmdbMovie[] }>(`/discover/movie`, {
+      with_genres: data.genre,
+      sort_by: data.sort ?? "popularity.desc",
+      primary_release_year: data.year,
+      include_adult: "false",
+      "vote_count.gte": 50,
+    });
+    return r.results.slice(0, 20);
+  });
+
+export const tmdbMoviesBatch = createServerFn({ method: "GET" })
+  .inputValidator((d: { ids: number[] }) => d)
+  .handler(async ({ data }) => {
+    const ids = data.ids.slice(0, 12);
+    const results = await Promise.all(
+      ids.map((id) =>
+        tmdb<TmdbMovie>(`/movie/${id}`).catch(() => null),
+      ),
+    );
+    return results.filter((m): m is TmdbMovie => !!m);
+  });
+
