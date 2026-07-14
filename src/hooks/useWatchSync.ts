@@ -58,7 +58,7 @@ export function useWatchSync(
   hostRef.current = hostId;
 
   useEffect(() => {
-    if (!meId || !partnerId || !movieId) return;
+    if (!meId || !partnerId || movieId === 0 || movieId === "" || movieId == null) return;
     const topic = `watch-sync:${mediaType}:${movieId}:${[meId, partnerId].sort().join(":")}`;
     const ch = supabase.channel(topic, {
       config: { presence: { key: meId }, broadcast: { self: false } },
