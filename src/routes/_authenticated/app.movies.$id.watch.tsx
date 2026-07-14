@@ -108,7 +108,27 @@ function CatalogWatch({ id }: { id: string }) {
   const fetchMovie = useServerFn(tmdbMovie);
   const { data: prof } = useProfile();
   const me = prof?.profile;
-  const partner = prof?.partner;
+  const realPartner = prof?.partner;
+  const friendsQuery = useFriendships();
+  // Co-viewer: if `?with=<userId>` is present and points at a friend (or the
+  // real partner), sync against that person instead of the default partner.
+  // This lets non-partner friends watch together via a chat invite.
+  const partner = useMemo(() => {
+    const w = search.with;
+    if (!w) return realPartner ?? null;
+    if (realPartner && w === realPartner.id) return realPartner;
+    const p = friendsQuery.data?.profiles?.[w];
+    if (p) {
+      return {
+        id: p.id,
+        username: p.username,
+        display_name: p.display_name,
+        avatar_url: p.avatar_url,
+      } as typeof realPartner;
+    }
+    return realPartner ?? null;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search.with, realPartner?.id, friendsQuery.data?.profiles]);
   const navigate = useNavigate();
   const [movie, setMovie] = useState<any>(null);
   const [pandacine, setPandacine] = useState<{ videoSrc: string; title: string | null } | null>(null);
