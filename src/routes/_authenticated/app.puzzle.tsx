@@ -285,6 +285,44 @@ function PuzzleTogether() {
         ))}
       </div>
 
+      <div className="flex items-center gap-2 mb-3">
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) void onPickImage(f);
+            e.target.value = "";
+          }}
+        />
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          className="rounded-full border border-petal/40 bg-petal-soft text-candle px-3 py-1.5 text-xs flex items-center gap-1.5 hover:border-petal transition"
+        >
+          <ImagePlus className="size-3.5" />
+          {customImage ? "Change photo" : "Use your photo"}
+        </button>
+        {customImage && (
+          <button
+            onClick={clearCustomImage}
+            className="rounded-full border border-border bg-surface text-candle-muted px-2.5 py-1.5 text-xs flex items-center gap-1 hover:text-candle"
+            aria-label="Remove photo"
+          >
+            <X className="size-3.5" />
+          </button>
+        )}
+        {customImage && (
+          <img
+            src={customImage}
+            alt="Puzzle preview"
+            className="ml-auto size-10 rounded-lg object-cover border border-border"
+          />
+        )}
+      </div>
+
+
       <div className="mx-auto" style={{ width: boardSize }}>
         <div
           className="grid rounded-2xl overflow-hidden border-2 border-border bg-surface shadow-petal"
