@@ -119,9 +119,19 @@ export function useWebRTCCall(peerId: string | null, mode: Mode = "video", isCal
         const remote = new MediaStream();
         setRemoteStream(remote);
         pc.ontrack = (ev) => {
-          ev.streams[0].getTracks().forEach((t) => {
-            if (!remote.getTracks().find((x) => x.id === t.id)) remote.addTrack(t);
+          let added = false;
+          // Prefer the streams the sender associated with the track, but fall
+          // back to attaching the individual track so audio still lands even
+          // when the peer transmits without an explicit MediaStream.
+          const src = ev.streams[0];
+          const tracks = src ? src.getTracks() : [ev.track];
+          tracks.forEach((t) => {
+            if (!remote.getTracks().find((x) => x.id === t.id)) {
+              remote.addTrack(t);
+              added = true;
+            }
           });
+          if (added) setRemoteRev((n) => n + 1);
         };
 
         const ch = supabase.channel(`call-room:${pairKey(meRef.current, peerId)}`, {
