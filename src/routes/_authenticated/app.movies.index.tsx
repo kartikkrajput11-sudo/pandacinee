@@ -32,12 +32,9 @@ function applyOverride(m: TmdbMovie, ov: CustomMovieRow | undefined): TmdbMovie 
     ...m,
     title: ov.title || m.title,
     overview: ov.overview ?? m.overview,
-    poster_path: ov.poster_url ? "__custom__" : m.poster_path,
-    backdrop_path: ov.backdrop_url ? "__custom_bd__" : m.backdrop_path,
-    // stash real URLs so poster() bypass works via a side channel
-    ...(ov.poster_url ? { __posterUrl: ov.poster_url } : {}),
-    ...(ov.backdrop_url ? { __backdropUrl: ov.backdrop_url } : {}),
-  } as TmdbMovie;
+    poster_path: ov.poster_url ?? m.poster_path,
+    backdrop_path: ov.backdrop_url ?? m.backdrop_path,
+  };
 }
 
 export const Route = createFileRoute("/_authenticated/app/movies/")({
