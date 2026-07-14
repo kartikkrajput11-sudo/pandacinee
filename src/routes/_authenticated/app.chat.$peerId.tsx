@@ -105,6 +105,7 @@ function ChatPeer() {
   const [kissEmoji, setKissEmoji] = useState("💜");
   const [shake, setShake] = useState(false);
   const lastFxIdRef = useRef<string | null>(null);
+  const playedFxRef = useRef<Set<string>>(new Set());
 
   const jumpTo = useCallback((id: string) => {
     const el = bubbleRefs.current[id];
@@ -118,24 +119,46 @@ function ChatPeer() {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages.length, partnerTyping]);
 
-  // Trigger kiss / nudge FX when a fresh message arrives from the partner
+  // Trigger kiss / nudge FX for partner messages. Plays for anything that is
+  // (a) freshly arrived (< 15s old) OR (b) still unread — so if the partner
+  // sent a kiss/nudge while I was offline, the animation fires when I open
+  // the chat, right as I "see" it. Each message plays at most once per session.
   useEffect(() => {
     if (messages.length === 0 || !me) return;
-    const last = messages[messages.length - 1];
-    if (last.id === lastFxIdRef.current) return;
-    lastFxIdRef.current = last.id;
+    const now = Date.now();
+    const candidates = messages.filter((m) => {
+      if (m.sender_id === me.id) return false;
+      if (m.type !== "kiss" && m.type !== "nudge") return false;
+      if (playedFxRef.current.has(m.id)) return false;
+      const fresh = now - new Date(m.created_at).getTime() <= 15000;
+      const unseen = !m.read_at;
+      return fresh || unseen;
+    });
+    if (candidates.length === 0) return;
 
-    const ageMs = Date.now() - new Date(last.created_at).getTime();
-    if (ageMs > 15000) return; // ignore history
-
-    if (last.type === "kiss") {
-      setKissEmoji(last.content || "💜");
-      setKissTick((t) => t + 1);
-      if (last.sender_id !== me.id && "vibrate" in navigator) navigator.vibrate?.(60);
-    } else if (last.type === "nudge" && last.sender_id !== me.id) {
-      setShake(true);
-      if ("vibrate" in navigator) navigator.vibrate?.([80, 40, 80]);
-      window.setTimeout(() => setShake(false), 800);
+    // Stagger kiss showers; nudge shakes only fire once even if there are many.
+    let delay = 0;
+    let nudgePlayed = false;
+    for (const m of candidates) {
+      playedFxRef.current.add(m.id);
+      lastFxIdRef.current = m.id;
+      if (m.type === "kiss") {
+        const emoji = m.content || "💜";
+        window.setTimeout(() => {
+          setKissEmoji(emoji);
+          setKissTick((t) => t + 1);
+          if ("vibrate" in navigator) navigator.vibrate?.(60);
+        }, delay);
+        delay += 450;
+      } else if (m.type === "nudge" && !nudgePlayed) {
+        nudgePlayed = true;
+        window.setTimeout(() => {
+          setShake(true);
+          if ("vibrate" in navigator) navigator.vibrate?.([80, 40, 80]);
+          window.setTimeout(() => setShake(false), 800);
+        }, delay);
+        delay += 350;
+      }
     }
   }, [messages, me]);
 
