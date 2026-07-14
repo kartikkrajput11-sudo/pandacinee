@@ -105,6 +105,7 @@ function ChatPeer() {
   const [kissEmoji, setKissEmoji] = useState("💜");
   const [shake, setShake] = useState(false);
   const lastFxIdRef = useRef<string | null>(null);
+  const playedFxRef = useRef<Set<string>>(new Set());
 
   const jumpTo = useCallback((id: string) => {
     const el = bubbleRefs.current[id];
