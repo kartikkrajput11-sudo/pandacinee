@@ -71,6 +71,13 @@ function PuzzleTogether() {
     if (typeof window === "undefined") return {};
     try { return JSON.parse(window.localStorage.getItem("pandacine-puzzle-best") ?? "{}"); } catch { return {}; }
   });
+  const [customImage, setCustomImage] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null;
+    try { return window.localStorage.getItem("pandacine-puzzle-image"); } catch { return null; }
+  });
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const activeImageUrl = customImage ?? PUZZLE_URL;
 
   const chRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const applyingRemote = useRef(false);
