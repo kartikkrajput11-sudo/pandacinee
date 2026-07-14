@@ -71,7 +71,9 @@ export function ChatBubble({
             setActionsOpen((o) => !o);
           }}
           className={`relative text-left rounded-2xl text-sm leading-relaxed transition-colors ${
-            isSticker
+            isPandaSticker
+              ? "bg-transparent p-0"
+              : isSticker
               ? "bg-transparent p-0 text-6xl leading-none"
               : bare
               ? "bg-transparent p-0"
