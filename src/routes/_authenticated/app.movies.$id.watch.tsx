@@ -941,6 +941,22 @@ function CatalogWatch({ id }: { id: string }) {
               </button>
             )}
 
+            {autoJoinedMuted && started && (
+              <button
+                onClick={() => {
+                  const h = customPlayerRef.current;
+                  if (h) h.setMuted(false);
+                  setAutoJoinedMuted(false);
+                }}
+                className="absolute top-3 right-3 z-40 px-3 py-2 rounded-full bg-petal text-velvet text-xs font-bold uppercase tracking-widest flex items-center gap-1.5 shadow-2xl shadow-petal/50 animate-pulse"
+              >
+                🔊 Tap to unmute
+              </button>
+            )}
+
+
+
+
 
 
 
