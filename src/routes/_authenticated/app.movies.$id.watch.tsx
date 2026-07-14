@@ -833,6 +833,21 @@ function WatchMovie() {
               </button>
             ))}
           </div>
+
+          {/* Watch Together — inline under the screen */}
+          {me && partner && movie && (
+            <div className="mt-3">
+              <WatchTogetherPanel
+                me={me}
+                partner={partner}
+                movieId={tmdbId}
+                movieTitle={movie.title}
+                moviePoster={movie.poster_path ? (/^https?:\/\//i.test(movie.poster_path) ? movie.poster_path : `https://image.tmdb.org/t/p/w154${movie.poster_path}`) : null}
+                mediaType={isTv ? "tv" : "movie"}
+                inline
+              />
+            </div>
+          )}
         </div>
 
         <style>{`
@@ -1207,16 +1222,6 @@ function WatchMovie() {
         </div>
       </div>
 
-      {me && partner && movie && (
-        <WatchTogetherPanel
-          me={me}
-          partner={partner}
-          movieId={tmdbId}
-          movieTitle={movie.title}
-          moviePoster={movie.poster_path ? (/^https?:\/\//i.test(movie.poster_path) ? movie.poster_path : `https://image.tmdb.org/t/p/w154${movie.poster_path}`) : null}
-          mediaType="movie"
-        />
-      )}
     </div>
   );
 }

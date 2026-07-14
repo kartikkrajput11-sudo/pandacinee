@@ -37,6 +37,7 @@ export function WatchTogetherPanel({
   movieTitle,
   moviePoster,
   mediaType = "movie",
+  inline = false,
 }: {
   me: Profile;
   partner: Profile;
@@ -44,8 +45,9 @@ export function WatchTogetherPanel({
   movieTitle: string;
   moviePoster?: string | null;
   mediaType?: "movie" | "tv";
+  inline?: boolean;
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(inline);
   const [text, setText] = useState("");
   const [pickerOpen, setPickerOpen] = useState<null | "stickers" | "phrases">(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -98,41 +100,42 @@ export function WatchTogetherPanel({
 
   return (
     <>
-      {/* Toggle FAB */}
-      <button
-        onClick={() => setOpen((o) => !o)}
-        className="fixed bottom-24 right-4 z-40 group"
-        aria-label={open ? "Close discussion" : "Open discussion"}
-      >
-        <span
-          className={`relative flex items-center justify-center size-14 rounded-full transition-all duration-300 shadow-2xl ${
-            open
-              ? "bg-velvet border border-petal/50 shadow-black/40"
-              : "bg-petal shadow-petal/40 hover:scale-105"
-          }`}
+      {/* Toggle FAB (hidden in inline mode) */}
+      {!inline && (
+        <button
+          onClick={() => setOpen((o) => !o)}
+          className="fixed bottom-24 right-4 z-40 group"
+          aria-label={open ? "Close discussion" : "Open discussion"}
         >
-          {/* Petal glow halo */}
-          {!open && (
-            <span aria-hidden className="absolute inset-0 rounded-full bg-petal/40 blur-xl -z-10 group-hover:bg-petal/60 transition" />
-          )}
-          {open ? (
-            <X className="size-5 text-petal" />
-          ) : (
-            <MessageCircle className="size-6 text-velvet fill-velvet/10" />
-          )}
-          {!open && unread > 0 && (
-            <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1.5 rounded-full bg-velvet text-petal text-[10px] font-bold flex items-center justify-center border-2 border-petal animate-pulse">
-              {unread > 9 ? "9+" : unread}
-            </span>
-          )}
-          {!open && partnerPresent && unread === 0 && (
-            <span className="absolute -bottom-0.5 -right-0.5 size-3.5 rounded-full bg-green-400 border-2 border-velvet" />
-          )}
-        </span>
-      </button>
+          <span
+            className={`relative flex items-center justify-center size-14 rounded-full transition-all duration-300 shadow-2xl ${
+              open
+                ? "bg-velvet border border-petal/50 shadow-black/40"
+                : "bg-petal shadow-petal/40 hover:scale-105"
+            }`}
+          >
+            {!open && (
+              <span aria-hidden className="absolute inset-0 rounded-full bg-petal/40 blur-xl -z-10 group-hover:bg-petal/60 transition" />
+            )}
+            {open ? (
+              <X className="size-5 text-petal" />
+            ) : (
+              <MessageCircle className="size-6 text-velvet fill-velvet/10" />
+            )}
+            {!open && unread > 0 && (
+              <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1.5 rounded-full bg-velvet text-petal text-[10px] font-bold flex items-center justify-center border-2 border-petal animate-pulse">
+                {unread > 9 ? "9+" : unread}
+              </span>
+            )}
+            {!open && partnerPresent && unread === 0 && (
+              <span className="absolute -bottom-0.5 -right-0.5 size-3.5 rounded-full bg-green-400 border-2 border-velvet" />
+            )}
+          </span>
+        </button>
+      )}
 
-      {/* Backdrop */}
-      {open && (
+      {/* Backdrop (hidden in inline mode) */}
+      {open && !inline && (
         <button
           aria-label="Close"
           onClick={() => setOpen(false)}
@@ -140,17 +143,23 @@ export function WatchTogetherPanel({
         />
       )}
 
-      {/* Bottom-sheet drawer */}
+      {/* Drawer — inline (under the player) or floating bottom-sheet */}
       <div
-        className={`fixed z-40 inset-x-0 bottom-0 sm:inset-x-auto sm:right-4 sm:bottom-4 sm:w-[24rem]
+        className={
+          inline
+            ? "w-full"
+            : `fixed z-40 inset-x-0 bottom-0 sm:inset-x-auto sm:right-4 sm:bottom-4 sm:w-[24rem]
           transition-all duration-300 ease-out
-          ${open ? "translate-y-0 opacity-100" : "translate-y-full opacity-0 pointer-events-none"}`}
+          ${open ? "translate-y-0 opacity-100" : "translate-y-full opacity-0 pointer-events-none"}`
+        }
       >
-        <div className="mx-2 sm:mx-0 rounded-t-3xl sm:rounded-3xl bg-velvet/95 backdrop-blur-xl border border-petal/25 shadow-[0_-30px_80px_-20px_rgba(238,130,175,0.35)] flex flex-col max-h-[80vh] overflow-hidden">
-          {/* Grabber */}
-          <div className="pt-2 pb-1 flex justify-center sm:hidden">
-            <span className="w-10 h-1 rounded-full bg-candle-muted/40" />
-          </div>
+        <div className={`${inline ? "rounded-2xl" : "mx-2 sm:mx-0 rounded-t-3xl sm:rounded-3xl"} bg-velvet/95 backdrop-blur-xl border border-petal/25 shadow-[0_-30px_80px_-20px_rgba(238,130,175,0.35)] flex flex-col ${inline ? "h-[560px]" : "max-h-[80vh]"} overflow-hidden`}>
+          {/* Grabber (only in floating mode) */}
+          {!inline && (
+            <div className="pt-2 pb-1 flex justify-center sm:hidden">
+              <span className="w-10 h-1 rounded-full bg-candle-muted/40" />
+            </div>
+          )}
 
           {/* Header */}
           <header className="px-4 pt-2 pb-3 flex items-center gap-3 border-b border-border/50">
@@ -175,13 +184,15 @@ export function WatchTogetherPanel({
                   : `${partnerFirst} hasn't joined yet`}
               </p>
             </div>
-            <button
-              onClick={() => setOpen(false)}
-              className="size-8 rounded-full bg-surface/70 border border-border flex items-center justify-center text-candle-muted hover:text-petal"
-              aria-label="Close"
-            >
-              <X className="size-3.5" />
-            </button>
+            {!inline && (
+              <button
+                onClick={() => setOpen(false)}
+                className="size-8 rounded-full bg-surface/70 border border-border flex items-center justify-center text-candle-muted hover:text-petal"
+                aria-label="Close"
+              >
+                <X className="size-3.5" />
+              </button>
+            )}
           </header>
 
           {/* Messages */}
