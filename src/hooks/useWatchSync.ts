@@ -46,6 +46,7 @@ export function useWatchSync(
   const [partnerOnline, setPartnerOnline] = useState(false);
   const [countdown, setCountdown] = useState<{ startAt: number; time?: number; from: string } | null>(null);
   const [incomingSeek, setIncomingSeek] = useState<{ time: number; from: string; id: number } | null>(null);
+  const [incomingReaction, setIncomingReaction] = useState<{ emoji: string; id: number } | null>(null);
 
   const chRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const mineRef = useRef(mine);
