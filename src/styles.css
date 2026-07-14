@@ -100,20 +100,21 @@
 }
 
 .light {
-  /* Light Purple — noticeably lavender, never white */
-  --velvet: #e2d1ff;
-  --background: #e2d1ff;
-  --surface: #d8c2ff;
-  --surface-elevated: #cdb2ff;
+  /* Light Purple background; cards stay light/white for contrast */
+  --velvet: #d9c2ff;
+  --background: #d9c2ff;
+  --surface: #ffffff;
+  --surface-elevated: #f6f0ff;
   --foreground: #2a1a4a;
   --candle: #2a1a4a;
-  --candle-muted: #5b4a7a;
+  --candle-muted: #6b5b8a;
   --petal: #7c3aed;
-  --petal-soft: #b898ff;
+  --petal-soft: #ede4ff;
   --lavender: #a78bfa;
-  --border: #b898ff;
-  --input: #cdb2ff;
+  --border: #e6dcff;
+  --input: #f2ebff;
 }
+
 
 
 
