@@ -310,7 +310,7 @@ export function ChatBubble({
               </div>
             </div>
           )}
-        </button>
+        </div>
 
 
         {reactionsEntries.length > 0 && (
