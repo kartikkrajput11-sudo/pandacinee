@@ -1026,8 +1026,8 @@ function Leaderboard({
   partner,
   leaderboard,
 }: {
-  me: NonNullable<LbProfile>;
-  partner: LbProfile;
+  me: any;
+  partner: any;
   leaderboard: Record<string, LbStats>;
 }) {
   const rows = [me, partner].filter(Boolean) as NonNullable<LbProfile>[];
