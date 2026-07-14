@@ -31,6 +31,8 @@ type Props = {
     duration: number;
   }) => void;
   onReady?: (handle: CustomPlayerHandle) => void;
+  /** When true, only host controls playback: viewer cannot play/pause/seek/skip. */
+  locked?: boolean;
 };
 
 function fmt(sec: number): string {
@@ -45,7 +47,7 @@ function fmt(sec: number): string {
 
 const RATES = [0.5, 0.75, 1, 1.25, 1.5, 2];
 
-export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady }: Props) {
+export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, locked = false }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [playing, setPlaying] = useState(false);
