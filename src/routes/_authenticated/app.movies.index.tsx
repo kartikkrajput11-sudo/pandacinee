@@ -111,6 +111,16 @@ function Movies() {
     if (ids.length) {
       batch({ data: { ids } }).then((r) => alive && setRecent(r)).catch(() => {});
     }
+
+    // Custom (admin-uploaded) movies from our library — shown as normal movies.
+    supabase
+      .from("custom_movies")
+      .select("id, title, year, poster_url, backdrop_url, overview, runtime")
+      .order("created_at", { ascending: false })
+      .then(({ data }) => {
+        if (alive && data) setCustom(data as CustomMovieRow[]);
+      });
+
     return () => { alive = false; };
   }, []);
 
