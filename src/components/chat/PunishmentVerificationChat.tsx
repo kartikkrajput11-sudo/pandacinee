@@ -491,23 +491,29 @@ function VerifBubble({
 }
 
 function Confetti() {
-  const pieces = Array.from({ length: 32 });
+  const bits = Array.from({ length: 40 });
   return (
     <div className="pointer-events-none fixed inset-0 z-50 overflow-hidden">
-      {pieces.map((_, i) => (
-        <span
-          key={i}
-          className="absolute text-2xl animate-fall"
-          style={{
-            left: `${Math.random() * 100}%`,
-            top: `-10%`,
-            animationDelay: `${Math.random() * 0.6}s`,
-            animationDuration: `${1.6 + Math.random() * 1.4}s`,
-          }}
-        >
-          {["🎉", "💜", "🌸", "✨", "💖"][i % 5]}
-        </span>
-      ))}
+      {bits.map((_, i) => {
+        const left = Math.random() * 100;
+        const delay = Math.random() * 0.4;
+        const duration = 1.2 + Math.random() * 1.4;
+        const emoji = ["💜", "🎉", "🌸", "💫", "❤️", "🐼"][i % 6];
+        return (
+          <span
+            key={i}
+            className="absolute text-2xl"
+            style={{
+              left: `${left}%`,
+              top: `-5%`,
+              animation: `pv-fall ${duration}s ${delay}s linear forwards`,
+            }}
+          >
+            {emoji}
+          </span>
+        );
+      })}
+      <style>{`@keyframes pv-fall { 0% { transform: translateY(0) rotate(0); opacity: 1; } 100% { transform: translateY(110vh) rotate(360deg); opacity: 0.8; } }`}</style>
     </div>
   );
 }
