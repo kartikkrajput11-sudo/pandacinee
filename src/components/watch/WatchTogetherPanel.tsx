@@ -135,9 +135,12 @@ export function WatchTogetherPanel({
               <MessageCircle className="size-6 text-velvet fill-velvet/10" />
             )}
             {!open && unread > 0 && (
-              <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1.5 rounded-full bg-velvet text-petal text-[10px] font-bold flex items-center justify-center border-2 border-petal animate-pulse">
-                {unread > 9 ? "9+" : unread}
-              </span>
+              <>
+                <span aria-hidden className="absolute -top-1 -right-1 size-5 rounded-full bg-red-500 animate-ping opacity-75" />
+                <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1.5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center border-2 border-velvet shadow-lg">
+                  {unread > 9 ? "9+" : unread}
+                </span>
+              </>
             )}
             {!open && partnerPresent && unread === 0 && (
               <span className="absolute -bottom-0.5 -right-0.5 size-3.5 rounded-full bg-green-400 border-2 border-velvet" />
