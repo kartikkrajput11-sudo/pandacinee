@@ -40,6 +40,7 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
   const [disappearMenu, setDisappearMenu] = useState(false);
   const [watchPickerOpen, setWatchPickerOpen] = useState(false);
   const [gamePickerOpen, setGamePickerOpen] = useState(false);
+  const [wheelOpen, setWheelOpen] = useState(false);
   const [whisper, setWhisper] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const imgRef = useRef<HTMLInputElement>(null);
