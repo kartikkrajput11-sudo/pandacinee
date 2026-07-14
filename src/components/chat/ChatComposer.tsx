@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Plus, X, Image as ImageIcon, Paperclip, Smile, Send, Clock, Film } from "lucide-react";
+import { Plus, X, Image as ImageIcon, Paperclip, Smile, Send, Clock, Film, Video as VideoIcon } from "lucide-react";
 import { toast } from "sonner";
 import { uploadChatMedia, DISAPPEAR_OPTIONS, type MessageRow } from "@/lib/chat";
 import { VoiceRecorder } from "./VoiceRecorder";
@@ -16,7 +16,7 @@ type Props = {
   onTyping: (v: boolean) => void;
   onSend: (input: {
     content?: string;
-    type?: "text" | "voice" | "image" | "file" | "sticker" | "watch_invite";
+    type?: "text" | "voice" | "image" | "video" | "file" | "sticker" | "watch_invite";
     media_url?: string | null;
     media_meta?: Record<string, unknown> | null;
     reply_to_id?: string | null;
@@ -34,6 +34,7 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
   const [watchPickerOpen, setWatchPickerOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const imgRef = useRef<HTMLInputElement>(null);
+  const vidRef = useRef<HTMLInputElement>(null);
 
   async function sendWatchInvite(movie: TmdbMovie) {
     setWatchPickerOpen(false);
@@ -105,25 +106,55 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
     }
   }
 
+  async function uploadAndSend(
+    file: File,
+    kind: "image" | "video" | "file",
+    payload: (path: string) => Parameters<typeof onSend>[0],
+    label: string,
+  ) {
+    setMenuOpen(false);
+    const ext = (file.name.split(".").pop() || "bin").toLowerCase();
+    const task = (async () => {
+      const path = await uploadChatMedia(file, meId, kind, ext);
+      await onSend(payload(path));
+      onClearReply();
+    })();
+    toast.promise(task, {
+      loading: `Sending ${label}…`,
+      success: `${label[0].toUpperCase()}${label.slice(1)} sent`,
+      error: (err: any) => err?.message ?? "Upload failed",
+    });
+    try { await task; } catch { /* toast already shown */ }
+  }
+
   async function handleImage(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
-    setMenuOpen(false);
-    try {
-      const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
-      const path = await uploadChatMedia(file, meId, "image", ext);
-      await onSend({
-        type: "image",
-        media_url: path,
-        media_meta: { name: file.name, size: file.size, mime: file.type },
-        reply_to_id: replyTo?.id ?? null,
-        disappear_seconds: disappearSecs,
-      });
-      onClearReply();
-    } catch (err: any) {
-      toast.error(err?.message ?? "Upload failed");
+    await uploadAndSend(file, "image", (path) => ({
+      type: "image",
+      media_url: path,
+      media_meta: { name: file.name, size: file.size, mime: file.type },
+      reply_to_id: replyTo?.id ?? null,
+      disappear_seconds: disappearSecs,
+    }), "photo");
+  }
+
+  async function handleVideo(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    if (file.size > 60 * 1024 * 1024) {
+      toast.error("Video too large (max 60 MB)");
+      return;
     }
+    await uploadAndSend(file, "video", (path) => ({
+      type: "video",
+      media_url: path,
+      media_meta: { name: file.name, size: file.size, mime: file.type },
+      reply_to_id: replyTo?.id ?? null,
+      disappear_seconds: disappearSecs,
+    }), "video");
   }
 
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
@@ -172,6 +203,7 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
             <p className="text-xs text-candle truncate">
               {replyTo.type === "voice" ? "🎙 Voice message" :
                replyTo.type === "image" ? "📷 Photo" :
+               replyTo.type === "video" ? "🎬 Video" :
                replyTo.type === "file" ? `📎 ${replyTo.content}` :
                replyTo.content}
             </p>
@@ -187,27 +219,31 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
       />
 
       {menuOpen && (
-        <div className="px-4 py-3 grid grid-cols-4 gap-2 border-b border-border/60 bg-surface/40">
-          <button onClick={() => imgRef.current?.click()} className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-surface border border-border text-candle">
+        <div className="px-4 py-3 grid grid-cols-5 gap-2 border-b border-border/60 bg-surface/40 animate-fade-in">
+          <button onClick={() => imgRef.current?.click()} className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-surface border border-border text-candle hover:border-petal/50 transition-colors">
             <ImageIcon className="size-5 text-petal" />
-            <span className="text-xs">Photo</span>
+            <span className="text-[11px]">Photo</span>
           </button>
-          <button onClick={() => fileRef.current?.click()} className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-surface border border-border text-candle">
+          <button onClick={() => vidRef.current?.click()} className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-surface border border-border text-candle hover:border-petal/50 transition-colors">
+            <VideoIcon className="size-5 text-petal" />
+            <span className="text-[11px]">Video</span>
+          </button>
+          <button onClick={() => fileRef.current?.click()} className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-surface border border-border text-candle hover:border-petal/50 transition-colors">
             <Paperclip className="size-5 text-petal" />
-            <span className="text-xs">File</span>
+            <span className="text-[11px]">File</span>
           </button>
           <button
             onClick={() => { setWatchPickerOpen(true); setMenuOpen(false); }}
             className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-petal-soft/40 border border-petal/40 text-candle"
           >
             <Film className="size-5 text-petal" />
-            <span className="text-xs">Watch</span>
+            <span className="text-[11px]">Watch</span>
           </button>
-          <button onClick={() => { setDisappearMenu((d) => !d); }} className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-surface border border-border text-candle relative">
+          <button onClick={() => { setDisappearMenu((d) => !d); }} className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-surface border border-border text-candle relative hover:border-petal/50 transition-colors">
             <Clock className="size-5 text-petal" />
-            <span className="text-xs">{disappearSecs ? "Vanish" : "Disappear"}</span>
+            <span className="text-[11px]">{disappearSecs ? "Vanish" : "Timer"}</span>
             {disappearMenu && (
-              <div className="absolute bottom-full mb-2 right-0 bg-surface-elevated border border-border rounded-2xl p-1 z-10 min-w-[120px]">
+              <div className="absolute bottom-full mb-2 right-0 bg-surface-elevated border border-border rounded-2xl p-1 z-10 min-w-[120px] shadow-lg">
                 {DISAPPEAR_OPTIONS.map((o) => (
                   <button
                     key={o.label}
@@ -228,6 +264,7 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
 
       <form onSubmit={sendText} className="px-3 py-3 flex items-center gap-2">
         <input ref={imgRef} type="file" accept="image/*" className="hidden" onChange={handleImage} />
+        <input ref={vidRef} type="file" accept="video/*" className="hidden" onChange={handleVideo} />
         <input ref={fileRef} type="file" className="hidden" onChange={handleFile} />
         <button
           type="button"
