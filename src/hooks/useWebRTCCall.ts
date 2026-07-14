@@ -299,5 +299,5 @@ export function useWebRTCCall(peerId: string | null, mode: Mode = "video", isCal
     }
   }, [facing, mode]);
 
-  return { localStream, remoteStream, status, error, hangup, toggleAudio, toggleVideo, flipCamera, facing };
+  return { localStream, remoteStream, remoteRev, status, error, hangup, toggleAudio, toggleVideo, flipCamera, facing };
 }
