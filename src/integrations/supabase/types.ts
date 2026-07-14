@@ -563,6 +563,13 @@ export type Database = {
           paired_at: string | null
           partner_id: string | null
           partner_nickname: string | null
+          pl_cat_activity: boolean
+          pl_cat_card: boolean
+          pl_cat_creative: boolean
+          pl_cat_photo: boolean
+          pl_cat_video: boolean
+          pl_cat_voice: boolean
+          pl_cat_writing: boolean
           punishment_lock_enabled: boolean
           read_receipts_enabled: boolean
           updated_at: string
@@ -587,6 +594,13 @@ export type Database = {
           paired_at?: string | null
           partner_id?: string | null
           partner_nickname?: string | null
+          pl_cat_activity?: boolean
+          pl_cat_card?: boolean
+          pl_cat_creative?: boolean
+          pl_cat_photo?: boolean
+          pl_cat_video?: boolean
+          pl_cat_voice?: boolean
+          pl_cat_writing?: boolean
           punishment_lock_enabled?: boolean
           read_receipts_enabled?: boolean
           updated_at?: string
@@ -611,6 +625,13 @@ export type Database = {
           paired_at?: string | null
           partner_id?: string | null
           partner_nickname?: string | null
+          pl_cat_activity?: boolean
+          pl_cat_card?: boolean
+          pl_cat_creative?: boolean
+          pl_cat_photo?: boolean
+          pl_cat_video?: boolean
+          pl_cat_voice?: boolean
+          pl_cat_writing?: boolean
           punishment_lock_enabled?: boolean
           read_receipts_enabled?: boolean
           updated_at?: string
@@ -633,6 +654,8 @@ export type Database = {
           target_id: string
           type: Database["public"]["Enums"]["punishment_type"]
           updated_at: string
+          verification_feedback: string | null
+          verification_status: string
         }
         Insert: {
           completed_at?: string | null
@@ -648,6 +671,8 @@ export type Database = {
           target_id: string
           type: Database["public"]["Enums"]["punishment_type"]
           updated_at?: string
+          verification_feedback?: string | null
+          verification_status?: string
         }
         Update: {
           completed_at?: string | null
@@ -663,8 +688,60 @@ export type Database = {
           target_id?: string
           type?: Database["public"]["Enums"]["punishment_type"]
           updated_at?: string
+          verification_feedback?: string | null
+          verification_status?: string
         }
         Relationships: []
+      }
+      punishment_verification_messages: {
+        Row: {
+          approved: boolean | null
+          content: string | null
+          created_at: string
+          feedback: string | null
+          id: string
+          kind: string
+          lock_id: string
+          media_meta: Json | null
+          media_url: string | null
+          sender_id: string
+          submission: boolean
+        }
+        Insert: {
+          approved?: boolean | null
+          content?: string | null
+          created_at?: string
+          feedback?: string | null
+          id?: string
+          kind?: string
+          lock_id: string
+          media_meta?: Json | null
+          media_url?: string | null
+          sender_id: string
+          submission?: boolean
+        }
+        Update: {
+          approved?: boolean | null
+          content?: string | null
+          created_at?: string
+          feedback?: string | null
+          id?: string
+          kind?: string
+          lock_id?: string
+          media_meta?: Json | null
+          media_url?: string | null
+          sender_id?: string
+          submission?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "punishment_verification_messages_lock_id_fkey"
+            columns: ["lock_id"]
+            isOneToOne: false
+            referencedRelation: "punishment_locks"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       suppressed_emails: {
         Row: {
@@ -867,6 +944,13 @@ export type Database = {
           paired_at: string | null
           partner_id: string | null
           partner_nickname: string | null
+          pl_cat_activity: boolean
+          pl_cat_card: boolean
+          pl_cat_creative: boolean
+          pl_cat_photo: boolean
+          pl_cat_video: boolean
+          pl_cat_voice: boolean
+          pl_cat_writing: boolean
           punishment_lock_enabled: boolean
           read_receipts_enabled: boolean
           updated_at: string
@@ -909,6 +993,10 @@ export type Database = {
         | "photo"
         | "voice"
         | "quiz"
+        | "card"
+        | "video"
+        | "activity"
+        | "creative"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1045,6 +1133,10 @@ export const Constants = {
         "photo",
         "voice",
         "quiz",
+        "card",
+        "video",
+        "activity",
+        "creative",
       ],
     },
   },
