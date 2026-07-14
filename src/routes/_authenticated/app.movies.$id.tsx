@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { ArrowLeft, Send, Film, Play, ExternalLink, Tv } from "lucide-react";
 import { toast } from "sonner";
-import { tmdbMovie, tmdbTvFull } from "@/lib/tmdb.functions";
+import { tmdbMovie, tmdbTvFull, tmdbTvSeason } from "@/lib/tmdb.functions";
 import { watchmodeSources, type WatchSource } from "@/lib/watchmode.functions";
 import { poster } from "./app.movies";
 import { useProfile } from "@/hooks/useProfile";
@@ -24,14 +24,16 @@ function MovieDetail() {
   const { id } = Route.useParams();
   const isCustom = id.startsWith("custom:");
   const location = useLocation();
-  const isWatchRoute = location.pathname.endsWith("/watch");
+  const basePath = `/app/movies/${id}`;
+  const hasChildRoute = location.pathname.length > basePath.length;
 
-  if (isWatchRoute) return <Outlet />;
+  if (hasChildRoute) return <Outlet />;
   if (isCustom) return <CustomMovieDetail customId={id.slice("custom:".length)} />;
 
   const fetchMovie = useServerFn(tmdbMovie);
   const fetchTv = useServerFn(tmdbTvFull);
   const fetchSources = useServerFn(watchmodeSources);
+  const fetchSeasonEps = useServerFn(tmdbTvSeason);
   const { data: prof } = useProfile();
   const me = prof?.profile;
   const partner = prof?.partner;
@@ -39,6 +41,8 @@ function MovieDetail() {
   const [isTv, setIsTv] = useState(false);
   const [sources, setSources] = useState<WatchSource[]>([]);
   const [region, setRegion] = useState<string>("US");
+  const [selectedSeason, setSelectedSeason] = useState<number>(1);
+  const [seasonEps, setSeasonEps] = useState<any[]>([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -87,6 +91,16 @@ function MovieDetail() {
       .catch(() => alive && setSources([]));
     return () => { alive = false; };
   }, [id]);
+
+  // Load season episodes when this is a TV series
+  useEffect(() => {
+    if (!isTv || !movie?.id) { setSeasonEps([]); return; }
+    let alive = true;
+    fetchSeasonEps({ data: { id: Number(id), season: selectedSeason } })
+      .then((eps) => { if (alive) setSeasonEps(eps ?? []); })
+      .catch(() => { if (alive) setSeasonEps([]); });
+    return () => { alive = false; };
+  }, [isTv, movie?.id, selectedSeason, id]);
 
 
   const regions = useMemo(() => Array.from(new Set(sources.map((s) => s.region))).sort(), [sources]);
@@ -207,14 +221,26 @@ function MovieDetail() {
         </div>
 
         {/* Primary CTA */}
-        <Link
-          to="/app/movies/$id/watch"
-          params={{ id: String(movie.id) }}
-          className="w-full flex items-center justify-center gap-3 py-4 rounded-2xl bg-petal text-velvet font-bold text-sm tracking-wide shadow-[0_20px_60px_-20px] shadow-petal/60 active:scale-[0.98] transition-transform"
-        >
-          <Play className="size-4 fill-velvet" />
-          {isTv ? "WATCH SERIES" : "PLAY MOVIE"}
-        </Link>
+        {isTv ? (
+          <Link
+            to="/app/movies/$id/watch"
+            params={{ id: String(movie.id) }}
+            search={{ season: 1, episode: 1 }}
+            className="w-full flex items-center justify-center gap-3 py-4 rounded-2xl bg-petal text-velvet font-bold text-sm tracking-wide shadow-[0_20px_60px_-20px] shadow-petal/60 active:scale-[0.98] transition-transform"
+          >
+            <Play className="size-4 fill-velvet" />
+            PLAY S1·E1
+          </Link>
+        ) : (
+          <Link
+            to="/app/movies/$id/watch"
+            params={{ id: String(movie.id) }}
+            className="w-full flex items-center justify-center gap-3 py-4 rounded-2xl bg-petal text-velvet font-bold text-sm tracking-wide shadow-[0_20px_60px_-20px] shadow-petal/60 active:scale-[0.98] transition-transform"
+          >
+            <Play className="size-4 fill-velvet" />
+            PLAY MOVIE
+          </Link>
+        )}
 
         {/* Synopsis */}
         {movie.overview && (
@@ -303,6 +329,75 @@ function MovieDetail() {
                   </span>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* Episodes — Netflix-style browser for series */}
+        {isTv && movie.seasons?.length > 0 && (
+          <div className="mt-10">
+            <h3 className="text-[10px] font-bold tracking-[0.2em] uppercase text-candle-muted mb-4 flex items-center gap-3">
+              Episodes
+              <div className="h-px flex-1 bg-border" />
+              <select
+                value={selectedSeason}
+                onChange={(e) => setSelectedSeason(Number(e.target.value))}
+                className="text-[10px] bg-surface border border-border rounded-full px-3 py-1 text-candle normal-case tracking-normal"
+              >
+                {movie.seasons
+                  .filter((s: any) => s.season_number > 0)
+                  .map((s: any) => (
+                    <option key={s.season_number} value={s.season_number}>
+                      {s.name || `Season ${s.season_number}`}
+                    </option>
+                  ))}
+              </select>
+            </h3>
+            <div className="space-y-3">
+              {seasonEps.map((ep: any) => (
+                <Link
+                  key={ep.episode_number}
+                  to="/app/movies/$id/episode/$season/$episode"
+                  params={{
+                    id: String(movie.id),
+                    season: String(selectedSeason),
+                    episode: String(ep.episode_number),
+                  }}
+                  className="flex gap-3 p-2 rounded-xl border border-border bg-surface hover:border-petal/60 transition"
+                >
+                  <div className="w-28 aspect-video rounded-lg overflow-hidden bg-velvet shrink-0 relative">
+                    {ep.still_path && (
+                      <img
+                        src={`https://image.tmdb.org/t/p/w300${ep.still_path}`}
+                        alt={ep.name}
+                        loading="lazy"
+                        className="w-full h-full object-cover"
+                      />
+                    )}
+                    <div className="absolute inset-0 flex items-center justify-center bg-velvet/30 opacity-0 hover:opacity-100 transition">
+                      <Play className="size-6 fill-candle text-candle" />
+                    </div>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[10px] uppercase tracking-widest text-candle-muted">
+                      E{ep.episode_number}
+                      {ep.runtime ? ` · ${ep.runtime}m` : ""}
+                      {ep.air_date ? ` · ${ep.air_date.slice(0, 4)}` : ""}
+                    </div>
+                    <div className="text-sm font-semibold text-candle truncate">
+                      {ep.name || `Episode ${ep.episode_number}`}
+                    </div>
+                    {ep.overview && (
+                      <div className="text-[11px] text-candle-muted line-clamp-2 mt-0.5">
+                        {ep.overview}
+                      </div>
+                    )}
+                  </div>
+                </Link>
+              ))}
+              {seasonEps.length === 0 && (
+                <p className="text-[11px] text-candle-muted">Loading episodes…</p>
+              )}
             </div>
           </div>
         )}
