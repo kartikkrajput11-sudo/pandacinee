@@ -10,6 +10,8 @@ import { WatchInvitePicker } from "./WatchInvitePicker";
 import { EmojiPicker } from "./EmojiPicker";
 import { GameInvitePicker, type GamePick } from "./GameInvitePicker";
 import { MovieWheelPicker, type WheelEntry } from "./MovieWheelPicker";
+import { PandaStickerPicker } from "./PandaStickerPicker";
+import { pandaStickerContent, type PandaStickerId } from "@/lib/panda-stickers";
 import type { TmdbMovie } from "@/lib/tmdb.functions";
 
 const KISS_EMOJIS = ["💋", "💜", "🌸", "🫧", "💫", "🐼", "🌷", "🫶"];
