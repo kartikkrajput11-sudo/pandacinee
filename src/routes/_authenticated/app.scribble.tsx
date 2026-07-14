@@ -292,7 +292,7 @@ function Scribble() {
   function tryMatch(by: string, name: string, text: string, broadcast = true) {
     const w = wordRef.current;
     if (!w || roundResolvedRef.current) return false;
-    if (normalizeGuessText(text) !== normalizeGuessText(w)) return false;
+    if (!guessesMatch(text, w)) return false;
     return markCorrect(by, name, w, broadcast);
   }
 
