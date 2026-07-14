@@ -100,19 +100,28 @@
 }
 
 .light {
-  /* Cream daylight: soft warm surfaces, deep aubergine ink, coral accent stays */
-  --velvet: oklch(0.98 0.012 85);
-  --background: oklch(0.98 0.012 85);
-  --surface: oklch(0.96 0.02 85);
-  --surface-elevated: oklch(0.93 0.03 85);
-  --foreground: oklch(0.24 0.06 305);
-  --candle: oklch(0.24 0.06 305);
-  --candle-muted: oklch(0.42 0.05 305 / 0.75);
-  --petal: oklch(0.62 0.19 25);
-  --petal-soft: oklch(0.72 0.16 25 / 0.14);
-  --lavender: oklch(0.58 0.14 305);
-  --border: oklch(0.24 0.06 305 / 0.10);
-  --input: oklch(0.24 0.06 305 / 0.08);
+  /* Light Purple — soft lavender aesthetic (never plain white) */
+  /* bg #F8F4FF, surface #F2ECFF, cards #FFFFFF, primary #8B5CF6, */
+  /* secondary #C4B5FD, hover #E9DFFF, border #E6DFFF, text #1F1F1F, muted #6B7280 */
+  --velvet: #f8f4ff;
+  --background: #f8f4ff;
+  --surface: #ffffff;
+  --surface-elevated: #f2ecff;
+  --foreground: #1f1f1f;
+  --candle: #1f1f1f;
+  --candle-muted: #6b7280;
+  --petal: #8b5cf6;
+  --petal-soft: #e9dfff;
+  --lavender: #c4b5fd;
+  --border: #e6dfff;
+  --input: #e6dfff;
+}
+
+/* Smooth 300ms theme transitions across the app */
+html.theme-anim,
+html.theme-anim * {
+  transition: background-color 300ms ease, border-color 300ms ease,
+    color 300ms ease, fill 300ms ease, stroke 300ms ease, box-shadow 300ms ease;
 }
 
 @layer base {

@@ -24,8 +24,10 @@ function systemPrefersDark(): boolean {
 function apply(resolved: "light" | "dark") {
   if (typeof document === "undefined") return;
   const root = document.documentElement;
+  root.classList.add("theme-anim");
   root.classList.toggle("dark", resolved === "dark");
   root.classList.toggle("light", resolved === "light");
+  window.setTimeout(() => root.classList.remove("theme-anim"), 320);
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {

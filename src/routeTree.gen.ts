@@ -18,11 +18,13 @@ import { Route as AuthenticatedAppWishlistRouteImport } from './routes/_authenti
 import { Route as AuthenticatedAppWatchRouteImport } from './routes/_authenticated/app.watch'
 import { Route as AuthenticatedAppPlayRouteImport } from './routes/_authenticated/app.play'
 import { Route as AuthenticatedAppPartnerRouteImport } from './routes/_authenticated/app.partner'
+import { Route as AuthenticatedAppPaintRouteImport } from './routes/_authenticated/app.paint'
 import { Route as AuthenticatedAppMoviesRouteImport } from './routes/_authenticated/app.movies'
 import { Route as AuthenticatedAppMoodRouteImport } from './routes/_authenticated/app.mood'
 import { Route as AuthenticatedAppMemoriesRouteImport } from './routes/_authenticated/app.memories'
 import { Route as AuthenticatedAppMeRouteImport } from './routes/_authenticated/app.me'
 import { Route as AuthenticatedAppInviteRouteImport } from './routes/_authenticated/app.invite'
+import { Route as AuthenticatedAppHelpRouteImport } from './routes/_authenticated/app.help'
 import { Route as AuthenticatedAppFriendsRouteImport } from './routes/_authenticated/app.friends'
 import { Route as AuthenticatedAppAnniversaryRouteImport } from './routes/_authenticated/app.anniversary'
 import { Route as AuthenticatedAppAdminRouteImport } from './routes/_authenticated/app.admin'
@@ -80,6 +82,11 @@ const AuthenticatedAppPartnerRoute = AuthenticatedAppPartnerRouteImport.update({
   path: '/partner',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
+const AuthenticatedAppPaintRoute = AuthenticatedAppPaintRouteImport.update({
+  id: '/paint',
+  path: '/paint',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
 const AuthenticatedAppMoviesRoute = AuthenticatedAppMoviesRouteImport.update({
   id: '/movies',
   path: '/movies',
@@ -104,6 +111,11 @@ const AuthenticatedAppMeRoute = AuthenticatedAppMeRouteImport.update({
 const AuthenticatedAppInviteRoute = AuthenticatedAppInviteRouteImport.update({
   id: '/invite',
   path: '/invite',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
+const AuthenticatedAppHelpRoute = AuthenticatedAppHelpRouteImport.update({
+  id: '/help',
+  path: '/help',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
 const AuthenticatedAppFriendsRoute = AuthenticatedAppFriendsRouteImport.update({
@@ -178,11 +190,13 @@ export interface FileRoutesByFullPath {
   '/app/admin': typeof AuthenticatedAppAdminRoute
   '/app/anniversary': typeof AuthenticatedAppAnniversaryRoute
   '/app/friends': typeof AuthenticatedAppFriendsRoute
+  '/app/help': typeof AuthenticatedAppHelpRoute
   '/app/invite': typeof AuthenticatedAppInviteRoute
   '/app/me': typeof AuthenticatedAppMeRoute
   '/app/memories': typeof AuthenticatedAppMemoriesRoute
   '/app/mood': typeof AuthenticatedAppMoodRoute
   '/app/movies': typeof AuthenticatedAppMoviesRouteWithChildren
+  '/app/paint': typeof AuthenticatedAppPaintRoute
   '/app/partner': typeof AuthenticatedAppPartnerRoute
   '/app/play': typeof AuthenticatedAppPlayRoute
   '/app/watch': typeof AuthenticatedAppWatchRoute
@@ -203,10 +217,12 @@ export interface FileRoutesByTo {
   '/app/admin': typeof AuthenticatedAppAdminRoute
   '/app/anniversary': typeof AuthenticatedAppAnniversaryRoute
   '/app/friends': typeof AuthenticatedAppFriendsRoute
+  '/app/help': typeof AuthenticatedAppHelpRoute
   '/app/invite': typeof AuthenticatedAppInviteRoute
   '/app/me': typeof AuthenticatedAppMeRoute
   '/app/memories': typeof AuthenticatedAppMemoriesRoute
   '/app/mood': typeof AuthenticatedAppMoodRoute
+  '/app/paint': typeof AuthenticatedAppPaintRoute
   '/app/partner': typeof AuthenticatedAppPartnerRoute
   '/app/play': typeof AuthenticatedAppPlayRoute
   '/app/watch': typeof AuthenticatedAppWatchRoute
@@ -230,11 +246,13 @@ export interface FileRoutesById {
   '/_authenticated/app/admin': typeof AuthenticatedAppAdminRoute
   '/_authenticated/app/anniversary': typeof AuthenticatedAppAnniversaryRoute
   '/_authenticated/app/friends': typeof AuthenticatedAppFriendsRoute
+  '/_authenticated/app/help': typeof AuthenticatedAppHelpRoute
   '/_authenticated/app/invite': typeof AuthenticatedAppInviteRoute
   '/_authenticated/app/me': typeof AuthenticatedAppMeRoute
   '/_authenticated/app/memories': typeof AuthenticatedAppMemoriesRoute
   '/_authenticated/app/mood': typeof AuthenticatedAppMoodRoute
   '/_authenticated/app/movies': typeof AuthenticatedAppMoviesRouteWithChildren
+  '/_authenticated/app/paint': typeof AuthenticatedAppPaintRoute
   '/_authenticated/app/partner': typeof AuthenticatedAppPartnerRoute
   '/_authenticated/app/play': typeof AuthenticatedAppPlayRoute
   '/_authenticated/app/watch': typeof AuthenticatedAppWatchRoute
@@ -258,11 +276,13 @@ export interface FileRouteTypes {
     | '/app/admin'
     | '/app/anniversary'
     | '/app/friends'
+    | '/app/help'
     | '/app/invite'
     | '/app/me'
     | '/app/memories'
     | '/app/mood'
     | '/app/movies'
+    | '/app/paint'
     | '/app/partner'
     | '/app/play'
     | '/app/watch'
@@ -283,10 +303,12 @@ export interface FileRouteTypes {
     | '/app/admin'
     | '/app/anniversary'
     | '/app/friends'
+    | '/app/help'
     | '/app/invite'
     | '/app/me'
     | '/app/memories'
     | '/app/mood'
+    | '/app/paint'
     | '/app/partner'
     | '/app/play'
     | '/app/watch'
@@ -309,11 +331,13 @@ export interface FileRouteTypes {
     | '/_authenticated/app/admin'
     | '/_authenticated/app/anniversary'
     | '/_authenticated/app/friends'
+    | '/_authenticated/app/help'
     | '/_authenticated/app/invite'
     | '/_authenticated/app/me'
     | '/_authenticated/app/memories'
     | '/_authenticated/app/mood'
     | '/_authenticated/app/movies'
+    | '/_authenticated/app/paint'
     | '/_authenticated/app/partner'
     | '/_authenticated/app/play'
     | '/_authenticated/app/watch'
@@ -401,6 +425,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppPartnerRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/paint': {
+      id: '/_authenticated/app/paint'
+      path: '/paint'
+      fullPath: '/app/paint'
+      preLoaderRoute: typeof AuthenticatedAppPaintRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/movies': {
       id: '/_authenticated/app/movies'
       path: '/movies'
@@ -434,6 +465,13 @@ declare module '@tanstack/react-router' {
       path: '/invite'
       fullPath: '/app/invite'
       preLoaderRoute: typeof AuthenticatedAppInviteRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/help': {
+      id: '/_authenticated/app/help'
+      path: '/help'
+      fullPath: '/app/help'
+      preLoaderRoute: typeof AuthenticatedAppHelpRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/friends': {
@@ -550,11 +588,13 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppAdminRoute: typeof AuthenticatedAppAdminRoute
   AuthenticatedAppAnniversaryRoute: typeof AuthenticatedAppAnniversaryRoute
   AuthenticatedAppFriendsRoute: typeof AuthenticatedAppFriendsRoute
+  AuthenticatedAppHelpRoute: typeof AuthenticatedAppHelpRoute
   AuthenticatedAppInviteRoute: typeof AuthenticatedAppInviteRoute
   AuthenticatedAppMeRoute: typeof AuthenticatedAppMeRoute
   AuthenticatedAppMemoriesRoute: typeof AuthenticatedAppMemoriesRoute
   AuthenticatedAppMoodRoute: typeof AuthenticatedAppMoodRoute
   AuthenticatedAppMoviesRoute: typeof AuthenticatedAppMoviesRouteWithChildren
+  AuthenticatedAppPaintRoute: typeof AuthenticatedAppPaintRoute
   AuthenticatedAppPartnerRoute: typeof AuthenticatedAppPartnerRoute
   AuthenticatedAppPlayRoute: typeof AuthenticatedAppPlayRoute
   AuthenticatedAppWatchRoute: typeof AuthenticatedAppWatchRoute
@@ -570,11 +610,13 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppAdminRoute: AuthenticatedAppAdminRoute,
   AuthenticatedAppAnniversaryRoute: AuthenticatedAppAnniversaryRoute,
   AuthenticatedAppFriendsRoute: AuthenticatedAppFriendsRoute,
+  AuthenticatedAppHelpRoute: AuthenticatedAppHelpRoute,
   AuthenticatedAppInviteRoute: AuthenticatedAppInviteRoute,
   AuthenticatedAppMeRoute: AuthenticatedAppMeRoute,
   AuthenticatedAppMemoriesRoute: AuthenticatedAppMemoriesRoute,
   AuthenticatedAppMoodRoute: AuthenticatedAppMoodRoute,
   AuthenticatedAppMoviesRoute: AuthenticatedAppMoviesRouteWithChildren,
+  AuthenticatedAppPaintRoute: AuthenticatedAppPaintRoute,
   AuthenticatedAppPartnerRoute: AuthenticatedAppPartnerRoute,
   AuthenticatedAppPlayRoute: AuthenticatedAppPlayRoute,
   AuthenticatedAppWatchRoute: AuthenticatedAppWatchRoute,

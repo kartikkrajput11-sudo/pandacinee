@@ -5,11 +5,24 @@ export type GameKind =
   | "never-have-i-ever"
   | "guess-me"
   | "tic-tac-toe"
-  | "rock-paper-scissors";
+  | "rock-paper-scissors"
+  | "paint-together"
+  | "scribble-guess"
+  | "daily-challenge"
+  | "memory-challenge"
+  | "puzzle-together"
+  | "love-quiz";
 
+// Games shown in the picker. Rock-Paper-Scissors is retired but the route
+// still handles it for any deep-link, so it stays in GameKind above.
 export const GAME_KINDS: GameKind[] = [
+  "paint-together",
+  "scribble-guess",
+  "daily-challenge",
+  "memory-challenge",
+  "puzzle-together",
+  "love-quiz",
   "tic-tac-toe",
-  "rock-paper-scissors",
   "truth-or-dare",
   "would-you-rather",
   "never-have-i-ever",
@@ -17,7 +30,13 @@ export const GAME_KINDS: GameKind[] = [
   "guess-me",
 ];
 
-export const GAMES: Record<GameKind, { name: string; emoji: string; body: string; ai?: boolean }> = {
+export const GAMES: Record<GameKind, { name: string; emoji: string; body: string; ai?: boolean; href?: string; comingSoon?: boolean }> = {
+  "paint-together": { name: "Paint Together", emoji: "🎨", body: "Live shared canvas.", href: "/app/paint" },
+  "scribble-guess": { name: "Scribble & Guess", emoji: "✏️", body: "Draw. Guess. Win.", comingSoon: true },
+  "daily-challenge": { name: "Daily Challenge", emoji: "🌞", body: "One prompt each day.", comingSoon: true },
+  "memory-challenge": { name: "Memory Challenge", emoji: "📸", body: "Photo prompts together.", comingSoon: true },
+  "puzzle-together": { name: "Puzzle Together", emoji: "🧩", body: "Solve jigsaws live.", comingSoon: true },
+  "love-quiz": { name: "Love Quiz", emoji: "💘", body: "Quizzes from your memories.", comingSoon: true },
   "tic-tac-toe": { name: "Tic Tac Toe", emoji: "❌⭕", body: "Live 3-in-a-row." },
   "rock-paper-scissors": { name: "Rock · Paper · Scissors", emoji: "✊✋✌️", body: "Best of 5, live." },
   "truth-or-dare": { name: "Truth or Dare", emoji: "🎯", body: "AI-crafted prompts, endless.", ai: true },
