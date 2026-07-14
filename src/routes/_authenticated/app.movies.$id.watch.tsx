@@ -715,10 +715,16 @@ function CustomWatch({ customId }: { customId: string }) {
   const [loading, setLoading] = useState(true);
 
   const {
-    mine, peer, partnerOnline, publish, sendSeek, incomingSeek, clearIncomingSeek, drift,
+    mine, peer, partnerOnline, publish, sendSeek, sendCountdown, countdown, clearCountdown,
+    incomingSeek, clearIncomingSeek, hostId, claimHost, releaseHost, drift,
   } = useWatchSync(me?.id ?? null, partner?.id ?? null, 0, "movie");
 
   const handleRef = useRef<CustomPlayerHandle | null>(null);
+  const suppressRef = useRef(false);
+  const lastAppliedPeerEventRef = useRef<number>(0);
+
+  const iAmHost = !!me && hostId === me.id;
+  const partnerIsHost = !!partner && hostId === partner.id;
 
   useEffect(() => {
     let alive = true;
@@ -738,20 +744,92 @@ function CustomWatch({ customId }: { customId: string }) {
     return () => { alive = false; };
   }, [customId]);
 
+  // Manual seek request
   useEffect(() => {
     if (!incomingSeek) return;
+    suppressRef.current = true;
     handleRef.current?.seek(incomingSeek.time);
     clearIncomingSeek();
+    window.setTimeout(() => { suppressRef.current = false; }, 400);
   }, [incomingSeek, clearIncomingSeek]);
 
+  // Follower: mirror host's discrete events + drift correction
+  useEffect(() => {
+    if (!peer || !partnerIsHost) return;
+    if (peer.updatedAt <= lastAppliedPeerEventRef.current) return;
+    const h = handleRef.current;
+    if (!h) return;
+    const evt = peer.event;
+    if (evt !== "play" && evt !== "pause" && evt !== "seeked" && evt !== "timeupdate") return;
+
+    if (evt === "timeupdate") {
+      const d = Math.abs(h.currentTime() - peer.currentTime);
+      if (d < 2) return; // native drift is tight
+      suppressRef.current = true;
+      h.seek(peer.currentTime);
+      window.setTimeout(() => { suppressRef.current = false; }, 250);
+      return;
+    }
+
+    lastAppliedPeerEventRef.current = peer.updatedAt;
+    suppressRef.current = true;
+    if (evt === "seeked") h.seek(peer.currentTime);
+    if (evt === "play") { h.seek(peer.currentTime); h.play(); }
+    if (evt === "pause") { h.seek(peer.currentTime); h.pause(); }
+    window.setTimeout(() => { suppressRef.current = false; }, 400);
+  }, [peer, partnerIsHost]);
+
+  // Countdown → both press play together
+  const [countdownRemaining, setCountdownRemaining] = useState<number | null>(null);
+  useEffect(() => {
+    if (!countdown) { setCountdownRemaining(null); return; }
+    const tick = () => {
+      const rem = Math.ceil((countdown.startAt - Date.now()) / 1000);
+      if (rem <= 0) {
+        setCountdownRemaining(0);
+        if (typeof countdown.time === "number") handleRef.current?.seek(countdown.time);
+        handleRef.current?.play();
+        setTimeout(() => { clearCountdown(); setCountdownRemaining(null); }, 800);
+      } else setCountdownRemaining(rem);
+    };
+    tick();
+    const iv = window.setInterval(tick, 250);
+    return () => window.clearInterval(iv);
+  }, [countdown, clearCountdown]);
+
   const partnerFirst = partner?.display_name.split(" ")[0] ?? "them";
+  const driftAbs = drift != null ? Math.abs(drift) : null;
+  const inSync = driftAbs != null && driftAbs < 2;
+
+  function handleEvent(evt: {
+    event: "play" | "pause" | "seeked" | "timeupdate" | "ended";
+    currentTime: number;
+    duration: number;
+  }) {
+    // Only broadcast our own actions when we ARE the host, otherwise just publish state so partner can see our time
+    // For follower's suppressed programmatic events, don't republish.
+    if (suppressRef.current && (evt.event === "play" || evt.event === "pause" || evt.event === "seeked")) return;
+    publish({ event: evt.event, currentTime: evt.currentTime, duration: evt.duration, sourceIdx: 0 });
+  }
 
   return (
     <div className="pt-8 pb-24 max-w-6xl mx-auto">
       <header className="px-5 pb-3 flex items-center gap-3">
-        <Link to="/app/admin" className="text-candle-muted"><ArrowLeft className="size-5" /></Link>
+        <Link to="/app/movies/$id" params={{ id: `custom:${customId}` }} className="text-candle-muted"><ArrowLeft className="size-5" /></Link>
         <div className="flex-1 min-w-0">
-          <p className="text-[10px] uppercase tracking-widest text-petal">Custom · Watch Party</p>
+          <p className="text-[10px] uppercase tracking-widest text-petal flex items-center gap-2">
+            <Radio className="size-3 animate-pulse" /> Private Screening
+            {iAmHost && (
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-petal text-velvet text-[9px] font-bold">
+                <Crown className="size-2.5" /> HOSTING
+              </span>
+            )}
+            {partnerIsHost && (
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-petal/20 border border-petal/40 text-petal text-[9px] font-bold">
+                <Crown className="size-2.5" /> FOLLOWING
+              </span>
+            )}
+          </p>
           <h1 className="font-serif text-lg md:text-2xl italic truncate">{movie?.title ?? (loading ? "Loading…" : "Not found")}</h1>
         </div>
       </header>
@@ -763,38 +841,88 @@ function CustomWatch({ customId }: { customId: string }) {
               src={videoSrc}
               poster={movie?.backdrop_url ?? movie?.poster_url ?? null}
               onReady={(h) => (handleRef.current = h)}
-              onEvent={(evt) => publish({ event: evt.event, currentTime: evt.currentTime, duration: evt.duration, sourceIdx: 0 })}
+              onEvent={handleEvent}
             />
           ) : (
             <div className="w-full h-full bg-black rounded-2xl flex items-center justify-center text-candle-muted text-sm">
               {loading ? "Loading video…" : "No video available for this movie."}
             </div>
           )}
+          {countdownRemaining != null && countdownRemaining > 0 && (
+            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-velvet/85 backdrop-blur-sm rounded-2xl">
+              <p className="text-[11px] uppercase tracking-[0.3em] text-petal mb-2">Together in</p>
+              <p className="font-serif text-8xl italic text-candle drop-shadow-[0_4px_24px_rgba(238,130,175,0.5)]">
+                {countdownRemaining}
+              </p>
+            </div>
+          )}
         </div>
 
         {partner && (
-          <div className="mt-3 rounded-2xl border border-border bg-surface px-3 py-2.5 flex items-center gap-3">
-            <span className={`size-2.5 rounded-full ${partnerOnline ? "bg-green-400" : "bg-candle-muted/60"}`} />
-            <span className="text-xs text-candle">{partnerFirst} · {peer ? `${peer.event} at ${fmtTime(peer.currentTime)}` : "not in room"}</span>
-            <button
-              onClick={() => { if (peer) handleRef.current?.seek(peer.currentTime); }}
-              disabled={!peer}
-              className="ml-auto h-8 px-3 rounded-full bg-surface-elevated text-xs text-candle disabled:opacity-40"
-            >
-              Jump to {partnerFirst}
-            </button>
-            <button
-              onClick={() => sendSeek(mine.currentTime)}
-              className="h-8 px-3 rounded-full bg-petal text-velvet text-xs font-semibold"
-            >
-              Pull them here
-            </button>
-            {drift != null && Math.abs(drift) > 3 && (
-              <span className="text-[10px] text-amber-400">±{fmtTime(Math.abs(drift))}</span>
+          <div className="mt-3 rounded-2xl border border-border bg-surface/60 backdrop-blur px-3 py-3 space-y-3">
+            <div className="flex items-center gap-3 text-xs">
+              <span className={`size-2.5 rounded-full ${partnerOnline ? "bg-green-400 animate-pulse" : "bg-candle-muted/60"}`} />
+              <span className="text-candle font-semibold">{partnerFirst}</span>
+              <span className="text-candle-muted">
+                · {peer ? `${peer.event} at ${fmtTime(peer.currentTime)}` : "not in room"}
+              </span>
+              {driftAbs != null && (
+                <span className={`ml-auto text-[10px] ${inSync ? "text-green-400" : driftAbs > 8 ? "text-rose-400" : "text-amber-400"}`}>
+                  {inSync ? "in sync ✓" : `±${fmtTime(driftAbs)}`}
+                </span>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2">
+              {!iAmHost ? (
+                <button
+                  onClick={claimHost}
+                  className="flex-1 h-10 rounded-full bg-petal text-velvet text-xs font-semibold flex items-center justify-center gap-1.5 shadow-lg shadow-petal/30"
+                >
+                  <Crown className="size-3.5" /> Take the reins
+                </button>
+              ) : (
+                <button
+                  onClick={releaseHost}
+                  className="flex-1 h-10 rounded-full bg-surface border border-petal/60 text-petal text-xs font-semibold flex items-center justify-center gap-1.5"
+                >
+                  <Crown className="size-3.5 fill-petal" /> You're the host · release
+                </button>
+              )}
+              <button
+                onClick={() => sendCountdown(4, mine.currentTime > 5 ? mine.currentTime : undefined)}
+                className="h-10 px-3 rounded-full bg-surface border border-border text-xs text-candle flex items-center gap-1.5"
+              >
+                <Radio className="size-3.5" /> Countdown
+              </button>
+            </div>
+
+            {partnerIsHost && (
+              <div className="rounded-xl bg-petal/10 border border-petal/30 px-3 py-2 text-[11px] text-candle flex items-center gap-2">
+                <Crown className="size-3 text-petal shrink-0" />
+                <span>Auto-following {partnerFirst} — every play, pause & skip mirrors on your screen instantly.</span>
+              </div>
             )}
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => { if (peer) handleRef.current?.seek(peer.currentTime); }}
+                disabled={!peer}
+                className="flex-1 h-9 rounded-full bg-surface-elevated text-xs text-candle disabled:opacity-40"
+              >
+                Jump to {partnerFirst}
+              </button>
+              <button
+                onClick={() => sendSeek(mine.currentTime)}
+                className="flex-1 h-9 rounded-full bg-surface border border-border text-xs text-candle"
+              >
+                Pull them here
+              </button>
+            </div>
           </div>
         )}
       </div>
     </div>
   );
 }
+
