@@ -50,8 +50,21 @@ function ChatPeer() {
   const [showPinned, setShowPinned] = useState(false);
   const [highlightId, setHighlightId] = useState<string | null>(null);
   const [lockDialogOpen, setLockDialogOpen] = useState(false);
+  const [verifyOpen, setVerifyOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const bubbleRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  const isVerifyMode = !!activeLock && typeMeta(activeLock.type).mode === "verify";
+  const { messages: verifMessages } = usePunishmentVerification(
+    isVerifyMode ? activeLock!.id : null,
+    me?.id ?? null,
+  );
+  const hasPendingSubmission = verifMessages.some((m) => m.submission && m.approved === null);
+
+  // Auto-open verification chat for the locked partner so they immediately land in it.
+  useEffect(() => {
+    if (isVerifyMode && iAmLocked) setVerifyOpen(true);
+  }, [isVerifyMode, iAmLocked]);
 
   const messagesById = useMemo(() => {
     const map: Record<string, MessageRow> = {};
