@@ -7,22 +7,21 @@ function startTone(pattern: "dial" | "ring"): RingHandle {
   if (!AC) return { stop: () => {} };
   const ctx = new AC();
   const master = ctx.createGain();
-  master.gain.value = 0.15;
+  master.gain.value = pattern === "dial" ? 0.09 : 0.16;
   master.connect(ctx.destination);
 
   let stopped = false;
   let timers: number[] = [];
 
-  const beep = (freq: number, dur: number, when: number) => {
+  const beep = (freq: number, dur: number, when: number, type: OscillatorType = "sine", peak = 0.9) => {
     const osc = ctx.createOscillator();
     const g = ctx.createGain();
-    osc.type = "sine";
+    osc.type = type;
     osc.frequency.value = freq;
-    // Soft envelope so it doesn't click
     const t = ctx.currentTime + when;
     g.gain.setValueAtTime(0.0001, t);
-    g.gain.exponentialRampToValueAtTime(0.9, t + 0.02);
-    g.gain.exponentialRampToValueAtTime(0.6, t + dur - 0.05);
+    g.gain.exponentialRampToValueAtTime(peak, t + 0.02);
+    g.gain.exponentialRampToValueAtTime(peak * 0.7, t + Math.max(dur - 0.05, 0.05));
     g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
     osc.connect(g);
     g.connect(master);
@@ -33,24 +32,26 @@ function startTone(pattern: "dial" | "ring"): RingHandle {
   const cycle = () => {
     if (stopped) return;
     if (pattern === "dial") {
-      // Classic dial tone: a beep-beep every ~3s (like an outgoing call)
-      // Two overlapping tones to sound "phone-like"
-      beep(440, 0.4, 0);
-      beep(480, 0.4, 0);
-      beep(440, 0.4, 0.6);
-      beep(480, 0.4, 0.6);
-      timers.push(window.setTimeout(cycle, 3000));
+      // Outgoing: soft low European-style single pulse — one gentle "boop" every 2s
+      beep(350, 0.9, 0, "sine", 0.6);
+      beep(400, 0.9, 0, "sine", 0.5);
+      timers.push(window.setTimeout(cycle, 2000));
     } else {
-      // Incoming ring: classic two-note bell, 1s on, 2s off
-      beep(440, 0.5, 0);
-      beep(480, 0.5, 0);
-      beep(440, 0.5, 0.6);
-      beep(480, 0.5, 0.6);
-      timers.push(window.setTimeout(cycle, 3000));
+      // Incoming: bright classic double-bell ring — brrring-brrring, silence
+      // First trill
+      for (let i = 0; i < 6; i++) {
+        beep(1400, 0.05, i * 0.08, "triangle", 0.9);
+        beep(1100, 0.05, i * 0.08 + 0.04, "triangle", 0.8);
+      }
+      // Second trill after short gap
+      for (let i = 0; i < 6; i++) {
+        beep(1400, 0.05, 0.7 + i * 0.08, "triangle", 0.9);
+        beep(1100, 0.05, 0.7 + i * 0.08 + 0.04, "triangle", 0.8);
+      }
+      timers.push(window.setTimeout(cycle, 2500));
     }
   };
 
-  // Some browsers keep the context suspended until user interaction — try resume
   ctx.resume?.().catch(() => {});
   cycle();
 
