@@ -106,6 +106,7 @@ export const generateGameCard = createServerFn({ method: "POST" })
           "guess-me",
         ]),
         intensity: z.enum(INTENSITIES).default("playful"),
+        type: z.enum(["truth", "dare"]).optional(),
       })
       .parse(input),
   )
@@ -115,12 +116,16 @@ export const generateGameCard = createServerFn({ method: "POST" })
     const cfg = KIND_PROMPTS[data.kind];
     const gateway = createLovableAiGatewayProvider(key);
     const seed = Math.floor(Math.random() * 1_000_000);
+    const prompt =
+      data.kind === "truth-or-dare" && data.type && cfg.userTyped
+        ? cfg.userTyped(data.intensity, seed, data.type)
+        : cfg.user(data.intensity, seed);
 
     try {
       const { output } = await generateText({
         model: gateway("google/gemini-2.5-flash"),
         system: cfg.system,
-        prompt: cfg.user(data.intensity, seed),
+        prompt,
         output: Output.object({ schema: cfg.schema as z.ZodType<any> }),
       });
       return { card: output, seed };
