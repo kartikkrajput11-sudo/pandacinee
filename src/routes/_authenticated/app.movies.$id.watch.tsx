@@ -941,6 +941,31 @@ function CatalogWatch({ id }: { id: string }) {
               </button>
             )}
 
+            {/* Screen-mirror overlay: partner is broadcasting their live player to us */}
+            {partnerIsSharing && (
+              <div className="absolute inset-0 z-30 bg-black">
+                <video
+                  ref={remoteVideoRef}
+                  autoPlay
+                  playsInline
+                  className="w-full h-full object-contain bg-black"
+                />
+                <div className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-petal/90 text-velvet text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5">
+                  <MonitorPlay className="size-3" /> Mirroring {partnerFirst}
+                </div>
+                {shareStatus === "connecting" && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-velvet/70 backdrop-blur-sm text-candle text-xs uppercase tracking-widest gap-2">
+                    <RefreshCw className="size-4 animate-spin text-petal" /> Connecting to {partnerFirst}'s screen…
+                  </div>
+                )}
+              </div>
+            )}
+            {iAmSharing && (
+              <div className="absolute top-3 left-3 z-30 px-2.5 py-1 rounded-full bg-petal text-velvet text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5">
+                <MonitorPlay className="size-3" /> Mirroring to {partnerFirst}
+              </div>
+            )}
+
 
 
 
