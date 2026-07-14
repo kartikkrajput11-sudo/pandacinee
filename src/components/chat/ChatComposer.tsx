@@ -358,23 +358,6 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
             <Zap className="size-5 text-petal" />
             <span className="text-[11px]">Nudge</span>
           </button>
-          <button onClick={() => { setDisappearMenu((d) => !d); }} className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-surface border border-border text-candle relative hover:border-petal/50 transition-colors">
-            <Clock className="size-5 text-petal" />
-            <span className="text-[11px]">{disappearSecs ? "Vanish" : "Timer"}</span>
-            {disappearMenu && (
-              <div className="absolute bottom-full mb-2 right-0 bg-surface-elevated border border-border rounded-2xl p-1 z-10 min-w-[120px] shadow-lg">
-                {DISAPPEAR_OPTIONS.map((o) => (
-                  <button
-                    key={o.label}
-                    onClick={(e) => { e.stopPropagation(); setDisappearSecs(o.seconds); setDisappearMenu(false); setMenuOpen(false); }}
-                    className={`block w-full text-left px-3 py-1.5 text-xs rounded-lg hover:bg-petal/20 ${disappearSecs === o.seconds ? "text-petal" : "text-candle"}`}
-                  >
-                    {o.label}
-                  </button>
-                ))}
-              </div>
-            )}
-          </button>
         </div>
       )}
 
@@ -424,9 +407,9 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
               whisper ? "border-petal/70 focus:border-petal" : "border-border focus:border-petal/60"
             }`}
           />
-          {(disappearSecs || whisper) && (
+          {whisper && (
             <span className="absolute -top-2 right-3 text-[10px] px-1.5 py-0.5 rounded-full bg-petal text-velvet">
-              {whisper ? "🤫 whisper" : `⏱ ${DISAPPEAR_OPTIONS.find((o) => o.seconds === disappearSecs)?.label}`}
+              🤫 whisper
             </span>
           )}
         </div>
