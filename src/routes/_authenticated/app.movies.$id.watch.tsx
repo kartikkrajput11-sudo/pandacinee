@@ -16,7 +16,7 @@ import {
   Wifi,
   WifiOff,
   Moon,
-  MonitorPlay,
+  
   Server,
   Check,
   Heart,
