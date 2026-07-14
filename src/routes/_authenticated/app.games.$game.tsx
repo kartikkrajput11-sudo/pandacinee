@@ -592,59 +592,88 @@ function PairPick({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const bestOf: number = s.bestOf ?? 10;
+  const round = (s.score?.total ?? 0) + 1;
+  const matchDone = bestOf > 0 && (s.score?.total ?? 0) >= bestOf;
+  function rematch() {
+    patch({ ...s, count: 0, card: null, picks: {}, score: { matches: 0, total: 0 }, history: [] });
+  }
+
   return (
     <div>
+      <MatchControls
+        round={round}
+        bestOf={bestOf}
+        onBestOf={(n) => patch({ ...s, bestOf: n })}
+        onRematch={rematch}
+        disabled={loading}
+      />
       <IntensityBar value={s.intensity ?? "playful"} onChange={(v) => patch({ ...s, intensity: v })} disabled={loading} />
       <p className="text-[10px] uppercase tracking-widest text-petal mb-2 text-center">
         Match score · {s.score?.matches ?? 0}/{s.score?.total ?? 0}
       </p>
-      <div className="grid grid-cols-2 gap-3 mb-5">
-        {[card.a, card.b].map((label, i) => {
-          const selected = myPick === i;
-          const theirs = theirPick === i;
-          return (
+
+      {matchDone ? (
+        <MatchComplete
+          title={`${s.score?.matches ?? 0} of ${s.score?.total ?? 0} matched`}
+          subtitle={
+            (s.score?.matches ?? 0) / Math.max(1, s.score?.total ?? 1) >= 0.6
+              ? "Two hearts in sync 💞"
+              : "Different tastes, same team 🫶"
+          }
+          onRematch={rematch}
+        />
+      ) : (
+        <>
+          <div className="grid grid-cols-2 gap-3 mb-5">
+            {[card.a, card.b].map((label, i) => {
+              const selected = myPick === i;
+              const theirs = theirPick === i;
+              return (
+                <button
+                  key={i}
+                  onClick={() => pick(i as 0 | 1)}
+                  disabled={myPick !== undefined}
+                  className={`aspect-square rounded-3xl border p-4 flex flex-col items-center justify-center text-center transition-all ${
+                    selected ? "border-petal bg-petal-soft" : "border-border bg-surface"
+                  } ${myPick !== undefined && !selected ? "opacity-50" : ""}`}
+                >
+                  <p className="font-serif italic text-lg leading-tight">{label}</p>
+                  {bothPicked && theirs && (
+                    <p className="text-[10px] uppercase tracking-widest text-petal mt-2">Their pick</p>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+          {bothPicked && (
+            <div className={`p-4 rounded-2xl border mb-4 text-center ${match ? "border-petal bg-petal-soft" : "border-border bg-surface"}`}>
+              <p className="font-serif italic text-lg">{match ? "Match! 💞" : "Different tastes 🫶"}</p>
+            </div>
+          )}
+          <div className="flex gap-2">
+            {!bothPicked && myPick === undefined && theirPick === undefined && (
+              <button
+                onClick={skip}
+                disabled={loading}
+                className="rounded-2xl bg-surface border border-border px-4 py-3.5 text-sm text-candle flex items-center gap-2 disabled:opacity-60"
+              >
+                <SkipForward className="size-4" /> Skip
+              </button>
+            )}
             <button
-              key={i}
-              onClick={() => pick(i as 0 | 1)}
-              disabled={myPick !== undefined}
-              className={`aspect-square rounded-3xl border p-4 flex flex-col items-center justify-center text-center transition-all ${
-                selected ? "border-petal bg-petal-soft" : "border-border bg-surface"
-              } ${myPick !== undefined && !selected ? "opacity-50" : ""}`}
+              onClick={next}
+              disabled={!bothPicked || loading}
+              className="flex-1 py-3.5 bg-petal text-velvet rounded-2xl font-semibold flex items-center justify-center gap-2 disabled:opacity-40"
             >
-              <p className="font-serif italic text-lg leading-tight">{label}</p>
-              {bothPicked && theirs && (
-                <p className="text-[10px] uppercase tracking-widest text-petal mt-2">Their pick</p>
-              )}
+              {loading ? <Sparkles className="size-4 animate-pulse" /> : <RefreshCw className="size-4" />}
+              {loading ? "Crafting…" : "Next round"}
             </button>
-          );
-        })}
-      </div>
-      {bothPicked && (
-        <div className={`p-4 rounded-2xl border mb-4 text-center ${match ? "border-petal bg-petal-soft" : "border-border bg-surface"}`}>
-          <p className="font-serif italic text-lg">{match ? "Match! 💞" : "Different tastes 🫶"}</p>
-        </div>
-      )}
-      <div className="flex gap-2">
-        {!bothPicked && myPick === undefined && theirPick === undefined && (
-          <button
-            onClick={skip}
-            disabled={loading}
-            className="rounded-2xl bg-surface border border-border px-4 py-3.5 text-sm text-candle flex items-center gap-2 disabled:opacity-60"
-          >
-            <SkipForward className="size-4" /> Skip
-          </button>
-        )}
-        <button
-          onClick={next}
-          disabled={!bothPicked || loading}
-          className="flex-1 py-3.5 bg-petal text-velvet rounded-2xl font-semibold flex items-center justify-center gap-2 disabled:opacity-40"
-        >
-          {loading ? <Sparkles className="size-4 animate-pulse" /> : <RefreshCw className="size-4" />}
-          {loading ? "Crafting…" : "Next round"}
-        </button>
-      </div>
-      {myPick === undefined && !bothPicked && (
-        <p className="text-xs text-candle-muted text-center mt-3">Tap your pick — wait for your panda.</p>
+          </div>
+          {myPick === undefined && !bothPicked && (
+            <p className="text-xs text-candle-muted text-center mt-3">Tap your pick — wait for your panda.</p>
+          )}
+        </>
       )}
       <HistoryStrip items={(s.history ?? []).map((h: any) => `${h.a} vs ${h.b}`)} />
     </div>
