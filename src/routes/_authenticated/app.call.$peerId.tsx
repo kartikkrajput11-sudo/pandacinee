@@ -302,7 +302,7 @@ function Call() {
 
       {/* Main stage */}
       <div className="relative flex-1 overflow-hidden">
-        {mode === "video" && remoteStream ? (
+        {mode === "video" && remoteStream && remoteRev > 0 ? (
           <>
             <video
               ref={remoteRef}
