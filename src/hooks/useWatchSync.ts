@@ -73,6 +73,10 @@ export function useWatchSync(
         ch.send({ type: "broadcast", event: "state", payload: mineRef.current });
       }
     });
+    ch.on("broadcast", { event: "reaction" }, ({ payload }) => {
+      const p = payload as { emoji: string };
+      setIncomingReaction({ emoji: p.emoji, id: Date.now() + Math.random() });
+    });
     ch.on("presence", { event: "sync" }, () => {
       const state = ch.presenceState() as Record<string, unknown>;
       setPartnerOnline(Boolean(state[partnerId]));
