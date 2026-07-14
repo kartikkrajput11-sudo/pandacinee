@@ -120,9 +120,9 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
     try {
       await onSend({
         content,
-        type: "text",
+        type: whisper ? "whisper" : "text",
         reply_to_id: replyTo?.id ?? null,
-        disappear_seconds: disappearSecs,
+        disappear_seconds: whisper ? (disappearSecs ?? 3600) : disappearSecs,
       });
       onClearReply();
     } catch (err: any) {
