@@ -9,6 +9,7 @@ import { ChatBubble } from "@/components/chat/ChatBubble";
 import { ChatComposer } from "@/components/chat/ChatComposer";
 import { ChatSearch } from "@/components/chat/ChatSearch";
 import { MoodBar } from "@/components/chat/MoodBar";
+import { KissOverlay } from "@/components/chat/KissOverlay";
 import type { MessageRow } from "@/lib/chat";
 
 export const Route = createFileRoute("/_authenticated/app/chat/$peerId")({
@@ -54,6 +55,11 @@ function ChatPeer() {
     return null;
   }, [messages, me?.id]);
 
+  const [kissTick, setKissTick] = useState(0);
+  const [kissEmoji, setKissEmoji] = useState("💜");
+  const [shake, setShake] = useState(false);
+  const lastFxIdRef = useRef<string | null>(null);
+
   const jumpTo = useCallback((id: string) => {
     const el = bubbleRefs.current[id];
     if (!el) return;
@@ -65,6 +71,28 @@ function ChatPeer() {
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages.length, partnerTyping]);
+
+  // Trigger kiss / nudge FX when a fresh message arrives from the partner
+  useEffect(() => {
+    if (messages.length === 0 || !me) return;
+    const last = messages[messages.length - 1];
+    if (last.id === lastFxIdRef.current) return;
+    lastFxIdRef.current = last.id;
+
+    const ageMs = Date.now() - new Date(last.created_at).getTime();
+    if (ageMs > 15000) return; // ignore history
+
+    if (last.type === "kiss") {
+      setKissEmoji(last.content || "💜");
+      setKissTick((t) => t + 1);
+      if (last.sender_id !== me.id && "vibrate" in navigator) navigator.vibrate?.(60);
+    } else if (last.type === "nudge" && last.sender_id !== me.id) {
+      setShake(true);
+      if ("vibrate" in navigator) navigator.vibrate?.([80, 40, 80]);
+      window.setTimeout(() => setShake(false), 800);
+    }
+  }, [messages, me]);
+
 
   if (isLoading || peerQ.isLoading) {
     return <div className="flex flex-col h-[calc(100vh-7rem)] items-center justify-center text-candle-muted">Loading…</div>;
@@ -83,7 +111,7 @@ function ChatPeer() {
   const peerDisplay = (isPartner && me.partner_nickname) ? me.partner_nickname : peer.display_name;
 
   return (
-    <div className="flex flex-col h-[calc(100vh-7rem)]">
+    <div className={`flex flex-col h-[calc(100vh-7rem)] ${shake ? "animate-chat-shake" : ""}`}>
       <header className="relative px-4 pt-6 pb-3 flex items-center gap-2 border-b border-border bg-velvet/80 backdrop-blur sticky top-0 z-10">
         <Link to="/app/chat" className="text-candle-muted"><ArrowLeft className="size-5" /></Link>
         <div className="size-10 rounded-full bg-petal-soft flex items-center justify-center overflow-hidden">
@@ -180,6 +208,7 @@ function ChatPeer() {
         onTyping={sendTyping}
         onSend={send}
       />
+      <KissOverlay trigger={kissTick} emoji={kissEmoji} />
     </div>
   );
 }

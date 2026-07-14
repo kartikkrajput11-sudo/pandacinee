@@ -220,6 +220,20 @@ html.theme-anim * {
   0% { transform: translateX(-120%) skewX(-20deg); }
   100% { transform: translateX(220%) skewX(-20deg); }
 }
+@keyframes chat-shake {
+  0%, 100% { transform: translate3d(0,0,0); }
+  15% { transform: translate3d(-10px, 2px, 0) rotate(-0.6deg); }
+  30% { transform: translate3d(10px, -2px, 0) rotate(0.6deg); }
+  45% { transform: translate3d(-8px, 0, 0) rotate(-0.4deg); }
+  60% { transform: translate3d(8px, 0, 0) rotate(0.4deg); }
+  75% { transform: translate3d(-4px, 0, 0); }
+  90% { transform: translate3d(4px, 0, 0); }
+}
+@keyframes kiss-float {
+  0% { transform: translate3d(0, 0, 0) scale(0.6); opacity: 0; }
+  15% { opacity: 1; }
+  100% { transform: translate3d(var(--kx, 0px), -180px, 0) scale(1.4) rotate(var(--kr, 0deg)); opacity: 0; }
+}
 
 .animate-petal { animation: float-petal 12s linear infinite; }
 .animate-pulse-soft { animation: pulse-soft 2.4s var(--ease-out-expo) infinite; }
@@ -229,3 +243,5 @@ html.theme-anim * {
 .animate-flame { animation: flame-flicker 2.4s ease-in-out infinite; transform-origin: 50% 90%; }
 .animate-glow-breath { animation: glow-breath 3.6s ease-in-out infinite; }
 .animate-shine { animation: shine-sweep 2.8s ease-in-out infinite; }
+.animate-chat-shake { animation: chat-shake 0.7s cubic-bezier(.36,.07,.19,.97); }
+.animate-kiss { animation: kiss-float 2.2s ease-out forwards; }

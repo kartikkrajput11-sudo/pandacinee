@@ -1,11 +1,17 @@
 import { useEffect, useRef, useState } from "react";
-import { Plus, X, Image as ImageIcon, Paperclip, Smile, Send, Clock, Film, Video as VideoIcon } from "lucide-react";
+import {
+  Plus, X, Image as ImageIcon, Paperclip, Smile, Send, Clock, Film,
+  Video as VideoIcon, Gamepad2, Heart, Zap, EyeOff, Eye,
+} from "lucide-react";
 import { toast } from "sonner";
 import { uploadChatMedia, DISAPPEAR_OPTIONS, type MessageRow } from "@/lib/chat";
 import { VoiceRecorder } from "./VoiceRecorder";
 import { WatchInvitePicker } from "./WatchInvitePicker";
 import { EmojiPicker } from "./EmojiPicker";
+import { GameInvitePicker, type GamePick } from "./GameInvitePicker";
 import type { TmdbMovie } from "@/lib/tmdb.functions";
+
+const KISS_EMOJIS = ["💋", "💜", "🌸", "🫧", "💫", "🐼", "🌷", "🫶"];
 
 
 type Props = {
@@ -16,7 +22,7 @@ type Props = {
   onTyping: (v: boolean) => void;
   onSend: (input: {
     content?: string;
-    type?: "text" | "voice" | "image" | "video" | "file" | "sticker" | "watch_invite";
+    type?: "text" | "voice" | "image" | "video" | "file" | "sticker" | "watch_invite" | "game_invite" | "kiss" | "nudge" | "whisper";
     media_url?: string | null;
     media_meta?: Record<string, unknown> | null;
     reply_to_id?: string | null;
@@ -32,9 +38,49 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
   const [disappearSecs, setDisappearSecs] = useState<number | null>(null);
   const [disappearMenu, setDisappearMenu] = useState(false);
   const [watchPickerOpen, setWatchPickerOpen] = useState(false);
+  const [gamePickerOpen, setGamePickerOpen] = useState(false);
+  const [whisper, setWhisper] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const imgRef = useRef<HTMLInputElement>(null);
   const vidRef = useRef<HTMLInputElement>(null);
+
+  async function sendGameInvite(g: GamePick) {
+    setGamePickerOpen(false);
+    setMenuOpen(false);
+    try {
+      await onSend({
+        type: "game_invite",
+        content: g.name,
+        media_meta: { game_id: g.id, emoji: g.emoji, body: g.body, href: g.href },
+        reply_to_id: replyTo?.id ?? null,
+        disappear_seconds: disappearSecs,
+      });
+      onClearReply();
+    } catch (err: any) {
+      toast.error(err?.message ?? "Failed to send invite");
+    }
+  }
+
+  async function sendKiss() {
+    setMenuOpen(false);
+    const emoji = KISS_EMOJIS[Math.floor(Math.random() * KISS_EMOJIS.length)];
+    try {
+      await onSend({ type: "kiss", content: emoji, reply_to_id: null, disappear_seconds: 3600 });
+    } catch (err: any) {
+      toast.error(err?.message ?? "Couldn't send");
+    }
+  }
+
+  async function sendNudge() {
+    setMenuOpen(false);
+    try {
+      await onSend({ type: "nudge", content: `Nudged ${partnerName}!`, disappear_seconds: 3600 });
+      toast.success(`You nudged ${partnerName} 👋`);
+    } catch (err: any) {
+      toast.error(err?.message ?? "Couldn't nudge");
+    }
+  }
+
 
   async function sendWatchInvite(movie: TmdbMovie) {
     setWatchPickerOpen(false);
@@ -74,9 +120,9 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
     try {
       await onSend({
         content,
-        type: "text",
+        type: whisper ? "whisper" : "text",
         reply_to_id: replyTo?.id ?? null,
-        disappear_seconds: disappearSecs,
+        disappear_seconds: whisper ? (disappearSecs ?? 3600) : disappearSecs,
       });
       onClearReply();
     } catch (err: any) {
@@ -219,7 +265,7 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
       />
 
       {menuOpen && (
-        <div className="px-4 py-3 grid grid-cols-5 gap-2 border-b border-border/60 bg-surface/40 animate-fade-in">
+        <div className="px-4 py-3 grid grid-cols-4 gap-2 border-b border-border/60 bg-surface/40 animate-fade-in">
           <button onClick={() => imgRef.current?.click()} className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-surface border border-border text-candle hover:border-petal/50 transition-colors">
             <ImageIcon className="size-5 text-petal" />
             <span className="text-[11px]">Photo</span>
@@ -238,6 +284,27 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
           >
             <Film className="size-5 text-petal" />
             <span className="text-[11px]">Watch</span>
+          </button>
+          <button
+            onClick={() => { setGamePickerOpen(true); setMenuOpen(false); }}
+            className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-petal-soft/40 border border-petal/40 text-candle"
+          >
+            <Gamepad2 className="size-5 text-petal" />
+            <span className="text-[11px]">Game</span>
+          </button>
+          <button
+            onClick={sendKiss}
+            className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-gradient-to-br from-petal/25 to-petal-soft/40 border border-petal/40 text-candle hover:from-petal/40 transition-colors"
+          >
+            <Heart className="size-5 text-petal fill-petal" />
+            <span className="text-[11px]">Kiss</span>
+          </button>
+          <button
+            onClick={sendNudge}
+            className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-surface border border-border text-candle hover:border-petal/50 transition-colors"
+          >
+            <Zap className="size-5 text-petal" />
+            <span className="text-[11px]">Nudge</span>
           </button>
           <button onClick={() => { setDisappearMenu((d) => !d); }} className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-surface border border-border text-candle relative hover:border-petal/50 transition-colors">
             <Clock className="size-5 text-petal" />
@@ -260,6 +327,8 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
       )}
 
       <WatchInvitePicker open={watchPickerOpen} onClose={() => setWatchPickerOpen(false)} onPick={sendWatchInvite} />
+      <GameInvitePicker open={gamePickerOpen} onClose={() => setGamePickerOpen(false)} onPick={sendGameInvite} />
+
 
 
       <form onSubmit={sendText} className="px-3 py-3 flex items-center gap-2">
@@ -276,21 +345,34 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
         <button
           type="button"
           onClick={() => { setStickersOpen((s) => !s); setMenuOpen(false); }}
-          className="size-11 rounded-full bg-surface border border-border flex items-center justify-center text-petal"
+          className="size-11 rounded-full bg-surface border border-border flex items-center justify-center text-petal shrink-0"
         >
           <Smile className="size-4" />
+        </button>
+        <button
+          type="button"
+          onClick={() => setWhisper((w) => !w)}
+          className={`size-11 rounded-full flex items-center justify-center shrink-0 transition-colors ${
+            whisper ? "bg-petal text-velvet petal-glow" : "bg-surface border border-border text-petal"
+          }`}
+          title={whisper ? "Whisper on — text arrives blurred" : "Send as whisper (blurred until tapped)"}
+          aria-label="Toggle whisper mode"
+        >
+          {whisper ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
         </button>
         <div className="flex-1 relative">
           <input
             value={text}
             onChange={(e) => { setText(e.target.value); onTyping(e.target.value.length > 0); }}
             onBlur={() => onTyping(false)}
-            placeholder={`Message ${partnerName}…`}
-            className="w-full px-4 py-3 bg-surface border border-border rounded-full text-sm text-candle placeholder:text-candle-muted focus:outline-none focus:border-petal/60"
+            placeholder={whisper ? `Whisper to ${partnerName}…` : `Message ${partnerName}…`}
+            className={`w-full px-4 py-3 bg-surface border rounded-full text-sm text-candle placeholder:text-candle-muted focus:outline-none transition-colors ${
+              whisper ? "border-petal/70 focus:border-petal" : "border-border focus:border-petal/60"
+            }`}
           />
-          {disappearSecs && (
+          {(disappearSecs || whisper) && (
             <span className="absolute -top-2 right-3 text-[10px] px-1.5 py-0.5 rounded-full bg-petal text-velvet">
-              ⏱ {DISAPPEAR_OPTIONS.find((o) => o.seconds === disappearSecs)?.label}
+              {whisper ? "🤫 whisper" : `⏱ ${DISAPPEAR_OPTIONS.find((o) => o.seconds === disappearSecs)?.label}`}
             </span>
           )}
         </div>
