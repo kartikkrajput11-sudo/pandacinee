@@ -333,6 +333,75 @@ function MovieDetail() {
           </div>
         )}
 
+        {/* Episodes — Netflix-style browser for series */}
+        {isTv && movie.seasons?.length > 0 && (
+          <div className="mt-10">
+            <h3 className="text-[10px] font-bold tracking-[0.2em] uppercase text-candle-muted mb-4 flex items-center gap-3">
+              Episodes
+              <div className="h-px flex-1 bg-border" />
+              <select
+                value={selectedSeason}
+                onChange={(e) => setSelectedSeason(Number(e.target.value))}
+                className="text-[10px] bg-surface border border-border rounded-full px-3 py-1 text-candle normal-case tracking-normal"
+              >
+                {movie.seasons
+                  .filter((s: any) => s.season_number > 0)
+                  .map((s: any) => (
+                    <option key={s.season_number} value={s.season_number}>
+                      {s.name || `Season ${s.season_number}`}
+                    </option>
+                  ))}
+              </select>
+            </h3>
+            <div className="space-y-3">
+              {seasonEps.map((ep: any) => (
+                <Link
+                  key={ep.episode_number}
+                  to="/app/movies/$id/episode/$season/$episode"
+                  params={{
+                    id: String(movie.id),
+                    season: String(selectedSeason),
+                    episode: String(ep.episode_number),
+                  }}
+                  className="flex gap-3 p-2 rounded-xl border border-border bg-surface hover:border-petal/60 transition"
+                >
+                  <div className="w-28 aspect-video rounded-lg overflow-hidden bg-velvet shrink-0 relative">
+                    {ep.still_path && (
+                      <img
+                        src={`https://image.tmdb.org/t/p/w300${ep.still_path}`}
+                        alt={ep.name}
+                        loading="lazy"
+                        className="w-full h-full object-cover"
+                      />
+                    )}
+                    <div className="absolute inset-0 flex items-center justify-center bg-velvet/30 opacity-0 hover:opacity-100 transition">
+                      <Play className="size-6 fill-candle text-candle" />
+                    </div>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[10px] uppercase tracking-widest text-candle-muted">
+                      E{ep.episode_number}
+                      {ep.runtime ? ` · ${ep.runtime}m` : ""}
+                      {ep.air_date ? ` · ${ep.air_date.slice(0, 4)}` : ""}
+                    </div>
+                    <div className="text-sm font-semibold text-candle truncate">
+                      {ep.name || `Episode ${ep.episode_number}`}
+                    </div>
+                    {ep.overview && (
+                      <div className="text-[11px] text-candle-muted line-clamp-2 mt-0.5">
+                        {ep.overview}
+                      </div>
+                    )}
+                  </div>
+                </Link>
+              ))}
+              {seasonEps.length === 0 && (
+                <p className="text-[11px] text-candle-muted">Loading episodes…</p>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Where to watch — editorial hairline section */}
         {sources.length > 0 && (
           <div className="mt-10">
