@@ -499,7 +499,7 @@ function WatchMovie() {
                 <CustomMoviePlayer
                   key={`pandacine-${iframeKey}`}
                   src={pandacine.videoSrc}
-                  poster={movie?.backdrop_path ? `https://image.tmdb.org/t/p/w1280${movie.backdrop_path}` : null}
+                  poster={backdropUrl}
                   onReady={() => setPlayerLoading(false)}
                   onEvent={(evt) => {
                     const now = Date.now();
