@@ -652,7 +652,7 @@ function PaintTogether() {
           {COLORS.map((c) => (
             <button
               key={c}
-              onClick={() => { setColor(c); setErase(false); setStampMode(null); }}
+              onClick={() => { setColor(c); setErase(false); setStampMode(null); setShapeMode(null); }}
               className={`size-8 rounded-full border-2 transition ${color === c && !erase && !stampMode ? "border-petal scale-110" : "border-border"}`}
               style={{ background: c }}
               aria-label={`Color ${c}`}
@@ -667,23 +667,30 @@ function PaintTogether() {
             <input
               type="color"
               value={color}
-              onChange={(e) => { setColor(e.target.value); setErase(false); setStampMode(null); }}
+              onChange={(e) => { setColor(e.target.value); setErase(false); setStampMode(null); setShapeMode(null); }}
               className="absolute inset-0 opacity-0 cursor-pointer"
             />
           </label>
           <button
-            onClick={() => { setErase((e) => !e); setStampMode(null); }}
+            onClick={() => { setErase((e) => !e); setStampMode(null); setShapeMode(null); }}
             className={`size-8 rounded-full border-2 flex items-center justify-center ${erase ? "border-petal bg-petal-soft" : "border-border bg-surface"}`}
             aria-label="Eraser"
           >
             <Eraser className="size-4" />
           </button>
           <button
-            onClick={() => setStampsOpen((v) => !v)}
+            onClick={() => { setStampsOpen((v) => !v); setShapesOpen(false); }}
             className={`size-8 rounded-full border-2 flex items-center justify-center ${stampMode ? "border-petal bg-petal-soft" : "border-border bg-surface"}`}
             aria-label="Stamps"
           >
             {stampMode ? <span className="text-base leading-none">{stampMode}</span> : <Sticker className="size-4" />}
+          </button>
+          <button
+            onClick={() => { setShapesOpen((v) => !v); setStampsOpen(false); }}
+            className={`size-8 rounded-full border-2 flex items-center justify-center ${shapeMode ? "border-petal bg-petal-soft" : "border-border bg-surface"}`}
+            aria-label="Shapes"
+          >
+            <Shapes className="size-4" />
           </button>
           <button
             onClick={() => setBgPickerOpen((v) => !v)}
@@ -693,6 +700,36 @@ function PaintTogether() {
             <ImageIcon className="size-4" />
           </button>
         </div>
+
+        {shapesOpen && (
+          <div className="rounded-2xl border border-border bg-surface p-2 flex flex-wrap gap-1 items-center">
+            {SHAPES.map((sh) => (
+              <button
+                key={sh.key}
+                onClick={() => { setShapeMode(sh.key); setErase(false); setStampMode(null); setShapesOpen(false); }}
+                className={`px-3 h-9 rounded-xl text-xs flex items-center justify-center hover:bg-petal-soft ${shapeMode === sh.key ? "bg-petal-soft ring-2 ring-petal" : ""}`}
+              >
+                {sh.label}
+              </button>
+            ))}
+            <label className="ml-auto text-xs text-candle-muted flex items-center gap-1 px-2">
+              <input
+                type="checkbox"
+                checked={fillShape}
+                onChange={(e) => setFillShape(e.target.checked)}
+              />
+              Fill
+            </label>
+            {shapeMode && (
+              <button
+                onClick={() => setShapeMode(null)}
+                className="text-xs text-candle-muted px-2"
+              >
+                Back
+              </button>
+            )}
+          </div>
+        )}
 
         {stampsOpen && (
           <div className="rounded-2xl border border-border bg-surface p-2 flex flex-wrap gap-1">
