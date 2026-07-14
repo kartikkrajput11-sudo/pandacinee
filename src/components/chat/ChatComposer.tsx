@@ -314,6 +314,13 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
             <span className="text-[11px]">Game</span>
           </button>
           <button
+            onClick={() => { setWheelOpen(true); setMenuOpen(false); }}
+            className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-gradient-to-br from-petal/30 to-petal-soft/40 border border-petal/40 text-candle hover:from-petal/50 transition-colors"
+          >
+            <Disc3 className="size-5 text-petal" />
+            <span className="text-[11px]">Wheel</span>
+          </button>
+          <button
             onClick={sendKiss}
             className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-gradient-to-br from-petal/25 to-petal-soft/40 border border-petal/40 text-candle hover:from-petal/40 transition-colors"
           >
