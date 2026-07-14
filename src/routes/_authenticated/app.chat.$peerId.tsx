@@ -14,6 +14,9 @@ import { KissOverlay } from "@/components/chat/KissOverlay";
 import { PunishmentLockDialog } from "@/components/chat/PunishmentLockDialog";
 import { PunishmentLockOverlay } from "@/components/chat/PunishmentLockOverlay";
 import { PunishmentLockBanner } from "@/components/chat/PunishmentLockBanner";
+import { PunishmentVerificationChat } from "@/components/chat/PunishmentVerificationChat";
+import { usePunishmentVerification } from "@/hooks/usePunishmentVerification";
+import { typeMeta } from "@/lib/punishment";
 import type { MessageRow } from "@/lib/chat";
 
 export const Route = createFileRoute("/_authenticated/app/chat/$peerId")({
