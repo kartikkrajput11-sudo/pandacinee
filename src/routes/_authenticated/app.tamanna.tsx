@@ -641,7 +641,8 @@ function Skeleton() {
 }
 
 function MovieModal({ initial, onClose }: { initial?: CustomMovie | null; onClose: () => void }) {
-  const isEdit = !!initial;
+  const [existingId, setExistingId] = useState<string | null>(initial?.id ?? null);
+  const isEdit = !!existingId;
   const create = useServerFn(createCustomMovie);
   const update = useServerFn(updateCustomMovie);
   const searchTmdb = useServerFn(tmdbSearch);
