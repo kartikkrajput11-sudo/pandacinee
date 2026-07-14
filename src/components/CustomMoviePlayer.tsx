@@ -195,10 +195,6 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
   }
 
   function onScrub(e: React.ChangeEvent<HTMLInputElement>) {
-    const v = videoRef.current;
-    if (!v || !duration) return;
-    const t = (Number(e.target.value) / 1000) * duration;
-  function onScrub(e: React.ChangeEvent<HTMLInputElement>) {
     if (locked) return;
     const v = videoRef.current;
     if (!v || !duration) return;
