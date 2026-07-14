@@ -65,9 +65,6 @@ function MovieDetail() {
   const director = movie?.credits?.crew?.find((c: any) => c.job === "Director")?.name;
   const cast = (movie?.credits?.cast ?? []).slice(0, 8);
 
-  if (isWatchRoute) {
-    return <Outlet />;
-  }
 
   async function sendToPartner() {
     if (!me || !partner || !movie) return;
