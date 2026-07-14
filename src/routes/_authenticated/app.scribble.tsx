@@ -286,10 +286,10 @@ function Scribble() {
         payload: { by: me.id, word, name: me.display_name ?? "Partner" },
       });
       toast.success(`Correct! The word was “${word}” — your turn to draw!`);
-      // Auto-prompt the new drawer (me, the correct guesser) after a short beat
+      // Auto-start next round for the new drawer (me, the correct guesser)
       setTimeout(() => {
-        setChoices(pick4(new Set(word ? [word] : [])));
-        setPhase("choosing");
+        const [next] = pick4(new Set(word ? [word] : []));
+        if (next) confirmWord(next);
       }, 1400);
     } else {
       toast.error("Not quite — keep guessing!");
