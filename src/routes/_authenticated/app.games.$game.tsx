@@ -164,7 +164,14 @@ function GameRoute() {
 
 function initialState(game: GameKind) {
   if (game === "truth-or-dare")
-    return { count: 0, card: null as null | { type: "truth" | "dare"; text: string }, intensity: "playful" as Intensity, history: [] as { type: "truth" | "dare"; text: string }[] };
+    return {
+      count: 0,
+      card: null as null | { type: "truth" | "dare"; text: string },
+      intensity: "playful" as Intensity,
+      history: [] as { type: "truth" | "dare"; text: string }[],
+      tally: { truth: 0, dare: 0, skipped: 0 },
+      bestOf: 10,
+    };
   if (game === "this-or-that" || game === "would-you-rather")
     return {
       count: 0,
@@ -173,6 +180,7 @@ function initialState(game: GameKind) {
       score: { matches: 0, total: 0 },
       intensity: "playful" as Intensity,
       history: [] as { a: string; b: string }[],
+      bestOf: 10,
     };
   if (game === "never-have-i-ever")
     return {
@@ -182,11 +190,12 @@ function initialState(game: GameKind) {
       tallies: { have: 0, havent: 0 },
       intensity: "playful" as Intensity,
       history: [] as { text: string }[],
+      bestOf: 10,
     };
   if (game === "tic-tac-toe")
-    return { board: Array(9).fill(null), turn: "X", wins: { X: 0, O: 0, draws: 0 } };
+    return { board: Array(9).fill(null), turn: "X", wins: { X: 0, O: 0, draws: 0 }, bestOf: 5 };
   if (game === "rock-paper-scissors")
-    return { picks: {} as Record<string, RPSChoice>, round: 1, score: {} as Record<string, number> };
+    return { picks: {} as Record<string, RPSChoice>, round: 1, score: {} as Record<string, number>, bestOf: 5 };
   return {
     count: 0,
     card: null as null | { text: string },
@@ -195,7 +204,67 @@ function initialState(game: GameKind) {
     guess: null as string | null,
     revealed: false,
     intensity: "playful" as Intensity,
+    history: [] as { prompt: string; answer: string; guess: string; verdict: "right" | "close" | "wrong" | null }[],
+    tally: { right: 0, close: 0, wrong: 0 },
+    bestOf: 10,
   };
+}
+
+const BEST_OF_OPTIONS = [5, 10, 20, 0] as const;
+function MatchControls({
+  round,
+  bestOf,
+  onBestOf,
+  onRematch,
+  disabled,
+}: {
+  round: number;
+  bestOf: number;
+  onBestOf: (n: number) => void;
+  onRematch: () => void;
+  disabled?: boolean;
+}) {
+  const done = bestOf > 0 && round > bestOf;
+  return (
+    <div className="flex items-center justify-between gap-2 mb-3 text-xs">
+      <div className="flex items-center gap-1.5 text-candle-muted">
+        <span className="uppercase tracking-widest text-petal text-[10px]">Best of</span>
+        <select
+          value={bestOf}
+          onChange={(e) => onBestOf(Number(e.target.value))}
+          disabled={disabled}
+          className="bg-surface border border-border rounded-full px-2 py-0.5 text-xs text-candle"
+        >
+          {BEST_OF_OPTIONS.map((n) => (
+            <option key={n} value={n}>{n === 0 ? "∞" : n}</option>
+          ))}
+        </select>
+        <span className="ml-1">
+          Round <span className="text-candle">{Math.min(round, bestOf || round)}</span>
+          {bestOf > 0 ? <span className="text-candle-muted"> / {bestOf}</span> : null}
+        </span>
+      </div>
+      <button
+        onClick={onRematch}
+        disabled={disabled}
+        className="flex items-center gap-1 rounded-full border border-border bg-surface px-3 py-1 text-candle-muted hover:text-candle disabled:opacity-60"
+      >
+        <RefreshCw className="size-3" /> Rematch
+      </button>
+    </div>
+  );
+}
+function MatchComplete({ title, subtitle, onRematch }: { title: string; subtitle: string; onRematch: () => void }) {
+  return (
+    <div className="p-5 rounded-3xl border border-petal bg-petal-soft text-center mb-4">
+      <p className="text-[10px] uppercase tracking-widest text-petal mb-1">Match complete</p>
+      <p className="font-serif italic text-xl mb-1">{title}</p>
+      <p className="text-xs text-candle-muted mb-3">{subtitle}</p>
+      <button onClick={onRematch} className="px-5 py-2 bg-petal text-velvet rounded-full font-semibold text-sm inline-flex items-center gap-2">
+        <RefreshCw className="size-3.5" /> Rematch
+      </button>
+    </div>
+  );
 }
 
 function HistoryStrip({ items }: { items: string[] }) {
@@ -242,61 +311,104 @@ function IntensityBar({
 }
 
 function TicTacToe({ me, session, patch }: { me: string; session: Session; patch: (s: any) => void }) {
-  const s = session.state ?? { board: Array(9).fill(null), turn: "X", wins: { X: 0, O: 0, draws: 0 } };
+  const s = session.state ?? { board: Array(9).fill(null), turn: "X", wins: { X: 0, O: 0, draws: 0 }, bestOf: 5 };
   const board: TTTCell[] = s.board;
   const mySymbol = session.host_id === me ? "X" : "O";
   const winner = checkWinner(board);
-  const myTurn = !winner && s.turn === mySymbol;
+  const bestOf: number = s.bestOf ?? 5;
+  const wins = s.wins ?? { X: 0, O: 0, draws: 0 };
+  const played = (wins.X ?? 0) + (wins.O ?? 0) + (wins.draws ?? 0);
+  const round = played + 1;
+  const matchDone = bestOf > 0 && played >= bestOf;
+  const myTurn = !winner && s.turn === mySymbol && !matchDone;
 
   function play(i: number) {
     if (!myTurn || board[i]) return;
     const next = [...board];
     next[i] = mySymbol;
     const w = checkWinner(next);
-    const wins = { ...s.wins };
-    if (w === "draw") wins.draws += 1;
-    else if (w) wins[w] += 1;
+    const nextWins = { ...wins };
+    if (w === "draw") nextWins.draws = (nextWins.draws ?? 0) + 1;
+    else if (w) nextWins[w] = (nextWins[w] ?? 0) + 1;
     patch({ ...s, board: next, turn: mySymbol === "X" ? "O" : "X" });
-    if (w) setTimeout(() => patch({ board: Array(9).fill(null), turn: w === "draw" ? s.turn : (w === "X" ? "O" : "X"), wins }), 1500);
+    if (w)
+      setTimeout(
+        () =>
+          patch({
+            ...s,
+            board: Array(9).fill(null),
+            turn: w === "draw" ? s.turn : w === "X" ? "O" : "X",
+            wins: nextWins,
+          }),
+        1500
+      );
+  }
+
+  function rematch() {
+    patch({ ...s, board: Array(9).fill(null), turn: "X", wins: { X: 0, O: 0, draws: 0 } });
   }
 
   return (
     <div>
+      <MatchControls round={round} bestOf={bestOf} onBestOf={(n) => patch({ ...s, bestOf: n })} onRematch={rematch} />
       <p className="text-[10px] uppercase tracking-widest text-petal mb-2 text-center">
-        You are {mySymbol} · X {s.wins?.X ?? 0} – O {s.wins?.O ?? 0} · draws {s.wins?.draws ?? 0}
+        You are {mySymbol} · X {wins.X ?? 0} – O {wins.O ?? 0} · draws {wins.draws ?? 0}
       </p>
-      <div className="grid grid-cols-3 gap-2 mb-5 mx-auto max-w-[300px]">
-        {board.map((c, i) => (
-          <button
-            key={i}
-            onClick={() => play(i)}
-            disabled={!myTurn || !!c || !!winner}
-            className="aspect-square rounded-2xl bg-surface border border-border text-4xl font-serif italic disabled:opacity-70"
-          >
-            {c}
-          </button>
-        ))}
-      </div>
-      <p className="text-center text-sm text-candle-muted">
-        {winner === "draw" ? "Draw 🤝 — new round…" :
-          winner ? `${winner} wins 🎉 — new round…` :
-          myTurn ? "Your move" : "Waiting on your panda…"}
-      </p>
+      {matchDone ? (
+        <MatchComplete
+          title={
+            (wins.X ?? 0) === (wins.O ?? 0)
+              ? "Draw match 🤝"
+              : (wins.X ?? 0) > (wins.O ?? 0)
+              ? "X wins the match 🎉"
+              : "O wins the match 🎉"
+          }
+          subtitle={`X ${wins.X ?? 0} · O ${wins.O ?? 0} · draws ${wins.draws ?? 0}`}
+          onRematch={rematch}
+        />
+      ) : (
+        <>
+          <div className="grid grid-cols-3 gap-2 mb-5 mx-auto max-w-[300px]">
+            {board.map((c, i) => (
+              <button
+                key={i}
+                onClick={() => play(i)}
+                disabled={!myTurn || !!c || !!winner}
+                className="aspect-square rounded-2xl bg-surface border border-border text-4xl font-serif italic disabled:opacity-70"
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+          <p className="text-center text-sm text-candle-muted">
+            {winner === "draw"
+              ? "Draw 🤝 — new round…"
+              : winner
+              ? `${winner} wins 🎉 — new round…`
+              : myTurn
+              ? "Your move"
+              : "Waiting on your panda…"}
+          </p>
+        </>
+      )}
     </div>
   );
 }
 
 function RockPaperScissors({ me, session, patch }: { me: string; session: Session; patch: (s: any) => void }) {
-  const s = session.state ?? { picks: {}, round: 1, score: {} };
+  const s = session.state ?? { picks: {}, round: 1, score: {}, bestOf: 5 };
   const otherId = session.host_id === me ? session.partner_id : session.host_id;
   const myPick = s.picks?.[me] as RPSChoice | undefined;
   const theirPick = s.picks?.[otherId] as RPSChoice | undefined;
   const both = myPick && theirPick;
   const myScore = s.score?.[me] ?? 0;
   const theirScore = s.score?.[otherId] ?? 0;
+  const bestOf: number = s.bestOf ?? 5;
+  const round: number = s.round ?? 1;
+  const matchDone = bestOf > 0 && round > bestOf;
 
   function pick(c: RPSChoice) {
-    if (myPick) return;
+    if (myPick || matchDone) return;
     patch({ ...s, picks: { ...s.picks, [me]: c } });
   }
   function next() {
@@ -305,41 +417,55 @@ function RockPaperScissors({ me, session, patch }: { me: string; session: Sessio
     const score = { ...(s.score ?? {}) };
     if (w === 0) score[me] = (score[me] ?? 0) + 1;
     else if (w === 1) score[otherId] = (score[otherId] ?? 0) + 1;
-    patch({ picks: {}, round: (s.round ?? 1) + 1, score });
+    patch({ ...s, picks: {}, round: (s.round ?? 1) + 1, score });
+  }
+  function rematch() {
+    patch({ ...s, picks: {}, round: 1, score: {} });
   }
   const result = both ? rpsWinner(myPick!, theirPick!) : null;
 
   return (
     <div>
+      <MatchControls round={round} bestOf={bestOf} onBestOf={(n) => patch({ ...s, bestOf: n })} onRematch={rematch} />
       <p className="text-[10px] uppercase tracking-widest text-petal mb-2 text-center">
-        Round {s.round ?? 1} · You {myScore} – {theirScore} Them
+        You {myScore} – {theirScore} Them
       </p>
-      <div className="grid grid-cols-3 gap-3 mb-5">
-        {RPS_CHOICES.map((c) => (
-          <button
-            key={c}
-            onClick={() => pick(c)}
-            disabled={!!myPick}
-            className={`aspect-square rounded-3xl border text-5xl flex items-center justify-center transition-all ${
-              myPick === c ? "border-petal bg-petal-soft" : "border-border bg-surface"
-            } ${myPick && myPick !== c ? "opacity-40" : ""}`}
-          >
-            {RPS_EMOJI[c]}
-          </button>
-        ))}
-      </div>
-      {both ? (
-        <div className="p-4 rounded-2xl border border-petal bg-petal-soft text-center mb-4">
-          <p className="font-serif italic text-xl">
-            {result === -1 ? "Tie 🤝" : result === 0 ? "You won 🎉" : "They won 🌸"}
-          </p>
-          <p className="text-xs text-candle-muted mt-1">{RPS_EMOJI[myPick!]} vs {RPS_EMOJI[theirPick!]}</p>
-          <button onClick={next} className="mt-3 px-5 py-2 bg-petal text-velvet rounded-full font-semibold">Next round</button>
-        </div>
-      ) : myPick ? (
-        <p className="text-sm text-candle-muted text-center">Locked in. Waiting on your panda…</p>
+      {matchDone ? (
+        <MatchComplete
+          title={myScore === theirScore ? "Draw match 🤝" : myScore > theirScore ? "You win the match 🎉" : "They win the match 🌸"}
+          subtitle={`Final ${myScore} – ${theirScore}`}
+          onRematch={rematch}
+        />
       ) : (
-        <p className="text-sm text-candle-muted text-center">Pick your weapon.</p>
+        <>
+          <div className="grid grid-cols-3 gap-3 mb-5">
+            {RPS_CHOICES.map((c) => (
+              <button
+                key={c}
+                onClick={() => pick(c)}
+                disabled={!!myPick}
+                className={`aspect-square rounded-3xl border text-5xl flex items-center justify-center transition-all ${
+                  myPick === c ? "border-petal bg-petal-soft" : "border-border bg-surface"
+                } ${myPick && myPick !== c ? "opacity-40" : ""}`}
+              >
+                {RPS_EMOJI[c]}
+              </button>
+            ))}
+          </div>
+          {both ? (
+            <div className="p-4 rounded-2xl border border-petal bg-petal-soft text-center mb-4">
+              <p className="font-serif italic text-xl">
+                {result === -1 ? "Tie 🤝" : result === 0 ? "You won 🎉" : "They won 🌸"}
+              </p>
+              <p className="text-xs text-candle-muted mt-1">{RPS_EMOJI[myPick!]} vs {RPS_EMOJI[theirPick!]}</p>
+              <button onClick={next} className="mt-3 px-5 py-2 bg-petal text-velvet rounded-full font-semibold">Next round</button>
+            </div>
+          ) : myPick ? (
+            <p className="text-sm text-candle-muted text-center">Locked in. Waiting on your panda…</p>
+          ) : (
+            <p className="text-sm text-candle-muted text-center">Pick your weapon.</p>
+          )}
+        </>
       )}
     </div>
   );
@@ -363,28 +489,59 @@ function useCardFetcher(kind: "truth-or-dare" | "would-you-rather" | "this-or-th
 }
 
 function TruthOrDare({ me, session, patch }: { me: string; session: Session; patch: (s: any) => void }) {
-  const s = session.state ?? { count: 0, card: null, intensity: "playful" };
+  const s = session.state ?? { count: 0, card: null, intensity: "playful", history: [], tally: { truth: 0, dare: 0, skipped: 0 }, bestOf: 10 };
   const { loading, fetchCard } = useCardFetcher("truth-or-dare");
   const card = s.card as null | { type: "truth" | "dare"; text: string };
+  const tally = s.tally ?? { truth: 0, dare: 0, skipped: 0 };
+  const round = (s.count ?? 0) + 1;
+  const bestOf: number = s.bestOf ?? 10;
+  const matchDone = bestOf > 0 && (s.count ?? 0) >= bestOf;
 
   async function pick(type: "truth" | "dare") {
+    if (matchDone) return;
     const c = await fetchCard(s.intensity ?? "playful", type);
     const fallback = TRUTH_OR_DARE.find((x) => x.type === type) ?? TRUTH_OR_DARE[0];
     const chosen = c && c.type === type ? c : { type, text: c?.text ?? fallback.text };
-    const history = card ? [...(s.history ?? []), card].slice(-20) : (s.history ?? []);
-    patch({ ...s, count: (s.count ?? 0) + 1, card: chosen, history });
+    patch({ ...s, card: chosen });
   }
 
-  function reset() {
-    const history = card ? [...(s.history ?? []), card].slice(-20) : (s.history ?? []);
-    patch({ ...s, card: null, history });
+  function completeCard() {
+    if (!card) return;
+    const history = [...(s.history ?? []), card].slice(-30);
+    const nextTally = { ...tally, [card.type]: (tally[card.type] ?? 0) + 1 };
+    patch({ ...s, count: (s.count ?? 0) + 1, card: null, history, tally: nextTally });
+  }
+  function skipCard() {
+    if (!card) return;
+    const history = [...(s.history ?? []), card].slice(-30);
+    const nextTally = { ...tally, skipped: (tally.skipped ?? 0) + 1 };
+    patch({ ...s, count: (s.count ?? 0) + 1, card: null, history, tally: nextTally });
+  }
+  function rematch() {
+    patch({ ...s, count: 0, card: null, history: [], tally: { truth: 0, dare: 0, skipped: 0 } });
   }
 
   return (
     <div>
+      <MatchControls
+        round={round}
+        bestOf={bestOf}
+        onBestOf={(n) => patch({ ...s, bestOf: n })}
+        onRematch={rematch}
+        disabled={loading}
+      />
       <IntensityBar value={s.intensity ?? "playful"} onChange={(v) => patch({ ...s, intensity: v })} disabled={loading} />
+      <p className="text-[10px] uppercase tracking-widest text-petal mb-2 text-center">
+        🎯 Truth {tally.truth} · 🔥 Dare {tally.dare} · ⏭ Skipped {tally.skipped ?? 0}
+      </p>
 
-      {!card ? (
+      {matchDone ? (
+        <MatchComplete
+          title={`${tally.truth + tally.dare} cards completed`}
+          subtitle={`${tally.truth} truths · ${tally.dare} dares · ${tally.skipped ?? 0} skipped`}
+          onRematch={rematch}
+        />
+      ) : !card ? (
         <div className="p-6 rounded-3xl border border-border bg-surface mb-5 min-h-[200px] flex flex-col items-center justify-center gap-4">
           <p className="font-serif text-2xl italic text-candle text-center">Truth or Dare?</p>
           <p className="text-xs text-candle-muted text-center">Pick to reveal your card · {s.intensity ?? "playful"} mode</p>
@@ -412,23 +569,23 @@ function TruthOrDare({ me, session, patch }: { me: string; session: Session; pat
               {card.type === "truth" ? "🎯 Truth" : "🔥 Dare"} · {s.intensity ?? "playful"}
             </p>
             <p className="font-serif text-2xl italic leading-snug text-candle">{card.text}</p>
-            <p className="text-[10px] text-candle-muted">Card {s.count ?? 1}</p>
+            <p className="text-[10px] text-candle-muted">Card {round}{bestOf > 0 ? ` / ${bestOf}` : ""}</p>
           </div>
           <div className="flex gap-2">
             <button
-              onClick={() => pick(card.type)}
+              onClick={skipCard}
               disabled={loading}
               className="rounded-2xl bg-surface border border-border px-4 py-3.5 text-sm text-candle flex items-center gap-2 disabled:opacity-60"
             >
               <SkipForward className="size-4" /> Skip
             </button>
             <button
-              onClick={reset}
+              onClick={completeCard}
               disabled={loading}
               className="flex-1 py-3.5 bg-petal text-velvet rounded-2xl font-semibold flex items-center justify-center gap-2 disabled:opacity-60"
             >
-              {loading ? <Sparkles className="size-4 animate-pulse" /> : <RefreshCw className="size-4" />}
-              {loading ? "Crafting…" : "Truth or Dare?"}
+              {loading ? <Sparkles className="size-4 animate-pulse" /> : "✓"}
+              Done — next card
             </button>
           </div>
         </>
@@ -492,59 +649,88 @@ function PairPick({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const bestOf: number = s.bestOf ?? 10;
+  const round = (s.score?.total ?? 0) + 1;
+  const matchDone = bestOf > 0 && (s.score?.total ?? 0) >= bestOf;
+  function rematch() {
+    patch({ ...s, count: 0, card: null, picks: {}, score: { matches: 0, total: 0 }, history: [] });
+  }
+
   return (
     <div>
+      <MatchControls
+        round={round}
+        bestOf={bestOf}
+        onBestOf={(n) => patch({ ...s, bestOf: n })}
+        onRematch={rematch}
+        disabled={loading}
+      />
       <IntensityBar value={s.intensity ?? "playful"} onChange={(v) => patch({ ...s, intensity: v })} disabled={loading} />
       <p className="text-[10px] uppercase tracking-widest text-petal mb-2 text-center">
         Match score · {s.score?.matches ?? 0}/{s.score?.total ?? 0}
       </p>
-      <div className="grid grid-cols-2 gap-3 mb-5">
-        {[card.a, card.b].map((label, i) => {
-          const selected = myPick === i;
-          const theirs = theirPick === i;
-          return (
+
+      {matchDone ? (
+        <MatchComplete
+          title={`${s.score?.matches ?? 0} of ${s.score?.total ?? 0} matched`}
+          subtitle={
+            (s.score?.matches ?? 0) / Math.max(1, s.score?.total ?? 1) >= 0.6
+              ? "Two hearts in sync 💞"
+              : "Different tastes, same team 🫶"
+          }
+          onRematch={rematch}
+        />
+      ) : (
+        <>
+          <div className="grid grid-cols-2 gap-3 mb-5">
+            {[card.a, card.b].map((label, i) => {
+              const selected = myPick === i;
+              const theirs = theirPick === i;
+              return (
+                <button
+                  key={i}
+                  onClick={() => pick(i as 0 | 1)}
+                  disabled={myPick !== undefined}
+                  className={`aspect-square rounded-3xl border p-4 flex flex-col items-center justify-center text-center transition-all ${
+                    selected ? "border-petal bg-petal-soft" : "border-border bg-surface"
+                  } ${myPick !== undefined && !selected ? "opacity-50" : ""}`}
+                >
+                  <p className="font-serif italic text-lg leading-tight">{label}</p>
+                  {bothPicked && theirs && (
+                    <p className="text-[10px] uppercase tracking-widest text-petal mt-2">Their pick</p>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+          {bothPicked && (
+            <div className={`p-4 rounded-2xl border mb-4 text-center ${match ? "border-petal bg-petal-soft" : "border-border bg-surface"}`}>
+              <p className="font-serif italic text-lg">{match ? "Match! 💞" : "Different tastes 🫶"}</p>
+            </div>
+          )}
+          <div className="flex gap-2">
+            {!bothPicked && myPick === undefined && theirPick === undefined && (
+              <button
+                onClick={skip}
+                disabled={loading}
+                className="rounded-2xl bg-surface border border-border px-4 py-3.5 text-sm text-candle flex items-center gap-2 disabled:opacity-60"
+              >
+                <SkipForward className="size-4" /> Skip
+              </button>
+            )}
             <button
-              key={i}
-              onClick={() => pick(i as 0 | 1)}
-              disabled={myPick !== undefined}
-              className={`aspect-square rounded-3xl border p-4 flex flex-col items-center justify-center text-center transition-all ${
-                selected ? "border-petal bg-petal-soft" : "border-border bg-surface"
-              } ${myPick !== undefined && !selected ? "opacity-50" : ""}`}
+              onClick={next}
+              disabled={!bothPicked || loading}
+              className="flex-1 py-3.5 bg-petal text-velvet rounded-2xl font-semibold flex items-center justify-center gap-2 disabled:opacity-40"
             >
-              <p className="font-serif italic text-lg leading-tight">{label}</p>
-              {bothPicked && theirs && (
-                <p className="text-[10px] uppercase tracking-widest text-petal mt-2">Their pick</p>
-              )}
+              {loading ? <Sparkles className="size-4 animate-pulse" /> : <RefreshCw className="size-4" />}
+              {loading ? "Crafting…" : "Next round"}
             </button>
-          );
-        })}
-      </div>
-      {bothPicked && (
-        <div className={`p-4 rounded-2xl border mb-4 text-center ${match ? "border-petal bg-petal-soft" : "border-border bg-surface"}`}>
-          <p className="font-serif italic text-lg">{match ? "Match! 💞" : "Different tastes 🫶"}</p>
-        </div>
-      )}
-      <div className="flex gap-2">
-        {!bothPicked && myPick === undefined && theirPick === undefined && (
-          <button
-            onClick={skip}
-            disabled={loading}
-            className="rounded-2xl bg-surface border border-border px-4 py-3.5 text-sm text-candle flex items-center gap-2 disabled:opacity-60"
-          >
-            <SkipForward className="size-4" /> Skip
-          </button>
-        )}
-        <button
-          onClick={next}
-          disabled={!bothPicked || loading}
-          className="flex-1 py-3.5 bg-petal text-velvet rounded-2xl font-semibold flex items-center justify-center gap-2 disabled:opacity-40"
-        >
-          {loading ? <Sparkles className="size-4 animate-pulse" /> : <RefreshCw className="size-4" />}
-          {loading ? "Crafting…" : "Next round"}
-        </button>
-      </div>
-      {myPick === undefined && !bothPicked && (
-        <p className="text-xs text-candle-muted text-center mt-3">Tap your pick — wait for your panda.</p>
+          </div>
+          {myPick === undefined && !bothPicked && (
+            <p className="text-xs text-candle-muted text-center mt-3">Tap your pick — wait for your panda.</p>
+          )}
+        </>
       )}
       <HistoryStrip items={(s.history ?? []).map((h: any) => `${h.a} vs ${h.b}`)} />
     </div>
@@ -583,58 +769,83 @@ function NeverHaveIEver({ me, session, patch }: { me: string; session: Session; 
     patch({ ...s, card: c });
   }
 
+  const bestOf: number = s.bestOf ?? 10;
+  const round = (s.count ?? 0) + 1;
+  const matchDone = bestOf > 0 && (s.count ?? 0) >= bestOf;
+  function rematch() {
+    patch({ ...s, count: 0, card: null, picks: {}, tallies: { have: 0, havent: 0 }, history: [] });
+  }
+
   return (
     <div>
+      <MatchControls
+        round={round}
+        bestOf={bestOf}
+        onBestOf={(n) => patch({ ...s, bestOf: n })}
+        onRematch={rematch}
+        disabled={loading}
+      />
       <IntensityBar value={s.intensity ?? "playful"} onChange={(v) => patch({ ...s, intensity: v })} disabled={loading} />
       <p className="text-[10px] uppercase tracking-widest text-petal mb-2 text-center">
         🫶 Have {s.tallies?.have ?? 0} · Haven't {s.tallies?.havent ?? 0}
       </p>
-      <div className="p-6 rounded-3xl border border-border bg-surface mb-5 min-h-[180px] flex flex-col justify-center">
-        <p className="text-[10px] uppercase tracking-widest text-petal mb-2">Never have I ever…</p>
-        <p className="font-serif text-2xl italic leading-snug">
-          {s.card?.text ?? (loading ? "Crafting…" : "…")}
-        </p>
-      </div>
-      <div className="grid grid-cols-2 gap-3 mb-4">
-        {["I have", "I haven't"].map((label, i) => {
-          const selected = myPick === i;
-          const theirs = theirPick === i;
-          return (
+
+      {matchDone ? (
+        <MatchComplete
+          title={`${s.tallies?.have ?? 0} confessions · ${s.tallies?.havent ?? 0} nopes`}
+          subtitle="Trade stories about the ones you both did 👀"
+          onRematch={rematch}
+        />
+      ) : (
+        <>
+          <div className="p-6 rounded-3xl border border-border bg-surface mb-5 min-h-[180px] flex flex-col justify-center">
+            <p className="text-[10px] uppercase tracking-widest text-petal mb-2">Never have I ever…</p>
+            <p className="font-serif text-2xl italic leading-snug">
+              {s.card?.text ?? (loading ? "Crafting…" : "…")}
+            </p>
+          </div>
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            {["I have", "I haven't"].map((label, i) => {
+              const selected = myPick === i;
+              const theirs = theirPick === i;
+              return (
+                <button
+                  key={i}
+                  onClick={() => pick(i as 0 | 1)}
+                  disabled={myPick !== undefined || !s.card}
+                  className={`py-4 rounded-3xl border transition-all ${
+                    selected ? "border-petal bg-petal-soft" : "border-border bg-surface"
+                  } ${myPick !== undefined && !selected ? "opacity-50" : ""}`}
+                >
+                  <p className="font-serif italic text-lg">{label}</p>
+                  {bothPicked && theirs && (
+                    <p className="text-[10px] uppercase tracking-widest text-petal mt-1">Their pick</p>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+          <div className="flex gap-2">
+            {!bothPicked && myPick === undefined && theirPick === undefined && (
+              <button
+                onClick={skip}
+                disabled={loading || !s.card}
+                className="rounded-2xl bg-surface border border-border px-4 py-3.5 text-sm text-candle flex items-center gap-2 disabled:opacity-60"
+              >
+                <SkipForward className="size-4" /> Skip
+              </button>
+            )}
             <button
-              key={i}
-              onClick={() => pick(i as 0 | 1)}
-              disabled={myPick !== undefined || !s.card}
-              className={`py-4 rounded-3xl border transition-all ${
-                selected ? "border-petal bg-petal-soft" : "border-border bg-surface"
-              } ${myPick !== undefined && !selected ? "opacity-50" : ""}`}
+              onClick={next}
+              disabled={!bothPicked || loading}
+              className="flex-1 py-3.5 bg-petal text-velvet rounded-2xl font-semibold flex items-center justify-center gap-2 disabled:opacity-40"
             >
-              <p className="font-serif italic text-lg">{label}</p>
-              {bothPicked && theirs && (
-                <p className="text-[10px] uppercase tracking-widest text-petal mt-1">Their pick</p>
-              )}
+              {loading ? <Sparkles className="size-4 animate-pulse" /> : <RefreshCw className="size-4" />}
+              {loading ? "Crafting…" : "Next"}
             </button>
-          );
-        })}
-      </div>
-      <div className="flex gap-2">
-        {!bothPicked && myPick === undefined && theirPick === undefined && (
-          <button
-            onClick={skip}
-            disabled={loading || !s.card}
-            className="rounded-2xl bg-surface border border-border px-4 py-3.5 text-sm text-candle flex items-center gap-2 disabled:opacity-60"
-          >
-            <SkipForward className="size-4" /> Skip
-          </button>
-        )}
-        <button
-          onClick={next}
-          disabled={!bothPicked || loading}
-          className="flex-1 py-3.5 bg-petal text-velvet rounded-2xl font-semibold flex items-center justify-center gap-2 disabled:opacity-40"
-        >
-          {loading ? <Sparkles className="size-4 animate-pulse" /> : <RefreshCw className="size-4" />}
-          {loading ? "Crafting…" : "Next"}
-        </button>
-      </div>
+          </div>
+        </>
+      )}
       <HistoryStrip items={(s.history ?? []).map((h: any) => h.text)} />
     </div>
   );
@@ -676,50 +887,136 @@ function GuessMe({
     patch({ ...s, guess: input.trim(), revealed: true });
     setInput("");
   }
-  async function next() {
+  async function next(verdictOverride?: "right" | "close" | "wrong" | null) {
+    const tally = s.tally ?? { right: 0, close: 0, wrong: 0 };
+    const nextTally = verdictOverride
+      ? { ...tally, [verdictOverride]: (tally[verdictOverride] ?? 0) + 1 }
+      : tally;
+    const history = s.answer
+      ? [...(s.history ?? []), { prompt, answer: s.answer, guess: s.guess ?? "—", verdict: verdictOverride ?? null }].slice(-20)
+      : (s.history ?? []);
     const c = await fetchCard(s.intensity ?? "playful");
-    patch({ ...s, count: (s.count ?? 0) + 1, card: c, answer: null, answeredBy: null, guess: null, revealed: false });
+    patch({
+      ...s,
+      count: (s.count ?? 0) + 1,
+      card: c,
+      answer: null,
+      answeredBy: null,
+      guess: null,
+      revealed: false,
+      history,
+      tally: nextTally,
+    });
+    setInput("");
+  }
+
+  const bestOf: number = s.bestOf ?? 10;
+  const round = (s.count ?? 0) + 1;
+  const matchDone = bestOf > 0 && (s.count ?? 0) >= bestOf;
+  const tally = s.tally ?? { right: 0, close: 0, wrong: 0 };
+  function rematch() {
+    patch({
+      ...s,
+      count: 0,
+      card: null,
+      answer: null,
+      answeredBy: null,
+      guess: null,
+      revealed: false,
+      history: [],
+      tally: { right: 0, close: 0, wrong: 0 },
+    });
     setInput("");
   }
 
   return (
     <div>
+      <MatchControls
+        round={round}
+        bestOf={bestOf}
+        onBestOf={(n) => patch({ ...s, bestOf: n })}
+        onRematch={rematch}
+        disabled={loading}
+      />
       <IntensityBar value={s.intensity ?? "playful"} onChange={(v) => patch({ ...s, intensity: v })} disabled={loading} />
-      <div className="p-6 rounded-3xl border border-border bg-surface mb-5">
-        <p className="text-[10px] uppercase tracking-widest text-petal mb-2">Prompt</p>
-        <p className="font-serif text-xl italic">{prompt}</p>
-      </div>
+      <p className="text-[10px] uppercase tracking-widest text-petal mb-2 text-center">
+        ✨ Right {tally.right} · 🌸 Close {tally.close} · 🫧 Off {tally.wrong}
+      </p>
 
-      {!s.answer ? (
-        iAnswered ? (
-          <p className="text-sm text-candle-muted text-center">Waiting on your panda…</p>
-        ) : (
-          <>
-            <p className="text-xs text-candle-muted mb-2">Write your real answer — they'll try to guess.</p>
-            <Composer value={input} onChange={setInput} onSubmit={submitAnswer} placeholder="My answer…" />
-          </>
-        )
-      ) : myTurnToGuess ? (
-        <>
-          <p className="text-xs text-candle-muted mb-2">Guess what they wrote.</p>
-          <Composer value={input} onChange={setInput} onSubmit={submitGuess} placeholder="My guess…" />
-        </>
-      ) : s.revealed ? (
-        <div className="space-y-3">
-          <Bubble label="Their answer" text={s.answer} />
-          <Bubble label="Your guess" text={s.guess ?? "—"} />
-          <button
-            onClick={next}
-            disabled={loading}
-            className="w-full py-3.5 bg-petal text-velvet rounded-2xl font-semibold flex items-center justify-center gap-2 disabled:opacity-60"
-          >
-            {loading ? <Sparkles className="size-4 animate-pulse" /> : <RefreshCw className="size-4" />}
-            {loading ? "Crafting…" : "Next prompt"}
-          </button>
-        </div>
+      {matchDone ? (
+        <MatchComplete
+          title={`${tally.right} spot-on · ${tally.close} close`}
+          subtitle={
+            tally.right >= tally.wrong ? "You know each other well 💞" : "So much still to learn about each other 🌙"
+          }
+          onRematch={rematch}
+        />
       ) : (
-        <p className="text-sm text-candle-muted text-center">Waiting on your panda's guess…</p>
+        <>
+          <div className="p-6 rounded-3xl border border-border bg-surface mb-5">
+            <p className="text-[10px] uppercase tracking-widest text-petal mb-2">Prompt</p>
+            <p className="font-serif text-xl italic">{prompt}</p>
+          </div>
+
+          {!s.answer ? (
+            iAnswered ? (
+              <p className="text-sm text-candle-muted text-center">Waiting on your panda…</p>
+            ) : (
+              <>
+                <p className="text-xs text-candle-muted mb-2">Write your real answer — they'll try to guess.</p>
+                <Composer value={input} onChange={setInput} onSubmit={submitAnswer} placeholder="My answer…" />
+              </>
+            )
+          ) : myTurnToGuess ? (
+            <>
+              <p className="text-xs text-candle-muted mb-2">Guess what they wrote.</p>
+              <Composer value={input} onChange={setInput} onSubmit={submitGuess} placeholder="My guess…" />
+            </>
+          ) : s.revealed ? (
+            <div className="space-y-3">
+              <Bubble label={iAnswered ? "Your answer" : "Their answer"} text={s.answer} />
+              <Bubble label={iAnswered ? "Their guess" : "Your guess"} text={s.guess ?? "—"} />
+              {iAnswered ? (
+                <>
+                  <p className="text-xs text-candle-muted text-center">How close was their guess?</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    <button
+                      onClick={() => next("right")}
+                      disabled={loading}
+                      className="py-3 rounded-2xl bg-petal text-velvet font-semibold text-sm disabled:opacity-60"
+                    >
+                      ✨ Spot on
+                    </button>
+                    <button
+                      onClick={() => next("close")}
+                      disabled={loading}
+                      className="py-3 rounded-2xl bg-petal-soft border border-petal text-candle font-semibold text-sm disabled:opacity-60"
+                    >
+                      🌸 Close
+                    </button>
+                    <button
+                      onClick={() => next("wrong")}
+                      disabled={loading}
+                      className="py-3 rounded-2xl bg-surface border border-border text-candle text-sm disabled:opacity-60"
+                    >
+                      🫧 Off
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <p className="text-sm text-candle-muted text-center">Waiting for them to score your guess…</p>
+              )}
+            </div>
+          ) : (
+            <p className="text-sm text-candle-muted text-center">Waiting on your panda's guess…</p>
+          )}
+        </>
       )}
+      <HistoryStrip
+        items={(s.history ?? []).map(
+          (h: any) => `${h.verdict === "right" ? "✨" : h.verdict === "close" ? "🌸" : h.verdict === "wrong" ? "🫧" : "·"} ${h.prompt} → ${h.answer}`
+        )}
+      />
     </div>
   );
 }
