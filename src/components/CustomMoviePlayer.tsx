@@ -19,6 +19,8 @@ export type CustomPlayerHandle = {
   currentTime: () => number;
   duration: () => number;
   isPaused: () => boolean;
+  setMuted: (m: boolean) => void;
+  isMuted: () => boolean;
 };
 
 type Props = {
