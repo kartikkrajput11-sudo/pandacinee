@@ -46,6 +46,7 @@ export function useWatchSync(
   const [partnerOnline, setPartnerOnline] = useState(false);
   const [countdown, setCountdown] = useState<{ startAt: number; time?: number; from: string } | null>(null);
   const [incomingSeek, setIncomingSeek] = useState<{ time: number; from: string; id: number } | null>(null);
+  const [incomingReaction, setIncomingReaction] = useState<{ emoji: string; id: number } | null>(null);
 
   const chRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const mineRef = useRef(mine);
@@ -71,6 +72,10 @@ export function useWatchSync(
         // reply with current state
         ch.send({ type: "broadcast", event: "state", payload: mineRef.current });
       }
+    });
+    ch.on("broadcast", { event: "reaction" }, ({ payload }) => {
+      const p = payload as { emoji: string };
+      setIncomingReaction({ emoji: p.emoji, id: Date.now() + Math.random() });
     });
     ch.on("presence", { event: "sync" }, () => {
       const state = ch.presenceState() as Record<string, unknown>;
@@ -122,6 +127,11 @@ export function useWatchSync(
 
   const clearCountdown = useCallback(() => setCountdown(null), []);
   const clearIncomingSeek = useCallback(() => setIncomingSeek(null), []);
+  const clearIncomingReaction = useCallback(() => setIncomingReaction(null), []);
+
+  const sendReaction = useCallback((emoji: string) => {
+    chRef.current?.send({ type: "broadcast", event: "reaction", payload: { emoji } });
+  }, []);
 
   // drift (positive => I'm ahead of partner)
   const drift =
@@ -140,6 +150,9 @@ export function useWatchSync(
     clearCountdown,
     incomingSeek,
     clearIncomingSeek,
+    incomingReaction,
+    clearIncomingReaction,
+    sendReaction,
     drift,
   };
 }
