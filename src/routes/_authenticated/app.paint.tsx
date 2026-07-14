@@ -92,6 +92,73 @@ const BACKGROUNDS: Bg[] = [
   },
 ];
 
+function drawShape(
+  ctx: CanvasRenderingContext2D,
+  kind: ShapeKind,
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number,
+  fill: boolean,
+) {
+  ctx.beginPath();
+  if (kind === "line") {
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+    return;
+  }
+  if (kind === "rect") {
+    const x = Math.min(x1, x2);
+    const y = Math.min(y1, y2);
+    const w = Math.abs(x2 - x1);
+    const h = Math.abs(y2 - y1);
+    ctx.rect(x, y, w, h);
+  } else if (kind === "oval") {
+    const cx = (x1 + x2) / 2;
+    const cy = (y1 + y2) / 2;
+    const rx = Math.abs(x2 - x1) / 2;
+    const ry = Math.abs(y2 - y1) / 2;
+    ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+  } else if (kind === "triangle") {
+    const x = Math.min(x1, x2);
+    const y = Math.min(y1, y2);
+    const w = Math.abs(x2 - x1);
+    const h = Math.abs(y2 - y1);
+    ctx.moveTo(x + w / 2, y);
+    ctx.lineTo(x + w, y + h);
+    ctx.lineTo(x, y + h);
+    ctx.closePath();
+  } else if (kind === "heart") {
+    const x = Math.min(x1, x2);
+    const y = Math.min(y1, y2);
+    const w = Math.abs(x2 - x1);
+    const h = Math.abs(y2 - y1);
+    const cx = x + w / 2;
+    const top = y + h * 0.28;
+    ctx.moveTo(cx, y + h);
+    ctx.bezierCurveTo(x - w * 0.1, y + h * 0.6, x + w * 0.1, y, cx, top);
+    ctx.bezierCurveTo(x + w * 0.9, y, x + w * 1.1, y + h * 0.6, cx, y + h);
+    ctx.closePath();
+  } else if (kind === "star") {
+    const cx = (x1 + x2) / 2;
+    const cy = (y1 + y2) / 2;
+    const R = Math.max(Math.abs(x2 - x1), Math.abs(y2 - y1)) / 2;
+    const r = R * 0.42;
+    for (let i = 0; i < 10; i++) {
+      const ang = -Math.PI / 2 + (i * Math.PI) / 5;
+      const rad = i % 2 === 0 ? R : r;
+      const px = cx + Math.cos(ang) * rad;
+      const py = cy + Math.sin(ang) * rad;
+      if (i === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    }
+    ctx.closePath();
+  }
+  if (fill) ctx.fill();
+  else ctx.stroke();
+}
+
 type RemoteCursor = { x: number; y: number; color: string; name: string; ts: number };
 
 function PaintTogether() {
