@@ -311,46 +311,86 @@ function IntensityBar({
 }
 
 function TicTacToe({ me, session, patch }: { me: string; session: Session; patch: (s: any) => void }) {
-  const s = session.state ?? { board: Array(9).fill(null), turn: "X", wins: { X: 0, O: 0, draws: 0 } };
+  const s = session.state ?? { board: Array(9).fill(null), turn: "X", wins: { X: 0, O: 0, draws: 0 }, bestOf: 5 };
   const board: TTTCell[] = s.board;
   const mySymbol = session.host_id === me ? "X" : "O";
   const winner = checkWinner(board);
-  const myTurn = !winner && s.turn === mySymbol;
+  const bestOf: number = s.bestOf ?? 5;
+  const wins = s.wins ?? { X: 0, O: 0, draws: 0 };
+  const played = (wins.X ?? 0) + (wins.O ?? 0) + (wins.draws ?? 0);
+  const round = played + 1;
+  const matchDone = bestOf > 0 && played >= bestOf;
+  const myTurn = !winner && s.turn === mySymbol && !matchDone;
 
   function play(i: number) {
     if (!myTurn || board[i]) return;
     const next = [...board];
     next[i] = mySymbol;
     const w = checkWinner(next);
-    const wins = { ...s.wins };
-    if (w === "draw") wins.draws += 1;
-    else if (w) wins[w] += 1;
+    const nextWins = { ...wins };
+    if (w === "draw") nextWins.draws = (nextWins.draws ?? 0) + 1;
+    else if (w) nextWins[w] = (nextWins[w] ?? 0) + 1;
     patch({ ...s, board: next, turn: mySymbol === "X" ? "O" : "X" });
-    if (w) setTimeout(() => patch({ board: Array(9).fill(null), turn: w === "draw" ? s.turn : (w === "X" ? "O" : "X"), wins }), 1500);
+    if (w)
+      setTimeout(
+        () =>
+          patch({
+            ...s,
+            board: Array(9).fill(null),
+            turn: w === "draw" ? s.turn : w === "X" ? "O" : "X",
+            wins: nextWins,
+          }),
+        1500
+      );
+  }
+
+  function rematch() {
+    patch({ ...s, board: Array(9).fill(null), turn: "X", wins: { X: 0, O: 0, draws: 0 } });
   }
 
   return (
     <div>
+      <MatchControls round={round} bestOf={bestOf} onBestOf={(n) => patch({ ...s, bestOf: n })} onRematch={rematch} />
       <p className="text-[10px] uppercase tracking-widest text-petal mb-2 text-center">
-        You are {mySymbol} · X {s.wins?.X ?? 0} – O {s.wins?.O ?? 0} · draws {s.wins?.draws ?? 0}
+        You are {mySymbol} · X {wins.X ?? 0} – O {wins.O ?? 0} · draws {wins.draws ?? 0}
       </p>
-      <div className="grid grid-cols-3 gap-2 mb-5 mx-auto max-w-[300px]">
-        {board.map((c, i) => (
-          <button
-            key={i}
-            onClick={() => play(i)}
-            disabled={!myTurn || !!c || !!winner}
-            className="aspect-square rounded-2xl bg-surface border border-border text-4xl font-serif italic disabled:opacity-70"
-          >
-            {c}
-          </button>
-        ))}
-      </div>
-      <p className="text-center text-sm text-candle-muted">
-        {winner === "draw" ? "Draw 🤝 — new round…" :
-          winner ? `${winner} wins 🎉 — new round…` :
-          myTurn ? "Your move" : "Waiting on your panda…"}
-      </p>
+      {matchDone ? (
+        <MatchComplete
+          title={
+            (wins.X ?? 0) === (wins.O ?? 0)
+              ? "Draw match 🤝"
+              : (wins.X ?? 0) > (wins.O ?? 0)
+              ? "X wins the match 🎉"
+              : "O wins the match 🎉"
+          }
+          subtitle={`X ${wins.X ?? 0} · O ${wins.O ?? 0} · draws ${wins.draws ?? 0}`}
+          onRematch={rematch}
+        />
+      ) : (
+        <>
+          <div className="grid grid-cols-3 gap-2 mb-5 mx-auto max-w-[300px]">
+            {board.map((c, i) => (
+              <button
+                key={i}
+                onClick={() => play(i)}
+                disabled={!myTurn || !!c || !!winner}
+                className="aspect-square rounded-2xl bg-surface border border-border text-4xl font-serif italic disabled:opacity-70"
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+          <p className="text-center text-sm text-candle-muted">
+            {winner === "draw"
+              ? "Draw 🤝 — new round…"
+              : winner
+              ? `${winner} wins 🎉 — new round…`
+              : myTurn
+              ? "Your move"
+              : "Waiting on your panda…"}
+          </p>
+        </>
+      )}
     </div>
   );
 }
