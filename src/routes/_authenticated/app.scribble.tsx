@@ -568,18 +568,25 @@ function Scribble() {
       match: secret ? guessesMatch(text, secret) : "no-word-yet",
     });
     if (tryMatch(me.id, name, text, true)) return;
-    // Wrong (or word not yet synced): show private feedback to this player only.
-    toast.error("❌ Wrong guess. Try again.");
+    // The guesser may not hold the secret word yet (joined mid-round, or the
+    // "round" broadcast lost the race with this submit). The drawer is
+    // authoritative, so publish the guess and wait briefly for its verdict
+    // before declaring it wrong — otherwise a correct guess flashes "wrong"
+    // for a split second before flipping to "correct".
     const msg: Msg = { id: crypto.randomUUID(), by: me.id, name, text };
     setMessages((m) => [...m, msg]);
     chRef.current?.send({ type: "broadcast", event: "guess", payload: msg });
-    // Force an un-throttled guess-live so the drawer can validate this exact submission
-    // as a fallback in case the guesser never received the word (e.g. joined mid-round).
     chRef.current?.send({
       type: "broadcast",
       event: "guess-live",
       payload: { by: me.id, name, text },
     });
+    window.setTimeout(() => {
+      // If the drawer validated it in the meantime, markCorrect already ran
+      // and set roundResolvedRef — skip the wrong-toast.
+      if (roundResolvedRef.current) return;
+      toast.error("❌ Wrong guess. Try again.");
+    }, 1500);
   }
 
 
