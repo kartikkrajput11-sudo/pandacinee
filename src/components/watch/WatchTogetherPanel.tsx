@@ -114,14 +114,33 @@ export function WatchTogetherPanel({
   }, []);
 
   const REACTIONS = ["❤️", "😂", "😱", "🔥", "🥹", "🍿", "👏", "💜"];
-  function burstReaction(emoji: string) {
+  function spawnFloater(emoji: string) {
     const id = ++floaterId.current;
-    const x = 20 + Math.random() * 60; // 20%..80% of width
+    const x = 20 + Math.random() * 60;
     setFloaters((f) => [...f, { id, emoji, x }]);
     window.setTimeout(() => setFloaters((f) => f.filter((it) => it.id !== id)), 3000);
-    // also share with partner as a sticker
+  }
+  function burstReaction(emoji: string) {
+    spawnFloater(emoji);
     send(emoji, "sticker").catch(() => {});
   }
+
+  // When partner sends a sticker (reaction), float it on our screen too.
+  const lastStickerRef = useRef<string | null>(null);
+  useEffect(() => {
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const m = messages[i];
+      if (m.sender_id !== partner.id || m.type !== "sticker") continue;
+      if (lastStickerRef.current === m.id) break;
+      lastStickerRef.current = m.id;
+      spawnFloater(m.content);
+      break;
+    }
+    // Prime on first mount so we don't burst historical stickers
+    if (lastStickerRef.current === null && messages.length > 0) {
+      lastStickerRef.current = messages[messages.length - 1].id;
+    }
+  }, [messages, partner.id]);
 
   const content = (
     <>
