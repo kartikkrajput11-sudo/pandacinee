@@ -243,8 +243,8 @@ function Scribble() {
 
   function openChoices() {
     if (!me) return;
-    setChoices(pick4(new Set(word ? [word] : [])));
-    setPhase("choosing");
+    const [next] = pick4(new Set(word ? [word] : []));
+    if (next) confirmWord(next);
   }
 
   function confirmWord(w: string) {
@@ -286,10 +286,10 @@ function Scribble() {
         payload: { by: me.id, word, name: me.display_name ?? "Partner" },
       });
       toast.success(`Correct! The word was “${word}” — your turn to draw!`);
-      // Auto-prompt the new drawer (me, the correct guesser) after a short beat
+      // Auto-start next round for the new drawer (me, the correct guesser)
       setTimeout(() => {
-        setChoices(pick4(new Set(word ? [word] : [])));
-        setPhase("choosing");
+        const [next] = pick4(new Set(word ? [word] : []));
+        if (next) confirmWord(next);
       }, 1400);
     } else {
       toast.error("Not quite — keep guessing!");
@@ -437,22 +437,6 @@ function Scribble() {
         </div>
       )}
 
-      {phase === "choosing" && (
-        <div className="mt-4 rounded-3xl border border-petal/30 bg-petal-soft/40 p-4">
-          <p className="text-[10px] uppercase tracking-widest text-petal mb-3 text-center">Choose one to draw</p>
-          <div className="grid grid-cols-2 gap-2">
-            {choices.map((w) => (
-              <button
-                key={w}
-                onClick={() => confirmWord(w)}
-                className="rounded-2xl bg-surface border border-border py-3 px-2 text-sm font-serif italic text-candle hover:border-petal transition"
-              >
-                {w}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
 
       {(phase === "idle" || phase === "over") && (
         <div className="mt-4 space-y-3">
@@ -478,9 +462,9 @@ function Scribble() {
             <Sparkles className="size-4" />
             {phase === "over"
               ? myTurnToStart
-                ? "Your turn — pick a word"
+                ? "Your turn — start drawing"
                 : "Waiting for partner…"
-              : "Start round — pick a word"}
+              : "Start round"}
           </button>
         </div>
       )}
