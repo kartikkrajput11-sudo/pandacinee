@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
-import { GAMES, GameKind } from "@/lib/games";
+import { GAMES, GAME_KINDS } from "@/lib/games";
 import { useProfile } from "@/hooks/useProfile";
 
 export const Route = createFileRoute("/_authenticated/app/play")({
@@ -32,9 +32,7 @@ function Play() {
       )}
 
       <div className="grid grid-cols-2 gap-3">
-        {(Object.keys(GAMES) as GameKind[])
-          .filter((k) => k !== "rock-paper-scissors")
-          .map((kind) => {
+        {GAME_KINDS.map((kind) => {
           const g = GAMES[kind];
           const cardCls =
             "aspect-square p-4 bg-surface rounded-3xl border border-border flex flex-col justify-between hover:border-petal/40 transition-colors relative overflow-hidden";
