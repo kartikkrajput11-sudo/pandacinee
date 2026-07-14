@@ -100,20 +100,21 @@
 }
 
 .light {
-  /* Light Purple — soft lavender aesthetic (never plain white) */
-  --velvet: #f1e9ff;
-  --background: #f1e9ff;
-  --surface: #ede2ff;
-  --surface-elevated: #e4d5ff;
+  /* Light Purple — noticeably lavender, never white */
+  --velvet: #e2d1ff;
+  --background: #e2d1ff;
+  --surface: #d8c2ff;
+  --surface-elevated: #cdb2ff;
   --foreground: #2a1a4a;
   --candle: #2a1a4a;
-  --candle-muted: #6b5b8a;
-  --petal: #8b5cf6;
-  --petal-soft: #d9c7ff;
-  --lavender: #c4b5fd;
-  --border: #d9c7ff;
-  --input: #e4d5ff;
+  --candle-muted: #5b4a7a;
+  --petal: #7c3aed;
+  --petal-soft: #b898ff;
+  --lavender: #a78bfa;
+  --border: #b898ff;
+  --input: #cdb2ff;
 }
+
 
 
 /* Smooth 300ms theme transitions across the app */
