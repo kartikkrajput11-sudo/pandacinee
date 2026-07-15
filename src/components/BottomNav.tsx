@@ -24,7 +24,7 @@ export function BottomNav() {
   const unread = useUnreadMessages();
   return (
     <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[440px] z-40">
-      <div className="mx-3 mb-3 h-[62px] px-3 glass-strong rounded-full flex items-center justify-around shadow-2xl">
+      <div className="mx-3 mb-3 h-[62px] px-3 glass-bubble glass-sheen rounded-full flex items-center justify-around animate-glass-bubble">
         {items.map(({ to, label, Icon, primary, exact, search }) => {
           const active = exact ? location.pathname === to : location.pathname.startsWith(to);
           if (primary) {
