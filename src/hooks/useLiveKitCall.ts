@@ -200,7 +200,10 @@ export function useLiveKitCall(opts: {
     const room = roomRef.current;
     if (room) { try { await room.disconnect(); } catch { /* ignore */ } roomRef.current = null; }
     try {
-      if (call && call.status === "ringing" && call.initiator_id === meId) {
+      if (call && call.scope === "direct") {
+        // 1:1 call — whoever hangs up ends the call for both sides.
+        await endCall(call.id, "hangup");
+      } else if (call && call.status === "ringing" && call.initiator_id === meId) {
         await endCall(call.id, "hangup");
       } else if (callId) {
         await leaveCall(callId);
