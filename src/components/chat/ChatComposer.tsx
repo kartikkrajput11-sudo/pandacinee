@@ -284,7 +284,7 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
 
   if (locked) {
     return (
-      <div className="border-t border-border bg-velvet/90 backdrop-blur px-4 py-4 flex items-center gap-3">
+      <div className="border-t border-border bg-velvet px-4 py-4 flex items-center gap-3">
         <span className="text-xl">🔒</span>
         <div className="flex-1 min-w-0">
           <p className="text-[11px] uppercase tracking-widest text-petal">Chat locked</p>
@@ -295,7 +295,7 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
   }
 
   return (
-    <div className="border-t border-border bg-velvet/90 backdrop-blur">
+    <div className="border-t border-border bg-velvet">
       {lockedHint && (
         <div className="px-4 pt-2 flex items-center gap-2 text-[11px] text-petal">
           <span>🔒</span>

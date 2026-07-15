@@ -216,7 +216,7 @@ function ChatPeer() {
 
   return (
     <div className={`flex flex-col h-screen ${shake ? "animate-chat-shake" : ""}`}>
-      <header className="relative px-4 pt-6 pb-3 flex items-center gap-2 border-b border-border bg-velvet/80 backdrop-blur sticky top-0 z-10">
+      <header className="relative px-4 pt-6 pb-3 flex items-center gap-2 border-b border-border bg-velvet sticky top-0 z-10">
         <Link to="/app/chat" className="text-candle-muted"><ArrowLeft className="size-5" /></Link>
         <Link
           to="/app/user/$userId"
