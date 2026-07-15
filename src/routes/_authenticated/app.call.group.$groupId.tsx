@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, Mic, MicOff, Video, VideoOff, PhoneOff, SwitchCamera, Volume2, VolumeX } from "lucide-react";
+import { ArrowLeft, Mic, MicOff, Video, VideoOff, PhoneOff, SwitchCamera, Volume2, VolumeX, MonitorUp, MonitorOff } from "lucide-react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useCallMesh, type RemoteFeed } from "@/hooks/useCallMesh";
@@ -52,6 +52,7 @@ function GroupCall() {
   const {
     localStream, remoteFeeds, status, answered, error: meshError,
     hangup, toggleAudio, toggleVideo, flipCamera,
+    toggleScreenShare, screenSharing,
   } = useCallMesh({ callId, meId: me?.id ?? null, kind });
 
   const [muted, setMuted] = useState(false);
