@@ -18,7 +18,19 @@ type Star = {
   glyph: string;
   date: string; // ISO date
   origin: "paired" | "anniversary" | "memory" | "mood" | "note";
+  author?: string | null; // "You" | partner display name | null (system/AI)
+  isAi?: boolean;
 };
+
+function ConstellationRoute() {
+  const { data } = useProfile();
+  const me = data?.profile;
+  const partner = data?.partner;
+  const [stars, setStars] = useState<Star[]>([]);
+  const [selected, setSelected] = useState<Star | null>(null);
+  const [composing, setComposing] = useState(false);
+  const [autoRunning, setAutoRunning] = useState(false);
+  const runAuto = useServerFn(autoDetectConstellation);
 
 function ConstellationRoute() {
   const { data } = useProfile();
