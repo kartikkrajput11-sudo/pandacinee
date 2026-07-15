@@ -1,102 +1,60 @@
-# Rebuild the call system
+# Watch Party (Cineby-style) on Movies
 
-Goal: reliable 1:1 voice/video, group calls, ring on all your devices, join from any, and a real call history — like Instagram/WhatsApp. Same UI, new backend.
+Add a shareable **watch-party room** on top of the current movie/episode player so multiple friends (not just the paired partner) can watch the same title together, in sync, with a live chat sidebar.
 
-## What breaks today (why the rebuild)
+## What the user gets
 
-- Signals go to a user, not a device — second device sees "Connecting…" forever after the first accepts.
-- No source of truth for a call's state, so both sides can disagree (one is "ringing", the other "ended").
-- No history — missed calls just vanish.
-- No group call support.
-- No TURN — cellular-to-cellular calls silently fail.
+On any movie or episode page:
 
-## Two decisions I need from you before building
+1. A new **"Watch Party"** button next to the existing controls.
+2. Clicking it creates a room and gives a **6-character invite code** + shareable link.
+3. Friends open the link (or paste the code on `/app/watch-party`) and land in the same player.
+4. Everyone sees the **same source, same title, same episode**, synced play/pause/seek from whoever is host.
+5. A collapsible **chat panel** on the side (text only) so people can react while watching.
+6. A small **"● 3 watching"** presence pill showing who's in the room.
 
-1. **Group call engine.** Group calls need one of:
-   - **Mesh WebRTC** (what I'll build by default). Free, no extra service. Works well up to ~4 people voice / ~3 people video. Beyond that, quality degrades because each phone uploads to every other phone.
-   - **SFU (LiveKit / Cloudflare Realtime)**. Scales to many participants with clean quality, but adds a paid third-party service and API keys.
-   - Ship mesh now, add SFU later if group calls grow. **← I recommend this.**
+Anyone can leave anytime; when the host leaves, the next person becomes host automatically. Rooms auto-expire after 6h of inactivity.
 
-2. **TURN server (relay for cellular / strict NAT).** Without it, ~20% of calls fail with "no voice". Options:
-   - **Metered.ca free tier** (50GB/mo, one signup) — I'll wire it if you paste the credentials.
-   - **Cloudflare Realtime TURN** (generous free tier, needs Cloudflare account).
-   - **Skip for now**, accept some calls will fail. Not recommended.
+## Scope
 
-Reply with your pick for each and I'll build. Everything below is fixed regardless.
+- Works for **movies** and **TV episodes** (uses existing `/app/movies/$id/watch` and `/app/movies/$id/episode/$s/$e`).
+- Sync sends `play / pause / seek / source change / episode change` events. Third-party iframes (vidking.net) can't be script-controlled, so for those sources sync is **soft** — everyone's iframe reloads to the same episode/source, and the host's play/pause/seek is broadcast as a "resync" nudge (host's timestamp shown; one-tap "Catch up" button). For Pandacine self-hosted sources, sync is **tight** (auto seek + play/pause).
+- Chat is room-scoped, ephemeral (cleared when room expires). No media in chat — just text + emoji.
+- No changes to auth, movies catalog, or the existing partner-only sync on `/app/watch`.
 
-## New backend model
+## Technical details
 
-### Tables
+### Backend (Lovable Cloud migration)
+
+New tables:
+
+- `watch_parties` — `id uuid pk`, `code text unique` (6 chars), `host_id uuid`, `media_kind text` ('movie'|'tv'), `media_id text` (TMDB id or custom id), `season int null`, `episode int null`, `source_idx int`, `position_seconds float`, `is_playing bool`, `last_actor_id uuid`, `last_event text`, `updated_at timestamptz`, `created_at timestamptz`.
+- `watch_party_members` — `party_id uuid`, `user_id uuid`, `joined_at`, `last_seen_at`, PK `(party_id, user_id)`.
+- `watch_party_messages` — `id`, `party_id`, `sender_id`, `body text`, `created_at`. Realtime enabled.
+
+RLS: only members can SELECT/INSERT rows for a given party; joining by code goes through a `SECURITY DEFINER` RPC `join_watch_party(_code text)` that inserts the caller into `watch_party_members` and returns the party row. GRANTs to `authenticated` + `service_role`. Realtime enabled on all three tables.
+
+### Frontend
+
+- `src/routes/_authenticated/app.watch-party.$code.tsx` — the room page (player + chat + presence).
+- `src/routes/_authenticated/app.watch-party.index.tsx` — join-by-code screen.
+- **Player reuse**: extract the iframe/player block from `app.movies.$id.watch.tsx` into a small `MoviePlayer` component so the watch-party route can reuse it with `mode="party"`.
+- **Sync hook** `useWatchPartySync(partyId)`: postgres_changes subscription on `watch_parties` + `watch_party_members`; debounced host publisher (200ms) for play/pause/seek; follower reconciler with a 1.5s drift threshold (same pattern as the existing partner sync).
+- **Chat panel**: right-side drawer on desktop, bottom sheet on mobile; realtime insert subscription on `watch_party_messages`.
+- **Entry points**: add a "Watch Party" button to the existing watch page header — opens a small modal to "Start party" (creates room, copies invite link) or "Join with code".
+
+### Non-goals
+
+- No voice/video chat inside the party (calls stay on the existing call routes).
+- No download / offline.
+- No moderation UI beyond the host being able to kick a member (v2).
 
 ```text
-calls
-  id, kind (voice|video), scope (direct|group),
-  initiator_id, peer_id (nullable), group_id (nullable),
-  status (ringing|active|ended|missed),
-  started_at, answered_at, ended_at,
-  ended_reason (hangup|declined|missed|timeout|failed),
-  duration_seconds
-
-call_participants
-  id, call_id, user_id, device_id,
-  state (ringing|joined|declined|left|missed),
-  joined_at, left_at
-
-call_signals            -- rewired for per-device routing
-  id, call_id,
-  from_user, from_device,
-  to_user,   to_device,
-  kind (offer|answer|ice|bye|mute|track-update),
-  payload jsonb, created_at
+┌─────────────────────────────┬──────────────┐
+│                             │  ● 3 watching │
+│         Player              │──────────────│
+│  (iframe or <video>)        │  Chat        │
+│                             │  ...         │
+│  ▶ ⏸ ⏱ 00:24:11             │  [type...]   │
+└─────────────────────────────┴──────────────┘
 ```
-
-- One row per invited user in `call_participants`. When a user is on 2 devices, both devices ring using the same participant row — accepting on one flips its state to `joined` and broadcasts a "stop ringing" to the other device.
-- `device_id` is a per-tab UUID stored in `localStorage`.
-- Signals are addressed to a specific device, so the second device never gets stale offers.
-
-### RLS
-
-- `calls`: readable by initiator and any participant; writable by initiator (create) and participants (state transitions via RPC only).
-- `call_participants`: readable by anyone in the same call; user can update only their own row.
-- `call_signals`: readable only by the addressed device's user; auto-purged after 60s (`purge_stale_signals` cron).
-
-### Server-side RPCs (single source of truth)
-
-- `call_start(kind, scope, peer_or_group)` — creates `calls` row + `call_participants` for each invitee, returns call.
-- `call_ring(call_id)` — bumps `last_ring_at`, keeps ringing until answered/timeout.
-- `call_answer(call_id, device_id)` — flips my participant to `joined`, sets `calls.answered_at`, `status='active'`.
-- `call_decline(call_id)` — my participant → `declined`. If direct call, ends call with `declined`.
-- `call_leave(call_id, device_id)` — my participant → `left`. If last active participant, ends call.
-- `call_end(call_id, reason)` — initiator or server can end.
-- `call_timeout(call_id)` — server-side auto-miss after 45s no answer.
-
-Realtime is enabled on `calls` and `call_participants` so every device stays in sync.
-
-## Client changes
-
-- `useWebRTCCall` becomes a mesh manager: one `RTCPeerConnection` per remote **device** in the call, keyed by `device_id`. Direct call = one peer. Group call = N-1 peers.
-- Signaling goes through `call_signals` inserts (per-device addressed), NOT realtime broadcast — so offers survive brief disconnects.
-- ICE servers: STUN + TURN (from decision 2).
-- Ring-all/join-any: every device subscribes to a personal realtime channel `user:${userId}:calls`. On a new `call_participants` row for you, all your devices ring. First device to call `call_answer` wins its `device_id`; other devices receive the `call_participants` update and stop ringing.
-- Multi-device same user in one call: allowed. Each joined device is its own peer. We auto-mute your other devices' incoming audio of yourself (echo prevention) using `device_id` matching.
-- Call screen shows real state from `calls.status` + your `call_participants.state`, not local guesses.
-- Call history page (`/app/calls`) reads `calls` where you were initiator or participant, newest first, with kind/duration/who/missed badge.
-
-## Migration + cleanup
-
-- New migration creates the tables, indexes, RLS, RPCs, cron job for timeouts + signal purge.
-- Old `call_signals` rows are dropped (schema changes shape).
-- Existing `useWebRTCCall`, `IncomingCallListener`, and `app.call.$peerId.tsx` are rewritten against the new RPCs; UI is preserved.
-
-## Not in scope (say if you want any of these)
-
-- Screen sharing
-- Call recording
-- Push notifications when the app is closed (needs FCM/APNs setup)
-- End-to-end encryption beyond WebRTC's default DTLS-SRTP
-
----
-
-**Please reply with:**
-1. Group engine → **mesh now / SFU now / mesh now + SFU later**
-2. TURN → **Metered.ca (I'll paste creds) / Cloudflare / skip**
