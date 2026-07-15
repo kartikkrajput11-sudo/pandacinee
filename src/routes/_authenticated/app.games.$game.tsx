@@ -154,6 +154,12 @@ function GameRoute() {
         <PairPick game="would-you-rather" me={me.id} session={session} patch={patch} fallback={WOULD_YOU_RATHER} />
       ) : game === "never-have-i-ever" ? (
         <NeverHaveIEver me={me.id} session={session} patch={patch} />
+      ) : game === "two-truths-lie" ? (
+        <TwoTruthsLie me={me.id} session={session} patch={patch} />
+      ) : game === "hot-takes" ? (
+        <HotTakes me={me.id} session={session} patch={patch} />
+      ) : game === "emoji-riddle" ? (
+        <EmojiRiddle me={me.id} session={session} patch={patch} />
       ) : game === "tic-tac-toe" ? (
         <TicTacToe me={me.id} session={session} patch={patch} />
       ) : game === "rock-paper-scissors" ? (
