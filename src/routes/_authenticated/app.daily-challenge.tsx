@@ -123,6 +123,7 @@ function DailyChallenge() {
       return next;
     });
     setCelebrate(true);
+    gameSfx.complete();
     toast.success("Done! Streak counted 🐼");
     setTimeout(() => setCelebrate(false), 1600);
   }
