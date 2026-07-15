@@ -48,7 +48,7 @@ export function useWatchSync(
     sendCountdown: (_: number) => {},
     countdown: null as { time: number } | null,
     clearCountdown: () => {},
-    incomingSeek: null as { time: number; startAt?: number } | null,
+    incomingSeek: null as ({ time: number; startAt?: number } | null),
     clearIncomingSeek: () => {},
     incomingReaction: null as { id: number; emoji: string } | null,
     clearIncomingReaction: () => {},
