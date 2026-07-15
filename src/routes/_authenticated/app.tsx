@@ -21,7 +21,13 @@ function AppShell() {
       <div className="w-full max-w-[1400px] mx-auto">
         <Outlet />
       </div>
-      {!hideNav && <BottomNav />}
+      {/* Keep nav mounted so it doesn't flash in before the home content on return */}
+      <div
+        aria-hidden={hideNav}
+        className={`transition-opacity duration-200 ${hideNav ? "opacity-0 pointer-events-none" : "opacity-100"}`}
+      >
+        <BottomNav />
+      </div>
     </div>
   );
 }
