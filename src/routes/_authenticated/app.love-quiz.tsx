@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
 import { generateLoveQuiz } from "@/lib/games.functions";
+import { gameSfx } from "@/lib/game-sfx";
 
 export const Route = createFileRoute("/_authenticated/app/love-quiz")({
   component: LoveQuiz,
@@ -104,6 +105,7 @@ function LoveQuiz() {
 
   async function spinWheel() {
     if (!me || !partner || !session || spinning) return;
+    gameSfx.spin();
     setSpinning(true);
     setLoading(true);
     try {
@@ -139,6 +141,7 @@ function LoveQuiz() {
           spinSeed: seed,
           createdAt: Date.now(),
         });
+        gameSfx.start();
         setSpinning(false);
       }, 2400);
     } catch (e: any) {
@@ -178,8 +181,12 @@ function LoveQuiz() {
     if (iDone && otherDone) {
       phase = "reveal";
       currentPlayer = null;
+      gameSfx.complete();
     } else if (iDone) {
       currentPlayer = otherId;
+      gameSfx.pop();
+    } else {
+      gameSfx.pick();
     }
     await patch({ ...s, answers, phase, currentPlayer });
   }

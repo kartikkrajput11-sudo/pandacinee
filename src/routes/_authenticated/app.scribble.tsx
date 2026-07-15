@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, Eraser, RotateCcw, Send, Sparkles, Trophy, Crown, X } from "lucide-react";
 import { toast } from "sonner";
+import { gameSfx } from "@/lib/game-sfx";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
 
@@ -188,6 +189,7 @@ function Scribble() {
     if (winnerCountedRef.current === winnerId) return;
     winnerCountedRef.current = winnerId;
     void bumpMyStats({ games_played: 1, wins: winnerId === me.id ? 1 : 0 });
+    if (winnerId === me.id) gameSfx.win(); else gameSfx.lose();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [winnerId, me?.id]);
 
@@ -334,6 +336,7 @@ function Scribble() {
       });
     }
     const isMe = by === me?.id;
+    if (isMe) gameSfx.correct(); else gameSfx.reveal();
     setMessages((m) => [
       ...m,
       {

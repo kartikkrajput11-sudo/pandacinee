@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, Camera, Check, Flame, RotateCw, Share2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { gameSfx } from "@/lib/game-sfx";
 
 export const Route = createFileRoute("/_authenticated/app/memory-challenge")({
   component: MemoryChallenge,
@@ -128,6 +129,7 @@ function MemoryChallenge() {
             : 1;
       const entries = [{ date: t, prompt, dataUrl }, ...store.entries.filter((x) => x.date !== t)].slice(0, 60);
       persist({ streak, lastDate: t, entries });
+      gameSfx.complete();
       toast.success("Memory saved 🐼");
     } catch (err: any) {
       toast.error(err?.message ?? "Couldn't save that photo");

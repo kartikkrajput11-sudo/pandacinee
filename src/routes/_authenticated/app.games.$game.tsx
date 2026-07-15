@@ -20,6 +20,7 @@ import {
   rpsWinner,
 } from "@/lib/games";
 import { generateGameCard } from "@/lib/games.functions";
+import { gameSfx } from "@/lib/game-sfx";
 
 const paramsSchema = z.object({
   game: z.enum([
@@ -372,6 +373,9 @@ function TicTacToe({ me, session, patch }: { me: string; session: Session; patch
     const nextWins = { ...wins };
     if (w === "draw") nextWins.draws = (nextWins.draws ?? 0) + 1;
     else if (w) nextWins[w] = (nextWins[w] ?? 0) + 1;
+    gameSfx.place();
+    if (w === "draw") gameSfx.draw();
+    else if (w) (w === mySymbol ? gameSfx.win : gameSfx.lose)();
     patch({ ...s, board: next, turn: mySymbol === "X" ? "O" : "X" });
     if (w)
       setTimeout(
@@ -451,17 +455,20 @@ function RockPaperScissors({ me, session, patch }: { me: string; session: Sessio
 
   function pick(c: RPSChoice) {
     if (myPick || matchDone) return;
+    gameSfx.pick();
     patch({ ...s, picks: { ...s.picks, [me]: c } });
   }
   function next() {
     if (!both) return;
     const w = rpsWinner(myPick!, theirPick!);
     const score = { ...(s.score ?? {}) };
-    if (w === 0) score[me] = (score[me] ?? 0) + 1;
-    else if (w === 1) score[otherId] = (score[otherId] ?? 0) + 1;
+    if (w === 0) { score[me] = (score[me] ?? 0) + 1; gameSfx.win(); }
+    else if (w === 1) { score[otherId] = (score[otherId] ?? 0) + 1; gameSfx.lose(); }
+    else gameSfx.draw();
     patch({ ...s, picks: {}, round: (s.round ?? 1) + 1, score });
   }
   function rematch() {
+    gameSfx.start();
     patch({ ...s, picks: {}, round: 1, score: {} });
   }
   const result = both ? rpsWinner(myPick!, theirPick!) : null;
@@ -598,6 +605,7 @@ function TruthOrDare({ me, session, patch }: { me: string; session: Session; pat
 
   async function pick(type: "truth" | "dare") {
     if (matchDone || !myTurn) return;
+    gameSfx.pick();
     const c = await fetchCard(s.intensity ?? "playful", type);
     const fallback = TRUTH_OR_DARE.find((x) => x.type === type) ?? TRUTH_OR_DARE[0];
     const chosen = c && c.type === type ? c : { type, text: c?.text ?? fallback.text };
@@ -606,17 +614,20 @@ function TruthOrDare({ me, session, patch }: { me: string; session: Session; pat
 
   function submitAnswer() {
     if (!input.trim() || !card) return;
+    gameSfx.place();
     patch({ ...s, answer: input.trim(), answeredBy: me, revealed: false, turn });
     setInput("");
   }
 
   function revealAnswer() {
     if (!answer || revealed) return;
+    gameSfx.reveal();
     patch({ ...s, revealed: true });
   }
 
   function completeCard() {
     if (!card) return;
+    gameSfx.complete();
     const history = [...(s.history ?? []), { ...card, answer: answer ?? null }].slice(-30);
     const nextTally = { ...tally, [card.type]: (tally[card.type] ?? 0) + 1 };
     // Whoever reveals + taps Done becomes the next picker — turns alternate.
@@ -846,11 +857,13 @@ function PairPick({
 
   function pick(idx: 0 | 1) {
     if (myPick !== undefined) return;
+    gameSfx.pick();
     patch({ ...s, picks: { ...s.picks, [me]: idx } });
   }
   async function next() {
     const matches = (s.score?.matches ?? 0) + (match ? 1 : 0);
     const total = (s.score?.total ?? 0) + 1;
+    if (match) gameSfx.correct(); else gameSfx.reveal();
     const c = await fetchCard(s.intensity ?? "playful");
     const history = [...(s.history ?? []), card].slice(-20);
     patch({
@@ -980,11 +993,13 @@ function NeverHaveIEver({ me, session, patch }: { me: string; session: Session; 
 
   function pick(v: 0 | 1) {
     if (myPick !== undefined) return;
+    gameSfx.pick();
     patch({ ...s, picks: { ...s.picks, [me]: v } });
   }
   async function next() {
     const have = (s.tallies?.have ?? 0) + (myPick === 0 ? 1 : 0) + (theirPick === 0 ? 1 : 0);
     const havent = (s.tallies?.havent ?? 0) + (myPick === 1 ? 1 : 0) + (theirPick === 1 ? 1 : 0);
+    gameSfx.reveal();
     const c = await fetchCard(s.intensity ?? "playful");
     const history = [...(s.history ?? []), s.card].filter(Boolean).slice(-20);
     patch({ ...s, count: (s.count ?? 0) + 1, card: c, picks: {}, tallies: { have, havent }, history });
@@ -1105,15 +1120,20 @@ function GuessMe({
 
   function submitAnswer() {
     if (!input.trim()) return;
+    gameSfx.place();
     patch({ ...s, answer: input.trim(), answeredBy: me, guess: null, revealed: false });
     setInput("");
   }
   function submitGuess() {
     if (!input.trim()) return;
+    gameSfx.reveal();
     patch({ ...s, guess: input.trim(), revealed: true });
     setInput("");
   }
   async function next(verdictOverride?: "right" | "close" | "wrong" | null) {
+    if (verdictOverride === "right") gameSfx.correct();
+    else if (verdictOverride === "close") gameSfx.pop();
+    else if (verdictOverride === "wrong") gameSfx.wrong();
     const tally = s.tally ?? { right: 0, close: 0, wrong: 0 };
     const nextTally = verdictOverride
       ? { ...tally, [verdictOverride]: (tally[verdictOverride] ?? 0) + 1 }
@@ -1315,11 +1335,13 @@ function TwoTruthsLie({ me, session, patch }: { me: string; session: Session; pa
 
   function guess(i: number) {
     if (myGuess !== undefined || !card) return;
+    gameSfx.pick();
     patch({ ...s, guesses: { ...s.guesses, [me]: i } });
   }
   async function next() {
     const myPts = (s.score?.[me] ?? 0) + (myGuess === card?.lie ? 1 : 0);
     const theirPts = (s.score?.[otherId] ?? 0) + (theirGuess === card?.lie ? 1 : 0);
+    if (myGuess === card?.lie) gameSfx.correct(); else gameSfx.wrong();
     const c = await fetchCard(s.intensity ?? "playful");
     const history = [...(s.history ?? []), card].filter(Boolean).slice(-20);
     patch({
@@ -1436,12 +1458,14 @@ function HotTakes({ me, session, patch }: { me: string; session: Session; patch:
 
   function rate(v: number) {
     if (myRating !== undefined) return;
+    gameSfx.pick();
     patch({ ...s, ratings: { ...s.ratings, [me]: v } });
   }
   async function next() {
     const g = gap ?? 0;
     const sum = (s.alignment?.sum ?? 0) + (4 - g); // 4=perfect, 0=opposite
     const total = (s.alignment?.total ?? 0) + 4;
+    if (g === 0) gameSfx.correct(); else gameSfx.reveal();
     const c = await fetchCard(s.intensity ?? "playful");
     const history = [...(s.history ?? []), card].filter(Boolean).slice(-20);
     patch({ ...s, count: (s.count ?? 0) + 1, card: c, ratings: {}, alignment: { sum, total }, history });
@@ -1561,6 +1585,7 @@ function EmojiRiddle({ me, session, patch }: { me: string; session: Session; pat
 
   function submitGuess() {
     if (!draft.trim() || myGuess) return;
+    gameSfx.place();
     patch({ ...s, guesses: { ...s.guesses, [me]: draft.trim() } });
     setDraft("");
   }
@@ -1568,6 +1593,7 @@ function EmojiRiddle({ me, session, patch }: { me: string; session: Session; pat
     if (!card) return;
     const myPts = (s.score?.[me] ?? 0) + (isRight(myGuess) ? 1 : 0);
     const theirPts = (s.score?.[otherId] ?? 0) + (isRight(theirGuess) ? 1 : 0);
+    if (isRight(myGuess)) gameSfx.correct(); else gameSfx.wrong();
     patch({ ...s, revealed: true, score: { [me]: myPts, [otherId]: theirPts } });
   }
   async function next() {

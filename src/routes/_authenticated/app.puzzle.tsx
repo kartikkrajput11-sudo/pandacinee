@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, ImagePlus, RotateCw, Shuffle, Trophy, X } from "lucide-react";
 import { toast } from "sonner";
+import { gameSfx } from "@/lib/game-sfx";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
 
@@ -122,6 +123,7 @@ function PuzzleTogether() {
   useEffect(() => {
     if (slots.length && slots.every((v, i) => v === i) && !solved) {
       setSolved(true);
+      gameSfx.complete();
       const t = Math.floor((Date.now() - startedAt) / 1000);
       setBestTimes((prev) => {
         const cur = prev[total];
@@ -201,6 +203,7 @@ function PuzzleTogether() {
     setSlots(next);
     setSelected(null);
     setMoves((m) => m + 1);
+    gameSfx.place();
   }
 
   function resetLocal() {
