@@ -844,13 +844,6 @@ function CatalogWatch({ id }: { id: string }) {
             </>
           )}
         </div>
-        <button
-          onClick={openFullscreen}
-          className="size-9 rounded-full bg-surface/70 backdrop-blur border border-border flex items-center justify-center text-candle"
-          aria-label="Fullscreen"
-        >
-          <Maximize2 className="size-4" />
-        </button>
       </header>
 
       <div className="px-3 md:px-5 max-w-6xl mx-auto">
