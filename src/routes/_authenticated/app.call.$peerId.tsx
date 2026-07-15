@@ -190,9 +190,24 @@ function Call() {
       (async () => {
         const { data: u } = await supabase.auth.getUser();
         if (!u.user) return;
-        // Prefer authoritative values from the calls row (survives races); fall back to local timer.
-        const wasAnswered = !!call?.answered_at;
-        const durSec = call?.duration_seconds
+        // Re-read the calls row directly — local `call` state may still be
+        // stale because the realtime UPDATE for the row we just ended hasn't
+        // arrived yet by the time this effect fires.
+        let answeredAt: string | null = call?.answered_at ?? null;
+        let durationSeconds: number | null = call?.duration_seconds ?? null;
+        if (callId) {
+          const { data } = await supabase
+            .from("calls")
+            .select("answered_at, duration_seconds")
+            .eq("id", callId)
+            .maybeSingle();
+          if (data) {
+            answeredAt = (data as { answered_at: string | null }).answered_at ?? answeredAt;
+            durationSeconds = (data as { duration_seconds: number | null }).duration_seconds ?? durationSeconds;
+          }
+        }
+        const wasAnswered = !!answeredAt || answered || connectedAtRef.current !== null;
+        const durSec = durationSeconds
           ?? (connectedAtRef.current ? Math.floor((Date.now() - connectedAtRef.current) / 1000) : 0);
         const outcome = wasAnswered ? "completed" : "missed";
         await supabase.from("messages").insert({
