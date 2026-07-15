@@ -373,6 +373,9 @@ function TicTacToe({ me, session, patch }: { me: string; session: Session; patch
     const nextWins = { ...wins };
     if (w === "draw") nextWins.draws = (nextWins.draws ?? 0) + 1;
     else if (w) nextWins[w] = (nextWins[w] ?? 0) + 1;
+    gameSfx.place();
+    if (w === "draw") gameSfx.draw();
+    else if (w) (w === mySymbol ? gameSfx.win : gameSfx.lose)();
     patch({ ...s, board: next, turn: mySymbol === "X" ? "O" : "X" });
     if (w)
       setTimeout(
