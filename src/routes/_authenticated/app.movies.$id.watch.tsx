@@ -946,6 +946,9 @@ function CatalogWatch({ id }: { id: string }) {
                   poster={backdropUrl}
                   startAt={startAt}
                   locked={!!hostId && !iAmHost}
+                  onLockedAttempt={() => {
+                    toast.info("Playback is controlled by your partner.", { id: "locked-attempt", duration: 1800 });
+                  }}
                   onReady={(h) => {
                     customPlayerRef.current = h;
                     setCustomPlayerReady((n) => n + 1);
@@ -954,12 +957,21 @@ function CatalogWatch({ id }: { id: string }) {
                   onEvent={(evt) => {
                     if (suppressPlayerEventRef.current) return;
                     const now = Date.now();
-                    const isDiscrete = evt.event === "play" || evt.event === "pause" || evt.event === "seeked" || evt.event === "ended";
+                    const isDiscrete = evt.event === "play" || evt.event === "pause" || evt.event === "seeked" || evt.event === "ended" || evt.event === "ratechange";
                     if (isDiscrete && partner && !hostId) claimHost();
                     if (partnerIsHost && isDiscrete) return;
-                    if (isDiscrete || now - lastPublishRef.current > 2000) {
+                    // Tighter publish cadence for Pandacine host so followers stay ±100ms.
+                    if (isDiscrete || now - lastPublishRef.current > 500) {
                       lastPublishRef.current = now;
-                      publish({ event: evt.event, currentTime: evt.currentTime, duration: evt.duration, sourceIdx });
+                      publish({
+                        event: evt.event,
+                        currentTime: evt.currentTime,
+                        duration: evt.duration,
+                        sourceIdx,
+                        playbackRate: evt.playbackRate,
+                        season: isTv ? season : null,
+                        episode: isTv ? episode : null,
+                      });
                     }
                   }}
                 />
