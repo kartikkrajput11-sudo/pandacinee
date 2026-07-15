@@ -35,7 +35,7 @@ import { tmdbMovie, tmdbTvDetail, tmdbTvSeason } from "@/lib/tmdb.functions";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/integrations/supabase/client";
 import { WatchTogetherPanel } from "@/components/watch/WatchTogetherPanel";
-import { createWatchParty } from "@/lib/watchParty";
+
 import { useWatchSync, fmtTime } from "@/hooks/useWatchSync";
 import { CustomMoviePlayer, type CustomPlayerHandle } from "@/components/CustomMoviePlayer";
 import { useFriendships } from "@/hooks/useFriends";
