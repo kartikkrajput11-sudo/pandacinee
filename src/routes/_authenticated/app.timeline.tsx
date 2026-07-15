@@ -253,7 +253,7 @@ function TimelinePage() {
 
   useEffect(() => {
     const el = cardsRef.current[activeIdx];
-    if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
   }, [activeIdx]);
 
   const daysTotal = me?.anniversary_date ? daysBetween(me.anniversary_date, new Date().toISOString()) : null;
