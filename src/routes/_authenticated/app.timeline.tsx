@@ -399,33 +399,60 @@ function TimelinePage() {
                         style={{ background: `linear-gradient(180deg, ${meta.tint}, transparent)` }}
                       />
 
-                      {/* Card — minimalist */}
+                      {/* Card — premium soft minimalism */}
                       <div
-                        className="relative rounded-2xl overflow-hidden transition-all duration-500"
+                        className="relative rounded-[28px] overflow-hidden transition-all duration-700"
                         style={{
-                          background: "rgba(255,255,255,0.03)",
-                          border: `1px solid ${isActive ? meta.tint + "66" : "rgba(255,255,255,0.08)"}`,
-                          minHeight: 240,
+                          background:
+                            "linear-gradient(160deg, rgba(255,255,255,0.055) 0%, rgba(255,255,255,0.02) 45%, rgba(255,255,255,0.01) 100%)",
+                          border: `1px solid ${isActive ? "rgba(255,255,255,0.14)" : "rgba(255,255,255,0.07)"}`,
+                          backdropFilter: "blur(18px) saturate(140%)",
+                          WebkitBackdropFilter: "blur(18px) saturate(140%)",
+                          boxShadow: isActive
+                            ? `0 30px 80px -40px ${meta.tint}55, 0 1px 0 rgba(255,255,255,0.06) inset, 0 0 0 1px ${meta.tint}22 inset`
+                            : "0 20px 60px -40px rgba(0,0,0,0.6), 0 1px 0 rgba(255,255,255,0.04) inset",
+                          minHeight: 260,
                         }}
                       >
-                        <div className="p-5 relative">
-                          {/* Thin accent bar */}
-                          <span
+                        {/* Soft aura glow — active only */}
+                        {isActive && (
+                          <div
                             aria-hidden
-                            className="absolute left-0 top-5 bottom-5 w-[2px] rounded-full"
-                            style={{ background: meta.tint, opacity: isActive ? 1 : 0.5 }}
+                            className="pointer-events-none absolute -inset-24 opacity-60"
+                            style={{
+                              background: `radial-gradient(closest-side, ${meta.tint}33, transparent 70%)`,
+                              filter: "blur(40px)",
+                              animation: "soft-breathe 5s ease-in-out infinite",
+                            }}
                           />
+                        )}
+                        {/* Top highlight hairline */}
+                        <span
+                          aria-hidden
+                          className="absolute inset-x-6 top-0 h-px"
+                          style={{
+                            background:
+                              "linear-gradient(90deg, transparent, rgba(255,255,255,0.28), transparent)",
+                          }}
+                        />
 
+                        <div className="p-6 relative">
                           {/* Header row */}
-                          <div className="flex items-center gap-2 mb-4 pl-3">
-                            <Icon className="size-3.5" style={{ color: meta.tint }} />
+                          <div className="flex items-center gap-2.5 mb-5">
                             <span
-                              className="text-[10px] uppercase tracking-[0.28em] font-medium"
+                              className="size-1.5 rounded-full"
+                              style={{
+                                background: meta.tint,
+                                boxShadow: `0 0 12px ${meta.tint}`,
+                              }}
+                            />
+                            <span
+                              className="text-[10px] uppercase tracking-[0.32em] font-medium"
                               style={{ color: meta.tint }}
                             >
                               {meta.label}
                             </span>
-                            <span className="ml-auto text-[10px] text-white/50">
+                            <span className="ml-auto text-[10px] tracking-wider text-white/45">
                               {fmtDate(it.date)}
                             </span>
                           </div>
