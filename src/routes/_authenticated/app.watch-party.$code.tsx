@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, Copy, Users, Send, LogOut, Play, Pause, RefreshCw, MessageCircle, X, UserPlus, Check } from "lucide-react";
+import { ArrowLeft, Copy, Users, Send, LogOut, Play, Pause, RefreshCw, MessageCircle, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -13,7 +13,6 @@ import {
   type WatchPartyMessage,
 } from "@/lib/watchParty";
 import { useProfile } from "@/hooks/useProfile";
-import { useFriendships } from "@/hooks/useFriends";
 
 export const Route = createFileRoute("/_authenticated/app/watch-party/$code")({
   component: WatchPartyRoom,
@@ -39,65 +38,6 @@ function WatchPartyRoom() {
   const [draft, setDraft] = useState("");
   const [iframeKey, setIframeKey] = useState(0);
   const chatEndRef = useRef<HTMLDivElement>(null);
-  const [inviteOpen, setInviteOpen] = useState(false);
-  const [inviting, setInviting] = useState<Set<string>>(new Set());
-  const [invited, setInvited] = useState<Set<string>>(new Set());
-  const friendsQuery = useFriendships();
-  const partner = prof?.partner ?? null;
-
-  const invitees = useMemo(() => {
-    const list: MemberProfile[] = [];
-    if (partner) {
-      list.push({
-        id: partner.id,
-        username: partner.username,
-        display_name: partner.display_name,
-        avatar_url: partner.avatar_url,
-      });
-    }
-    const friends = friendsQuery.data;
-    if (friends?.me) {
-      for (const f of friends.friendships) {
-        if (f.status !== "accepted") continue;
-        const otherId = f.requester_id === friends.me ? f.addressee_id : f.requester_id;
-        if (partner && otherId === partner.id) continue;
-        const p = friends.profiles[otherId];
-        if (p) list.push(p);
-      }
-    }
-    return list;
-  }, [partner, friendsQuery.data]);
-
-  async function sendInvite(targetId: string) {
-    if (!party || !me) return;
-    setInviting((s) => new Set(s).add(targetId));
-    try {
-      const url = `${window.location.origin}/app/watch-party/${party.code}`;
-      const title = party.media_title ?? "a movie";
-      const body =
-        `🎬 Watch Party invite\n` +
-        `Come watch ${title} with me!\n` +
-        `Code: ${party.code}\n${url}`;
-      const { error } = await supabase.from("messages").insert({
-        sender_id: me.id,
-        receiver_id: targetId,
-        content: body,
-        type: "text",
-      });
-      if (error) throw error;
-      setInvited((s) => new Set(s).add(targetId));
-      toast.success("Invite sent");
-    } catch (e: any) {
-      toast.error(e?.message ?? "Could not send invite");
-    } finally {
-      setInviting((s) => {
-        const n = new Set(s);
-        n.delete(targetId);
-        return n;
-      });
-    }
-  }
-
 
   // Join / load
   useEffect(() => {
@@ -295,13 +235,6 @@ function WatchPartyRoom() {
             <p className="text-[11px] text-candle-muted font-mono tracking-widest">{party.code}</p>
           </div>
           <button
-            onClick={() => setInviteOpen(true)}
-            className="h-8 px-3 rounded-full bg-petal text-white text-xs font-medium flex items-center gap-1.5 hover:bg-petal/90 transition-colors"
-            aria-label="Invite friends"
-          >
-            <UserPlus className="size-3.5" /> Invite
-          </button>
-          <button
             onClick={copyInvite}
             className="p-2 rounded-full hover:bg-surface transition-colors"
             aria-label="Copy invite"
@@ -447,108 +380,6 @@ function WatchPartyRoom() {
           </aside>
         )}
       </div>
-
-      {/* Invite sheet */}
-      {inviteOpen && (
-        <div
-          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end md:items-center md:justify-center"
-          onClick={() => setInviteOpen(false)}
-        >
-          <div
-            className="w-full md:max-w-md bg-surface rounded-t-3xl md:rounded-3xl border-t md:border border-border p-4 max-h-[80vh] flex flex-col"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between mb-3">
-              <div>
-                <p className="font-serif italic text-lg leading-tight">Invite to party</p>
-                <p className="text-[11px] text-candle-muted">Sends a chat message with the invite link.</p>
-              </div>
-              <button
-                onClick={() => setInviteOpen(false)}
-                className="p-2 rounded-full hover:bg-canvas transition-colors"
-                aria-label="Close"
-              >
-                <X className="size-4" />
-              </button>
-            </div>
-
-            <button
-              onClick={copyInvite}
-              className="mb-3 p-3 rounded-2xl border border-border bg-canvas flex items-center gap-3 text-left hover:border-petal/40 transition-colors"
-            >
-              <div className="size-9 rounded-full bg-petal-soft text-petal flex items-center justify-center">
-                <Copy className="size-4" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium">Copy invite link</p>
-                <p className="text-[11px] text-candle-muted font-mono truncate">
-                  {typeof window !== "undefined" ? `${window.location.origin}/app/watch-party/${party.code}` : party.code}
-                </p>
-              </div>
-            </button>
-
-            <div className="flex-1 overflow-y-auto -mx-1 px-1">
-              {invitees.length === 0 ? (
-                <div className="text-center py-8">
-                  <p className="text-sm text-candle-muted mb-2">No partner or friends yet.</p>
-                  <Link
-                    to="/app/invite"
-                    className="inline-block text-sm text-petal underline"
-                    onClick={() => setInviteOpen(false)}
-                  >
-                    Add someone →
-                  </Link>
-                </div>
-              ) : (
-                <div className="space-y-1.5">
-                  {invitees.map((u) => {
-                    const inRoom = members.some((m) => m.id === u.id);
-                    const isSending = inviting.has(u.id);
-                    const hasSent = invited.has(u.id);
-                    return (
-                      <div
-                        key={u.id}
-                        className="p-2.5 rounded-2xl border border-border bg-canvas flex items-center gap-3"
-                      >
-                        {u.avatar_url ? (
-                          <img src={u.avatar_url} alt="" className="size-9 rounded-full object-cover" />
-                        ) : (
-                          <div className="size-9 rounded-full bg-petal-soft text-petal flex items-center justify-center text-sm">
-                            {(u.display_name ?? u.username ?? "?").slice(0, 1).toUpperCase()}
-                          </div>
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">
-                            {u.display_name ?? u.username ?? "Someone"}
-                          </p>
-                          {u.username && (
-                            <p className="text-[11px] text-candle-muted truncate">@{u.username}</p>
-                          )}
-                        </div>
-                        {inRoom ? (
-                          <span className="text-[11px] text-candle-muted px-2">In room</span>
-                        ) : hasSent ? (
-                          <span className="text-[11px] text-petal px-2 flex items-center gap-1">
-                            <Check className="size-3" /> Sent
-                          </span>
-                        ) : (
-                          <button
-                            onClick={() => sendInvite(u.id)}
-                            disabled={isSending}
-                            className="px-3 py-1.5 rounded-full bg-petal text-white text-xs font-medium disabled:opacity-50"
-                          >
-                            {isSending ? "…" : "Invite"}
-                          </button>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
