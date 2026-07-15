@@ -42,18 +42,11 @@ export function useChat(meId: string | null, partnerId: string | null) {
   const fetchMessages = useCallback(
     async (before?: string) => {
       if (!meId || !partnerId) return { rows: [] as MessageRow[], more: false };
-      let query = supabase
-        .from("messages")
-        .select("*")
-        .or(
-          `and(sender_id.eq.${meId},receiver_id.eq.${partnerId}),and(sender_id.eq.${partnerId},receiver_id.eq.${meId})`,
-        )
-        .order("created_at", { ascending: false })
-        .limit(PAGE_SIZE);
-
-      if (before) query = query.lt("created_at", before);
-
-      const { data, error } = await query;
+      const { data, error } = await (supabase.rpc as any)("chat_messages_between", {
+        _peer: partnerId,
+        _before: before ?? null,
+        _limit: PAGE_SIZE,
+      });
       if (error) throw error;
       const rawRows = (data ?? []) as MessageRow[];
       return {

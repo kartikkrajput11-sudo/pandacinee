@@ -33,16 +33,11 @@ export function useGroupChat(meId: string | null, groupId: string | null) {
   const fetchMessages = useCallback(
     async (before?: string) => {
       if (!meId || !groupId) return { rows: [] as MessageRow[], more: false };
-      let query = supabase
-        .from("messages")
-        .select("*")
-        .eq("group_id", groupId)
-        .order("created_at", { ascending: false })
-        .limit(PAGE_SIZE);
-
-      if (before) query = query.lt("created_at", before);
-
-      const { data, error } = await query;
+      const { data, error } = await (supabase.rpc as any)("chat_group_messages", {
+        _group_id: groupId,
+        _before: before ?? null,
+        _limit: PAGE_SIZE,
+      });
       if (error) throw error;
       const rawRows = (data ?? []) as unknown as MessageRow[];
       return {
