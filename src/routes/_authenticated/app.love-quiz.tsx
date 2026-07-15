@@ -141,6 +141,7 @@ function LoveQuiz() {
           spinSeed: seed,
           createdAt: Date.now(),
         });
+        gameSfx.start();
         setSpinning(false);
       }, 2400);
     } catch (e: any) {
