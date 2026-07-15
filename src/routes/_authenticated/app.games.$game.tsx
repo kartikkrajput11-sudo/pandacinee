@@ -513,7 +513,7 @@ function RockPaperScissors({ me, session, patch }: { me: string; session: Sessio
   );
 }
 
-function useCardFetcher(kind: "truth-or-dare" | "would-you-rather" | "this-or-that" | "never-have-i-ever" | "guess-me") {
+function useCardFetcher(kind: "truth-or-dare" | "would-you-rather" | "this-or-that" | "never-have-i-ever" | "guess-me" | "two-truths-lie" | "hot-takes" | "emoji-riddle") {
   const [loading, setLoading] = useState(false);
   async function fetchCard(intensity: Intensity, type?: "truth" | "dare"): Promise<any | null> {
     setLoading(true);
