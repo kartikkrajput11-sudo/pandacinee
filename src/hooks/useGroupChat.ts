@@ -2,29 +2,77 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { expirySeconds, type MessageRow } from "@/lib/chat";
 
+const PAGE_SIZE = 500;
+
+function isLiveMessage(m: MessageRow) {
+  return !m.expires_at || new Date(m.expires_at).getTime() > Date.now();
+}
+
+function sortMessages(rows: MessageRow[]) {
+  return [...rows].sort((a, b) => a.created_at.localeCompare(b.created_at));
+}
+
+function mergeMessages(current: MessageRow[], incoming: MessageRow[]) {
+  const byId = new Map<string, MessageRow>();
+  for (const row of current) byId.set(row.id, row);
+  for (const row of incoming) if (isLiveMessage(row)) byId.set(row.id, row);
+  return sortMessages(Array.from(byId.values()));
+}
+
 export function useGroupChat(meId: string | null, groupId: string | null) {
   const [messages, setMessages] = useState<MessageRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingOlder, setLoadingOlder] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
   const [typingUsers, setTypingUsers] = useState<Record<string, number>>({});
   const [onlineIds, setOnlineIds] = useState<string[]>([]);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const lastTypingSent = useRef(0);
   const typingTimer = useRef<number | null>(null);
 
+  const fetchMessages = useCallback(
+    async (before?: string) => {
+      if (!meId || !groupId) return { rows: [] as MessageRow[], more: false };
+      let query = supabase
+        .from("messages")
+        .select("*")
+        .eq("group_id", groupId)
+        .order("created_at", { ascending: false })
+        .limit(PAGE_SIZE);
+
+      if (before) query = query.lt("created_at", before);
+
+      const { data, error } = await query;
+      if (error) throw error;
+      const rawRows = (data ?? []) as unknown as MessageRow[];
+      return {
+        rows: sortMessages(rawRows.filter(isLiveMessage)),
+        more: rawRows.length === PAGE_SIZE,
+      };
+    },
+    [groupId, meId],
+  );
+
   useEffect(() => {
-    if (!meId || !groupId) return;
+    if (!meId || !groupId) {
+      setMessages([]);
+      setLoading(false);
+      setHasMore(false);
+      return;
+    }
     let cancelled = false;
     setLoading(true);
 
     (async () => {
-      const { data } = await supabase
-        .from("messages")
-        .select("*")
-        .eq("group_id", groupId)
-        .order("created_at", { ascending: true })
-        .limit(400);
-      if (!cancelled && data) setMessages(data as unknown as MessageRow[]);
-      setLoading(false);
+      try {
+        const page = await fetchMessages();
+        if (!cancelled) {
+          setMessages(page.rows);
+          setHasMore(page.more);
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
     })();
 
     const ch = supabase.channel(`group:${groupId}`, {
@@ -33,11 +81,11 @@ export function useGroupChat(meId: string | null, groupId: string | null) {
 
     ch.on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `group_id=eq.${groupId}` }, (payload) => {
       const m = payload.new as unknown as MessageRow;
-      setMessages((prev) => (prev.some((x) => x.id === m.id) ? prev : [...prev, m]));
+      setMessages((prev) => mergeMessages(prev, [m]));
     });
     ch.on("postgres_changes", { event: "UPDATE", schema: "public", table: "messages", filter: `group_id=eq.${groupId}` }, (payload) => {
       const m = payload.new as unknown as MessageRow;
-      setMessages((prev) => prev.map((x) => (x.id === m.id ? m : x)));
+      setMessages((prev) => mergeMessages(prev.filter((x) => x.id !== m.id), [m]));
     });
     ch.on("postgres_changes", { event: "DELETE", schema: "public", table: "messages", filter: `group_id=eq.${groupId}` }, (payload) => {
       const old = payload.old as { id: string };
@@ -66,7 +114,19 @@ export function useGroupChat(meId: string | null, groupId: string | null) {
       supabase.removeChannel(ch);
       channelRef.current = null;
     };
-  }, [meId, groupId]);
+  }, [fetchMessages, meId, groupId]);
+
+  const loadOlder = useCallback(async () => {
+    if (!meId || !groupId || loadingOlder || !hasMore || messages.length === 0) return;
+    setLoadingOlder(true);
+    try {
+      const page = await fetchMessages(messages[0].created_at);
+      setMessages((prev) => mergeMessages(page.rows, prev));
+      setHasMore(page.more);
+    } finally {
+      setLoadingOlder(false);
+    }
+  }, [fetchMessages, groupId, hasMore, loadingOlder, meId, messages]);
 
   // Clean stale typers
   useEffect(() => {
@@ -109,18 +169,45 @@ export function useGroupChat(meId: string | null, groupId: string | null) {
       disappear_seconds?: number | null;
     }) => {
       if (!meId || !groupId) return;
-      const { error } = await supabase.from("messages").insert({
+      const now = new Date().toISOString();
+      const expires_at = expirySeconds(input.disappear_seconds ?? null);
+      const draft: MessageRow = {
+        id: crypto.randomUUID(),
         sender_id: meId,
         receiver_id: null,
         group_id: groupId,
         content: input.content ?? "",
         type: (input.type ?? "text") as never,
+        created_at: now,
         media_url: input.media_url ?? null,
-        media_meta: (input.media_meta ?? null) as never,
+        media_meta: input.media_meta ?? null,
         reply_to_id: input.reply_to_id ?? null,
-        expires_at: expirySeconds(input.disappear_seconds ?? null),
-      });
-      if (error) throw error;
+        reactions: {},
+        read_at: null,
+        pinned: false,
+        expires_at,
+      };
+      setMessages((prev) => mergeMessages(prev, [draft]));
+
+      const insertPayload = {
+        sender_id: meId,
+        receiver_id: null,
+        group_id: groupId,
+        content: draft.content,
+        type: draft.type as never,
+        media_url: draft.media_url,
+        media_meta: (draft.media_meta ?? null) as never,
+        reply_to_id: draft.reply_to_id,
+        expires_at,
+      };
+      const { data, error } = await supabase.from("messages").insert(insertPayload).select("*").single();
+      if (error) {
+        setMessages((prev) => prev.filter((m) => m.id !== draft.id));
+        throw error;
+      }
+      if (data) {
+        setMessages((prev) => mergeMessages(prev.filter((m) => m.id !== draft.id), [data as unknown as MessageRow]));
+      }
     },
     [meId, groupId],
   );
@@ -166,5 +253,5 @@ export function useGroupChat(meId: string | null, groupId: string | null) {
     return () => window.clearInterval(t);
   }, [messages, meId]);
 
-  return { messages, loading, typingUsers, onlineIds, send, sendTyping, react, togglePin, remove, setVanish };
+  return { messages, loading, loadingOlder, hasMore, loadOlder, typingUsers, onlineIds, send, sendTyping, react, togglePin, remove, setVanish };
 }

@@ -49,7 +49,7 @@ function ChatPeer() {
   });
   const peer = peerQ.data ?? null;
 
-  const { messages, loading, partnerTyping, partnerOnline, send, react, togglePin, remove, setVanish, sendTyping } =
+  const { messages, loading, loadingOlder, hasMore, loadOlder, partnerTyping, partnerOnline, send, react, togglePin, remove, setVanish, sendTyping } =
     useChat(me?.id ?? null, peer?.id ?? null);
   const { activeLock, iAmLocked, iAmLocker, createLock, incrementProgress, completeLock, cancelLock } =
     usePunishmentLock(me?.id ?? null, peer?.id ?? null);
@@ -261,6 +261,18 @@ function ChatPeer() {
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-2 py-4">
         {loading && <div className="text-center py-8 text-sm text-candle-muted">Loading messages…</div>}
+        {!loading && hasMore && (
+          <div className="flex justify-center pb-3">
+            <button
+              type="button"
+              onClick={loadOlder}
+              disabled={loadingOlder}
+              className="px-3 py-1.5 rounded-full bg-surface border border-border text-xs text-candle-muted hover:text-petal disabled:opacity-60"
+            >
+              {loadingOlder ? "Loading…" : "Load older messages"}
+            </button>
+          </div>
+        )}
         {!loading && messages.length === 0 && (
           <div className="text-center py-12 text-sm text-candle-muted">
             <p className="font-serif italic text-lg text-candle mb-1">Say hi 🐼</p>

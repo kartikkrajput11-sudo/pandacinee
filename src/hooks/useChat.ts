@@ -4,32 +4,87 @@ import { chatChannelKey, expirySeconds, type MessageRow } from "@/lib/chat";
 
 type TypingState = { isTyping: boolean; at: number };
 
+const PAGE_SIZE = 500;
+
+function isLiveMessage(m: MessageRow) {
+  return !m.expires_at || new Date(m.expires_at).getTime() > Date.now();
+}
+
+function sortMessages(rows: MessageRow[]) {
+  return [...rows].sort((a, b) => a.created_at.localeCompare(b.created_at));
+}
+
+function mergeMessages(current: MessageRow[], incoming: MessageRow[]) {
+  const byId = new Map<string, MessageRow>();
+  for (const row of current) byId.set(row.id, row);
+  for (const row of incoming) if (isLiveMessage(row)) byId.set(row.id, row);
+  return sortMessages(Array.from(byId.values()));
+}
+
+function isDirectMessageFor(m: MessageRow, meId: string, partnerId: string) {
+  return (
+    (m.sender_id === meId && m.receiver_id === partnerId) ||
+    (m.sender_id === partnerId && m.receiver_id === meId)
+  );
+}
+
 export function useChat(meId: string | null, partnerId: string | null) {
   const [messages, setMessages] = useState<MessageRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingOlder, setLoadingOlder] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
   const [partnerTyping, setPartnerTyping] = useState(false);
   const [partnerOnline, setPartnerOnline] = useState(false);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const typingTimer = useRef<number | null>(null);
   const lastTypingSent = useRef(0);
 
-  // load + realtime
-  useEffect(() => {
-    if (!meId || !partnerId) return;
-    let cancelled = false;
-    setLoading(true);
-
-    (async () => {
-      const { data } = await supabase
+  const fetchMessages = useCallback(
+    async (before?: string) => {
+      if (!meId || !partnerId) return { rows: [] as MessageRow[], more: false };
+      let query = supabase
         .from("messages")
         .select("*")
         .or(
           `and(sender_id.eq.${meId},receiver_id.eq.${partnerId}),and(sender_id.eq.${partnerId},receiver_id.eq.${meId})`,
         )
-        .order("created_at", { ascending: true })
-        .limit(300);
-      if (!cancelled && data) setMessages(data as MessageRow[]);
+        .order("created_at", { ascending: false })
+        .limit(PAGE_SIZE);
+
+      if (before) query = query.lt("created_at", before);
+
+      const { data, error } = await query;
+      if (error) throw error;
+      const rawRows = (data ?? []) as MessageRow[];
+      return {
+        rows: sortMessages(rawRows.filter(isLiveMessage)),
+        more: rawRows.length === PAGE_SIZE,
+      };
+    },
+    [meId, partnerId],
+  );
+
+  // load + realtime
+  useEffect(() => {
+    if (!meId || !partnerId) {
+      setMessages([]);
       setLoading(false);
+      setHasMore(false);
+      return;
+    }
+    let cancelled = false;
+    setLoading(true);
+
+    (async () => {
+      try {
+        const page = await fetchMessages();
+        if (!cancelled) {
+          setMessages(page.rows);
+          setHasMore(page.more);
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
     })();
 
     const topic = `chat:${chatChannelKey(meId, partnerId)}`;
@@ -39,16 +94,14 @@ export function useChat(meId: string | null, partnerId: string | null) {
 
     ch.on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, (payload) => {
       const m = payload.new as MessageRow;
-      if (
-        (m.sender_id === meId && m.receiver_id === partnerId) ||
-        (m.sender_id === partnerId && m.receiver_id === meId)
-      ) {
-        setMessages((prev) => (prev.some((x) => x.id === m.id) ? prev : [...prev, m]));
-      }
+      if (isDirectMessageFor(m, meId, partnerId)) setMessages((prev) => mergeMessages(prev, [m]));
     });
     ch.on("postgres_changes", { event: "UPDATE", schema: "public", table: "messages" }, (payload) => {
       const m = payload.new as MessageRow;
-      setMessages((prev) => prev.map((x) => (x.id === m.id ? m : x)));
+      setMessages((prev) => {
+        if (!isDirectMessageFor(m, meId, partnerId)) return prev.filter((x) => x.id !== m.id);
+        return mergeMessages(prev.filter((x) => x.id !== m.id), [m]);
+      });
     });
     ch.on("postgres_changes", { event: "DELETE", schema: "public", table: "messages" }, (payload) => {
       const old = payload.old as { id: string };
@@ -75,7 +128,19 @@ export function useChat(meId: string | null, partnerId: string | null) {
       supabase.removeChannel(ch);
       channelRef.current = null;
     };
-  }, [meId, partnerId]);
+  }, [fetchMessages, meId, partnerId]);
+
+  const loadOlder = useCallback(async () => {
+    if (!meId || !partnerId || loadingOlder || !hasMore || messages.length === 0) return;
+    setLoadingOlder(true);
+    try {
+      const page = await fetchMessages(messages[0].created_at);
+      setMessages((prev) => mergeMessages(page.rows, prev));
+      setHasMore(page.more);
+    } finally {
+      setLoadingOlder(false);
+    }
+  }, [fetchMessages, hasMore, loadingOlder, meId, messages, partnerId]);
 
   // mark partner's unread as read
   useEffect(() => {
@@ -127,17 +192,44 @@ export function useChat(meId: string | null, partnerId: string | null) {
       disappear_seconds?: number | null;
     }) => {
       if (!meId || !partnerId) return;
-      const { error } = await supabase.from("messages").insert({
+      const now = new Date().toISOString();
+      const expires_at = expirySeconds(input.disappear_seconds ?? null);
+      const draft: MessageRow = {
+        id: crypto.randomUUID(),
         sender_id: meId,
         receiver_id: partnerId,
+        group_id: null,
         content: input.content ?? "",
         type: input.type ?? "text",
+        created_at: now,
         media_url: input.media_url ?? null,
-        media_meta: (input.media_meta ?? null) as never,
+        media_meta: input.media_meta ?? null,
         reply_to_id: input.reply_to_id ?? null,
-        expires_at: expirySeconds(input.disappear_seconds ?? null),
-      });
-      if (error) throw error;
+        reactions: {},
+        read_at: null,
+        pinned: false,
+        expires_at,
+      };
+      setMessages((prev) => mergeMessages(prev, [draft]));
+
+      const insertPayload = {
+        sender_id: meId,
+        receiver_id: partnerId,
+        content: draft.content,
+        type: draft.type,
+        media_url: draft.media_url,
+        media_meta: (draft.media_meta ?? null) as never,
+        reply_to_id: draft.reply_to_id,
+        expires_at,
+      };
+      const { data, error } = await supabase.from("messages").insert(insertPayload).select("*").single();
+      if (error) {
+        setMessages((prev) => prev.filter((m) => m.id !== draft.id));
+        throw error;
+      }
+      if (data) {
+        setMessages((prev) => mergeMessages(prev.filter((m) => m.id !== draft.id), [data as MessageRow]));
+      }
     },
     [meId, partnerId],
   );
@@ -167,5 +259,5 @@ export function useChat(meId: string | null, partnerId: string | null) {
     await supabase.from("messages").update({ expires_at }).eq("id", m.id);
   }, []);
 
-  return { messages, loading, partnerTyping, partnerOnline, send, react, togglePin, remove, setVanish, sendTyping };
+  return { messages, loading, loadingOlder, hasMore, loadOlder, partnerTyping, partnerOnline, send, react, togglePin, remove, setVanish, sendTyping };
 }
