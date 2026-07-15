@@ -458,25 +458,39 @@ function TimelinePage() {
                           </div>
 
                           {/* Body */}
-                          <div className="pl-3">
+                          <div className="relative">
                             {it.mood && (
-                              <div className="text-2xl mb-2 leading-none">{it.mood}</div>
+                              <div
+                                className="text-3xl mb-3 leading-none"
+                                style={{ filter: `drop-shadow(0 4px 12px ${meta.tint}66)` }}
+                              >
+                                {it.mood}
+                              </div>
                             )}
-                            <h3 className="font-serif text-xl leading-snug text-white/95">
+                            <h3 className="font-serif text-[26px] leading-tight tracking-tight text-white/95">
                               {it.title}
                             </h3>
                             {it.body && (
-                              <p className="text-sm text-white/55 mt-2 leading-relaxed line-clamp-4">
+                              <p className="text-[13px] text-white/55 mt-2.5 leading-relaxed line-clamp-4">
                                 {it.body}
                               </p>
                             )}
                           </div>
 
-                          {/* Footer — day counter only, quiet */}
+                          {/* Footer — hairline + day counter */}
                           {me?.anniversary_date && (
-                            <div className="pl-3 mt-4 text-[10px] uppercase tracking-[0.22em] text-white/40">
-                              Day {Math.max(0, daysBetween(me.anniversary_date, it.date))}
-                            </div>
+                            <>
+                              <div
+                                className="mt-5 h-px w-full"
+                                style={{
+                                  background:
+                                    "linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent)",
+                                }}
+                              />
+                              <div className="mt-3 text-[10px] uppercase tracking-[0.28em] text-white/40">
+                                Day {Math.max(0, daysBetween(me.anniversary_date, it.date))}
+                              </div>
+                            </>
                           )}
                         </div>
                       </div>
