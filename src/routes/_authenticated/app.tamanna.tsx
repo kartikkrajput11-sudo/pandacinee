@@ -439,6 +439,29 @@ function UserRow({ user: u }: { user: AdminUserRow }) {
   const [pinOpen, setPinOpen] = useState(false);
   const [pin, setPin] = useState("");
   const [shake, setShake] = useState(false);
+  const [coinsOpen, setCoinsOpen] = useState(false);
+  const [coinAmt, setCoinAmt] = useState("");
+  const [sendingCoins, setSendingCoins] = useState(false);
+  const sendCoins = useServerFn(adminSendCoins);
+
+  async function submitCoins(e: React.FormEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    const n = parseInt(coinAmt, 10);
+    if (!Number.isFinite(n) || n === 0) { toast.error("Enter a non-zero amount"); return; }
+    setSendingCoins(true);
+    try {
+      const res = await sendCoins({ data: { userId: u.id, amount: n } });
+      toast.success(`Wallet updated · ${res.coins} coins`);
+      qc.invalidateQueries({ queryKey: ["admin", "users"] });
+      setCoinsOpen(false);
+      setCoinAmt("");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not send coins");
+    } finally {
+      setSendingCoins(false);
+    }
+  }
 
   async function onDelete(e: React.MouseEvent) {
     e.preventDefault();
