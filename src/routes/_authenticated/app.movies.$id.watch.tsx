@@ -934,10 +934,14 @@ function CatalogWatch({ id }: { id: string }) {
         )}
 
         {/* Player — framed like a cinema screen */}
-        <div className="relative">
-          {/* Petal glow halo */}
-          <div aria-hidden className="absolute -inset-2 rounded-[28px] bg-petal/20 blur-3xl opacity-60 pointer-events-none" />
-          <div className="relative rounded-2xl md:rounded-3xl overflow-hidden bg-black border border-petal/30 aspect-video shadow-[0_30px_80px_-20px_rgba(238,130,175,0.35)]">
+        <div className="relative group/player">
+          {/* Layered petal halo — slow, breathing */}
+          <div aria-hidden className="absolute -inset-3 rounded-[32px] bg-petal/25 blur-[80px] opacity-70 pointer-events-none animate-[halo-pulse_6s_ease-in-out_infinite]" />
+          <div aria-hidden className="absolute -inset-1 rounded-[28px] bg-gradient-to-br from-petal/30 via-transparent to-petal/10 blur-2xl opacity-70 pointer-events-none" />
+          {/* Hairline conic sheen on the frame */}
+          <div aria-hidden className="absolute -inset-[1px] rounded-2xl md:rounded-3xl bg-[conic-gradient(from_120deg,transparent_0deg,rgba(238,130,175,0.35)_60deg,transparent_140deg,transparent_220deg,rgba(238,130,175,0.25)_300deg,transparent_360deg)] opacity-60 pointer-events-none" />
+          <div className="relative rounded-2xl md:rounded-3xl overflow-hidden bg-black border border-petal/30 aspect-video shadow-[0_40px_100px_-24px_rgba(238,130,175,0.4),0_0_0_1px_rgba(238,130,175,0.15)_inset] transition-shadow duration-700 group-hover/player:shadow-[0_50px_120px_-20px_rgba(238,130,175,0.55),0_0_0_1px_rgba(238,130,175,0.25)_inset]">
+
             {started ? (
               isPandacine && pandacine ? (
                 <CustomMoviePlayer
