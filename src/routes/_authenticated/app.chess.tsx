@@ -80,18 +80,22 @@ function ChessPage() {
   const partner = profileData?.partner;
 
   const gameId = search.game ?? null;
+  const mode = search.mode;
 
-  if (!gameId) return <Lobby me={me} partner={partner} onStart={(mode, ai) => {
-    if (mode === "partner") {
-      void startPartnerGame(me?.id, partner?.id).then((id) => {
-        if (id) navigate({ to: "/app/chess", search: { game: id, mode: "partner" } });
-      });
-    } else {
-      navigate({ to: "/app/chess", search: { mode, ai } });
-    }
-  }} />;
+  // Show lobby only when no active session — partner needs a game id, local modes need a mode selection.
+  if (!gameId && mode !== "self" && mode !== "ai") {
+    return <Lobby me={me} partner={partner} onStart={(nextMode, ai) => {
+      if (nextMode === "partner") {
+        void startPartnerGame(me?.id, partner?.id).then((id) => {
+          if (id) navigate({ to: "/app/chess", search: { game: id, mode: "partner" } });
+        });
+      } else {
+        navigate({ to: "/app/chess", search: { mode: nextMode, ai } });
+      }
+    }} />;
+  }
 
-  return <GameScreen gameId={gameId} mode={search.mode ?? "partner"} aiLevel={search.ai ?? "medium"} meId={me?.id ?? null} />;
+  return <GameScreen gameId={gameId} mode={mode ?? "partner"} aiLevel={search.ai ?? "medium"} meId={me?.id ?? null} partnerName={partner?.display_name ?? "your panda"} />;
 }
 
 async function startPartnerGame(meId?: string | null, partnerId?: string | null): Promise<string | null> {
@@ -288,11 +292,13 @@ function GameScreen({
   mode,
   aiLevel,
   meId,
+  partnerName,
 }: {
-  gameId: string;
+  gameId: string | null;
   mode: ChessMode;
   aiLevel: AiLevel;
   meId: string | null;
+  partnerName: string;
 }) {
   const isLocal = mode !== "partner";
   const [game, setGame] = useState<GameRow | null>(null);
@@ -303,11 +309,12 @@ function GameScreen({
   const [historyCursor, setHistoryCursor] = useState<number | null>(null); // null = live
   const [thinking, setThinking] = useState(false);
   const [confetti, setConfetti] = useState(false);
+  const [partnerHere, setPartnerHere] = useState(false);
   const aiRef = useRef(false);
 
   // ── Load / subscribe for partner games ──
   useEffect(() => {
-    if (isLocal) return;
+    if (isLocal || !gameId) return;
     let cancelled = false;
     supabase.from("chess_games").select("*").eq("id", gameId).maybeSingle().then(({ data }) => {
       if (cancelled || !data) return;
@@ -316,7 +323,7 @@ function GameScreen({
       setChess(loadChess(row.pgn, row.fen));
     });
     const ch = supabase
-      .channel(`chess:${gameId}`)
+      .channel(`chess:${gameId}`, { config: { presence: { key: meId ?? "anon" } } })
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "chess_games", filter: `id=eq.${gameId}` }, (p) => {
         const row = p.new as GameRow;
         setGame(row);
@@ -324,13 +331,20 @@ function GameScreen({
         setHistoryCursor(null);
         playTone(row.status === "checkmate" ? 660 : 440, 90, muted);
       })
-      .subscribe();
+      .on("presence", { event: "sync" }, () => {
+        const state = ch.presenceState();
+        const ids = Object.keys(state);
+        setPartnerHere(ids.length >= 2);
+      })
+      .subscribe(async (status) => {
+        if (status === "SUBSCRIBED" && meId) await ch.track({ id: meId, at: Date.now() });
+      });
     return () => {
       cancelled = true;
       supabase.removeChannel(ch);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gameId, isLocal]);
+  }, [gameId, isLocal, meId]);
 
   // Auto-flip for black player
   useEffect(() => {
@@ -462,9 +476,11 @@ function GameScreen({
         <button onClick={() => setMuted((m) => !m)} className="p-2 rounded-full bg-surface border border-petal/20">
           {muted ? <VolumeX className="size-4" /> : <Volume2 className="size-4" />}
         </button>
-        <button onClick={() => setOrientation((o) => (o === "w" ? "b" : "w"))} className="p-2 rounded-full bg-surface border border-petal/20">
-          <RefreshCcw className="size-4" />
-        </button>
+        {mode !== "partner" && (
+          <button onClick={() => setOrientation((o) => (o === "w" ? "b" : "w"))} className="p-2 rounded-full bg-surface border border-petal/20">
+            <RefreshCcw className="size-4" />
+          </button>
+        )}
       </header>
 
       {/* Top player bar */}
@@ -476,14 +492,29 @@ function GameScreen({
         active={displayChess.turn() === (orientation === "w" ? "b" : "w") && result.status === "active"}
       />
 
-      <div className="flex justify-center my-3">
+      <div className="flex justify-center my-3 relative">
         <ChessBoard
           chess={displayChess}
           orientation={orientation}
-          canMoveColor={historyCursor !== null || result.status !== "active" ? null : myColor}
+          canMoveColor={
+            mode === "partner" && !partnerHere
+              ? null
+              : historyCursor !== null || result.status !== "active"
+              ? null
+              : myColor
+          }
           lastMove={lastMove}
           onMove={tryMove}
         />
+        {mode === "partner" && !partnerHere && (
+          <div className="absolute inset-0 flex items-center justify-center rounded-3xl bg-velvet/70 backdrop-blur-sm z-10">
+            <div className="text-center px-6">
+              <div className="text-4xl mb-2 animate-bounce">🐼</div>
+              <p className="font-serif italic text-lg">Waiting for {partnerName}…</p>
+              <p className="text-xs text-candle-muted mt-1">The match starts the moment your panda arrives.</p>
+            </div>
+          </div>
+        )}
       </div>
 
       <PlayerBar
