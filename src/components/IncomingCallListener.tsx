@@ -133,6 +133,16 @@ export function IncomingCallListener() {
 
   async function accept() {
     if (!incoming) return;
+    const { data: u } = await supabase.auth.getUser();
+    if (u.user) {
+      // Tell my other devices this call was picked up so their ringers stop.
+      await supabase.from("call_signals").insert({
+        from_id: u.user.id,
+        to_id: u.user.id,
+        kind: "accepted",
+        payload: { peer_id: incoming.from_id } as never,
+      });
+    }
     navigate({ to: "/app/call/$peerId", params: { peerId: incoming.from_id }, search: { role: "callee", mode: incoming.mode } });
     setIncoming(null);
   }
@@ -141,11 +151,19 @@ export function IncomingCallListener() {
     if (!incoming) return;
     const { data: u } = await supabase.auth.getUser();
     if (u.user) {
+      // Notify the caller
       await supabase.from("call_signals").insert({
         from_id: u.user.id,
         to_id: incoming.from_id,
         kind: "decline",
         payload: {},
+      });
+      // Notify my other devices so their ringers stop.
+      await supabase.from("call_signals").insert({
+        from_id: u.user.id,
+        to_id: u.user.id,
+        kind: "declined",
+        payload: { peer_id: incoming.from_id } as never,
       });
     }
     setIncoming(null);
