@@ -321,41 +321,48 @@ function TimelinePage() {
             <Link to="/app/memories" className="inline-block h-11 px-5 leading-[44px] rounded-full bg-petal text-velvet font-semibold text-sm">Add memory</Link>
           </div>
         ) : (
-          <div className="relative pl-10">
-            {/* Ornate rail */}
-            <div className="absolute left-4 top-2 bottom-2 w-[3px] overflow-hidden rounded-full">
+          <div className="relative -mx-5">
+            {/* Horizontal ornate rail — sits behind the cards */}
+            <div className="pointer-events-none absolute left-0 right-0 top-1/2 -translate-y-1/2 h-[3px] overflow-hidden rounded-full">
               <div className="absolute inset-0" style={{
                 background:
-                  "linear-gradient(180deg, transparent 0%, #f0d78c66 15%, #e88aab66 50%, #5cbdb966 85%, transparent 100%)",
+                  "linear-gradient(90deg, transparent 0%, #f0d78c66 15%, #e88aab66 50%, #5cbdb966 85%, transparent 100%)",
               }} />
               <div className="absolute inset-0 opacity-70" style={{
-                backgroundImage: "repeating-linear-gradient(180deg, transparent 0 10px, #ffffff22 10px 11px)",
+                backgroundImage: "repeating-linear-gradient(90deg, transparent 0 10px, #ffffff22 10px 11px)",
               }} />
               <div
-                className="absolute -left-[3px] w-[9px] h-28 rounded-full"
+                className="absolute -top-[3px] h-[9px] w-28 rounded-full"
                 style={{
-                  background: "linear-gradient(to bottom, transparent, #fff8e7, #f0d78c, transparent)",
-                  animation: "timeline-travel 6s linear infinite",
+                  background: "linear-gradient(to right, transparent, #fff8e7, #f0d78c, transparent)",
+                  animation: "timeline-travel-x 6s linear infinite",
                   filter: "blur(1px) drop-shadow(0 0 12px #f0d78c)",
                 }}
               />
             </div>
 
-            <ol className="space-y-6">
+            {/* Edge fades */}
+            <div className="pointer-events-none absolute inset-y-0 left-0 w-8 z-10" style={{ background: "linear-gradient(90deg, #0a0714, transparent)" }} />
+            <div className="pointer-events-none absolute inset-y-0 right-0 w-8 z-10" style={{ background: "linear-gradient(270deg, #0a0714, transparent)" }} />
+
+            <ol
+              className="relative flex gap-4 overflow-x-auto snap-x snap-mandatory scroll-smooth px-5 py-4 scrollbar-hide"
+              style={{ scrollPaddingLeft: "1.25rem", scrollPaddingRight: "1.25rem" }}
+            >
               {items.map((it, i) => {
                 const meta = KIND_META[it.kind];
                 const Icon = meta.Icon;
                 const Ornament = meta.ornament;
                 const isActive = i === activeIdx;
                 return (
-                  <li key={it.id}>
+                  <li key={it.id} className="snap-center shrink-0 w-[78vw] max-w-[320px]">
                     <div
                       ref={(el) => { cardsRef.current[i] = el; }}
-                      className="relative"
+                      className="relative pt-10"
                       style={{ animation: "timeline-in 0.8s cubic-bezier(.2,.7,.2,1) both", animationDelay: `${Math.min(i * 100, 900)}ms` }}
                     >
-                      {/* Ornate dot with rotating ring */}
-                      <div className="absolute -left-[42px] top-6">
+                      {/* Ornate dot with rotating ring — sits on the rail above the card */}
+                      <div className="absolute left-1/2 -translate-x-1/2 top-1">
                         <span
                           className="absolute inset-0 -m-2 rounded-full"
                           style={{
@@ -385,6 +392,13 @@ function TimelinePage() {
                         </div>
                       </div>
 
+                      {/* Connector from dot down to card */}
+                      <span
+                        aria-hidden
+                        className="absolute left-1/2 -translate-x-1/2 top-8 w-px h-4"
+                        style={{ background: `linear-gradient(180deg, ${meta.tint}, transparent)` }}
+                      />
+
                       {/* Card */}
                       <div
                         className="relative rounded-[28px] p-[1.5px] overflow-hidden group"
@@ -396,7 +410,7 @@ function TimelinePage() {
                         }}
                       >
                         <div
-                          className="rounded-[26px] p-4 backdrop-blur-xl relative overflow-hidden"
+                          className="rounded-[26px] p-4 backdrop-blur-xl relative overflow-hidden min-h-[280px]"
                           style={{
                             background: "linear-gradient(160deg, rgba(20,10,32,0.85), rgba(30,14,48,0.7))",
                           }}
@@ -426,7 +440,7 @@ function TimelinePage() {
                             >
                               {meta.label}
                             </span>
-                            <span className="ml-auto flex items-center gap-1 text-[11px] text-white/70 bg-white/5 border border-white/10 rounded-full px-2 py-0.5">
+                            <span className="ml-auto flex items-center gap-1 text-[10px] text-white/70 bg-white/5 border border-white/10 rounded-full px-2 py-0.5">
                               <Calendar className="size-3" /> {fmtDate(it.date)}
                             </span>
                           </div>
@@ -456,7 +470,7 @@ function TimelinePage() {
                               >
                                 {it.title}
                               </h3>
-                              {it.body && <p className="text-sm text-white/70 mt-1 leading-relaxed">{it.body}</p>}
+                              {it.body && <p className="text-sm text-white/70 mt-1 leading-relaxed line-clamp-4">{it.body}</p>}
                             </div>
                           </div>
 
@@ -492,8 +506,30 @@ function TimelinePage() {
                 );
               })}
             </ol>
+
+            {/* Pagination dots */}
+            <div className="mt-4 flex items-center justify-center gap-1.5">
+              {items.map((it, i) => {
+                const isActive = i === activeIdx;
+                const tint = KIND_META[it.kind].tint;
+                return (
+                  <button
+                    key={it.id}
+                    aria-label={`Go to ${it.title}`}
+                    onClick={() => setActiveIdx(i)}
+                    className="h-1.5 rounded-full transition-all"
+                    style={{
+                      width: isActive ? 22 : 6,
+                      background: isActive ? tint : "rgba(255,255,255,0.25)",
+                      boxShadow: isActive ? `0 0 10px ${tint}` : undefined,
+                    }}
+                  />
+                );
+              })}
+            </div>
           </div>
         )}
+
 
         <div className="mt-10 flex items-center justify-center">
           <Link
