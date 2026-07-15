@@ -295,6 +295,13 @@ function WatchPartyRoom() {
             <p className="text-[11px] text-candle-muted font-mono tracking-widest">{party.code}</p>
           </div>
           <button
+            onClick={() => setInviteOpen(true)}
+            className="h-8 px-3 rounded-full bg-petal text-white text-xs font-medium flex items-center gap-1.5 hover:bg-petal/90 transition-colors"
+            aria-label="Invite friends"
+          >
+            <UserPlus className="size-3.5" /> Invite
+          </button>
+          <button
             onClick={copyInvite}
             className="p-2 rounded-full hover:bg-surface transition-colors"
             aria-label="Copy invite"
