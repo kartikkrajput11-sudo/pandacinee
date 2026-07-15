@@ -146,7 +146,12 @@ function RitualsRoute() {
               <div className="flex-1">
                 <p className="font-serif italic text-xl leading-tight">{r.name}</p>
                 <p className="text-xs text-candle-muted mt-1">{r.blurb}</p>
-                <p className="text-[10px] uppercase tracking-widest text-petal mt-2">{r.minutes} min</p>
+                <div className="flex items-center gap-3 mt-2">
+                  <p className="text-[10px] uppercase tracking-widest text-petal">{r.minutes} min</p>
+                  <p className="text-[10px] uppercase tracking-widest text-petal/80 inline-flex items-center gap-1">
+                    <Coins className="size-3" /> +{RITUAL_REWARD[r.id] ?? 15} each
+                  </p>
+                </div>
               </div>
               <div className="text-petal font-serif italic text-2xl mt-1 opacity-60">→</div>
             </button>
