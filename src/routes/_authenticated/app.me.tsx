@@ -159,6 +159,22 @@ function Me() {
             </div>
           </div>
 
+          <Link
+            to="/app/shop"
+            className="flex items-center justify-between p-3 mb-4 rounded-2xl border border-petal/30 bg-petal-soft/40 hover:bg-petal-soft/60 transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <Coins className="size-5 text-petal" />
+              <span className="font-semibold text-petal">{(me as any).coins ?? 0} coins</span>
+            </div>
+            <span className="text-xs text-petal inline-flex items-center gap-1">
+              Tag shop <ChevronRight className="size-3" />
+            </span>
+          </Link>
+
+          <AchievementBadges userId={me.id} />
+
+
           <div className="space-y-3 mb-4">
             <Field label="Display name">
               <input
