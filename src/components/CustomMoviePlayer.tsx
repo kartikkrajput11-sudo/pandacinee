@@ -299,10 +299,17 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
 
       {/* Controls */}
       <div
-        className={`absolute inset-x-0 bottom-0 p-3 md:p-4 bg-gradient-to-t from-black/90 via-black/40 to-transparent transition-opacity duration-300 ${
-          showControls || !playing ? "opacity-100" : "opacity-0 pointer-events-none"
+        className={`absolute inset-x-0 bottom-0 px-3 md:px-6 pb-3 md:pb-5 pt-16 bg-gradient-to-t from-black/95 via-black/50 to-transparent transition-all duration-500 ${
+          showControls || !playing ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2 pointer-events-none"
         }`}
       >
+        {/* Luxurious glass panel wrapping the bar */}
+        <div className="relative rounded-2xl p-2 md:p-3 bg-white/[0.06] backdrop-blur-2xl border border-white/10 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.7),inset_0_1px_0_rgba(255,255,255,0.08)] overflow-hidden">
+          {/* Petal glow accent */}
+          <div aria-hidden className="pointer-events-none absolute -top-16 -left-10 h-32 w-56 rounded-full bg-petal/20 blur-3xl" />
+          <div aria-hidden className="pointer-events-none absolute -bottom-16 -right-10 h-32 w-56 rounded-full bg-petal/15 blur-3xl" />
+          {/* Sheen line at top */}
+          <div aria-hidden className="pointer-events-none absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent" />
         {/* Progress — luxury scrub bar */}
         <div className="relative mb-3 group/scrub py-2">
           {/* Ambient glow that intensifies on hover */}
@@ -485,6 +492,7 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
               {fullscreen ? <Minimize2 className="size-4" /> : <Maximize2 className="size-4" />}
             </button>
           </div>
+        </div>
         </div>
       </div>
     </div>
