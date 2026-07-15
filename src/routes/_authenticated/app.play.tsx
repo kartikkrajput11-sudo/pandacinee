@@ -31,7 +31,19 @@ function Play() {
         </div>
       )}
 
+      <Link
+        to="/app/music"
+        className="mb-3 p-4 bg-surface rounded-3xl border border-border flex items-center gap-3 hover:border-petal/40 transition-colors"
+      >
+        <div className="size-11 rounded-2xl bg-petal-soft text-petal flex items-center justify-center text-2xl">🎵</div>
+        <div className="flex-1 min-w-0">
+          <p className="font-serif italic text-lg leading-tight">Your music</p>
+          <p className="text-[11px] text-candle-muted mt-0.5">Save YouTube tracks & playlists, play them anywhere in the app.</p>
+        </div>
+      </Link>
+
       <div className="grid grid-cols-2 gap-3">
+
         {GAME_KINDS.map((kind) => {
           const g = GAMES[kind];
           const cardCls =
