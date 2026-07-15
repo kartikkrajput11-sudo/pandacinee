@@ -131,7 +131,6 @@ function Call() {
           v.srcObject = remoteStream;
         }
         v.muted = !speakerOn;
-        // @ts-expect-error - vendor prop
         v.playsInline = true;
         const p = v.play?.();
         if (p && typeof (p as Promise<void>).catch === "function") {
