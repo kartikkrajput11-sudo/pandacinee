@@ -15,7 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
  * Nothing is persisted. The room is scoped to the pair + title + mediaType.
  */
 
-export type PlayerEvent = "play" | "pause" | "seeked" | "timeupdate" | "ended" | "ready" | string;
+export type PlayerEvent = "play" | "pause" | "seeked" | "timeupdate" | "ended" | "ready" | "ratechange" | string;
 
 export type PeerState = {
   event: PlayerEvent;
@@ -23,6 +23,9 @@ export type PeerState = {
   duration: number;
   updatedAt: number;
   sourceIdx?: number;
+  playbackRate?: number;
+  season?: number | null;
+  episode?: number | null;
   from?: string;
 };
 
