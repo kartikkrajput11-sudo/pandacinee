@@ -13,8 +13,8 @@ export const Route = createFileRoute("/_authenticated/app/me")({
   component: Me,
 });
 
-const EMOJIS = ["🐼", "❤️", "🌙", "✨", "🌸", "🍓", "🦋", "☕", "🎬", "🌊"];
 const COLORS = ["#f87171", "#a78bfa", "#f0abfc", "#fcd34d", "#86efac", "#7dd3fc", "#fda4af"];
+const MAX_EQUIPPED = 3;
 
 function Me() {
   const navigate = useNavigate();
