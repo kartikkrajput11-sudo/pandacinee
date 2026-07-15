@@ -209,71 +209,100 @@ function CatalogWatch({ id }: { id: string }) {
 
   useEffect(() => {
     let alive = true;
-    (async () => {
-      const [m, ovRes] = await Promise.all([
-        fetchMovie({ data: { id: tmdbId } }).catch(() => null),
-        supabase
-          .from("custom_movies")
-          .select("id, title, overview, poster_url, backdrop_url, runtime, video_url, video_storage_path, media_type, tmdb_id")
-          .eq("tmdb_id", tmdbId)
-          .maybeSingle(),
+
+    // 1) Instant local render: hit Supabase first and paint whatever we have.
+    const localPromise = supabase
+      .from("custom_movies")
+      .select("id, title, overview, poster_url, backdrop_url, runtime, video_url, video_storage_path, media_type, tmdb_id")
+      .eq("tmdb_id", tmdbId)
+      .maybeSingle()
+      .then((ovRes) => {
+        if (!alive) return null;
+        const ov = ovRes.data as {
+          id?: string; title?: string; overview?: string | null;
+          poster_url?: string | null; backdrop_url?: string | null; runtime?: number | null;
+          video_url?: string | null; video_storage_path?: string | null;
+          media_type?: "movie" | "tv" | null;
+        } | null;
+        if (ov) {
+          // Paint immediately from local data
+          setMovie((prev: any) => ({
+            ...(prev ?? {}),
+            id: tmdbId,
+            title: ov.title ?? prev?.title ?? "",
+            overview: ov.overview ?? prev?.overview ?? "",
+            poster_path: ov.poster_url ?? prev?.poster_path ?? null,
+            backdrop_path: ov.backdrop_url ?? prev?.backdrop_path ?? null,
+            runtime: ov.runtime ?? prev?.runtime ?? null,
+            media_type: ov.media_type ?? prev?.media_type ?? null,
+          }));
+          const tv = ov.media_type === "tv";
+          setIsTv(tv);
+          setCustomMovieId(ov.id ?? null);
+
+          // Resolve movie-level Pandacine source right away
+          if (!tv) {
+            if (ov.video_storage_path) {
+              supabase.storage
+                .from("custom-movies")
+                .createSignedUrl(ov.video_storage_path, 60 * 60 * 6)
+                .then(({ data: signed }) => {
+                  if (!alive) return;
+                  if (signed?.signedUrl) setPandacine({ videoSrc: signed.signedUrl, title: ov.title ?? null });
+                });
+            } else if (ov.video_url) {
+              setPandacine({ videoSrc: ov.video_url, title: ov.title ?? null });
+            } else {
+              setPandacine(null);
+            }
+          }
+        }
+        return ov;
+      });
+
+    // 2) Enrich with TMDB in the background (release date, genres, etc.)
+    fetchMovie({ data: { id: tmdbId } })
+      .catch(() => null)
+      .then((m) => {
+        if (!alive || !m) return;
+        setMovie((prev: any) => ({
+          ...m,
+          // Prefer any local overrides already in state
+          title: prev?.title || m.title,
+          overview: prev?.overview || m.overview,
+          poster_path: prev?.poster_path || m.poster_path,
+          backdrop_path: prev?.backdrop_path || m.backdrop_path,
+          runtime: prev?.runtime || m.runtime,
+        }));
+        if (m.media_type === "tv") setIsTv(true);
+      });
+
+    // 3) After local paint, if it's a TV show fetch season list + episode overrides
+    localPromise.then(async (ov) => {
+      if (!alive) return;
+      const tv = ov?.media_type === "tv";
+      if (!tv) { setTvSeasons([]); setCustomEps([]); return; }
+      const [detail, epsRes] = await Promise.all([
+        tvDetailFn({ data: { id: tmdbId } }).catch(() => null),
+        ov?.id
+          ? supabase.from("custom_episodes")
+              .select("season, episode, title, video_url, video_storage_path, use_vidking")
+              .eq("movie_id", ov.id)
+          : Promise.resolve({ data: [] } as any),
       ]);
       if (!alive) return;
-      const ov = ovRes.data as {
-        id?: string; title?: string; overview?: string | null;
-        poster_url?: string | null; backdrop_url?: string | null; runtime?: number | null;
-        video_url?: string | null; video_storage_path?: string | null;
-        media_type?: "movie" | "tv" | null;
-      } | null;
-      if (m && ov) {
-        if (ov.title) m.title = ov.title;
-        if (ov.overview != null) m.overview = ov.overview;
-        if (ov.poster_url) m.poster_path = ov.poster_url;
-        if (ov.backdrop_url) m.backdrop_path = ov.backdrop_url;
-        if (ov.runtime) m.runtime = ov.runtime;
+      if (detail?.seasons) {
+        const s = detail.seasons.filter((x: any) => x.season_number > 0);
+        setTvSeasons(s);
+        if (s.length && !s.find((x: any) => x.season_number === season)) setSeason(s[0].season_number);
       }
-      setMovie(m);
+      setCustomEps(((epsRes as any).data ?? []) as any);
+    });
 
-      const tv = ov?.media_type === "tv" || m?.media_type === "tv";
-      setIsTv(tv);
-      setCustomMovieId(ov?.id ?? null);
-
-      if (tv) {
-        // Load season list + per-episode admin overrides in parallel
-        const [detail, epsRes] = await Promise.all([
-          tvDetailFn({ data: { id: tmdbId } }).catch(() => null),
-          ov?.id
-            ? supabase.from("custom_episodes")
-                .select("season, episode, title, video_url, video_storage_path, use_vidking")
-                .eq("movie_id", ov.id)
-            : Promise.resolve({ data: [] } as any),
-        ]);
-        if (!alive) return;
-        if (detail?.seasons) {
-          const s = detail.seasons.filter((x: any) => x.season_number > 0);
-          setTvSeasons(s);
-          if (s.length && !s.find((x: any) => x.season_number === season)) setSeason(s[0].season_number);
-        }
-        setCustomEps(((epsRes as any).data ?? []) as any);
-      } else {
-        setTvSeasons([]);
-        setCustomEps([]);
-        // Movie: resolve Pandacine source from show-level fields
-        if (ov?.video_storage_path) {
-          const { data: signed } = await supabase.storage
-            .from("custom-movies")
-            .createSignedUrl(ov.video_storage_path, 60 * 60 * 6);
-          if (signed?.signedUrl) setPandacine({ videoSrc: signed.signedUrl, title: ov.title ?? null });
-        } else if (ov?.video_url) {
-          setPandacine({ videoSrc: ov.video_url, title: ov.title ?? null });
-        } else {
-          setPandacine(null);
-        }
-      }
-    })();
     return () => { alive = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tmdbId]);
+
 
   // Load episodes for the selected season (TV only)
   useEffect(() => {
@@ -905,10 +934,14 @@ function CatalogWatch({ id }: { id: string }) {
         )}
 
         {/* Player — framed like a cinema screen */}
-        <div className="relative">
-          {/* Petal glow halo */}
-          <div aria-hidden className="absolute -inset-2 rounded-[28px] bg-petal/20 blur-3xl opacity-60 pointer-events-none" />
-          <div className="relative rounded-2xl md:rounded-3xl overflow-hidden bg-black border border-petal/30 aspect-video shadow-[0_30px_80px_-20px_rgba(238,130,175,0.35)]">
+        <div className="relative group/player">
+          {/* Layered petal halo — slow, breathing */}
+          <div aria-hidden className="absolute -inset-3 rounded-[32px] bg-petal/25 blur-[80px] opacity-70 pointer-events-none animate-[halo-pulse_6s_ease-in-out_infinite]" />
+          <div aria-hidden className="absolute -inset-1 rounded-[28px] bg-gradient-to-br from-petal/30 via-transparent to-petal/10 blur-2xl opacity-70 pointer-events-none" />
+          {/* Hairline conic sheen on the frame */}
+          <div aria-hidden className="absolute -inset-[1px] rounded-2xl md:rounded-3xl bg-[conic-gradient(from_120deg,transparent_0deg,rgba(238,130,175,0.35)_60deg,transparent_140deg,transparent_220deg,rgba(238,130,175,0.25)_300deg,transparent_360deg)] opacity-60 pointer-events-none" />
+          <div className="relative rounded-2xl md:rounded-3xl overflow-hidden bg-black border border-petal/30 aspect-video shadow-[0_40px_100px_-24px_rgba(238,130,175,0.4),0_0_0_1px_rgba(238,130,175,0.15)_inset] transition-shadow duration-700 group-hover/player:shadow-[0_50px_120px_-20px_rgba(238,130,175,0.55),0_0_0_1px_rgba(238,130,175,0.25)_inset]">
+
             {started ? (
               isPandacine && pandacine ? (
                 <CustomMoviePlayer
@@ -970,31 +1003,44 @@ function CatalogWatch({ id }: { id: string }) {
             ) : (
               <button
                 onClick={() => { setStarted(true); setPlayerLoading(true); }}
-                className="absolute inset-0 w-full h-full flex flex-col items-center justify-center gap-3 group"
+                className="absolute inset-0 w-full h-full flex flex-col items-center justify-center gap-3 group overflow-hidden"
                 style={
                   backdropUrl
                     ? {
-                        backgroundImage: `linear-gradient(to top, rgba(10,5,15,0.9), rgba(10,5,15,0.35)), url(${backdropUrl})`,
+                        backgroundImage: `linear-gradient(to top, rgba(10,5,15,0.92), rgba(10,5,15,0.35)), url(${backdropUrl})`,
                         backgroundSize: "cover",
                         backgroundPosition: "center",
                       }
                     : undefined
                 }
               >
+                {/* Slowly drifting blur veil for luxury depth */}
+                <span aria-hidden className="absolute inset-0 backdrop-blur-[2px] bg-velvet/20" />
+                <span aria-hidden className="absolute -inset-1/4 bg-[radial-gradient(circle_at_30%_40%,rgba(238,130,175,0.28),transparent_60%)] blur-3xl animate-[halo-pulse_8s_ease-in-out_infinite]" />
+
                 {partnerIsHost && peer && peer.event !== "pause" && (
-                  <span className="absolute top-4 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-full bg-petal text-velvet text-[10px] uppercase tracking-[0.25em] font-bold shadow-lg shadow-petal/50 animate-pulse">
+                  <span className="relative z-10 absolute top-4 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-full bg-petal/90 backdrop-blur text-velvet text-[10px] uppercase tracking-[0.25em] font-bold shadow-lg shadow-petal/50 animate-pulse">
                     {partnerFirst} is watching · tap to join
                   </span>
                 )}
-                <span className={`size-20 md:size-24 rounded-full bg-petal text-velvet flex items-center justify-center shadow-2xl shadow-petal/50 group-hover:scale-105 transition ring-4 ring-petal/20 ${partnerIsHost && peer && peer.event !== "pause" ? "animate-pulse" : ""}`}>
-                  <Play className="size-8 md:size-10 fill-velvet ml-1" />
+                <span className="relative z-10 flex flex-col items-center gap-3">
+                  {/* Concentric rings */}
+                  <span className="relative">
+                    <span aria-hidden className="absolute inset-0 rounded-full bg-petal/25 blur-2xl scale-150 animate-[halo-pulse_3s_ease-in-out_infinite]" />
+                    <span aria-hidden className="absolute -inset-4 rounded-full border border-petal/25 animate-[ring-expand_3s_ease-out_infinite]" />
+                    <span aria-hidden className="absolute -inset-4 rounded-full border border-petal/20 animate-[ring-expand_3s_ease-out_infinite] [animation-delay:1.2s]" />
+                    <span className={`relative size-20 md:size-24 rounded-full bg-gradient-to-br from-petal to-petal/80 text-velvet flex items-center justify-center shadow-[0_20px_60px_-10px_rgba(238,130,175,0.7)] group-hover:scale-110 group-active:scale-95 transition-transform duration-500 ring-4 ring-petal/20 backdrop-blur-sm ${partnerIsHost && peer && peer.event !== "pause" ? "animate-pulse" : ""}`}>
+                      <Play className="size-8 md:size-10 fill-velvet ml-1" />
+                    </span>
+                  </span>
+                  <span className="text-candle font-serif italic text-lg md:text-2xl tracking-wide drop-shadow-[0_2px_16px_rgba(238,130,175,0.35)]">
+                    {partnerIsHost && peer ? `Join ${partnerFirst} at ${fmtTime(peer.currentTime)}` : "Raise the curtain"}
+                  </span>
+                  <span className="text-candle-muted text-[11px] uppercase tracking-[0.35em]">{currentSource?.label ?? "Loading"}</span>
                 </span>
-                <span className="text-candle font-serif italic text-lg md:text-xl">
-                  {partnerIsHost && peer ? `Join ${partnerFirst} at ${fmtTime(peer.currentTime)}` : "Raise the curtain"}
-                </span>
-                <span className="text-candle-muted text-[11px] uppercase tracking-[0.25em]">{currentSource?.label ?? "Loading"}</span>
               </button>
             )}
+
 
             {autoJoinedMuted && started && (
               <button
@@ -1017,13 +1063,18 @@ function CatalogWatch({ id }: { id: string }) {
 
 
             {started && playerLoading && (
-              <div className="absolute inset-0 pointer-events-none flex items-center justify-center bg-velvet/80">
-                <div className="flex flex-col items-center gap-3 text-candle">
-                  <RefreshCw className="size-6 animate-spin text-petal" />
-                  <span className="text-xs uppercase tracking-widest text-candle-muted">Dimming the lights</span>
+              <div className="absolute inset-0 pointer-events-none flex items-center justify-center bg-velvet/50 backdrop-blur-2xl animate-[fade-in_0.4s_ease-out]">
+                <span aria-hidden className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(238,130,175,0.25),transparent_60%)] animate-[halo-pulse_3s_ease-in-out_infinite]" />
+                <div className="relative flex flex-col items-center gap-4 text-candle">
+                  <span className="relative size-14 rounded-full flex items-center justify-center bg-petal/10 border border-petal/30 backdrop-blur-xl shadow-[0_10px_40px_-10px_rgba(238,130,175,0.6)]">
+                    <span aria-hidden className="absolute inset-0 rounded-full border-t-2 border-petal animate-spin" />
+                    <RefreshCw className="size-5 text-petal" />
+                  </span>
+                  <span className="text-[10px] uppercase tracking-[0.4em] text-candle-muted">Dimming the lights</span>
                 </div>
               </div>
             )}
+
             {countdownRemaining != null && countdownRemaining > 0 && (
               <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-velvet/85 backdrop-blur-sm">
                 <p className="text-[11px] uppercase tracking-[0.3em] text-petal mb-2">Pressing play together in</p>
