@@ -19,6 +19,7 @@ import { Route as AuthenticatedAppWishlistRouteImport } from './routes/_authenti
 import { Route as AuthenticatedAppWatchRouteImport } from './routes/_authenticated/app.watch'
 import { Route as AuthenticatedAppTamannaRouteImport } from './routes/_authenticated/app.tamanna'
 import { Route as AuthenticatedAppScribbleRouteImport } from './routes/_authenticated/app.scribble'
+import { Route as AuthenticatedAppRitualsRouteImport } from './routes/_authenticated/app.rituals'
 import { Route as AuthenticatedAppPuzzleRouteImport } from './routes/_authenticated/app.puzzle'
 import { Route as AuthenticatedAppPlayRouteImport } from './routes/_authenticated/app.play'
 import { Route as AuthenticatedAppPartnerRouteImport } from './routes/_authenticated/app.partner'
@@ -29,10 +30,13 @@ import { Route as AuthenticatedAppMemoryChallengeRouteImport } from './routes/_a
 import { Route as AuthenticatedAppMemoriesRouteImport } from './routes/_authenticated/app.memories'
 import { Route as AuthenticatedAppMeRouteImport } from './routes/_authenticated/app.me'
 import { Route as AuthenticatedAppLoveQuizRouteImport } from './routes/_authenticated/app.love-quiz'
+import { Route as AuthenticatedAppLettersRouteImport } from './routes/_authenticated/app.letters'
 import { Route as AuthenticatedAppInviteRouteImport } from './routes/_authenticated/app.invite'
 import { Route as AuthenticatedAppHelpRouteImport } from './routes/_authenticated/app.help'
 import { Route as AuthenticatedAppFriendsRouteImport } from './routes/_authenticated/app.friends'
 import { Route as AuthenticatedAppDailyChallengeRouteImport } from './routes/_authenticated/app.daily-challenge'
+import { Route as AuthenticatedAppConstellationRouteImport } from './routes/_authenticated/app.constellation'
+import { Route as AuthenticatedAppConciergeRouteImport } from './routes/_authenticated/app.concierge'
 import { Route as AuthenticatedAppCallsRouteImport } from './routes/_authenticated/app.calls'
 import { Route as AuthenticatedAppAnniversaryRouteImport } from './routes/_authenticated/app.anniversary'
 import { Route as AuthenticatedAppMoviesIndexRouteImport } from './routes/_authenticated/app.movies.index'
@@ -40,6 +44,7 @@ import { Route as AuthenticatedAppChatIndexRouteImport } from './routes/_authent
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as AuthenticatedAppUserUserIdRouteImport } from './routes/_authenticated/app.user.$userId'
 import { Route as AuthenticatedAppMoviesIdRouteImport } from './routes/_authenticated/app.movies.$id'
+import { Route as AuthenticatedAppLettersIdRouteImport } from './routes/_authenticated/app.letters.$id'
 import { Route as AuthenticatedAppGamesGameRouteImport } from './routes/_authenticated/app.games.$game'
 import { Route as AuthenticatedAppChatPeerIdRouteImport } from './routes/_authenticated/app.chat.$peerId'
 import { Route as AuthenticatedAppCallPeerIdRouteImport } from './routes/_authenticated/app.call.$peerId'
@@ -99,6 +104,11 @@ const AuthenticatedAppScribbleRoute =
     path: '/scribble',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppRitualsRoute = AuthenticatedAppRitualsRouteImport.update({
+  id: '/rituals',
+  path: '/rituals',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
 const AuthenticatedAppPuzzleRoute = AuthenticatedAppPuzzleRouteImport.update({
   id: '/puzzle',
   path: '/puzzle',
@@ -152,6 +162,11 @@ const AuthenticatedAppLoveQuizRoute =
     path: '/love-quiz',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppLettersRoute = AuthenticatedAppLettersRouteImport.update({
+  id: '/letters',
+  path: '/letters',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
 const AuthenticatedAppInviteRoute = AuthenticatedAppInviteRouteImport.update({
   id: '/invite',
   path: '/invite',
@@ -171,6 +186,18 @@ const AuthenticatedAppDailyChallengeRoute =
   AuthenticatedAppDailyChallengeRouteImport.update({
     id: '/daily-challenge',
     path: '/daily-challenge',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
+const AuthenticatedAppConstellationRoute =
+  AuthenticatedAppConstellationRouteImport.update({
+    id: '/constellation',
+    path: '/constellation',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
+const AuthenticatedAppConciergeRoute =
+  AuthenticatedAppConciergeRouteImport.update({
+    id: '/concierge',
+    path: '/concierge',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
 const AuthenticatedAppCallsRoute = AuthenticatedAppCallsRouteImport.update({
@@ -213,6 +240,12 @@ const AuthenticatedAppMoviesIdRoute =
     id: '/$id',
     path: '/$id',
     getParentRoute: () => AuthenticatedAppMoviesRoute,
+  } as any)
+const AuthenticatedAppLettersIdRoute =
+  AuthenticatedAppLettersIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => AuthenticatedAppLettersRoute,
   } as any)
 const AuthenticatedAppGamesGameRoute =
   AuthenticatedAppGamesGameRouteImport.update({
@@ -264,10 +297,13 @@ export interface FileRoutesByFullPath {
   '/app': typeof AuthenticatedAppRouteWithChildren
   '/app/anniversary': typeof AuthenticatedAppAnniversaryRoute
   '/app/calls': typeof AuthenticatedAppCallsRoute
+  '/app/concierge': typeof AuthenticatedAppConciergeRoute
+  '/app/constellation': typeof AuthenticatedAppConstellationRoute
   '/app/daily-challenge': typeof AuthenticatedAppDailyChallengeRoute
   '/app/friends': typeof AuthenticatedAppFriendsRoute
   '/app/help': typeof AuthenticatedAppHelpRoute
   '/app/invite': typeof AuthenticatedAppInviteRoute
+  '/app/letters': typeof AuthenticatedAppLettersRouteWithChildren
   '/app/love-quiz': typeof AuthenticatedAppLoveQuizRoute
   '/app/me': typeof AuthenticatedAppMeRoute
   '/app/memories': typeof AuthenticatedAppMemoriesRoute
@@ -278,6 +314,7 @@ export interface FileRoutesByFullPath {
   '/app/partner': typeof AuthenticatedAppPartnerRoute
   '/app/play': typeof AuthenticatedAppPlayRoute
   '/app/puzzle': typeof AuthenticatedAppPuzzleRoute
+  '/app/rituals': typeof AuthenticatedAppRitualsRoute
   '/app/scribble': typeof AuthenticatedAppScribbleRoute
   '/app/tamanna': typeof AuthenticatedAppTamannaRoute
   '/app/watch': typeof AuthenticatedAppWatchRoute
@@ -286,6 +323,7 @@ export interface FileRoutesByFullPath {
   '/app/call/$peerId': typeof AuthenticatedAppCallPeerIdRoute
   '/app/chat/$peerId': typeof AuthenticatedAppChatPeerIdRoute
   '/app/games/$game': typeof AuthenticatedAppGamesGameRoute
+  '/app/letters/$id': typeof AuthenticatedAppLettersIdRoute
   '/app/movies/$id': typeof AuthenticatedAppMoviesIdRouteWithChildren
   '/app/user/$userId': typeof AuthenticatedAppUserUserIdRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -302,10 +340,13 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/app/anniversary': typeof AuthenticatedAppAnniversaryRoute
   '/app/calls': typeof AuthenticatedAppCallsRoute
+  '/app/concierge': typeof AuthenticatedAppConciergeRoute
+  '/app/constellation': typeof AuthenticatedAppConstellationRoute
   '/app/daily-challenge': typeof AuthenticatedAppDailyChallengeRoute
   '/app/friends': typeof AuthenticatedAppFriendsRoute
   '/app/help': typeof AuthenticatedAppHelpRoute
   '/app/invite': typeof AuthenticatedAppInviteRoute
+  '/app/letters': typeof AuthenticatedAppLettersRouteWithChildren
   '/app/love-quiz': typeof AuthenticatedAppLoveQuizRoute
   '/app/me': typeof AuthenticatedAppMeRoute
   '/app/memories': typeof AuthenticatedAppMemoriesRoute
@@ -315,6 +356,7 @@ export interface FileRoutesByTo {
   '/app/partner': typeof AuthenticatedAppPartnerRoute
   '/app/play': typeof AuthenticatedAppPlayRoute
   '/app/puzzle': typeof AuthenticatedAppPuzzleRoute
+  '/app/rituals': typeof AuthenticatedAppRitualsRoute
   '/app/scribble': typeof AuthenticatedAppScribbleRoute
   '/app/tamanna': typeof AuthenticatedAppTamannaRoute
   '/app/watch': typeof AuthenticatedAppWatchRoute
@@ -323,6 +365,7 @@ export interface FileRoutesByTo {
   '/app/call/$peerId': typeof AuthenticatedAppCallPeerIdRoute
   '/app/chat/$peerId': typeof AuthenticatedAppChatPeerIdRoute
   '/app/games/$game': typeof AuthenticatedAppGamesGameRoute
+  '/app/letters/$id': typeof AuthenticatedAppLettersIdRoute
   '/app/movies/$id': typeof AuthenticatedAppMoviesIdRouteWithChildren
   '/app/user/$userId': typeof AuthenticatedAppUserUserIdRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -342,10 +385,13 @@ export interface FileRoutesById {
   '/_authenticated/app': typeof AuthenticatedAppRouteWithChildren
   '/_authenticated/app/anniversary': typeof AuthenticatedAppAnniversaryRoute
   '/_authenticated/app/calls': typeof AuthenticatedAppCallsRoute
+  '/_authenticated/app/concierge': typeof AuthenticatedAppConciergeRoute
+  '/_authenticated/app/constellation': typeof AuthenticatedAppConstellationRoute
   '/_authenticated/app/daily-challenge': typeof AuthenticatedAppDailyChallengeRoute
   '/_authenticated/app/friends': typeof AuthenticatedAppFriendsRoute
   '/_authenticated/app/help': typeof AuthenticatedAppHelpRoute
   '/_authenticated/app/invite': typeof AuthenticatedAppInviteRoute
+  '/_authenticated/app/letters': typeof AuthenticatedAppLettersRouteWithChildren
   '/_authenticated/app/love-quiz': typeof AuthenticatedAppLoveQuizRoute
   '/_authenticated/app/me': typeof AuthenticatedAppMeRoute
   '/_authenticated/app/memories': typeof AuthenticatedAppMemoriesRoute
@@ -356,6 +402,7 @@ export interface FileRoutesById {
   '/_authenticated/app/partner': typeof AuthenticatedAppPartnerRoute
   '/_authenticated/app/play': typeof AuthenticatedAppPlayRoute
   '/_authenticated/app/puzzle': typeof AuthenticatedAppPuzzleRoute
+  '/_authenticated/app/rituals': typeof AuthenticatedAppRitualsRoute
   '/_authenticated/app/scribble': typeof AuthenticatedAppScribbleRoute
   '/_authenticated/app/tamanna': typeof AuthenticatedAppTamannaRoute
   '/_authenticated/app/watch': typeof AuthenticatedAppWatchRoute
@@ -364,6 +411,7 @@ export interface FileRoutesById {
   '/_authenticated/app/call/$peerId': typeof AuthenticatedAppCallPeerIdRoute
   '/_authenticated/app/chat/$peerId': typeof AuthenticatedAppChatPeerIdRoute
   '/_authenticated/app/games/$game': typeof AuthenticatedAppGamesGameRoute
+  '/_authenticated/app/letters/$id': typeof AuthenticatedAppLettersIdRoute
   '/_authenticated/app/movies/$id': typeof AuthenticatedAppMoviesIdRouteWithChildren
   '/_authenticated/app/user/$userId': typeof AuthenticatedAppUserUserIdRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -383,10 +431,13 @@ export interface FileRouteTypes {
     | '/app'
     | '/app/anniversary'
     | '/app/calls'
+    | '/app/concierge'
+    | '/app/constellation'
     | '/app/daily-challenge'
     | '/app/friends'
     | '/app/help'
     | '/app/invite'
+    | '/app/letters'
     | '/app/love-quiz'
     | '/app/me'
     | '/app/memories'
@@ -397,6 +448,7 @@ export interface FileRouteTypes {
     | '/app/partner'
     | '/app/play'
     | '/app/puzzle'
+    | '/app/rituals'
     | '/app/scribble'
     | '/app/tamanna'
     | '/app/watch'
@@ -405,6 +457,7 @@ export interface FileRouteTypes {
     | '/app/call/$peerId'
     | '/app/chat/$peerId'
     | '/app/games/$game'
+    | '/app/letters/$id'
     | '/app/movies/$id'
     | '/app/user/$userId'
     | '/lovable/email/queue/process'
@@ -421,10 +474,13 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/app/anniversary'
     | '/app/calls'
+    | '/app/concierge'
+    | '/app/constellation'
     | '/app/daily-challenge'
     | '/app/friends'
     | '/app/help'
     | '/app/invite'
+    | '/app/letters'
     | '/app/love-quiz'
     | '/app/me'
     | '/app/memories'
@@ -434,6 +490,7 @@ export interface FileRouteTypes {
     | '/app/partner'
     | '/app/play'
     | '/app/puzzle'
+    | '/app/rituals'
     | '/app/scribble'
     | '/app/tamanna'
     | '/app/watch'
@@ -442,6 +499,7 @@ export interface FileRouteTypes {
     | '/app/call/$peerId'
     | '/app/chat/$peerId'
     | '/app/games/$game'
+    | '/app/letters/$id'
     | '/app/movies/$id'
     | '/app/user/$userId'
     | '/lovable/email/queue/process'
@@ -460,10 +518,13 @@ export interface FileRouteTypes {
     | '/_authenticated/app'
     | '/_authenticated/app/anniversary'
     | '/_authenticated/app/calls'
+    | '/_authenticated/app/concierge'
+    | '/_authenticated/app/constellation'
     | '/_authenticated/app/daily-challenge'
     | '/_authenticated/app/friends'
     | '/_authenticated/app/help'
     | '/_authenticated/app/invite'
+    | '/_authenticated/app/letters'
     | '/_authenticated/app/love-quiz'
     | '/_authenticated/app/me'
     | '/_authenticated/app/memories'
@@ -474,6 +535,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/partner'
     | '/_authenticated/app/play'
     | '/_authenticated/app/puzzle'
+    | '/_authenticated/app/rituals'
     | '/_authenticated/app/scribble'
     | '/_authenticated/app/tamanna'
     | '/_authenticated/app/watch'
@@ -482,6 +544,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/call/$peerId'
     | '/_authenticated/app/chat/$peerId'
     | '/_authenticated/app/games/$game'
+    | '/_authenticated/app/letters/$id'
     | '/_authenticated/app/movies/$id'
     | '/_authenticated/app/user/$userId'
     | '/lovable/email/queue/process'
@@ -573,6 +636,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppScribbleRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/rituals': {
+      id: '/_authenticated/app/rituals'
+      path: '/rituals'
+      fullPath: '/app/rituals'
+      preLoaderRoute: typeof AuthenticatedAppRitualsRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/puzzle': {
       id: '/_authenticated/app/puzzle'
       path: '/puzzle'
@@ -643,6 +713,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppLoveQuizRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/letters': {
+      id: '/_authenticated/app/letters'
+      path: '/letters'
+      fullPath: '/app/letters'
+      preLoaderRoute: typeof AuthenticatedAppLettersRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/invite': {
       id: '/_authenticated/app/invite'
       path: '/invite'
@@ -669,6 +746,20 @@ declare module '@tanstack/react-router' {
       path: '/daily-challenge'
       fullPath: '/app/daily-challenge'
       preLoaderRoute: typeof AuthenticatedAppDailyChallengeRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/constellation': {
+      id: '/_authenticated/app/constellation'
+      path: '/constellation'
+      fullPath: '/app/constellation'
+      preLoaderRoute: typeof AuthenticatedAppConstellationRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/concierge': {
+      id: '/_authenticated/app/concierge'
+      path: '/concierge'
+      fullPath: '/app/concierge'
+      preLoaderRoute: typeof AuthenticatedAppConciergeRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/calls': {
@@ -719,6 +810,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/movies/$id'
       preLoaderRoute: typeof AuthenticatedAppMoviesIdRouteImport
       parentRoute: typeof AuthenticatedAppMoviesRoute
+    }
+    '/_authenticated/app/letters/$id': {
+      id: '/_authenticated/app/letters/$id'
+      path: '/$id'
+      fullPath: '/app/letters/$id'
+      preLoaderRoute: typeof AuthenticatedAppLettersIdRouteImport
+      parentRoute: typeof AuthenticatedAppLettersRoute
     }
     '/_authenticated/app/games/$game': {
       id: '/_authenticated/app/games/$game'
@@ -772,6 +870,20 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedAppLettersRouteChildren {
+  AuthenticatedAppLettersIdRoute: typeof AuthenticatedAppLettersIdRoute
+}
+
+const AuthenticatedAppLettersRouteChildren: AuthenticatedAppLettersRouteChildren =
+  {
+    AuthenticatedAppLettersIdRoute: AuthenticatedAppLettersIdRoute,
+  }
+
+const AuthenticatedAppLettersRouteWithChildren =
+  AuthenticatedAppLettersRoute._addFileChildren(
+    AuthenticatedAppLettersRouteChildren,
+  )
+
 interface AuthenticatedAppMoviesIdRouteChildren {
   AuthenticatedAppMoviesIdWatchRoute: typeof AuthenticatedAppMoviesIdWatchRoute
   AuthenticatedAppMoviesIdEpisodeSeasonEpisodeRoute: typeof AuthenticatedAppMoviesIdEpisodeSeasonEpisodeRoute
@@ -808,10 +920,13 @@ const AuthenticatedAppMoviesRouteWithChildren =
 interface AuthenticatedAppRouteChildren {
   AuthenticatedAppAnniversaryRoute: typeof AuthenticatedAppAnniversaryRoute
   AuthenticatedAppCallsRoute: typeof AuthenticatedAppCallsRoute
+  AuthenticatedAppConciergeRoute: typeof AuthenticatedAppConciergeRoute
+  AuthenticatedAppConstellationRoute: typeof AuthenticatedAppConstellationRoute
   AuthenticatedAppDailyChallengeRoute: typeof AuthenticatedAppDailyChallengeRoute
   AuthenticatedAppFriendsRoute: typeof AuthenticatedAppFriendsRoute
   AuthenticatedAppHelpRoute: typeof AuthenticatedAppHelpRoute
   AuthenticatedAppInviteRoute: typeof AuthenticatedAppInviteRoute
+  AuthenticatedAppLettersRoute: typeof AuthenticatedAppLettersRouteWithChildren
   AuthenticatedAppLoveQuizRoute: typeof AuthenticatedAppLoveQuizRoute
   AuthenticatedAppMeRoute: typeof AuthenticatedAppMeRoute
   AuthenticatedAppMemoriesRoute: typeof AuthenticatedAppMemoriesRoute
@@ -822,6 +937,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppPartnerRoute: typeof AuthenticatedAppPartnerRoute
   AuthenticatedAppPlayRoute: typeof AuthenticatedAppPlayRoute
   AuthenticatedAppPuzzleRoute: typeof AuthenticatedAppPuzzleRoute
+  AuthenticatedAppRitualsRoute: typeof AuthenticatedAppRitualsRoute
   AuthenticatedAppScribbleRoute: typeof AuthenticatedAppScribbleRoute
   AuthenticatedAppTamannaRoute: typeof AuthenticatedAppTamannaRoute
   AuthenticatedAppWatchRoute: typeof AuthenticatedAppWatchRoute
@@ -839,10 +955,13 @@ interface AuthenticatedAppRouteChildren {
 const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppAnniversaryRoute: AuthenticatedAppAnniversaryRoute,
   AuthenticatedAppCallsRoute: AuthenticatedAppCallsRoute,
+  AuthenticatedAppConciergeRoute: AuthenticatedAppConciergeRoute,
+  AuthenticatedAppConstellationRoute: AuthenticatedAppConstellationRoute,
   AuthenticatedAppDailyChallengeRoute: AuthenticatedAppDailyChallengeRoute,
   AuthenticatedAppFriendsRoute: AuthenticatedAppFriendsRoute,
   AuthenticatedAppHelpRoute: AuthenticatedAppHelpRoute,
   AuthenticatedAppInviteRoute: AuthenticatedAppInviteRoute,
+  AuthenticatedAppLettersRoute: AuthenticatedAppLettersRouteWithChildren,
   AuthenticatedAppLoveQuizRoute: AuthenticatedAppLoveQuizRoute,
   AuthenticatedAppMeRoute: AuthenticatedAppMeRoute,
   AuthenticatedAppMemoriesRoute: AuthenticatedAppMemoriesRoute,
@@ -853,6 +972,7 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppPartnerRoute: AuthenticatedAppPartnerRoute,
   AuthenticatedAppPlayRoute: AuthenticatedAppPlayRoute,
   AuthenticatedAppPuzzleRoute: AuthenticatedAppPuzzleRoute,
+  AuthenticatedAppRitualsRoute: AuthenticatedAppRitualsRoute,
   AuthenticatedAppScribbleRoute: AuthenticatedAppScribbleRoute,
   AuthenticatedAppTamannaRoute: AuthenticatedAppTamannaRoute,
   AuthenticatedAppWatchRoute: AuthenticatedAppWatchRoute,

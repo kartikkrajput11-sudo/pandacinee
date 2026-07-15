@@ -7,7 +7,7 @@ import { DailyQuestionCard } from "@/components/DailyQuestionCard";
 import { PartnerPresenceCard } from "@/components/PartnerPresenceCard";
 import { QuickActions } from "@/components/QuickActions";
 import { MemoryOfTheDayCard } from "@/components/MemoryOfTheDayCard";
-import { Heart, ArrowRight, Users, LineChart, Clapperboard, BookHeart, Gift } from "lucide-react";
+import { Heart, ArrowRight, Users, LineChart, Clapperboard, BookHeart, Gift, Feather, Sparkles, Stars, Flame } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/app/")({
   component: Home,
