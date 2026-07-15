@@ -70,7 +70,7 @@ function Call() {
   const navigate = useNavigate();
   const { data: profileData } = useProfile();
   const me = profileData?.profile;
-  const { localStream, remoteStream, remoteRev, status, error, hangup, toggleAudio, toggleVideo, flipCamera } = useWebRTCCall(
+  const { localStream, remoteStream, remoteRev, status, answered, error, hangup, toggleAudio, toggleVideo, flipCamera } = useWebRTCCall(
     peerId,
     mode,
     role === "caller",
