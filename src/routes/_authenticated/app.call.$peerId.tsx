@@ -223,14 +223,15 @@ function Call() {
   }, [speakerOn, remoteStream]);
 
   const statusLabel = useMemo(() => {
+    // Once the SDP answer is exchanged, show the running duration even if
+    // ICE is still finishing up — the pickup already happened.
+    if (answered || status === "connected") return fmtDuration(duration);
     switch (status) {
       case "idle":
       case "connecting":
         return role === "caller" ? "Calling…" : "Answering…";
       case "ringing":
         return "Ringing…";
-      case "connected":
-        return fmtDuration(duration);
       case "ended":
         return "Call ended";
       case "error":
@@ -238,9 +239,9 @@ function Call() {
       default:
         return status;
     }
-  }, [status, role, duration]);
+  }, [status, answered, role, duration]);
 
-  const isConnected = status === "connected";
+  const isConnected = answered || status === "connected";
   const showRings = !isConnected && status !== "ended";
 
   return (
