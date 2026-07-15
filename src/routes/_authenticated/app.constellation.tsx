@@ -137,6 +137,32 @@ function ConstellationRoute() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [me?.id, partner?.id]);
 
+  // Auto-detect new stars from recent couple activity, on mount and every 6h.
+  async function triggerAuto(showToast = false) {
+    if (!me || !partner || autoRunning) return;
+    setAutoRunning(true);
+    try {
+      const res = (await runAuto()) as any;
+      if (showToast) {
+        if (res?.inserted > 0) toast.success(`Discovered ${res.inserted} new star${res.inserted > 1 ? "s" : ""}.`);
+        else toast("The sky is quiet — check back later.");
+      }
+      if (res?.inserted > 0) load();
+    } catch {
+      if (showToast) toast.error("Couldn't scan the sky right now.");
+    } finally {
+      setAutoRunning(false);
+    }
+  }
+
+  useEffect(() => {
+    if (!me || !partner) return;
+    triggerAuto(false);
+    const iv = setInterval(() => triggerAuto(false), 6 * 3600_000);
+    return () => clearInterval(iv);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [me?.id, partner?.id]);
+
   useEffect(() => {
     if (!me) return;
     const ch = supabase
