@@ -35,7 +35,7 @@ const RITUALS: {
 }[] = [
   { id: "gratitude", name: "Three Thank-Yous", emoji: "🌸", Icon: Heart, blurb: "Take turns naming three small things about today.", minutes: 3 },
   { id: "breathing", name: "Breathe Together", emoji: "🫧", Icon: Wind, blurb: "Guided 4-7-8. Match each other's breath.", minutes: 2 },
-  { id: "candle", name: "Candle Hour", emoji: "🕯️", Icon: Flame, blurb: "Both phones dim. A shared candle burns down.", minutes: 15 },
+  { id: "candle", name: "Candle Hour", emoji: "🕯️", Icon: Flame, blurb: "Both phones dim. A shared candle melts down.", minutes: 3 },
 ];
 
 function RitualsRoute() {
