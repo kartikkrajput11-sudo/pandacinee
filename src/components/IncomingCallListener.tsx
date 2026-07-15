@@ -86,6 +86,8 @@ export function IncomingCallListener() {
       if (document.visibilityState === "visible") catchUp();
     }
 
+    let pollTimer: number | null = null;
+
     (async () => {
       const { data: u } = await supabase.auth.getUser();
       if (!u.user || cancelled) return;
@@ -93,7 +95,6 @@ export function IncomingCallListener() {
       const topic = `incoming-${me}-${Math.random().toString(36).slice(2)}`;
       channel = supabase.channel(topic);
       channel
-        // New invitation → participant row inserted with state='ringing'
         .on(
           "postgres_changes",
           { event: "INSERT", schema: "public", table: "call_participants", filter: `user_id=eq.${me}` },
@@ -102,7 +103,6 @@ export function IncomingCallListener() {
             if (row.state === "ringing") void surfaceCall(row.call_id);
           },
         )
-        // My participant row changed (I answered elsewhere / declined / call ended)
         .on(
           "postgres_changes",
           { event: "UPDATE", schema: "public", table: "call_participants", filter: `user_id=eq.${me}` },
@@ -113,7 +113,6 @@ export function IncomingCallListener() {
             }
           },
         )
-        // Call ended/missed for any reason → clear ringer
         .on(
           "postgres_changes",
           { event: "UPDATE", schema: "public", table: "calls" },
@@ -128,11 +127,14 @@ export function IncomingCallListener() {
           if (status === "SUBSCRIBED") void catchUp();
         });
       void catchUp();
+      // Polling fallback — realtime may be delayed or disconnected.
+      pollTimer = window.setInterval(() => { void catchUp(); }, 2500);
       window.addEventListener("focus", catchUp);
       document.addEventListener("visibilitychange", onVisible);
     })();
     return () => {
       cancelled = true;
+      if (pollTimer) window.clearInterval(pollTimer);
       window.removeEventListener("focus", catchUp);
       document.removeEventListener("visibilitychange", onVisible);
       if (channel) supabase.removeChannel(channel);
