@@ -447,6 +447,108 @@ function WatchPartyRoom() {
           </aside>
         )}
       </div>
+
+      {/* Invite sheet */}
+      {inviteOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end md:items-center md:justify-center"
+          onClick={() => setInviteOpen(false)}
+        >
+          <div
+            className="w-full md:max-w-md bg-surface rounded-t-3xl md:rounded-3xl border-t md:border border-border p-4 max-h-[80vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <p className="font-serif italic text-lg leading-tight">Invite to party</p>
+                <p className="text-[11px] text-candle-muted">Sends a chat message with the invite link.</p>
+              </div>
+              <button
+                onClick={() => setInviteOpen(false)}
+                className="p-2 rounded-full hover:bg-canvas transition-colors"
+                aria-label="Close"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+
+            <button
+              onClick={copyInvite}
+              className="mb-3 p-3 rounded-2xl border border-border bg-canvas flex items-center gap-3 text-left hover:border-petal/40 transition-colors"
+            >
+              <div className="size-9 rounded-full bg-petal-soft text-petal flex items-center justify-center">
+                <Copy className="size-4" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium">Copy invite link</p>
+                <p className="text-[11px] text-candle-muted font-mono truncate">
+                  {typeof window !== "undefined" ? `${window.location.origin}/app/watch-party/${party.code}` : party.code}
+                </p>
+              </div>
+            </button>
+
+            <div className="flex-1 overflow-y-auto -mx-1 px-1">
+              {invitees.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-sm text-candle-muted mb-2">No partner or friends yet.</p>
+                  <Link
+                    to="/app/invite"
+                    className="inline-block text-sm text-petal underline"
+                    onClick={() => setInviteOpen(false)}
+                  >
+                    Add someone →
+                  </Link>
+                </div>
+              ) : (
+                <div className="space-y-1.5">
+                  {invitees.map((u) => {
+                    const inRoom = members.some((m) => m.id === u.id);
+                    const isSending = inviting.has(u.id);
+                    const hasSent = invited.has(u.id);
+                    return (
+                      <div
+                        key={u.id}
+                        className="p-2.5 rounded-2xl border border-border bg-canvas flex items-center gap-3"
+                      >
+                        {u.avatar_url ? (
+                          <img src={u.avatar_url} alt="" className="size-9 rounded-full object-cover" />
+                        ) : (
+                          <div className="size-9 rounded-full bg-petal-soft text-petal flex items-center justify-center text-sm">
+                            {(u.display_name ?? u.username ?? "?").slice(0, 1).toUpperCase()}
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">
+                            {u.display_name ?? u.username ?? "Someone"}
+                          </p>
+                          {u.username && (
+                            <p className="text-[11px] text-candle-muted truncate">@{u.username}</p>
+                          )}
+                        </div>
+                        {inRoom ? (
+                          <span className="text-[11px] text-candle-muted px-2">In room</span>
+                        ) : hasSent ? (
+                          <span className="text-[11px] text-petal px-2 flex items-center gap-1">
+                            <Check className="size-3" /> Sent
+                          </span>
+                        ) : (
+                          <button
+                            onClick={() => sendInvite(u.id)}
+                            disabled={isSending}
+                            className="px-3 py-1.5 rounded-full bg-petal text-white text-xs font-medium disabled:opacity-50"
+                          >
+                            {isSending ? "…" : "Invite"}
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
