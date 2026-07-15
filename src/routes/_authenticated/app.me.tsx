@@ -27,7 +27,7 @@ function Me() {
   const [displayName, setDisplayName] = useState("");
   const [bio, setBio] = useState("");
   const [favoriteColor, setFavoriteColor] = useState<string | null>(null);
-  const [favoriteEmoji, setFavoriteEmoji] = useState<string | null>(null);
+  const [equippedTags, setEquippedTags] = useState<string[]>([]);
   const [anniversary, setAnniversary] = useState("");
   const [partnerNickname, setPartnerNickname] = useState("");
   const [saving, setSaving] = useState(false);
