@@ -6,7 +6,7 @@ import {
   ArrowLeft, ShieldCheck, Plus, Film, Trash2, Upload, Play, X, Loader2,
   Users, MessageSquare, Activity as ActivityIcon, LayoutDashboard, RefreshCw,
   Heart, Smile, Sparkles, Gamepad2, Gift, Lock, UserPlus, Clapperboard, Circle,
-  Pencil, Search,
+  Pencil, Search, Coins,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
