@@ -193,13 +193,24 @@ function ConstellationRoute() {
             <h1 className="font-serif text-2xl italic text-white">Constellation of Us</h1>
           </div>
           {partner && (
-            <button
-              onClick={() => setComposing(true)}
-              className="size-10 rounded-2xl bg-[#c9a84c] text-[#050716] flex items-center justify-center"
-              aria-label="Pin a star"
-            >
-              <Plus className="size-4" />
-            </button>
+            <>
+              <button
+                onClick={() => triggerAuto(true)}
+                disabled={autoRunning}
+                className="size-10 rounded-2xl border border-[#c9a84c]/40 text-[#c9a84c] flex items-center justify-center disabled:opacity-50"
+                aria-label="Scan the sky"
+                title="Let the app find new stars"
+              >
+                <Wand2 className={`size-4 ${autoRunning ? "animate-pulse" : ""}`} />
+              </button>
+              <button
+                onClick={() => setComposing(true)}
+                className="size-10 rounded-2xl bg-[#c9a84c] text-[#050716] flex items-center justify-center"
+                aria-label="Pin a star"
+              >
+                <Plus className="size-4" />
+              </button>
+            </>
           )}
         </header>
 
