@@ -12,24 +12,45 @@ export function fmtTime(sec: number | null | undefined) {
   return `${mm}:${String(r).padStart(2, "0")}`;
 }
 
+type Mine = {
+  currentTime: number;
+  duration: number;
+  playbackRate: number;
+  updatedAt: number;
+  event: string | null;
+  sourceIdx: number;
+  season: number | null;
+  episode: number | null;
+};
+
 export function useWatchSync(
   _meId: string | null,
   _partnerId: string | null,
   _roomId: string,
   _kind: "movie" | "tv",
 ) {
+  const mine: Mine = {
+    currentTime: 0,
+    duration: 0,
+    playbackRate: 1,
+    updatedAt: 0,
+    event: null,
+    sourceIdx: 0,
+    season: null,
+    episode: null,
+  };
   return {
-    mine: null as null,
-    peer: null as null,
+    mine,
+    peer: null as Mine | null,
     partnerOnline: false,
-    publish: (_: unknown) => {},
-    sendSeek: (_: number) => {},
+    publish: (_: Partial<Mine>) => {},
+    sendSeek: (_a: number, _b?: unknown) => {},
     sendCountdown: (_: number) => {},
-    countdown: null as null,
+    countdown: null as { time: number } | null,
     clearCountdown: () => {},
-    incomingSeek: null as null,
+    incomingSeek: null as { time: number; startAt?: number } | null,
     clearIncomingSeek: () => {},
-    incomingReaction: null as null,
+    incomingReaction: null as { id: string; emoji: string } | null,
     clearIncomingReaction: () => {},
     sendReaction: (_: string) => {},
     hostId: null as string | null,
