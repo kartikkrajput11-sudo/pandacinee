@@ -165,6 +165,16 @@ function AuthPage() {
                   ? "Sign in"
                   : "Create my PANDACINE"}
             </button>
+            {mode === "signin" && (
+              <button
+                type="button"
+                onClick={handleForgotPassword}
+                disabled={loading}
+                className="w-full text-center text-xs text-candle-muted hover:text-petal transition-colors mt-1"
+              >
+                Forgot password?
+              </button>
+            )}
           </form>
 
           <p className="text-center text-sm text-candle-muted mt-6">
