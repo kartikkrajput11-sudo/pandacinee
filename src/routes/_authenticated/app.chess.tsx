@@ -55,24 +55,6 @@ type GameRow = {
   last_move_at: string;
 };
 
-// Simple beep-based SFX so we don't ship audio assets.
-function playTone(freq: number, duration = 90, muted = false) {
-  if (muted) return;
-  try {
-    const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = "sine";
-    osc.frequency.value = freq;
-    gain.gain.value = 0.08;
-    osc.connect(gain).connect(ctx.destination);
-    osc.start();
-    setTimeout(() => {
-      osc.stop();
-      ctx.close();
-    }, duration);
-  } catch { /* ignore */ }
-}
 
 function ChessPage() {
   const search = Route.useSearch();
