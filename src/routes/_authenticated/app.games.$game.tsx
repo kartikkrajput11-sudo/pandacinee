@@ -201,6 +201,39 @@ function initialState(game: GameKind) {
       history: [] as { text: string }[],
       bestOf: 10,
     };
+  if (game === "two-truths-lie")
+    return {
+      count: 0,
+      card: null as null | { statements: string[]; lie: number; reveal: string },
+      guesses: {} as Record<string, number>,
+      revealed: false,
+      score: {} as Record<string, number>,
+      intensity: "playful" as Intensity,
+      history: [] as { statements: string[]; lie: number }[],
+      bestOf: 10,
+    };
+  if (game === "hot-takes")
+    return {
+      count: 0,
+      card: null as null | { text: string; tag?: string },
+      ratings: {} as Record<string, number>,
+      alignment: { total: 0, sum: 0 },
+      intensity: "playful" as Intensity,
+      history: [] as { text: string }[],
+      bestOf: 10,
+    };
+  if (game === "emoji-riddle")
+    return {
+      count: 0,
+      card: null as null | { emojis: string; answer: string; category: string; hint: string },
+      guesses: {} as Record<string, string>,
+      hintShown: false,
+      revealed: false,
+      score: {} as Record<string, number>,
+      intensity: "playful" as Intensity,
+      history: [] as { emojis: string; answer: string }[],
+      bestOf: 10,
+    };
   if (game === "tic-tac-toe")
     return { board: Array(9).fill(null), turn: "X", wins: { X: 0, O: 0, draws: 0 }, bestOf: 5 };
   if (game === "rock-paper-scissors")
