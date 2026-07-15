@@ -1702,26 +1702,46 @@ function CustomWatch({ customId }: { customId: string }) {
     clearIncomingSeek();
   }, [incomingSeek, clearIncomingSeek, playerReady, runSuppressed]);
 
-  // Follower: mirror host's discrete events + drift correction
+  // Follower: mirror host's discrete events + tight drift correction (PandaCine).
   useEffect(() => {
     if (!peer || !partnerIsHost) return;
     if (peer.updatedAt <= lastAppliedPeerEventRef.current) return;
     const h = handleRef.current;
     if (!h) return;
     const evt = peer.event;
-    if (evt !== "play" && evt !== "pause" && evt !== "seeked" && evt !== "timeupdate") return;
+    if (evt !== "play" && evt !== "pause" && evt !== "seeked" && evt !== "timeupdate" && evt !== "ratechange") return;
+
+    const applyRate = () => {
+      if (typeof peer.playbackRate === "number" && peer.playbackRate > 0) {
+        h.setPlaybackRate(peer.playbackRate);
+      }
+    };
 
     if (evt === "timeupdate") {
-      const d = Math.abs(h.currentTime() - peer.currentTime);
-      if (d < 2) return; // native drift is tight
+      const drift = h.currentTime() - peer.currentTime;
+      const abs = Math.abs(drift);
+      if (abs < 0.15) return;
       lastAppliedPeerEventRef.current = peer.updatedAt;
-      runSuppressed(() => h.seek(peer.currentTime), 300);
+      runSuppressed(() => {
+        applyRate();
+        if (abs > 0.7) {
+          h.seek(peer.currentTime);
+        } else {
+          const baseRate = peer.playbackRate ?? 1;
+          const correction = drift > 0 ? -0.05 : 0.05;
+          h.setPlaybackRate(Math.max(0.25, baseRate + correction));
+          window.setTimeout(() => {
+            handleRef.current?.setPlaybackRate(baseRate);
+          }, 1000);
+        }
+      }, 300);
       return;
     }
 
     lastAppliedPeerEventRef.current = peer.updatedAt;
     runSuppressed(() => {
-      if (Math.abs(h.currentTime() - peer.currentTime) > 0.8) h.seek(peer.currentTime);
+      applyRate();
+      if (Math.abs(h.currentTime() - peer.currentTime) > 0.15) h.seek(peer.currentTime);
       if (evt === "play") h.play();
       if (evt === "pause") h.pause();
     });
