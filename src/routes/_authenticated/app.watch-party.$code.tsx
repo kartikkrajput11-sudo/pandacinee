@@ -39,6 +39,65 @@ function WatchPartyRoom() {
   const [draft, setDraft] = useState("");
   const [iframeKey, setIframeKey] = useState(0);
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [inviting, setInviting] = useState<Set<string>>(new Set());
+  const [invited, setInvited] = useState<Set<string>>(new Set());
+  const friendsQuery = useFriendships();
+  const partner = prof?.partner ?? null;
+
+  const invitees = useMemo(() => {
+    const list: MemberProfile[] = [];
+    if (partner) {
+      list.push({
+        id: partner.id,
+        username: partner.username,
+        display_name: partner.display_name,
+        avatar_url: partner.avatar_url,
+      });
+    }
+    const friends = friendsQuery.data;
+    if (friends?.me) {
+      for (const f of friends.friendships) {
+        if (f.status !== "accepted") continue;
+        const otherId = f.requester_id === friends.me ? f.addressee_id : f.requester_id;
+        if (partner && otherId === partner.id) continue;
+        const p = friends.profiles[otherId];
+        if (p) list.push(p);
+      }
+    }
+    return list;
+  }, [partner, friendsQuery.data]);
+
+  async function sendInvite(targetId: string) {
+    if (!party || !me) return;
+    setInviting((s) => new Set(s).add(targetId));
+    try {
+      const url = `${window.location.origin}/app/watch-party/${party.code}`;
+      const title = party.media_title ?? "a movie";
+      const body =
+        `🎬 Watch Party invite\n` +
+        `Come watch ${title} with me!\n` +
+        `Code: ${party.code}\n${url}`;
+      const { error } = await supabase.from("messages").insert({
+        sender_id: me.id,
+        receiver_id: targetId,
+        content: body,
+        type: "text",
+      });
+      if (error) throw error;
+      setInvited((s) => new Set(s).add(targetId));
+      toast.success("Invite sent");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Could not send invite");
+    } finally {
+      setInviting((s) => {
+        const n = new Set(s);
+        n.delete(targetId);
+        return n;
+      });
+    }
+  }
+
 
   // Join / load
   useEffect(() => {
