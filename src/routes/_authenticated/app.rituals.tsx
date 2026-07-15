@@ -264,7 +264,7 @@ function ActiveRitual({ ritual, me, onEnd }: { ritual: Ritual; me: string; onEnd
           }}
         />
 
-        {ritual.kind === "candle" && <CandleVisual progress={progress} />}
+        {ritual.kind === "candle" && <CandleVisual progress={progress} now={now} />}
         {ritual.kind === "breathing" && <BreathVisual now={now} />}
         {ritual.kind === "gratitude" && <GratitudeVisual acks={acks} />}
 
