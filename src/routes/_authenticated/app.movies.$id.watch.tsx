@@ -1003,31 +1003,44 @@ function CatalogWatch({ id }: { id: string }) {
             ) : (
               <button
                 onClick={() => { setStarted(true); setPlayerLoading(true); }}
-                className="absolute inset-0 w-full h-full flex flex-col items-center justify-center gap-3 group"
+                className="absolute inset-0 w-full h-full flex flex-col items-center justify-center gap-3 group overflow-hidden"
                 style={
                   backdropUrl
                     ? {
-                        backgroundImage: `linear-gradient(to top, rgba(10,5,15,0.9), rgba(10,5,15,0.35)), url(${backdropUrl})`,
+                        backgroundImage: `linear-gradient(to top, rgba(10,5,15,0.92), rgba(10,5,15,0.35)), url(${backdropUrl})`,
                         backgroundSize: "cover",
                         backgroundPosition: "center",
                       }
                     : undefined
                 }
               >
+                {/* Slowly drifting blur veil for luxury depth */}
+                <span aria-hidden className="absolute inset-0 backdrop-blur-[2px] bg-velvet/20" />
+                <span aria-hidden className="absolute -inset-1/4 bg-[radial-gradient(circle_at_30%_40%,rgba(238,130,175,0.28),transparent_60%)] blur-3xl animate-[halo-pulse_8s_ease-in-out_infinite]" />
+
                 {partnerIsHost && peer && peer.event !== "pause" && (
-                  <span className="absolute top-4 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-full bg-petal text-velvet text-[10px] uppercase tracking-[0.25em] font-bold shadow-lg shadow-petal/50 animate-pulse">
+                  <span className="relative z-10 absolute top-4 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-full bg-petal/90 backdrop-blur text-velvet text-[10px] uppercase tracking-[0.25em] font-bold shadow-lg shadow-petal/50 animate-pulse">
                     {partnerFirst} is watching · tap to join
                   </span>
                 )}
-                <span className={`size-20 md:size-24 rounded-full bg-petal text-velvet flex items-center justify-center shadow-2xl shadow-petal/50 group-hover:scale-105 transition ring-4 ring-petal/20 ${partnerIsHost && peer && peer.event !== "pause" ? "animate-pulse" : ""}`}>
-                  <Play className="size-8 md:size-10 fill-velvet ml-1" />
+                <span className="relative z-10 flex flex-col items-center gap-3">
+                  {/* Concentric rings */}
+                  <span className="relative">
+                    <span aria-hidden className="absolute inset-0 rounded-full bg-petal/25 blur-2xl scale-150 animate-[halo-pulse_3s_ease-in-out_infinite]" />
+                    <span aria-hidden className="absolute -inset-4 rounded-full border border-petal/25 animate-[ring-expand_3s_ease-out_infinite]" />
+                    <span aria-hidden className="absolute -inset-4 rounded-full border border-petal/20 animate-[ring-expand_3s_ease-out_infinite] [animation-delay:1.2s]" />
+                    <span className={`relative size-20 md:size-24 rounded-full bg-gradient-to-br from-petal to-petal/80 text-velvet flex items-center justify-center shadow-[0_20px_60px_-10px_rgba(238,130,175,0.7)] group-hover:scale-110 group-active:scale-95 transition-transform duration-500 ring-4 ring-petal/20 backdrop-blur-sm ${partnerIsHost && peer && peer.event !== "pause" ? "animate-pulse" : ""}`}>
+                      <Play className="size-8 md:size-10 fill-velvet ml-1" />
+                    </span>
+                  </span>
+                  <span className="text-candle font-serif italic text-lg md:text-2xl tracking-wide drop-shadow-[0_2px_16px_rgba(238,130,175,0.35)]">
+                    {partnerIsHost && peer ? `Join ${partnerFirst} at ${fmtTime(peer.currentTime)}` : "Raise the curtain"}
+                  </span>
+                  <span className="text-candle-muted text-[11px] uppercase tracking-[0.35em]">{currentSource?.label ?? "Loading"}</span>
                 </span>
-                <span className="text-candle font-serif italic text-lg md:text-xl">
-                  {partnerIsHost && peer ? `Join ${partnerFirst} at ${fmtTime(peer.currentTime)}` : "Raise the curtain"}
-                </span>
-                <span className="text-candle-muted text-[11px] uppercase tracking-[0.25em]">{currentSource?.label ?? "Loading"}</span>
               </button>
             )}
+
 
             {autoJoinedMuted && started && (
               <button
