@@ -455,17 +455,20 @@ function RockPaperScissors({ me, session, patch }: { me: string; session: Sessio
 
   function pick(c: RPSChoice) {
     if (myPick || matchDone) return;
+    gameSfx.pick();
     patch({ ...s, picks: { ...s.picks, [me]: c } });
   }
   function next() {
     if (!both) return;
     const w = rpsWinner(myPick!, theirPick!);
     const score = { ...(s.score ?? {}) };
-    if (w === 0) score[me] = (score[me] ?? 0) + 1;
-    else if (w === 1) score[otherId] = (score[otherId] ?? 0) + 1;
+    if (w === 0) { score[me] = (score[me] ?? 0) + 1; gameSfx.win(); }
+    else if (w === 1) { score[otherId] = (score[otherId] ?? 0) + 1; gameSfx.lose(); }
+    else gameSfx.draw();
     patch({ ...s, picks: {}, round: (s.round ?? 1) + 1, score });
   }
   function rematch() {
+    gameSfx.start();
     patch({ ...s, picks: {}, round: 1, score: {} });
   }
   const result = both ? rpsWinner(myPick!, theirPick!) : null;
