@@ -68,6 +68,7 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
   const [buffering, setBuffering] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const hideTimer = useRef<number | null>(null);
+  const bufferTimer = useRef<number | null>(null);
   const scrubbing = useRef(false);
   const audioCtxRef = useRef<AudioContext | null>(null);
   const gainNodeRef = useRef<GainNode | null>(null);
@@ -94,7 +95,25 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
   useEffect(() => {
     return () => {
       try { audioCtxRef.current?.close(); } catch {}
+      if (bufferTimer.current) window.clearTimeout(bufferTimer.current);
     };
+  }, []);
+
+  const stopBuffering = useCallback(() => {
+    if (bufferTimer.current) {
+      window.clearTimeout(bufferTimer.current);
+      bufferTimer.current = null;
+    }
+    setBuffering(false);
+  }, []);
+
+  const startBuffering = useCallback(() => {
+    setBuffering(true);
+    if (bufferTimer.current) window.clearTimeout(bufferTimer.current);
+    bufferTimer.current = window.setTimeout(() => {
+      setBuffering(false);
+      setShowControls(true);
+    }, 6500);
   }, []);
 
   useEffect(() => {
@@ -108,8 +127,17 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
     const v = videoRef.current;
     if (!v || !onReadyRef.current) return;
     onReadyRef.current({
-      play: () => v.play().catch(() => {}),
-      pause: () => v.pause(),
+      play: () => {
+        setBuffering(true);
+        v.play()
+          .then(() => stopBuffering())
+          .catch(() => {
+            stopBuffering();
+            setPlaying(false);
+            setShowControls(true);
+          });
+      },
+      pause: () => { v.pause(); stopBuffering(); },
       seek: (t: number) => {
         try {
           v.currentTime = Math.max(0, t);
@@ -122,7 +150,7 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
       isMuted: () => v.muted,
       setPlaybackRate: (r: number) => { try { v.playbackRate = r; setRate(r); } catch {} },
     });
-  }, [src]);
+  }, [src, stopBuffering]);
 
   // Seek to startAt when src or startAt changes
   useEffect(() => {
@@ -241,7 +269,13 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
         playsInline
         preload="auto"
         crossOrigin="anonymous"
-        onLoadedMetadata={(e) => setDuration(e.currentTarget.duration || 0)}
+        onLoadedMetadata={(e) => {
+          setDuration(e.currentTarget.duration || 0);
+          stopBuffering();
+        }}
+        onLoadedData={stopBuffering}
+        onCanPlay={stopBuffering}
+        onCanPlayThrough={stopBuffering}
         onTimeUpdate={(e) => {
           if (scrubbing.current) return;
           const v = e.currentTarget;
@@ -250,23 +284,30 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
         }}
         onPlay={(e) => {
           setPlaying(true);
+          stopBuffering();
           scheduleHide();
           onEvent?.({ event: "play", currentTime: e.currentTarget.currentTime, duration: e.currentTarget.duration, playbackRate: e.currentTarget.playbackRate });
         }}
         onPause={(e) => {
           setPlaying(false);
+          stopBuffering();
           setShowControls(true);
           onEvent?.({ event: "pause", currentTime: e.currentTarget.currentTime, duration: e.currentTarget.duration, playbackRate: e.currentTarget.playbackRate });
         }}
         onSeeked={(e) => {
+          stopBuffering();
           onEvent?.({ event: "seeked", currentTime: e.currentTarget.currentTime, duration: e.currentTarget.duration, playbackRate: e.currentTarget.playbackRate });
         }}
         onRateChange={(e) => {
           setRate(e.currentTarget.playbackRate);
           onEvent?.({ event: "ratechange", currentTime: e.currentTarget.currentTime, duration: e.currentTarget.duration, playbackRate: e.currentTarget.playbackRate });
         }}
-        onWaiting={() => setBuffering(true)}
-        onPlaying={() => setBuffering(false)}
+        onWaiting={startBuffering}
+        onStalled={startBuffering}
+        onSeeking={startBuffering}
+        onSuspend={stopBuffering}
+        onPlaying={stopBuffering}
+        onError={stopBuffering}
         onEnded={(e) => onEvent?.({ event: "ended", currentTime: e.currentTarget.currentTime, duration: e.currentTarget.duration, playbackRate: e.currentTarget.playbackRate })}
         onClick={locked && playing ? undefined : togglePlay}
       />
