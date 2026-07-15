@@ -1585,6 +1585,7 @@ function EmojiRiddle({ me, session, patch }: { me: string; session: Session; pat
 
   function submitGuess() {
     if (!draft.trim() || myGuess) return;
+    gameSfx.place();
     patch({ ...s, guesses: { ...s.guesses, [me]: draft.trim() } });
     setDraft("");
   }
@@ -1592,6 +1593,7 @@ function EmojiRiddle({ me, session, patch }: { me: string; session: Session; pat
     if (!card) return;
     const myPts = (s.score?.[me] ?? 0) + (isRight(myGuess) ? 1 : 0);
     const theirPts = (s.score?.[otherId] ?? 0) + (isRight(theirGuess) ? 1 : 0);
+    if (isRight(myGuess)) gameSfx.correct(); else gameSfx.wrong();
     patch({ ...s, revealed: true, score: { [me]: myPts, [otherId]: theirPts } });
   }
   async function next() {
