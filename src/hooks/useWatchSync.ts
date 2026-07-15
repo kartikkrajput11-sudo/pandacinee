@@ -45,7 +45,7 @@ export function useWatchSync(
     partnerOnline: false,
     publish: (_: Partial<Mine>) => {},
     sendSeek: (..._args: unknown[]) => {},
-    sendCountdown: (_: number) => {},
+    sendCountdown: (..._args: unknown[]) => {},
     countdown: null as { time: number; startAt: number } | null,
     clearCountdown: () => {},
     incomingSeek: null as ({ time: number; startAt?: number } | null),
