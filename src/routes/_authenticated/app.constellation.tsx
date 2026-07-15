@@ -71,23 +71,24 @@ function ConstellationRoute() {
       });
     }
 
-    // Mood peaks for both partners (last 90 days, keep peaks).
+    // Mood peaks for both partners (score 4-5 in the last 120 days).
     if (partner) {
-      const since = new Date(Date.now() - 90 * 86400_000).toISOString();
+      const since = new Date(Date.now() - 120 * 86400_000).toISOString().slice(0, 10);
       const { data: moods } = await (supabase as any)
         .from("mood_log")
-        .select("id,user_id,mood,emoji,created_at,intensity")
+        .select("id,user_id,label,emoji,score,date")
         .in("user_id", [me.id, partner.id])
-        .gt("created_at", since)
-        .order("intensity", { ascending: false })
-        .limit(12);
+        .gte("score", 4)
+        .gte("date", since)
+        .order("date", { ascending: false })
+        .limit(16);
       for (const m of (moods ?? []) as any[]) {
         derived.push({
           id: `mood-${m.id}`,
-          title: `A ${m.mood ?? "bright"} day`,
+          title: `A ${m.label ?? "bright"} day`,
           detail: m.user_id === me.id ? "You felt it strongly." : "They felt it strongly.",
           glyph: m.emoji ?? "✦",
-          date: m.created_at,
+          date: m.date,
           origin: "mood",
         });
       }
