@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useRef, useState, useEffect } from "react";
-import { ArrowLeft, Heart, Users, LogOut } from "lucide-react";
+import { ArrowLeft, Heart, Users, LogOut, Phone, Video } from "lucide-react";
 import { toast } from "sonner";
 import { useProfile } from "@/hooks/useProfile";
 import { useGroup, useLeaveGroup } from "@/hooks/useGroups";
@@ -137,6 +137,24 @@ function GroupChat() {
               )}
             </p>
           </div>
+          <Link
+            to="/app/call/group/$groupId"
+            params={{ groupId: group.id }}
+            search={{ role: "caller", mode: "voice" }}
+            className="size-10 rounded-full bg-surface border border-border flex items-center justify-center text-petal"
+            aria-label="Group voice call"
+          >
+            <Phone className="size-4" />
+          </Link>
+          <Link
+            to="/app/call/group/$groupId"
+            params={{ groupId: group.id }}
+            search={{ role: "caller", mode: "video" }}
+            className="size-10 rounded-full bg-surface border border-border flex items-center justify-center text-petal"
+            aria-label="Group video call"
+          >
+            <Video className="size-4" />
+          </Link>
           <button
             onClick={handleLeave}
             className="size-10 rounded-full bg-surface border border-border flex items-center justify-center text-candle-muted"

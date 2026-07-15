@@ -48,13 +48,18 @@ function Friends() {
   async function startCall(peerId: string, mode: "video" | "audio") {
     const { data: u } = await supabase.auth.getUser();
     if (!u.user) return;
-    await supabase.from("call_signals").insert({
-      from_id: u.user.id,
-      to_id: peerId,
-      kind: "invite",
-      payload: { mode } as any,
-    });
-    navigate({ to: "/app/call/$peerId", params: { peerId }, search: { role: "caller", mode } });
+    const kind = mode === "audio" ? "voice" : "video";
+    const { startDirectCall } = await import("@/lib/callActions");
+    try {
+      const call = await startDirectCall(peerId, kind);
+      navigate({
+        to: "/app/call/$peerId",
+        params: { peerId },
+        search: { role: "caller", mode: kind, callId: call.id },
+      });
+    } catch (e) {
+      console.warn("startCall failed", e);
+    }
   }
 
   return (
