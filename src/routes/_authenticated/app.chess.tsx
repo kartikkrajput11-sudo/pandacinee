@@ -312,6 +312,8 @@ function GameScreen({
   const [confetti, setConfetti] = useState(false);
   const [partnerHere, setPartnerHere] = useState(false);
   const aiRef = useRef(false);
+  // TEMP: manual trigger to preview win animation — remove later
+  const [demoWin, setDemoWin] = useState<{ n: number; loser: "w" | "b" } | null>(null);
 
   // ── Load / subscribe for partner games ──
   useEffect(() => {
@@ -482,6 +484,14 @@ function GameScreen({
             <RefreshCcw className="size-4" />
           </button>
         )}
+        {/* TEMP: preview win animation — remove later */}
+        <button
+          onClick={() => setDemoWin({ n: Date.now(), loser: Math.random() > 0.5 ? "w" : "b" })}
+          className="px-2 py-1 rounded-full bg-red-500/20 border border-red-400/40 text-[10px] uppercase tracking-widest text-red-200"
+          title="Preview win animation"
+        >
+          ⚔️ Test
+        </button>
       </header>
 
       {/* Top player bar */}
@@ -543,8 +553,15 @@ function GameScreen({
 
       {/* Win animation — sword slices the losing king's head */}
       <WinAnimation
-        trigger={confetti && result.winner && result.winner !== "draw" ? `${result.winner}-${chess.history().length}` : null}
-        loserColor={result.winner === "w" ? "b" : result.winner === "b" ? "w" : null}
+        trigger={
+          demoWin ? demoWin.n :
+          confetti && result.winner && result.winner !== "draw" ? `${result.winner}-${chess.history().length}` : null
+        }
+        loserColor={
+          demoWin ? demoWin.loser :
+          result.winner === "w" ? "b" : result.winner === "b" ? "w" : null
+        }
+        onDone={() => setDemoWin(null)}
       />
 
       {/* Draw / stalemate — soft confetti */}
