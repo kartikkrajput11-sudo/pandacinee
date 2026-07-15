@@ -3,15 +3,23 @@ import { useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { Phone, PhoneOff, Video } from "lucide-react";
 import { playRingTone } from "@/lib/ringtone";
+import { answerCall, declineCall, type CallRow } from "@/lib/callActions";
 
-type Incoming = { from_id: string; mode: "video" | "audio"; name?: string };
+type Incoming = {
+  callId: string;
+  fromId: string;
+  kind: "voice" | "video";
+  scope: "direct" | "group";
+  groupId: string | null;
+  name?: string;
+};
 
 export function IncomingCallListener() {
   const [incoming, setIncoming] = useState<Incoming | null>(null);
   const navigate = useNavigate();
   const ringRef = useRef<{ stop: () => void } | null>(null);
 
-  // Start/stop ring tone + vibrate while an incoming call is on screen
+  // Ring tone + vibration while ringing
   useEffect(() => {
     if (!incoming) return;
     ringRef.current = playRingTone();
@@ -33,67 +41,45 @@ export function IncomingCallListener() {
     let cancelled = false;
     let channel: ReturnType<typeof supabase.channel> | null = null;
     let me: string | null = null;
-    const seen = new Set<string>();
 
-    // Dismiss the ringing banner if another one of my devices (or the caller)
-    // resolved this call — accepted/declined/cancelled. Keeps multi-device
-    // ringing consistent like Instagram/Snapchat.
-    function handleResolution(sig: any) {
-      if (!sig) return;
-      setIncoming((prev) => {
-        if (!prev) return prev;
-        const isMineResolving =
-          sig.to_id === me && (sig.kind === "accepted" || sig.kind === "declined");
-        const isCallerCancel =
-          sig.kind === "cancel" && sig.from_id === prev.from_id;
-        if (isMineResolving || isCallerCancel) return null;
-        return prev;
-      });
-    }
-
-    async function surfaceSignal(sig: any) {
-      if (!sig || seen.has(sig.id)) return;
-      seen.add(sig.id);
-      if (sig.kind !== "invite") {
-        handleResolution(sig);
-        return;
-      }
-      // Ignore invites older than 45s — the caller has almost certainly given up.
-      if (sig.created_at) {
-        const age = Date.now() - new Date(sig.created_at).getTime();
-        if (age > 45_000) return;
-      }
-      // Skip if this invite was already resolved on another device.
-      const { data: resolutions } = await supabase
-        .from("call_signals")
-        .select("id, kind")
-        .eq("to_id", me!)
-        .in("kind", ["accepted", "declined", "cancel"])
-        .gte("created_at", sig.created_at)
-        .limit(1);
-      if (resolutions && resolutions.length > 0) return;
+    async function surfaceCall(callId: string) {
+      if (!me) return;
+      const { data: c } = await supabase.from("calls").select("*").eq("id", callId).maybeSingle();
+      if (!c) return;
+      const call = c as unknown as CallRow;
+      if (call.status !== "ringing") return;
+      // Ignore stale (>50s old)
+      if (Date.now() - new Date(call.started_at).getTime() > 50_000) return;
       const { data: p } = await supabase
         .from("profiles")
         .select("display_name")
-        .eq("id", sig.from_id)
+        .eq("id", call.initiator_id)
         .maybeSingle();
       setIncoming((prev) =>
-        prev ? prev : { from_id: sig.from_id, mode: sig.payload?.mode ?? "video", name: p?.display_name },
+        prev
+          ? prev
+          : {
+              callId: call.id,
+              fromId: call.initiator_id,
+              kind: call.kind,
+              scope: call.scope,
+              groupId: call.group_id,
+              name: p?.display_name ?? undefined,
+            },
       );
     }
 
     async function catchUp() {
       if (!me) return;
-      const since = new Date(Date.now() - 45_000).toISOString();
-      const { data } = await supabase
-        .from("call_signals")
-        .select("id, from_id, to_id, kind, payload, created_at")
-        .eq("to_id", me)
-        .eq("kind", "invite")
-        .gte("created_at", since)
+      // Find any call_participants row for me still ringing
+      const { data: rows } = await supabase
+        .from("call_participants")
+        .select("call_id")
+        .eq("user_id", me)
+        .eq("state", "ringing")
         .order("created_at", { ascending: false })
         .limit(5);
-      for (const sig of data ?? []) await surfaceSignal(sig);
+      for (const r of rows ?? []) await surfaceCall((r as { call_id: string }).call_id);
     }
 
     function onVisible() {
@@ -107,11 +93,35 @@ export function IncomingCallListener() {
       const topic = `incoming-${me}-${Math.random().toString(36).slice(2)}`;
       channel = supabase.channel(topic);
       channel
+        // New invitation → participant row inserted with state='ringing'
         .on(
           "postgres_changes",
-          { event: "INSERT", schema: "public", table: "call_signals", filter: `to_id=eq.${me}` },
-          (payload: any) => {
-            void surfaceSignal(payload.new);
+          { event: "INSERT", schema: "public", table: "call_participants", filter: `user_id=eq.${me}` },
+          (payload) => {
+            const row = payload.new as { call_id: string; state: string };
+            if (row.state === "ringing") void surfaceCall(row.call_id);
+          },
+        )
+        // My participant row changed (I answered elsewhere / declined / call ended)
+        .on(
+          "postgres_changes",
+          { event: "UPDATE", schema: "public", table: "call_participants", filter: `user_id=eq.${me}` },
+          (payload) => {
+            const row = payload.new as { call_id: string; state: string };
+            if (row.state !== "ringing") {
+              setIncoming((prev) => (prev?.callId === row.call_id ? null : prev));
+            }
+          },
+        )
+        // Call ended/missed for any reason → clear ringer
+        .on(
+          "postgres_changes",
+          { event: "UPDATE", schema: "public", table: "calls" },
+          (payload) => {
+            const c = payload.new as { id: string; status: string };
+            if (c.status !== "ringing") {
+              setIncoming((prev) => (prev?.callId === c.id ? null : prev));
+            }
           },
         )
         .subscribe((status) => {
@@ -133,39 +143,30 @@ export function IncomingCallListener() {
 
   async function accept() {
     if (!incoming) return;
-    const { data: u } = await supabase.auth.getUser();
-    if (u.user) {
-      // Tell my other devices this call was picked up so their ringers stop.
-      await supabase.from("call_signals").insert({
-        from_id: u.user.id,
-        to_id: u.user.id,
-        kind: "accepted",
-        payload: { peer_id: incoming.from_id } as never,
+    try {
+      await answerCall(incoming.callId);
+    } catch (e) {
+      console.warn("answer failed", e);
+    }
+    if (incoming.scope === "group" && incoming.groupId) {
+      navigate({
+        to: "/app/call/group/$groupId",
+        params: { groupId: incoming.groupId },
+        search: { callId: incoming.callId, role: "callee" },
+      });
+    } else {
+      navigate({
+        to: "/app/call/$peerId",
+        params: { peerId: incoming.fromId },
+        search: { callId: incoming.callId, role: "callee", mode: incoming.kind },
       });
     }
-    navigate({ to: "/app/call/$peerId", params: { peerId: incoming.from_id }, search: { role: "callee", mode: incoming.mode } });
     setIncoming(null);
   }
 
   async function decline() {
     if (!incoming) return;
-    const { data: u } = await supabase.auth.getUser();
-    if (u.user) {
-      // Notify the caller
-      await supabase.from("call_signals").insert({
-        from_id: u.user.id,
-        to_id: incoming.from_id,
-        kind: "decline",
-        payload: {},
-      });
-      // Notify my other devices so their ringers stop.
-      await supabase.from("call_signals").insert({
-        from_id: u.user.id,
-        to_id: u.user.id,
-        kind: "declined",
-        payload: { peer_id: incoming.from_id } as never,
-      });
-    }
+    try { await declineCall(incoming.callId); } catch (e) { console.warn(e); }
     setIncoming(null);
   }
 
@@ -173,10 +174,12 @@ export function IncomingCallListener() {
     <div className="fixed inset-x-0 top-4 z-[100] flex justify-center px-4 animate-fade-in">
       <div className="w-full max-w-[420px] bg-surface/95 backdrop-blur-xl border border-petal/40 rounded-3xl p-4 shadow-2xl flex items-center gap-3 petal-glow">
         <div className="size-12 rounded-full bg-petal-soft flex items-center justify-center">
-          {incoming.mode === "video" ? <Video className="size-5 text-petal" /> : <Phone className="size-5 text-petal" />}
+          {incoming.kind === "video" ? <Video className="size-5 text-petal" /> : <Phone className="size-5 text-petal" />}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-[10px] uppercase tracking-widest text-petal">Incoming {incoming.mode} call</p>
+          <p className="text-[10px] uppercase tracking-widest text-petal">
+            Incoming {incoming.kind} call{incoming.scope === "group" ? " · group" : ""}
+          </p>
           <p className="font-serif italic text-lg truncate">{incoming.name ?? "Someone"}</p>
         </div>
         <button
