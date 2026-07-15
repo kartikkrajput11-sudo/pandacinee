@@ -35,7 +35,7 @@ import { tmdbMovie, tmdbTvDetail, tmdbTvSeason } from "@/lib/tmdb.functions";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/integrations/supabase/client";
 import { WatchTogetherPanel } from "@/components/watch/WatchTogetherPanel";
-import { createWatchParty } from "@/lib/watchParty";
+
 import { useWatchSync, fmtTime } from "@/hooks/useWatchSync";
 import { CustomMoviePlayer, type CustomPlayerHandle } from "@/components/CustomMoviePlayer";
 import { useFriendships } from "@/hooks/useFriends";
@@ -746,35 +746,6 @@ function CatalogWatch({ id }: { id: string }) {
             )}
           </h1>
         </div>
-        <button
-          onClick={async () => {
-            try {
-              const p = await createWatchParty({
-                media_kind: isTv ? "tv" : "movie",
-                media_id: String(tmdbId),
-                media_title: movie?.title ?? movie?.name ?? null,
-                media_poster: movie?.poster_path
-                  ? (movie.poster_path.startsWith("http")
-                      ? movie.poster_path
-                      : `https://image.tmdb.org/t/p/w300${movie.poster_path}`)
-                  : null,
-                season: isTv ? season : null,
-                episode: isTv ? episode : null,
-                source_idx: sourceIdx,
-              });
-              const url = `${window.location.origin}/app/watch-party/${p.code}`;
-              try { await navigator.clipboard.writeText(url); } catch {}
-              toast.success(`Party ${p.code} · invite copied`);
-              navigate({ to: "/app/watch-party/$code", params: { code: p.code } });
-            } catch (e: any) {
-              toast.error(e?.message ?? "Could not start party");
-            }
-          }}
-          className="h-9 px-3 rounded-full bg-petal text-velvet text-[11px] font-semibold flex items-center gap-1.5 hover:bg-petal/90 transition-colors"
-          aria-label="Start watch party"
-        >
-          <Users className="size-3.5" /> Watch Party
-        </button>
         <div className="relative">
           <button
             onClick={() => setViewersOpen((v) => !v)}
