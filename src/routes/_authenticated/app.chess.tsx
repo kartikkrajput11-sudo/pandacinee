@@ -484,6 +484,14 @@ function GameScreen({
             <RefreshCcw className="size-4" />
           </button>
         )}
+        {/* TEMP: preview win animation — remove later */}
+        <button
+          onClick={() => setDemoWin({ n: Date.now(), loser: Math.random() > 0.5 ? "w" : "b" })}
+          className="px-2 py-1 rounded-full bg-red-500/20 border border-red-400/40 text-[10px] uppercase tracking-widest text-red-200"
+          title="Preview win animation"
+        >
+          ⚔️ Test
+        </button>
       </header>
 
       {/* Top player bar */}
