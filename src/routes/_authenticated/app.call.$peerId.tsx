@@ -193,17 +193,21 @@ function Call() {
         // Re-read the calls row directly — local `call` state may still be
         // stale because the realtime UPDATE for the row we just ended hasn't
         // arrived yet by the time this effect fires.
-        let fresh = call;
+        let answeredAt: string | null = call?.answered_at ?? null;
+        let durationSeconds: number | null = call?.duration_seconds ?? null;
         if (callId) {
           const { data } = await supabase
             .from("calls")
             .select("answered_at, duration_seconds")
             .eq("id", callId)
             .maybeSingle();
-          if (data) fresh = { ...(fresh as never), ...(data as never) };
+          if (data) {
+            answeredAt = (data as { answered_at: string | null }).answered_at ?? answeredAt;
+            durationSeconds = (data as { duration_seconds: number | null }).duration_seconds ?? durationSeconds;
+          }
         }
-        const wasAnswered = !!fresh?.answered_at || answered || connectedAtRef.current !== null;
-        const durSec = fresh?.duration_seconds
+        const wasAnswered = !!answeredAt || answered || connectedAtRef.current !== null;
+        const durSec = durationSeconds
           ?? (connectedAtRef.current ? Math.floor((Date.now() - connectedAtRef.current) / 1000) : 0);
         const outcome = wasAnswered ? "completed" : "missed";
         await supabase.from("messages").insert({
