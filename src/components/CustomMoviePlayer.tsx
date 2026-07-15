@@ -400,35 +400,37 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
               {fmt(time)} / {fmt(duration)}
             </span>
 
-            <div className="relative">
-              <button
-                onClick={() => setRateOpen((o) => !o)}
-                className="h-9 px-3 rounded-full bg-white/10 hover:bg-white/20 flex items-center gap-1"
-                aria-label="Playback speed"
-              >
-                <Gauge className="size-3.5" />
-                <span>{rate}x</span>
-              </button>
-              {rateOpen && (
-                <div className="absolute right-0 bottom-11 bg-black/90 border border-white/10 rounded-2xl p-1.5 flex flex-col gap-0.5 min-w-[80px]">
-                  {RATES.map((r) => (
-                    <button
-                      key={r}
-                      onClick={() => {
-                        const v = videoRef.current;
-                        if (!v) return;
-                        v.playbackRate = r;
-                        setRate(r);
-                        setRateOpen(false);
-                      }}
-                      className={`px-2 py-1 rounded-lg text-left text-xs hover:bg-white/10 ${r === rate ? "text-petal" : "text-white"}`}
-                    >
-                      {r}x
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+            {!locked && (
+              <div className="relative">
+                <button
+                  onClick={() => setRateOpen((o) => !o)}
+                  className="h-9 px-3 rounded-full bg-white/10 hover:bg-white/20 flex items-center gap-1"
+                  aria-label="Playback speed"
+                >
+                  <Gauge className="size-3.5" />
+                  <span>{rate}x</span>
+                </button>
+                {rateOpen && (
+                  <div className="absolute right-0 bottom-11 bg-black/90 border border-white/10 rounded-2xl p-1.5 flex flex-col gap-0.5 min-w-[80px]">
+                    {RATES.map((r) => (
+                      <button
+                        key={r}
+                        onClick={() => {
+                          const v = videoRef.current;
+                          if (!v) return;
+                          v.playbackRate = r;
+                          setRate(r);
+                          setRateOpen(false);
+                        }}
+                        className={`px-2 py-1 rounded-lg text-left text-xs hover:bg-white/10 ${r === rate ? "text-petal" : "text-white"}`}
+                      >
+                        {r}x
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
 
             <button onClick={togglePip} aria-label="Picture-in-picture" className="hidden sm:flex size-9 rounded-full bg-white/10 hover:bg-white/20 items-center justify-center">
               <PictureInPicture2 className="size-4" />
