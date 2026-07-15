@@ -299,12 +299,12 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
 
       {/* Controls */}
       <div
-        className={`absolute inset-x-0 bottom-0 px-3 md:px-6 pb-3 md:pb-5 pt-16 bg-gradient-to-t from-black/95 via-black/50 to-transparent transition-all duration-500 ${
+        className={`absolute inset-x-0 bottom-0 px-2 md:px-4 pb-2 md:pb-3 pt-6 bg-gradient-to-t from-black/90 via-black/30 to-transparent transition-all duration-500 ${
           showControls || !playing ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2 pointer-events-none"
         }`}
       >
         {/* Luxurious glass panel wrapping the bar */}
-        <div className="relative rounded-2xl p-2 md:p-3 bg-white/[0.06] backdrop-blur-2xl border border-white/10 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.7),inset_0_1px_0_rgba(255,255,255,0.08)] overflow-hidden">
+        <div className="relative rounded-xl px-2 py-1.5 md:px-3 md:py-2 bg-white/[0.06] backdrop-blur-2xl border border-white/10 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.08)] overflow-hidden">
           {/* Petal glow accent */}
           <div aria-hidden className="pointer-events-none absolute -top-16 -left-10 h-32 w-56 rounded-full bg-petal/20 blur-3xl" />
           <div aria-hidden className="pointer-events-none absolute -bottom-16 -right-10 h-32 w-56 rounded-full bg-petal/15 blur-3xl" />
