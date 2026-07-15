@@ -73,7 +73,8 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
     setMenuOpen(false);
     const emoji = KISS_EMOJIS[Math.floor(Math.random() * KISS_EMOJIS.length)];
     try {
-      await onSend({ type: "kiss", content: emoji, reply_to_id: null, disappear_seconds: 3600 });
+      // Only vanish if the user explicitly enabled disappearing messages.
+      await onSend({ type: "kiss", content: emoji, reply_to_id: null, disappear_seconds: disappearSecs });
     } catch (err: any) {
       toast.error(err?.message ?? "Couldn't send");
     }
@@ -82,7 +83,7 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
   async function sendNudge() {
     setMenuOpen(false);
     try {
-      await onSend({ type: "nudge", content: `Nudged ${partnerName}!`, disappear_seconds: 3600 });
+      await onSend({ type: "nudge", content: `Nudged ${partnerName}!`, disappear_seconds: disappearSecs });
       toast.success(`You nudged ${partnerName} 👋`);
     } catch (err: any) {
       toast.error(err?.message ?? "Couldn't nudge");
@@ -149,7 +150,7 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
         content,
         type: whisper ? "whisper" : "text",
         reply_to_id: replyTo?.id ?? null,
-        disappear_seconds: whisper ? (disappearSecs ?? 3600) : disappearSecs,
+        disappear_seconds: disappearSecs,
       });
       onClearReply();
     } catch (err: any) {
