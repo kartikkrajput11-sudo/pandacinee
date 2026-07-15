@@ -120,6 +120,7 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
       isPaused: () => v.paused,
       setMuted: (m: boolean) => { v.muted = m; setMuted(m); },
       isMuted: () => v.muted,
+      setPlaybackRate: (r: number) => { try { v.playbackRate = r; setRate(r); } catch {} },
     });
   }, [src]);
 
