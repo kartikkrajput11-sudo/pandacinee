@@ -104,6 +104,19 @@ async function startPartnerGame(meId?: string | null, partnerId?: string | null)
     toast.error("Pair with your panda first");
     return null;
   }
+  // Reuse an active game between the two players, if any, so both sides land on the same board.
+  const { data: existing } = await supabase
+    .from("chess_games")
+    .select("id")
+    .eq("status", "active")
+    .or(
+      `and(white_id.eq.${meId},black_id.eq.${partnerId}),and(white_id.eq.${partnerId},black_id.eq.${meId})`,
+    )
+    .order("last_move_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (existing?.id) return existing.id;
+
   // Random side choice
   const meIsWhite = Math.random() < 0.5;
   const { data, error } = await supabase
@@ -120,6 +133,7 @@ async function startPartnerGame(meId?: string | null, partnerId?: string | null)
   }
   return data.id;
 }
+
 
 // ─────────── Lobby ───────────
 
