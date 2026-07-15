@@ -399,104 +399,56 @@ function TimelinePage() {
                         style={{ background: `linear-gradient(180deg, ${meta.tint}, transparent)` }}
                       />
 
-                      {/* Card */}
+                      {/* Card — minimalist */}
                       <div
-                        className="relative rounded-[28px] p-[1.5px] overflow-hidden group"
+                        className="relative rounded-2xl overflow-hidden transition-all duration-500"
                         style={{
-                          background: isActive
-                            ? `conic-gradient(from 90deg, ${meta.tint}, #fff8e7, ${meta.tint}, #e88aab, ${meta.tint})`
-                            : `linear-gradient(140deg, ${meta.tint}55, transparent 50%, ${meta.tint}33)`,
-                          animation: isActive ? "border-spin 8s linear infinite" : undefined,
+                          background: "rgba(255,255,255,0.03)",
+                          border: `1px solid ${isActive ? meta.tint + "66" : "rgba(255,255,255,0.08)"}`,
+                          minHeight: 240,
                         }}
                       >
-                        <div
-                          className="rounded-[26px] p-4 backdrop-blur-xl relative overflow-hidden min-h-[280px]"
-                          style={{
-                            background: "linear-gradient(160deg, rgba(20,10,32,0.85), rgba(30,14,48,0.7))",
-                          }}
-                        >
-                          {/* Inner sheen */}
-                          <div aria-hidden className="absolute inset-0 pointer-events-none opacity-70"
-                            style={{
-                              background:
-                                `radial-gradient(120% 60% at 0% 0%, ${meta.tint}18, transparent 60%),` +
-                                "radial-gradient(80% 50% at 100% 100%, #ffffff10, transparent 60%)",
-                            }}
+                        <div className="p-5 relative">
+                          {/* Thin accent bar */}
+                          <span
+                            aria-hidden
+                            className="absolute left-0 top-5 bottom-5 w-[2px] rounded-full"
+                            style={{ background: meta.tint, opacity: isActive ? 1 : 0.5 }}
                           />
-                          {/* Sparkle dust */}
-                          <span aria-hidden className="absolute top-3 right-3 size-1 rounded-full bg-white/90" style={{ animation: "star-twinkle 2.4s ease-in-out infinite", boxShadow: "0 0 6px #fff" }} />
-                          <span aria-hidden className="absolute top-8 right-10 size-[3px] rounded-full bg-[#f0d78c]" style={{ animation: "star-twinkle 3.4s ease-in-out .6s infinite", boxShadow: "0 0 6px #f0d78c" }} />
-                          <span aria-hidden className="absolute bottom-6 left-4 size-[2px] rounded-full bg-[#e88aab]" style={{ animation: "star-twinkle 2.8s ease-in-out 1.2s infinite", boxShadow: "0 0 6px #e88aab" }} />
 
                           {/* Header row */}
-                          <div className="relative flex items-center gap-2 mb-2">
-                            <div className="size-7 rounded-full flex items-center justify-center border"
-                              style={{ background: `${meta.tint}22`, borderColor: `${meta.tint}66` }}>
-                              <Icon className="size-3.5" style={{ color: meta.tint }} />
-                            </div>
+                          <div className="flex items-center gap-2 mb-4 pl-3">
+                            <Icon className="size-3.5" style={{ color: meta.tint }} />
                             <span
                               className="text-[10px] uppercase tracking-[0.28em] font-medium"
-                              style={{ color: meta.tint, textShadow: `0 0 12px ${meta.tint}66` }}
+                              style={{ color: meta.tint }}
                             >
                               {meta.label}
                             </span>
-                            <span className="ml-auto flex items-center gap-1 text-[10px] text-white/70 bg-white/5 border border-white/10 rounded-full px-2 py-0.5">
-                              <Calendar className="size-3" /> {fmtDate(it.date)}
+                            <span className="ml-auto text-[10px] text-white/50">
+                              {fmtDate(it.date)}
                             </span>
                           </div>
 
                           {/* Body */}
-                          <div className="relative flex items-start gap-3">
+                          <div className="pl-3">
                             {it.mood && (
-                              <div
-                                className="size-11 rounded-2xl flex items-center justify-center text-2xl shrink-0"
-                                style={{
-                                  background: `linear-gradient(135deg, ${meta.tint}33, ${meta.tint}11)`,
-                                  border: `1px solid ${meta.tint}44`,
-                                  boxShadow: `inset 0 1px 0 rgba(255,255,255,0.08), 0 6px 18px -12px ${meta.tint}`,
-                                }}
-                              >
-                                <span style={{ animation: "float-bob 3.2s ease-in-out infinite" }}>{it.mood}</span>
-                              </div>
+                              <div className="text-2xl mb-2 leading-none">{it.mood}</div>
                             )}
-                            <div className="flex-1 min-w-0">
-                              <h3
-                                className="font-serif italic text-2xl leading-snug"
-                                style={{
-                                  background: "linear-gradient(180deg, #fff8e7, #f0d78c)",
-                                  WebkitBackgroundClip: "text",
-                                  WebkitTextFillColor: "transparent",
-                                }}
-                              >
-                                {it.title}
-                              </h3>
-                              {it.body && <p className="text-sm text-white/70 mt-1 leading-relaxed line-clamp-4">{it.body}</p>}
-                            </div>
-                          </div>
-
-                          {/* Footer chips */}
-                          <div className="relative mt-3 flex items-center gap-2 flex-wrap">
-                            <Chip tint={meta.tint} icon={<Star className="size-3" />} label={meta.label} />
-                            {me?.anniversary_date && (
-                              <Chip
-                                tint="#5cbdb9"
-                                icon={<Heart className="size-3" />}
-                                label={`Day ${Math.max(0, daysBetween(me.anniversary_date, it.date))}`}
-                              />
+                            <h3 className="font-serif text-xl leading-snug text-white/95">
+                              {it.title}
+                            </h3>
+                            {it.body && (
+                              <p className="text-sm text-white/55 mt-2 leading-relaxed line-clamp-4">
+                                {it.body}
+                              </p>
                             )}
                           </div>
 
-                          {/* Sweep bar when active */}
-                          {isActive && (
-                            <div className="relative mt-3 h-[2px] w-full overflow-hidden rounded-full bg-white/10">
-                              <div
-                                className="h-full"
-                                style={{
-                                  width: "45%",
-                                  background: `linear-gradient(90deg, transparent, ${meta.tint}, #fff8e7, ${meta.tint}, transparent)`,
-                                  animation: "timeline-sweep 3.6s linear infinite",
-                                }}
-                              />
+                          {/* Footer — day counter only, quiet */}
+                          {me?.anniversary_date && (
+                            <div className="pl-3 mt-4 text-[10px] uppercase tracking-[0.22em] text-white/40">
+                              Day {Math.max(0, daysBetween(me.anniversary_date, it.date))}
                             </div>
                           )}
                         </div>
