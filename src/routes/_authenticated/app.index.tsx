@@ -7,7 +7,7 @@ import { DailyQuestionCard } from "@/components/DailyQuestionCard";
 import { PartnerPresenceCard } from "@/components/PartnerPresenceCard";
 
 import { MemoryOfTheDayCard } from "@/components/MemoryOfTheDayCard";
-import { Heart, ArrowRight, Users, LineChart, Clapperboard, BookHeart, Gift, Feather, Sparkles, Stars, Flame } from "lucide-react";
+import { Heart, ArrowRight, Users, LineChart, Clapperboard, BookHeart, Gift, Feather, Sparkles, Stars, Gem } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/app/")({
   component: Home,
@@ -133,7 +133,7 @@ function Home() {
           </p>
           <div className="grid grid-cols-2 gap-3">
             <SignatureTile to="/app/letters" Icon={Feather} label="Love Letters" caption="Seal now, open later" swatch="from-[#c9a84c]/40 to-[#f0d78c]/10" />
-            <SignatureTile to="/app/rituals" Icon={Flame} label="Rituals" caption="Nightly, synced" swatch="from-[#c96b7a]/40 to-[#f0c0cc]/10" />
+            <SignatureTile to="/app/tamanna" Icon={Gem} label="Tamanna" caption="Whispered desires" swatch="from-[#c96b7a]/40 to-[#f0c0cc]/10" />
             <SignatureTile to="/app/constellation" Icon={Stars} label="Constellation" caption="Your night sky" swatch="from-[#5cbdb9]/40 to-[#0d7a5f]/10" />
             <SignatureTile to="/app/concierge" Icon={Sparkles} label="Concierge" caption="AI ideas, tuned" swatch="from-[#f0d78c]/40 to-[#c9a84c]/10" />
           </div>
