@@ -719,14 +719,21 @@ function TruthOrDare({ me, session, patch }: { me: string; session: Session; pat
                 <Bubble label={answeredByMe ? `${answerLabel} (you)` : `${answerLabel} · their reply`} text={answer} />
               ) : answeredByMe ? (
                 <div className="p-4 rounded-2xl border border-border bg-surface text-center">
-                  <p className="text-xs text-candle-muted">Answer sent · waiting for partner to swipe & reveal ✨</p>
+                  <p className="text-xs text-candle-muted">Answer locked in ✨ waiting for partner to tap Reveal.</p>
                 </div>
               ) : (
-                <SwipeToReveal label={`${answerLabel} from partner`} onReveal={revealAnswer} />
+                <button
+                  onClick={revealAnswer}
+                  className="w-full p-5 rounded-3xl border border-petal/40 bg-gradient-to-br from-petal-soft to-transparent text-left active:scale-[0.99] transition-transform"
+                >
+                  <p className="text-[10px] uppercase tracking-widest text-petal">Locked</p>
+                  <p className="font-serif italic text-lg text-candle">{`${answerLabel} from partner`}</p>
+                  <p className="text-[11px] text-candle-muted mt-1">Tap to reveal ✨</p>
+                </button>
               )
             ) : myTurn ? (
               <>
-                <p className="text-xs text-candle-muted mb-2">{answerLabel} — partner swipes to reveal it.</p>
+                <p className="text-xs text-candle-muted mb-2">{answerLabel} — partner will tap to reveal it.</p>
                 <Composer value={input} onChange={setInput} onSubmit={submitAnswer} placeholder={placeholder} />
               </>
             ) : (
@@ -739,20 +746,27 @@ function TruthOrDare({ me, session, patch }: { me: string; session: Session; pat
           <div className="flex gap-2">
             <button
               onClick={skipCard}
-              disabled={loading}
+              disabled={loading || (!!answer && answeredByMe)}
               className="rounded-2xl bg-surface border border-border px-4 py-3.5 text-sm text-candle flex items-center gap-2 disabled:opacity-60"
             >
               <SkipForward className="size-4" /> Skip
             </button>
             <button
               onClick={completeCard}
-              disabled={loading || !answer || !revealed}
+              disabled={loading || !answer || !revealed || answeredByMe}
               className="flex-1 py-3.5 bg-petal text-velvet rounded-2xl font-semibold flex items-center justify-center gap-2 disabled:opacity-40"
             >
               {loading ? <Sparkles className="size-4 animate-pulse" /> : "✓"}
-              {!answer ? "Waiting for answer" : !revealed ? "Swipe to reveal first" : "Next turn"}
+              {!answer
+                ? "Waiting for answer"
+                : answeredByMe
+                ? "Partner will reveal"
+                : !revealed
+                ? "Tap Reveal first"
+                : "Done · my turn"}
             </button>
           </div>
+
         </>
       )}
       <p className="text-xs text-candle-muted text-center mt-3">Both phones flip together.</p>
