@@ -150,7 +150,7 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
         content,
         type: whisper ? "whisper" : "text",
         reply_to_id: replyTo?.id ?? null,
-        disappear_seconds: whisper ? (disappearSecs ?? 3600) : disappearSecs,
+        disappear_seconds: disappearSecs,
       });
       onClearReply();
     } catch (err: any) {
