@@ -488,8 +488,59 @@ function useCardFetcher(kind: "truth-or-dare" | "would-you-rather" | "this-or-th
   return { loading, fetchCard };
 }
 
+function SwipeToReveal({ label, onReveal }: { label: string; onReveal: () => void }) {
+  const [x, setX] = useState(0);
+  const [start, setStart] = useState<number | null>(null);
+  const THRESHOLD = 110;
+  return (
+    <div
+      className="relative overflow-hidden rounded-3xl border border-petal/40 bg-gradient-to-br from-petal-soft to-transparent select-none touch-pan-y"
+      style={{ minHeight: 120 }}
+      onPointerDown={(e) => {
+        (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
+        setStart(e.clientX);
+      }}
+      onPointerMove={(e) => {
+        if (start == null) return;
+        const dx = Math.max(0, Math.min(220, e.clientX - start));
+        setX(dx);
+      }}
+      onPointerUp={() => {
+        if (x >= THRESHOLD) {
+          onReveal();
+        }
+        setStart(null);
+        setX(0);
+      }}
+      onPointerCancel={() => {
+        setStart(null);
+        setX(0);
+      }}
+    >
+      <div className="absolute inset-y-0 left-0 flex items-center pl-5 text-petal font-serif italic text-lg pointer-events-none">
+        ✨ Reveal
+      </div>
+      <div
+        className="relative px-5 py-6 bg-velvet border-r border-petal/30 flex items-center justify-between gap-3"
+        style={{
+          transform: `translateX(${x}px)`,
+          transition: start == null ? "transform 220ms ease" : "none",
+        }}
+      >
+        <div className="min-w-0">
+          <p className="text-[10px] uppercase tracking-widest text-petal">Locked</p>
+          <p className="font-serif italic text-lg text-candle truncate">{label}</p>
+          <p className="text-[11px] text-candle-muted mt-1">Swipe right to reveal →</p>
+        </div>
+        <div className="text-2xl text-petal shrink-0 animate-pulse">→</div>
+      </div>
+    </div>
+  );
+}
+
 function TruthOrDare({ me, session, patch }: { me: string; session: Session; patch: (s: any) => void }) {
-  const s = session.state ?? { count: 0, card: null, intensity: "playful", history: [], tally: { truth: 0, dare: 0, skipped: 0 }, bestOf: 10, answer: null, answeredBy: null };
+  const partnerId = session.host_id === me ? session.partner_id : session.host_id;
+  const s = session.state ?? { count: 0, card: null, intensity: "playful", history: [], tally: { truth: 0, dare: 0, skipped: 0 }, bestOf: 10, answer: null, answeredBy: null, turn: null, revealed: false };
   const { loading, fetchCard } = useCardFetcher("truth-or-dare");
   const card = s.card as null | { type: "truth" | "dare"; text: string };
   const tally = s.tally ?? { truth: 0, dare: 0, skipped: 0 };
@@ -499,37 +550,75 @@ function TruthOrDare({ me, session, patch }: { me: string; session: Session; pat
   const [input, setInput] = useState("");
   const answer: string | null = s.answer ?? null;
   const answeredByMe = s.answeredBy === me;
+  const turn: string = s.turn ?? session.host_id;
+  const myTurn = turn === me;
+  const revealed = !!s.revealed;
 
   async function pick(type: "truth" | "dare") {
-    if (matchDone) return;
+    if (matchDone || !myTurn) return;
     const c = await fetchCard(s.intensity ?? "playful", type);
     const fallback = TRUTH_OR_DARE.find((x) => x.type === type) ?? TRUTH_OR_DARE[0];
     const chosen = c && c.type === type ? c : { type, text: c?.text ?? fallback.text };
-    patch({ ...s, card: chosen, answer: null, answeredBy: null });
+    patch({ ...s, card: chosen, answer: null, answeredBy: null, revealed: false, turn });
   }
 
   function submitAnswer() {
     if (!input.trim() || !card) return;
-    patch({ ...s, answer: input.trim(), answeredBy: me });
+    patch({ ...s, answer: input.trim(), answeredBy: me, revealed: false, turn });
     setInput("");
+  }
+
+  function revealAnswer() {
+    if (!answer || revealed) return;
+    patch({ ...s, revealed: true });
   }
 
   function completeCard() {
     if (!card) return;
     const history = [...(s.history ?? []), { ...card, answer: answer ?? null }].slice(-30);
     const nextTally = { ...tally, [card.type]: (tally[card.type] ?? 0) + 1 };
-    patch({ ...s, count: (s.count ?? 0) + 1, card: null, history, tally: nextTally, answer: null, answeredBy: null });
+    patch({
+      ...s,
+      count: (s.count ?? 0) + 1,
+      card: null,
+      history,
+      tally: nextTally,
+      answer: null,
+      answeredBy: null,
+      revealed: false,
+      turn: partnerId,
+    });
     setInput("");
   }
   function skipCard() {
     if (!card) return;
     const history = [...(s.history ?? []), { ...card, answer: answer ?? null, skipped: true }].slice(-30);
     const nextTally = { ...tally, skipped: (tally.skipped ?? 0) + 1 };
-    patch({ ...s, count: (s.count ?? 0) + 1, card: null, history, tally: nextTally, answer: null, answeredBy: null });
+    patch({
+      ...s,
+      count: (s.count ?? 0) + 1,
+      card: null,
+      history,
+      tally: nextTally,
+      answer: null,
+      answeredBy: null,
+      revealed: false,
+      turn: partnerId,
+    });
     setInput("");
   }
   function rematch() {
-    patch({ ...s, count: 0, card: null, history: [], tally: { truth: 0, dare: 0, skipped: 0 }, answer: null, answeredBy: null });
+    patch({
+      ...s,
+      count: 0,
+      card: null,
+      history: [],
+      tally: { truth: 0, dare: 0, skipped: 0 },
+      answer: null,
+      answeredBy: null,
+      revealed: false,
+      turn: session.host_id,
+    });
     setInput("");
   }
 
@@ -549,6 +638,9 @@ function TruthOrDare({ me, session, patch }: { me: string; session: Session; pat
       <p className="text-[10px] uppercase tracking-widest text-petal mb-2 text-center">
         🎯 Truth {tally.truth} · 🔥 Dare {tally.dare} · ⏭ Skipped {tally.skipped ?? 0}
       </p>
+      <p className="text-[11px] text-candle-muted mb-3 text-center">
+        {matchDone ? "Match complete" : myTurn ? "Your turn ✨" : "Partner's turn…"}
+      </p>
 
       {matchDone ? (
         <MatchComplete
@@ -559,19 +651,21 @@ function TruthOrDare({ me, session, patch }: { me: string; session: Session; pat
       ) : !card ? (
         <div className="p-6 rounded-3xl border border-border bg-surface mb-5 min-h-[200px] flex flex-col items-center justify-center gap-4">
           <p className="font-serif text-2xl italic text-candle text-center">Truth or Dare?</p>
-          <p className="text-xs text-candle-muted text-center">Pick to reveal your card · {s.intensity ?? "playful"} mode</p>
+          <p className="text-xs text-candle-muted text-center">
+            {myTurn ? `Pick to reveal your card · ${s.intensity ?? "playful"} mode` : "Waiting for your partner to pick…"}
+          </p>
           <div className="flex gap-3 w-full mt-2">
             <button
               onClick={() => pick("truth")}
-              disabled={loading}
-              className="flex-1 py-3.5 rounded-2xl bg-petal-soft border border-petal text-candle font-semibold flex items-center justify-center gap-2 disabled:opacity-60"
+              disabled={loading || !myTurn}
+              className="flex-1 py-3.5 rounded-2xl bg-petal-soft border border-petal text-candle font-semibold flex items-center justify-center gap-2 disabled:opacity-40"
             >
               {loading ? <Sparkles className="size-4 animate-pulse" /> : "🎯"} Truth
             </button>
             <button
               onClick={() => pick("dare")}
-              disabled={loading}
-              className="flex-1 py-3.5 rounded-2xl bg-petal text-velvet font-semibold flex items-center justify-center gap-2 disabled:opacity-60"
+              disabled={loading || !myTurn}
+              className="flex-1 py-3.5 rounded-2xl bg-petal text-velvet font-semibold flex items-center justify-center gap-2 disabled:opacity-40"
             >
               {loading ? <Sparkles className="size-4 animate-pulse" /> : "🔥"} Dare
             </button>
@@ -589,12 +683,24 @@ function TruthOrDare({ me, session, patch }: { me: string; session: Session; pat
 
           <div className="mb-4">
             {answer ? (
-              <Bubble label={answeredByMe ? `${answerLabel} (you)` : `${answerLabel} · their reply`} text={answer} />
-            ) : (
+              revealed ? (
+                <Bubble label={answeredByMe ? `${answerLabel} (you)` : `${answerLabel} · their reply`} text={answer} />
+              ) : answeredByMe ? (
+                <div className="p-4 rounded-2xl border border-border bg-surface text-center">
+                  <p className="text-xs text-candle-muted">Answer sent · waiting for partner to swipe & reveal ✨</p>
+                </div>
+              ) : (
+                <SwipeToReveal label={`${answerLabel} from partner`} onReveal={revealAnswer} />
+              )
+            ) : myTurn ? (
               <>
-                <p className="text-xs text-candle-muted mb-2">{answerLabel} — both phones see it once you send.</p>
+                <p className="text-xs text-candle-muted mb-2">{answerLabel} — partner swipes to reveal it.</p>
                 <Composer value={input} onChange={setInput} onSubmit={submitAnswer} placeholder={placeholder} />
               </>
+            ) : (
+              <div className="p-4 rounded-2xl border border-border bg-surface text-center">
+                <p className="text-xs text-candle-muted">Waiting for partner's answer…</p>
+              </div>
             )}
           </div>
 
@@ -608,11 +714,11 @@ function TruthOrDare({ me, session, patch }: { me: string; session: Session; pat
             </button>
             <button
               onClick={completeCard}
-              disabled={loading || !answer}
+              disabled={loading || !answer || !revealed}
               className="flex-1 py-3.5 bg-petal text-velvet rounded-2xl font-semibold flex items-center justify-center gap-2 disabled:opacity-40"
             >
               {loading ? <Sparkles className="size-4 animate-pulse" /> : "✓"}
-              {answer ? "Done — next card" : "Send your answer first"}
+              {!answer ? "Waiting for answer" : !revealed ? "Swipe to reveal first" : "Next turn"}
             </button>
           </div>
         </>
