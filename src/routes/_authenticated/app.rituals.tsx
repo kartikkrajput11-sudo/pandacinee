@@ -1,9 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Flame, Heart, Wind, X, Check } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { ArrowLeft, Flame, Heart, Wind, X, Check, Coins, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
+import { awardRitualCoins } from "@/lib/achievements.functions";
+import { RITUAL_REWARD } from "@/lib/achievements";
 
 export const Route = createFileRoute("/_authenticated/app/rituals")({
   component: RitualsRoute,
@@ -32,7 +35,7 @@ const RITUALS: {
 }[] = [
   { id: "gratitude", name: "Three Thank-Yous", emoji: "🌸", Icon: Heart, blurb: "Take turns naming three small things about today.", minutes: 3 },
   { id: "breathing", name: "Breathe Together", emoji: "🫧", Icon: Wind, blurb: "Guided 4-7-8. Match each other's breath.", minutes: 2 },
-  { id: "candle", name: "Candle Hour", emoji: "🕯️", Icon: Flame, blurb: "Both phones dim. A shared candle burns down.", minutes: 15 },
+  { id: "candle", name: "Candle Hour", emoji: "🕯️", Icon: Flame, blurb: "Both phones dim. A shared candle melts down.", minutes: 3 },
 ];
 
 function RitualsRoute() {
@@ -143,7 +146,12 @@ function RitualsRoute() {
               <div className="flex-1">
                 <p className="font-serif italic text-xl leading-tight">{r.name}</p>
                 <p className="text-xs text-candle-muted mt-1">{r.blurb}</p>
-                <p className="text-[10px] uppercase tracking-widest text-petal mt-2">{r.minutes} min</p>
+                <div className="flex items-center gap-3 mt-2">
+                  <p className="text-[10px] uppercase tracking-widest text-petal">{r.minutes} min</p>
+                  <p className="text-[10px] uppercase tracking-widest text-petal/80 inline-flex items-center gap-1">
+                    <Coins className="size-3" /> +{RITUAL_REWARD[r.id] ?? 15} each
+                  </p>
+                </div>
               </div>
               <div className="text-petal font-serif italic text-2xl mt-1 opacity-60">→</div>
             </button>
@@ -160,8 +168,13 @@ function RitualsRoute() {
 
 function ActiveRitual({ ritual, me, onEnd }: { ritual: Ritual; me: string; onEnd: () => void }) {
   const [now, setNow] = useState(Date.now());
+  const [awarded, setAwarded] = useState<{ reward: number; already: boolean } | null>(null);
+  const [awarding, setAwarding] = useState(false);
+  const award = useServerFn(awardRitualCoins);
+
   useEffect(() => {
-    const t = setInterval(() => setNow(Date.now()), 200);
+    // Tick every second — matches "melts every second" and drives the flame flicker.
+    const t = setInterval(() => setNow(Date.now()), 250);
     return () => clearInterval(t);
   }, []);
 
@@ -184,20 +197,61 @@ function ActiveRitual({ ritual, me, onEnd }: { ritual: Ritual; me: string; onEnd
     await patchState({ acks: { ...acks, [me]: (acks[me] ?? 0) + 1 } });
   }
 
+  // On completion, auto-claim coins.
+  useEffect(() => {
+    if (remaining > 0 || awarded || awarding || ritual.state?.coins_awarded) {
+      if (ritual.state?.coins_awarded && !awarded) {
+        setAwarded({ reward: ritual.state?.reward ?? 0, already: true });
+      }
+      return;
+    }
+    setAwarding(true);
+    award({ data: { ritualId: ritual.id } })
+      .then((res: any) => {
+        setAwarded({ reward: res?.reward ?? 0, already: !!res?.alreadyAwarded });
+      })
+      .catch((e) => {
+        toast.error(e?.message ?? "Couldn't award coins");
+      })
+      .finally(() => setAwarding(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [remaining <= 0]);
+
   if (remaining <= 0) {
     return (
       <div className="p-8 rounded-3xl bg-gradient-to-br from-petal-soft via-transparent to-transparent border border-petal/30 text-center">
         <p className="text-5xl mb-3">{meta.emoji}</p>
         <p className="font-serif italic text-2xl">Held together.</p>
-        <p className="text-sm text-candle-muted mt-2 mb-6">
+        <p className="text-sm text-candle-muted mt-2 mb-4">
           {meta.name} · {meta.minutes} min · both hearts steady
         </p>
-        <button onClick={onEnd} className="px-6 py-3 bg-petal text-velvet rounded-full font-semibold">
-          Close ritual
-        </button>
+        <div className="mx-auto mb-5 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-petal-soft border border-petal/40">
+          <Coins className="size-4 text-petal" />
+          <span className="text-petal font-semibold">
+            {awarding
+              ? "Counting the coins…"
+              : awarded
+                ? awarded.already
+                  ? "Already collected"
+                  : `+${awarded.reward} coins each`
+                : `+${RITUAL_REWARD[ritual.kind] ?? 15} coins each`}
+          </span>
+        </div>
+        <div className="flex gap-2 justify-center">
+          <Link
+            to="/app/shop"
+            className="px-5 py-3 bg-petal text-velvet rounded-full font-semibold inline-flex items-center gap-2"
+          >
+            <Sparkles className="size-4" /> Spend on tags
+          </Link>
+          <button onClick={onEnd} className="px-5 py-3 rounded-full font-semibold border border-border text-candle">
+            Close
+          </button>
+        </div>
       </div>
     );
   }
+
 
   return (
     <div className="relative">
@@ -210,7 +264,7 @@ function ActiveRitual({ ritual, me, onEnd }: { ritual: Ritual; me: string; onEnd
           }}
         />
 
-        {ritual.kind === "candle" && <CandleVisual progress={progress} />}
+        {ritual.kind === "candle" && <CandleVisual progress={progress} now={now} />}
         {ritual.kind === "breathing" && <BreathVisual now={now} />}
         {ritual.kind === "gratitude" && <GratitudeVisual acks={acks} />}
 
@@ -250,19 +304,123 @@ function ActiveRitual({ ritual, me, onEnd }: { ritual: Ritual; me: string; onEnd
   );
 }
 
-function CandleVisual({ progress }: { progress: number }) {
-  const height = Math.max(20, 140 - progress * 120);
+function CandleVisual({ progress, now }: { progress: number; now: number }) {
+  // Real candle: melts every second across a 3-minute burn. Height goes from
+  // 100% → ~8% linearly, with a soft rounded top and a drip streak on the side.
+  const MAX_H = 170;
+  const MIN_H = 14;
+  const height = Math.max(MIN_H, MAX_H - progress * (MAX_H - MIN_H));
+
+  // Flame flicker — deterministic wobble driven by `now` so both partners
+  // stay in loose visual sync (they see similar phase).
+  const flick = Math.sin(now / 140) * 0.35 + Math.sin(now / 71) * 0.15;
+  const flameH = 34 + flick * 6;
+  const flameW = 18 - Math.abs(flick) * 2;
+  const flameOffset = Math.sin(now / 210) * 1.6;
+  const glowOpacity = 0.55 + Math.sin(now / 180) * 0.12;
+
+  // Wax drip length grows with progress.
+  const dripLen = 8 + progress * 42;
+
   return (
-    <div className="relative flex flex-col items-center z-10">
-      <div className="text-4xl animate-pulse" style={{ animationDuration: "2.5s" }}>🔥</div>
+    <div className="relative flex flex-col items-center z-10" aria-label="Melting candle">
+      {/* Halo of light */}
       <div
-        className="w-6 rounded-full bg-gradient-to-b from-[#f5efd8] to-[#c9a84c] shadow-[0_0_30px_rgba(232,196,100,0.5)] transition-all"
-        style={{ height: `${height}px`, transitionDuration: "1000ms" }}
+        className="absolute -inset-16 rounded-full pointer-events-none"
+        style={{
+          background: `radial-gradient(circle, rgba(255,190,90,${glowOpacity}) 0%, rgba(232,140,60,0.15) 40%, transparent 70%)`,
+          filter: "blur(12px)",
+        }}
       />
-      <div className="w-14 h-2 rounded-full bg-[#3a1a10] mt-1" />
+
+      {/* Flame */}
+      <div
+        className="relative"
+        style={{
+          transform: `translateX(${flameOffset}px) rotate(${flameOffset * 1.2}deg)`,
+          transition: "transform 120ms linear",
+        }}
+      >
+        <div
+          style={{
+            width: flameW,
+            height: flameH,
+            background:
+              "radial-gradient(ellipse at 50% 80%, #fff2b0 0%, #ffcf5c 25%, #ff8a2b 55%, #b13a0a 85%, transparent 100%)",
+            borderRadius: "50% 50% 45% 45% / 65% 65% 35% 35%",
+            filter: "blur(0.4px) drop-shadow(0 0 14px rgba(255,170,60,0.9))",
+          }}
+        />
+        {/* Inner blue core */}
+        <div
+          className="absolute left-1/2 -translate-x-1/2"
+          style={{
+            bottom: 2,
+            width: flameW * 0.35,
+            height: flameH * 0.35,
+            background:
+              "radial-gradient(ellipse, rgba(140,200,255,0.9) 0%, rgba(140,200,255,0) 70%)",
+            borderRadius: "50%",
+          }}
+        />
+      </div>
+
+      {/* Wick */}
+      <div className="w-[2px] h-2 bg-[#2a1005] -mt-1 z-10" />
+
+      {/* Wax body */}
+      <div
+        className="relative w-14 shrink-0 overflow-visible"
+        style={{
+          height: `${height}px`,
+          background:
+            "linear-gradient(180deg,#faf3d6 0%,#f2dc99 25%,#e6c07a 55%,#c8975c 100%)",
+          borderRadius: "12px 12px 6px 6px",
+          boxShadow:
+            "inset -6px 0 12px rgba(120,70,20,0.35), inset 6px 0 10px rgba(255,240,190,0.6), 0 0 40px rgba(255,180,80,0.35)",
+          transition: "height 1000ms linear",
+        }}
+      >
+        {/* Melted top pool */}
+        <div
+          className="absolute -top-1 left-1/2 -translate-x-1/2 w-14 h-3 rounded-[50%]"
+          style={{
+            background:
+              "radial-gradient(ellipse at 50% 30%, #fff2c8 0%, #e6b866 60%, #a06a2a 100%)",
+            boxShadow: "0 2px 6px rgba(0,0,0,0.4)",
+          }}
+        />
+        {/* Wax drip on the side */}
+        <div
+          className="absolute top-1 -right-1 w-2 rounded-b-full"
+          style={{
+            height: `${dripLen}px`,
+            background:
+              "linear-gradient(180deg,#f2dc99 0%,#e6c07a 60%,#c8975c 100%)",
+            boxShadow: "inset -1px 0 2px rgba(80,40,10,0.4)",
+            transition: "height 1000ms linear",
+          }}
+        />
+      </div>
+
+      {/* Holder / base */}
+      <div
+        className="w-20 h-3 rounded-b-2xl -mt-0.5"
+        style={{
+          background: "linear-gradient(180deg,#3a1a10 0%,#1a0805 100%)",
+          boxShadow: "0 6px 14px rgba(0,0,0,0.5)",
+        }}
+      />
+      <div className="w-24 h-1 rounded-full bg-[#0e0303] mt-0.5" />
+
+      {/* Melt readout */}
+      <p className="text-[10px] uppercase tracking-widest text-petal/80 mt-3">
+        {Math.round((1 - progress) * 100)}% left
+      </p>
     </div>
   );
 }
+
 
 function BreathVisual({ now }: { now: number }) {
   // 4s in, 7s hold, 8s out — visualize as expanding circle

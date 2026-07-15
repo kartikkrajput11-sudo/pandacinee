@@ -5,6 +5,7 @@ import { ArrowLeft, MessageCircle, Phone, Video, Heart, Ban, ShieldCheck } from 
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile, type Profile } from "@/hooks/useProfile";
+import { AchievementBadges } from "@/components/AchievementBadges";
 
 export const Route = createFileRoute("/_authenticated/app/user/$userId")({
   component: UserProfilePage,
@@ -123,6 +124,9 @@ function UserProfilePage() {
           <p className="text-sm text-candle-muted mt-3 whitespace-pre-wrap">{(user as any).bio}</p>
         )}
       </div>
+
+      <AchievementBadges userId={user.id} />
+
 
       {!isMe && (
         <div className="grid grid-cols-3 gap-2 mb-4">
