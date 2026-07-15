@@ -34,11 +34,19 @@ function Friends() {
     return () => clearTimeout(t);
   }, [q]);
 
+  const { data: profileData } = useProfile();
+  const partnerId = profileData?.profile?.partner_id ?? null;
+
   const me = data?.me;
   const friendships = data?.friendships ?? [];
   const profiles = data?.profiles ?? {};
 
-  const accepted = friendships.filter((f) => f.status === "accepted");
+  const relatedIdOf = (f: typeof friendships[number]) =>
+    f.requester_id === me ? f.addressee_id : f.requester_id;
+
+  const accepted = friendships.filter(
+    (f) => f.status === "accepted" && relatedIdOf(f) !== partnerId
+  );
   const incoming = friendships.filter((f) => f.status === "pending" && f.addressee_id === me);
   const outgoing = friendships.filter((f) => f.status === "pending" && f.requester_id === me);
 
