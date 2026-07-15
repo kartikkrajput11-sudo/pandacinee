@@ -553,8 +553,15 @@ function GameScreen({
 
       {/* Win animation — sword slices the losing king's head */}
       <WinAnimation
-        trigger={confetti && result.winner && result.winner !== "draw" ? `${result.winner}-${chess.history().length}` : null}
-        loserColor={result.winner === "w" ? "b" : result.winner === "b" ? "w" : null}
+        trigger={
+          demoWin ? demoWin.n :
+          confetti && result.winner && result.winner !== "draw" ? `${result.winner}-${chess.history().length}` : null
+        }
+        loserColor={
+          demoWin ? demoWin.loser :
+          result.winner === "w" ? "b" : result.winner === "b" ? "w" : null
+        }
+        onDone={() => setDemoWin(null)}
       />
 
       {/* Draw / stalemate — soft confetti */}
