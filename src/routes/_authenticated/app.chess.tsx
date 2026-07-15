@@ -331,7 +331,7 @@ function GameScreen({
 
   // ── Load / subscribe for partner games ──
   useEffect(() => {
-    if (isLocal || !gameId) return;
+    if (isLocal || !gameId || !meId) return;
     let cancelled = false;
     supabase.from("chess_games").select("*").eq("id", gameId).maybeSingle().then(({ data }) => {
       if (cancelled || !data) return;
@@ -340,7 +340,7 @@ function GameScreen({
       setChess(loadChess(row.pgn, row.fen));
     });
     const ch = supabase
-      .channel(`chess:${gameId}`, { config: { presence: { key: meId ?? "anon" } } })
+      .channel(`chess:${gameId}`, { config: { presence: { key: meId } } })
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "chess_games", filter: `id=eq.${gameId}` }, (p) => {
         const row = p.new as GameRow;
         setGame(row);
@@ -349,12 +349,13 @@ function GameScreen({
         playTone(row.status === "checkmate" ? 660 : 440, 90, muted);
       })
       .on("presence", { event: "sync" }, () => {
-        const state = ch.presenceState();
-        const ids = Object.keys(state);
-        setPartnerHere(ids.length >= 2);
+        const state = ch.presenceState<{ id: string }>();
+        const ids = new Set<string>();
+        Object.values(state).forEach((metas) => metas.forEach((m) => m?.id && ids.add(m.id)));
+        setPartnerHere(Array.from(ids).some((id) => id !== meId));
       })
       .subscribe(async (status) => {
-        if (status === "SUBSCRIBED" && meId) await ch.track({ id: meId, at: Date.now() });
+        if (status === "SUBSCRIBED") await ch.track({ id: meId, at: Date.now() });
       });
     return () => {
       cancelled = true;
@@ -362,6 +363,7 @@ function GameScreen({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameId, isLocal, meId]);
+
 
   // Auto-flip for black player
   useEffect(() => {
