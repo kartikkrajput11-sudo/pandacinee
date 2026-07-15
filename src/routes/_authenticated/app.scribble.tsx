@@ -189,6 +189,7 @@ function Scribble() {
     if (winnerCountedRef.current === winnerId) return;
     winnerCountedRef.current = winnerId;
     void bumpMyStats({ games_played: 1, wins: winnerId === me.id ? 1 : 0 });
+    if (winnerId === me.id) gameSfx.win(); else gameSfx.lose();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [winnerId, me?.id]);
 
