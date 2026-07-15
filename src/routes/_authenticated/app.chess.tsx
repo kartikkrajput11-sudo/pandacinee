@@ -376,7 +376,7 @@ function GameScreen({
       setConfetti(true);
       playTone(880, 200, muted);
       setTimeout(() => playTone(1100, 200, muted), 220);
-      setTimeout(() => setConfetti(false), 4000);
+      setTimeout(() => setConfetti(false), 4500);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chess]);
