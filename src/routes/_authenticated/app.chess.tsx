@@ -312,6 +312,8 @@ function GameScreen({
   const [confetti, setConfetti] = useState(false);
   const [partnerHere, setPartnerHere] = useState(false);
   const aiRef = useRef(false);
+  // TEMP: manual trigger to preview win animation — remove later
+  const [demoWin, setDemoWin] = useState<{ n: number; loser: "w" | "b" } | null>(null);
 
   // ── Load / subscribe for partner games ──
   useEffect(() => {
