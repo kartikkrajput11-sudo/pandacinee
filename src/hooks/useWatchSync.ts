@@ -1,5 +1,10 @@
-// Watch party / couple-sync removed. Stub kept so the movie watch page
-// compiles as a normal single-viewer player without shared playback state.
+// Couple watch sync — Supabase Realtime (presence + broadcast).
+// Two-person private sync: partner presence, host election, playback state
+// mirroring, seek/countdown/reaction events, and drift tracking.
+
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import type { RealtimeChannel } from "@supabase/supabase-js";
 
 export function fmtTime(sec: number | null | undefined) {
   if (sec == null || !isFinite(sec)) return "0:00";
@@ -12,7 +17,7 @@ export function fmtTime(sec: number | null | undefined) {
   return `${mm}:${String(r).padStart(2, "0")}`;
 }
 
-type Mine = {
+export type Mine = {
   currentTime: number;
   duration: number;
   playbackRate: number;
@@ -23,39 +28,187 @@ type Mine = {
   episode: number | null;
 };
 
+type PresenceMeta = { userId: string; joinedAt: number };
+
+const emptyMine = (): Mine => ({
+  currentTime: 0,
+  duration: 0,
+  playbackRate: 1,
+  updatedAt: 0,
+  event: null,
+  sourceIdx: 0,
+  season: null,
+  episode: null,
+});
+
 export function useWatchSync(
-  _meId: string | null,
-  _partnerId: string | null,
-  _roomId: string,
+  meId: string | null,
+  partnerId: string | null,
+  roomId: string,
   _kind: "movie" | "tv",
 ) {
-  const mine: Mine = {
-    currentTime: 0,
-    duration: 0,
-    playbackRate: 1,
-    updatedAt: 0,
-    event: null,
-    sourceIdx: 0,
-    season: null,
-    episode: null,
-  };
+  const [peer, setPeer] = useState<Mine | null>(null);
+  const [partnerOnline, setPartnerOnline] = useState(false);
+  const [hostId, setHostId] = useState<string | null>(null);
+  const [countdown, setCountdown] = useState<{ time: number; startAt: number } | null>(null);
+  const [incomingSeek, setIncomingSeek] = useState<{ time: number; startAt?: number } | null>(null);
+  const [incomingReaction, setIncomingReaction] = useState<{ id: number; emoji: string } | null>(null);
+  const [drift, setDrift] = useState(0);
+
+  const mineRef = useRef<Mine>(emptyMine());
+  const channelRef = useRef<RealtimeChannel | null>(null);
+  const joinedAtRef = useRef<number>(0);
+
+  // Deterministic channel name from sorted user IDs + room, so only the couple share it.
+  const channelName = useMemo(() => {
+    if (!meId || !partnerId) return null;
+    const pair = [meId, partnerId].sort().join("~");
+    return `watchsync:${pair}:${roomId}`;
+  }, [meId, partnerId, roomId]);
+
+  useEffect(() => {
+    if (!channelName || !meId) return;
+    joinedAtRef.current = Date.now();
+    const ch = supabase.channel(channelName, {
+      config: { presence: { key: meId }, broadcast: { self: false, ack: false } },
+    });
+    channelRef.current = ch;
+
+    const recomputeHost = () => {
+      const state = ch.presenceState() as Record<string, PresenceMeta[]>;
+      const entries: PresenceMeta[] = [];
+      for (const k of Object.keys(state)) {
+        const arr = state[k];
+        if (arr?.[0]) entries.push(arr[0]);
+      }
+      entries.sort((a, b) => a.joinedAt - b.joinedAt || a.userId.localeCompare(b.userId));
+      const host = entries[0]?.userId ?? null;
+      setHostId(host);
+      setPartnerOnline(entries.some((e) => e.userId !== meId));
+    };
+
+    ch
+      .on("presence", { event: "sync" }, recomputeHost)
+      .on("presence", { event: "join" }, recomputeHost)
+      .on("presence", { event: "leave" }, recomputeHost)
+      .on("broadcast", { event: "state" }, ({ payload }) => {
+        const p = payload as Mine & { from: string };
+        if (p.from === meId) return;
+        setPeer((prev) => {
+          if (prev && prev.updatedAt >= p.updatedAt) return prev;
+          return {
+            currentTime: p.currentTime,
+            duration: p.duration,
+            playbackRate: p.playbackRate,
+            updatedAt: p.updatedAt,
+            event: p.event,
+            sourceIdx: p.sourceIdx,
+            season: p.season,
+            episode: p.episode,
+          };
+        });
+        const d = mineRef.current.currentTime - p.currentTime;
+        setDrift(d);
+      })
+      .on("broadcast", { event: "seek" }, ({ payload }) => {
+        const p = payload as { from: string; time: number; startAt?: number };
+        if (p.from === meId) return;
+        setIncomingSeek({ time: p.time, startAt: p.startAt });
+      })
+      .on("broadcast", { event: "countdown" }, ({ payload }) => {
+        const p = payload as { from: string; time: number; startAt: number };
+        if (p.from === meId) return;
+        setCountdown({ time: p.time, startAt: p.startAt });
+      })
+      .on("broadcast", { event: "reaction" }, ({ payload }) => {
+        const p = payload as { from: string; emoji: string };
+        if (p.from === meId) return;
+        setIncomingReaction({ id: Date.now() + Math.random(), emoji: p.emoji });
+      })
+      .on("broadcast", { event: "host" }, ({ payload }) => {
+        const p = payload as { userId: string | null };
+        if (p.userId) setHostId(p.userId);
+      })
+      .subscribe(async (status) => {
+        if (status === "SUBSCRIBED") {
+          await ch.track({ userId: meId, joinedAt: joinedAtRef.current });
+        }
+      });
+
+    return () => {
+      try { ch.untrack(); } catch { /* ignore */ }
+      supabase.removeChannel(ch);
+      channelRef.current = null;
+      setPeer(null);
+      setPartnerOnline(false);
+      setHostId(null);
+    };
+  }, [channelName, meId]);
+
+  const publish = useCallback((patch: Partial<Mine>) => {
+    const now = Date.now();
+    const next: Mine = { ...mineRef.current, ...patch, updatedAt: now };
+    mineRef.current = next;
+    const ch = channelRef.current;
+    if (!ch || !meId) return;
+    ch.send({ type: "broadcast", event: "state", payload: { ...next, from: meId } });
+  }, [meId]);
+
+  const sendSeek = useCallback((time: number, startAt?: number) => {
+    const ch = channelRef.current;
+    if (!ch || !meId) return;
+    ch.send({ type: "broadcast", event: "seek", payload: { from: meId, time, startAt } });
+  }, [meId]);
+
+  const sendCountdown = useCallback((seconds: number, time?: number) => {
+    const ch = channelRef.current;
+    if (!ch || !meId) return;
+    const startAt = Date.now() + seconds * 1000;
+    const payload = { from: meId, time: typeof time === "number" ? time : mineRef.current.currentTime, startAt };
+    ch.send({ type: "broadcast", event: "countdown", payload });
+    setCountdown({ time: payload.time, startAt });
+  }, [meId]);
+
+  const sendReaction = useCallback((emoji: string) => {
+    const ch = channelRef.current;
+    if (!ch || !meId) return;
+    ch.send({ type: "broadcast", event: "reaction", payload: { from: meId, emoji } });
+  }, [meId]);
+
+  const claimHost = useCallback(() => {
+    if (!meId) return;
+    setHostId(meId);
+    const ch = channelRef.current;
+    ch?.send({ type: "broadcast", event: "host", payload: { userId: meId } });
+  }, [meId]);
+
+  const releaseHost = useCallback(() => {
+    setHostId(null);
+    const ch = channelRef.current;
+    ch?.send({ type: "broadcast", event: "host", payload: { userId: null } });
+  }, []);
+
+  const clearCountdown = useCallback(() => setCountdown(null), []);
+  const clearIncomingSeek = useCallback(() => setIncomingSeek(null), []);
+  const clearIncomingReaction = useCallback(() => setIncomingReaction(null), []);
+
   return {
-    mine,
-    peer: null as Mine | null,
-    partnerOnline: false,
-    publish: (_: Partial<Mine>) => {},
-    sendSeek: (..._args: unknown[]) => {},
-    sendCountdown: (..._args: unknown[]) => {},
-    countdown: null as { time: number; startAt: number } | null,
-    clearCountdown: () => {},
-    incomingSeek: null as ({ time: number; startAt?: number } | null),
-    clearIncomingSeek: () => {},
-    incomingReaction: null as { id: number; emoji: string } | null,
-    clearIncomingReaction: () => {},
-    sendReaction: (_: string) => {},
-    hostId: null as string | null,
-    claimHost: () => {},
-    releaseHost: () => {},
-    drift: 0,
+    mine: mineRef.current,
+    peer,
+    partnerOnline,
+    publish,
+    sendSeek,
+    sendCountdown,
+    countdown,
+    clearCountdown,
+    incomingSeek,
+    clearIncomingSeek,
+    incomingReaction,
+    clearIncomingReaction,
+    sendReaction,
+    hostId,
+    claimHost,
+    releaseHost,
+    drift,
   };
 }
