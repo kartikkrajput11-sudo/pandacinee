@@ -541,10 +541,16 @@ function GameScreen({
         </div>
       )}
 
-      {/* Confetti */}
-      {confetti && result.winner && result.winner !== "draw" && (
+      {/* Win animation — sword slices the losing king's head */}
+      <WinAnimation
+        trigger={confetti && result.winner && result.winner !== "draw" ? `${result.winner}-${chess.history().length}` : null}
+        loserColor={result.winner === "w" ? "b" : result.winner === "b" ? "w" : null}
+      />
+
+      {/* Draw / stalemate — soft confetti */}
+      {confetti && result.winner === "draw" && (
         <div className="fixed inset-0 pointer-events-none z-40 overflow-hidden">
-          {Array.from({ length: 40 }).map((_, i) => (
+          {Array.from({ length: 30 }).map((_, i) => (
             <span
               key={i}
               className="absolute text-2xl animate-[fall_3s_ease-out_forwards]"
