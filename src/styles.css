@@ -294,3 +294,24 @@ html.theme-anim * {
 .animate-kiss { animation: kiss-float 2.2s ease-out forwards; }
 .animate-partner-glow { animation: partner-glow 2.6s ease-in-out infinite; }
 .font-partner { font-family: var(--font-serif); font-style: italic; letter-spacing: 0.01em; }
+
+/* Page transition — content fades and settles */
+@keyframes page-fade-in {
+  0%   { opacity: 0; transform: translateY(6px); filter: blur(4px); }
+  60%  { filter: blur(0); }
+  100% { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+.animate-fade-in { animation: page-fade-in 0.42s var(--ease-out-expo) both; }
+
+/* Bottom nav rises up after content has settled */
+@keyframes nav-rise {
+  0%   { opacity: 0; transform: translateY(120%); }
+  60%  { opacity: 0; transform: translateY(120%); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.animate-nav-rise { animation: nav-rise 0.7s var(--ease-out-expo) both; will-change: transform, opacity; }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in, .animate-nav-rise { animation: none !important; }
+}
+
