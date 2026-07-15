@@ -21,6 +21,7 @@ import {
   type PromotionPiece,
 } from "@/lib/chess";
 import type { AiLevel, ChessMode } from "@/lib/chess";
+import { sfx } from "@/lib/chess-sfx";
 
 const searchSchema = z.object({
   game: z.string().uuid().optional(),
