@@ -483,27 +483,23 @@ function CatalogWatch({ id }: { id: string }) {
     if (peer.updatedAt <= lastAppliedPeerEventRef.current) return;
     const evt = peer.event;
     // Only react to discrete transport events
-    if (evt !== "play" && evt !== "pause" && evt !== "seeked" && evt !== "timeupdate") return;
-    // For timeupdate, only re-sync if drift is significant. Pandacine (our own
-    // <video>) can be nudged smoothly, so use a tighter threshold there.
+    if (evt !== "play" && evt !== "pause" && evt !== "seeked" && evt !== "timeupdate" && evt !== "ratechange") return;
+
+    // Tight sync on Pandacine (<video>): use 150/700 ms thresholds w/ rate ramp.
+    // For third-party iframes we can't nudge, so keep coarse thresholds.
     if (evt === "timeupdate") {
       const d = Math.abs(mine.currentTime - peer.currentTime);
-      const threshold = isPandacine ? 2 : 6;
-      if (d < threshold) return;
+      if (isPandacine) {
+        if (d < 0.15) return; // in-sync
+        // medium/large drift handled below via player handle
+      } else {
+        if (d < 6) return;
+      }
     }
     lastAppliedPeerEventRef.current = peer.updatedAt;
 
-    // Follower hasn't tapped "Raise the curtain" yet. Browsers block
-    // cross-origin autoplay-with-sound, but they DO allow muted autoplay,
-    // so when the host presses play we auto-open the player muted and jump
-    // to the host's timestamp. The viewer just taps 🔊 to unmute.
     if (!started) {
       if (evt === "pause") return;
-      // For Pandacine (our own <video>), we can force muted autoplay so
-      // playback truly starts together with the host. For third-party
-      // iframes (VidKing, etc.) we cannot inject muted, and browsers block
-      // autoplay-with-sound on a fresh load — so leave the big "Join"
-      // button visible; the pulsing CTA below makes it obvious.
       if (!isPandacine) {
         setStartAt(peer.currentTime);
         return;
@@ -517,13 +513,34 @@ function CatalogWatch({ id }: { id: string }) {
       return;
     }
 
-
-    // Pandacine (our own server): control the <video> directly through the
-    // player handle so the follower keeps watching without a full remount.
+    // Pandacine tight sync: control the <video> via handle.
     if (isPandacine && customPlayerRef.current) {
       const h = customPlayerRef.current;
+      const drift = h.currentTime() - peer.currentTime; // positive => ahead
+      const abs = Math.abs(drift);
       runSuppressedPlayerAction(() => {
-        if (Math.abs(h.currentTime() - peer.currentTime) > 1.5) h.seek(peer.currentTime);
+        // Rate sync (always — cheap)
+        if (typeof peer.playbackRate === "number" && peer.playbackRate > 0) {
+          h.setPlaybackRate(peer.playbackRate);
+        }
+        if (evt === "seeked" || abs > 0.7) {
+          h.seek(peer.currentTime);
+          // Restore intended rate after seek
+          if (typeof peer.playbackRate === "number") h.setPlaybackRate(peer.playbackRate);
+        } else if (abs > 0.15) {
+          // Gradual rate correction: ±5% for ~1s per 150ms of drift
+          const baseRate = peer.playbackRate ?? 1;
+          const correction = drift > 0 ? -0.05 : 0.05;
+          h.setPlaybackRate(Math.max(0.25, baseRate + correction));
+          window.setTimeout(() => {
+            const cur = customPlayerRef.current;
+            if (cur) {
+              suppressPlayerEventRef.current = true;
+              cur.setPlaybackRate(baseRate);
+              window.setTimeout(() => { suppressPlayerEventRef.current = false; }, 100);
+            }
+          }, 1000);
+        }
         if (evt === "pause") h.pause();
         if (evt === "play") h.play();
       });
@@ -535,7 +552,7 @@ function CatalogWatch({ id }: { id: string }) {
     if (evt === "pause") {
       applySeek(peer.currentTime, { pause: true });
       toast.info(`${partner?.display_name.split(" ")[0]} paused`);
-    } else {
+    } else if (evt === "play" || evt === "seeked") {
       applySeek(peer.currentTime, { pause: false });
       if (evt === "seeked") toast.info(`${partner?.display_name.split(" ")[0]} skipped`);
     }
