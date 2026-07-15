@@ -20,6 +20,7 @@ import {
   rpsWinner,
 } from "@/lib/games";
 import { generateGameCard } from "@/lib/games.functions";
+import { gameSfx } from "@/lib/game-sfx";
 
 const paramsSchema = z.object({
   game: z.enum([
