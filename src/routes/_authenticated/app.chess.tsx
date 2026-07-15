@@ -344,10 +344,26 @@ function GameScreen({
       .channel(`chess:${gameId}`, { config: { presence: { key: meId } } })
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "chess_games", filter: `id=eq.${gameId}` }, (p) => {
         const row = p.new as GameRow;
-        setGame(row);
+        setGame((prev) => {
+          // Sound for opponent's move
+          if (prev && prev.pgn !== row.pgn && row.turn === (meId === row.white_id ? "w" : "b")) {
+            try {
+              const c = new Chess();
+              c.loadPgn(row.pgn);
+              const last = c.history({ verbose: true }).pop();
+              if (last) {
+                if (last.captured) sfx.capture({ muted });
+                else if (last.san === "O-O" || last.san === "O-O-O") sfx.castle({ muted });
+                else if (last.promotion) sfx.promote({ muted });
+                else sfx.move({ muted });
+                if (c.inCheck() && !c.isCheckmate()) sfx.check({ muted });
+              }
+            } catch { /* ignore */ }
+          }
+          return row;
+        });
         setChess(loadChess(row.pgn, row.fen));
         setHistoryCursor(null);
-        playTone(row.status === "checkmate" ? 660 : 440, 90, muted);
       })
       .on("presence", { event: "sync" }, () => {
         const state = ch.presenceState<{ id: string }>();
