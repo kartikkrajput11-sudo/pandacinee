@@ -195,7 +195,6 @@ function CatalogWatch({ id }: { id: string }) {
   const lastAppliedPeerEventRef = useRef<number>(0);
   const customPlayerRef = useRef<CustomPlayerHandle | null>(null);
   const suppressPlayerEventRef = useRef(false);
-  const [autoJoinedMuted, setAutoJoinedMuted] = useState(false);
   const pendingAutoJoinRef = useRef<number | null>(null);
 
   // Auto-dismiss the "waiting for friend" overlay once they actually join the room
@@ -538,14 +537,16 @@ function CatalogWatch({ id }: { id: string }) {
       if (evt === "pause") return;
       if (!isPandacine) {
         setStartAt(peer.currentTime);
+        setPausedByHost(false);
+        setStarted(true);
+        setPlayerLoading(true);
+        setIframeKey((k) => k + 1);
         return;
       }
       pendingAutoJoinRef.current = peer.currentTime;
       setStartAt(peer.currentTime);
       setStarted(true);
       setPlayerLoading(true);
-      setAutoJoinedMuted(true);
-      toast.info(`Joining ${partner?.display_name.split(" ")[0]} muted — tap 🔊 to unmute`);
       return;
     }
 
@@ -602,7 +603,7 @@ function CatalogWatch({ id }: { id: string }) {
     const t = pendingAutoJoinRef.current;
     pendingAutoJoinRef.current = null;
     runSuppressedPlayerAction(() => {
-      h.setMuted(true);
+      h.setMuted(false);
       h.seek(t);
       h.play();
     }, 800);
@@ -1040,27 +1041,6 @@ function CatalogWatch({ id }: { id: string }) {
                 </span>
               </button>
             )}
-
-
-            {autoJoinedMuted && started && (
-              <button
-                onClick={() => {
-                  const h = customPlayerRef.current;
-                  if (h) h.setMuted(false);
-                  setAutoJoinedMuted(false);
-                }}
-                className="absolute top-3 right-3 z-40 px-3 py-2 rounded-full bg-petal text-velvet text-xs font-bold uppercase tracking-widest flex items-center gap-1.5 shadow-2xl shadow-petal/50 animate-pulse"
-              >
-                🔊 Tap to unmute
-              </button>
-            )}
-
-
-
-
-
-
-
 
             {started && playerLoading && (
               <div className="absolute inset-0 pointer-events-none flex items-center justify-center bg-velvet/50 backdrop-blur-2xl animate-[fade-in_0.4s_ease-out]">
