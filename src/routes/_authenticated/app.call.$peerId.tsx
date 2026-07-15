@@ -190,8 +190,11 @@ function Call() {
       (async () => {
         const { data: u } = await supabase.auth.getUser();
         if (!u.user) return;
-        const durSec = connectedAtRef.current ? Math.floor((Date.now() - connectedAtRef.current) / 1000) : 0;
-        const outcome = connectedAtRef.current ? "completed" : "missed";
+        // Prefer authoritative values from the calls row (survives races); fall back to local timer.
+        const wasAnswered = !!call?.answered_at;
+        const durSec = call?.duration_seconds
+          ?? (connectedAtRef.current ? Math.floor((Date.now() - connectedAtRef.current) / 1000) : 0);
+        const outcome = wasAnswered ? "completed" : "missed";
         await supabase.from("messages").insert({
           sender_id: u.user.id, receiver_id: peerId, type: "call",
           content: outcome === "missed"
