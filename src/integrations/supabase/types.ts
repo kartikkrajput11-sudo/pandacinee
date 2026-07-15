@@ -899,11 +899,33 @@ export type Database = {
         }
         Relationships: []
       }
+      profile_achievements: {
+        Row: {
+          acquired_at: string
+          id: string
+          tag_key: string
+          user_id: string
+        }
+        Insert: {
+          acquired_at?: string
+          id?: string
+          tag_key: string
+          user_id: string
+        }
+        Update: {
+          acquired_at?: string
+          id?: string
+          tag_key?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           anniversary_date: string | null
           avatar_url: string | null
           bio: string | null
+          coins: number
           created_at: string
           display_name: string
           favorite_color: string | null
@@ -936,6 +958,7 @@ export type Database = {
           anniversary_date?: string | null
           avatar_url?: string | null
           bio?: string | null
+          coins?: number
           created_at?: string
           display_name: string
           favorite_color?: string | null
@@ -968,6 +991,7 @@ export type Database = {
           anniversary_date?: string | null
           avatar_url?: string | null
           bio?: string | null
+          coins?: number
           created_at?: string
           display_name?: string
           favorite_color?: string | null
@@ -1543,6 +1567,7 @@ export type Database = {
           anniversary_date: string | null
           avatar_url: string | null
           bio: string | null
+          coins: number
           created_at: string
           display_name: string
           favorite_color: string | null
