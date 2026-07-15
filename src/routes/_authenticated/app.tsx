@@ -23,14 +23,10 @@ function AppShell() {
     <div className={`min-h-screen velvet-bg ${hideNav ? "" : "pb-28"}`}>
       <OnboardingFlow />
       <IncomingCallListener />
-      <div key={pathname} className="w-full max-w-[1400px] mx-auto animate-fade-in">
+      <div className="w-full max-w-[1400px] mx-auto">
         <Outlet />
       </div>
-      {!hideNav && (
-        <div className="animate-nav-rise">
-          <BottomNav />
-        </div>
-      )}
+      {!hideNav && <BottomNav />}
     </div>
   );
 }
