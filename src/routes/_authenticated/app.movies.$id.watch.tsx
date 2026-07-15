@@ -674,6 +674,18 @@ function CatalogWatch({ id }: { id: string }) {
     setIframeKey((k) => k + 1);
   }
 
+  function fallbackFromPandacine() {
+    if (!isPandacine || allSources.length < 2) return;
+    const next = allSources.findIndex((source) => source.kind === "vidking");
+    if (next < 0) return;
+    setSourceIdx(next);
+    setSourceMenuOpen(false);
+    setStarted(true);
+    setPlayerLoading(true);
+    setIframeKey((k) => k + 1);
+    toast.info("Pandacine stream is not loading here — switching server.", { id: "pandacine-fallback", duration: 3500 });
+  }
+
   function startCountdown(seconds = 4) {
     const syncTime = peer && peer.currentTime > mine.currentTime ? peer.currentTime : mine.currentTime;
     sendCountdown(seconds, syncTime > 5 ? syncTime : undefined);
@@ -959,6 +971,7 @@ function CatalogWatch({ id }: { id: string }) {
                     setCustomPlayerReady((n) => n + 1);
                     setPlayerLoading(false);
                   }}
+                  onLoadIssue={fallbackFromPandacine}
                   onEvent={(evt) => {
                     if (suppressPlayerEventRef.current) return;
                     const now = Date.now();
@@ -1646,6 +1659,7 @@ function CustomWatch({ customId }: { customId: string }) {
   const [videoSrc, setVideoSrc] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [playerReady, setPlayerReady] = useState(0);
+  const [customLoadIssue, setCustomLoadIssue] = useState(false);
 
   const {
     mine, peer, partnerOnline, publish, sendSeek, sendCountdown, countdown, clearCountdown,
@@ -1841,8 +1855,17 @@ function CustomWatch({ customId }: { customId: string }) {
                 toast.info("Playback is controlled by your partner.", { id: "locked-attempt", duration: 1800 });
               }}
               onReady={handlePlayerReady}
+              onLoadIssue={() => {
+                setCustomLoadIssue(true);
+                setVideoSrc(null);
+                toast.error("This uploaded file is not playable in the browser here.", { id: "custom-load-issue", duration: 4500 });
+              }}
               onEvent={handleEvent}
             />
+          ) : customLoadIssue ? (
+            <div className="w-full h-full bg-black rounded-2xl flex items-center justify-center px-6 text-center text-candle-muted text-sm">
+              This upload could not be played in the browser. Try another server or re-upload an MP4 encoded for web playback.
+            </div>
           ) : (
             <div className="w-full h-full bg-black rounded-2xl flex items-center justify-center text-candle-muted text-sm">
               {loading ? "Loading video…" : "No video available for this movie."}
