@@ -83,7 +83,7 @@ function Call() {
   }, [role, callId, me, peerId, kind]);
 
   const {
-    localStream, remoteFeeds, status, answered, error: meshError,
+    call, localStream, remoteFeeds, status, answered, error: meshError,
     hangup, toggleAudio, toggleVideo, flipCamera,
     toggleScreenShare, screenSharing,
   } = useCallMesh({ callId, meId: me?.id ?? null, kind });
