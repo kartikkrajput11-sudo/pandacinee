@@ -80,18 +80,22 @@ function ChessPage() {
   const partner = profileData?.partner;
 
   const gameId = search.game ?? null;
+  const mode = search.mode;
 
-  if (!gameId) return <Lobby me={me} partner={partner} onStart={(mode, ai) => {
-    if (mode === "partner") {
-      void startPartnerGame(me?.id, partner?.id).then((id) => {
-        if (id) navigate({ to: "/app/chess", search: { game: id, mode: "partner" } });
-      });
-    } else {
-      navigate({ to: "/app/chess", search: { mode, ai } });
-    }
-  }} />;
+  // Show lobby only when no active session — partner needs a game id, local modes need a mode selection.
+  if (!gameId && mode !== "self" && mode !== "ai") {
+    return <Lobby me={me} partner={partner} onStart={(nextMode, ai) => {
+      if (nextMode === "partner") {
+        void startPartnerGame(me?.id, partner?.id).then((id) => {
+          if (id) navigate({ to: "/app/chess", search: { game: id, mode: "partner" } });
+        });
+      } else {
+        navigate({ to: "/app/chess", search: { mode: nextMode, ai } });
+      }
+    }} />;
+  }
 
-  return <GameScreen gameId={gameId} mode={search.mode ?? "partner"} aiLevel={search.ai ?? "medium"} meId={me?.id ?? null} />;
+  return <GameScreen gameId={gameId} mode={mode ?? "partner"} aiLevel={search.ai ?? "medium"} meId={me?.id ?? null} partnerName={partner?.display_name ?? "your panda"} />;
 }
 
 async function startPartnerGame(meId?: string | null, partnerId?: string | null): Promise<string | null> {
