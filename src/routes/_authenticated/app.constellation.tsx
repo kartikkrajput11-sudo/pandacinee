@@ -57,16 +57,16 @@ function ConstellationRoute() {
     // Memory-jar entries.
     const { data: mems } = await (supabase as any)
       .from("memory_jar")
-      .select("id,title,note,happened_at,emoji,created_at,owner_id,partner_id")
-      .order("happened_at", { ascending: false })
+      .select("id,title,body,mood,happened_on,created_at,author_id,partner_id")
+      .order("happened_on", { ascending: false, nullsFirst: false })
       .limit(60);
     for (const m of (mems ?? []) as any[]) {
       derived.push({
         id: `mem-${m.id}`,
         title: m.title ?? "A memory",
-        detail: m.note ?? "",
-        glyph: m.emoji ?? "✦",
-        date: m.happened_at ?? m.created_at,
+        detail: m.body ?? "",
+        glyph: m.mood && /\p{Emoji}/u.test(m.mood) ? m.mood : "✦",
+        date: m.happened_on ?? m.created_at,
         origin: "memory",
       });
     }
