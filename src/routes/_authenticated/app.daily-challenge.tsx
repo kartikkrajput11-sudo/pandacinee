@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Check, Flame, Share2, Trophy } from "lucide-react";
 import { toast } from "sonner";
+import { gameSfx } from "@/lib/game-sfx";
 
 export const Route = createFileRoute("/_authenticated/app/daily-challenge")({
   component: DailyChallenge,
