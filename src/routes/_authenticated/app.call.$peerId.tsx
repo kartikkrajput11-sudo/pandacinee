@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft, Mic, MicOff, Video, VideoOff, PhoneOff, MessageCircle, X,
-  Volume2, VolumeX, Signal, SwitchCamera,
+  Volume2, VolumeX, Signal, SwitchCamera, MonitorUp, MonitorOff,
 } from "lucide-react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
@@ -85,6 +85,7 @@ function Call() {
   const {
     localStream, remoteFeeds, status, answered, error: meshError,
     hangup, toggleAudio, toggleVideo, flipCamera,
+    toggleScreenShare, screenSharing,
   } = useCallMesh({ callId, meId: me?.id ?? null, kind });
 
   const [muted, setMuted] = useState(false);
@@ -101,8 +102,11 @@ function Call() {
   const remoteAudioRef = useRef<HTMLAudioElement>(null);
   const connectedAtRef = useRef<number | null>(null);
 
-  // First remote feed (direct call = only one)
-  const primary = remoteFeeds[0] ?? null;
+  // Prefer a screen-share feed if the peer is sharing, otherwise their camera/mic.
+  const primary =
+    remoteFeeds.find((f) => f.isScreenShare) ??
+    remoteFeeds.find((f) => !f.isScreenShare) ??
+    null;
   const remoteStream = primary?.stream ?? null;
   const remoteRev = primary?.rev ?? 0;
 
@@ -376,15 +380,31 @@ function Call() {
               <ControlButton onClick={() => flipCamera()} label="Flip camera">
                 <SwitchCamera className="size-5" />
               </ControlButton>
+              <ControlButton
+                active={screenSharing}
+                onClick={() => void toggleScreenShare()}
+                label={screenSharing ? "Stop sharing" : "Share screen"}
+              >
+                {screenSharing ? <MonitorOff className="size-5" /> : <MonitorUp className="size-5" />}
+              </ControlButton>
             </>
           ) : (
-            <ControlButton
-              active={!speakerOn}
-              onClick={() => setSpeakerOn((s) => !s)}
-              label={speakerOn ? "Speaker off" : "Speaker on"}
-            >
-              {speakerOn ? <Volume2 className="size-5" /> : <VolumeX className="size-5" />}
-            </ControlButton>
+            <>
+              <ControlButton
+                active={!speakerOn}
+                onClick={() => setSpeakerOn((s) => !s)}
+                label={speakerOn ? "Speaker off" : "Speaker on"}
+              >
+                {speakerOn ? <Volume2 className="size-5" /> : <VolumeX className="size-5" />}
+              </ControlButton>
+              <ControlButton
+                active={screenSharing}
+                onClick={() => void toggleScreenShare()}
+                label={screenSharing ? "Stop sharing" : "Share screen"}
+              >
+                {screenSharing ? <MonitorOff className="size-5" /> : <MonitorUp className="size-5" />}
+              </ControlButton>
+            </>
           )}
 
           <button
