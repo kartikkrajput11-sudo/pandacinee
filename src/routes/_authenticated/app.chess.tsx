@@ -614,8 +614,10 @@ function GameScreen({
           demoWin ? demoWin.loser :
           result.winner === "w" ? "b" : result.winner === "b" ? "w" : null
         }
+        muted={muted}
         onDone={() => setDemoWin(null)}
       />
+
 
       {/* Draw / stalemate — soft confetti */}
       {confetti && result.winner === "draw" && (
