@@ -104,6 +104,19 @@ async function startPartnerGame(meId?: string | null, partnerId?: string | null)
     toast.error("Pair with your panda first");
     return null;
   }
+  // Reuse an active game between the two players, if any, so both sides land on the same board.
+  const { data: existing } = await supabase
+    .from("chess_games")
+    .select("id")
+    .eq("status", "active")
+    .or(
+      `and(white_id.eq.${meId},black_id.eq.${partnerId}),and(white_id.eq.${partnerId},black_id.eq.${meId})`,
+    )
+    .order("last_move_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (existing?.id) return existing.id;
+
   // Random side choice
   const meIsWhite = Math.random() < 0.5;
   const { data, error } = await supabase
@@ -120,6 +133,7 @@ async function startPartnerGame(meId?: string | null, partnerId?: string | null)
   }
   return data.id;
 }
+
 
 // ─────────── Lobby ───────────
 
@@ -317,7 +331,7 @@ function GameScreen({
 
   // ── Load / subscribe for partner games ──
   useEffect(() => {
-    if (isLocal || !gameId) return;
+    if (isLocal || !gameId || !meId) return;
     let cancelled = false;
     supabase.from("chess_games").select("*").eq("id", gameId).maybeSingle().then(({ data }) => {
       if (cancelled || !data) return;
@@ -326,7 +340,7 @@ function GameScreen({
       setChess(loadChess(row.pgn, row.fen));
     });
     const ch = supabase
-      .channel(`chess:${gameId}`, { config: { presence: { key: meId ?? "anon" } } })
+      .channel(`chess:${gameId}`, { config: { presence: { key: meId } } })
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "chess_games", filter: `id=eq.${gameId}` }, (p) => {
         const row = p.new as GameRow;
         setGame(row);
@@ -335,12 +349,13 @@ function GameScreen({
         playTone(row.status === "checkmate" ? 660 : 440, 90, muted);
       })
       .on("presence", { event: "sync" }, () => {
-        const state = ch.presenceState();
-        const ids = Object.keys(state);
-        setPartnerHere(ids.length >= 2);
+        const state = ch.presenceState<{ id: string }>();
+        const ids = new Set<string>();
+        Object.values(state).forEach((metas) => metas.forEach((m) => m?.id && ids.add(m.id)));
+        setPartnerHere(Array.from(ids).some((id) => id !== meId));
       })
       .subscribe(async (status) => {
-        if (status === "SUBSCRIBED" && meId) await ch.track({ id: meId, at: Date.now() });
+        if (status === "SUBSCRIBED") await ch.track({ id: meId, at: Date.now() });
       });
     return () => {
       cancelled = true;
@@ -348,6 +363,7 @@ function GameScreen({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameId, isLocal, meId]);
+
 
   // Auto-flip for black player
   useEffect(() => {
