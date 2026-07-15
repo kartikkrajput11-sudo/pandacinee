@@ -241,13 +241,16 @@ function Call() {
     return () => clearTimeout(t);
   }, [status, navigate, role, peerId, mode]);
 
-  // Speaker toggle: mute the dedicated remote audio element. The video
-  // element is always muted (audio comes from the <audio> tag) to avoid
-  // double playback.
+  // Speaker toggle: route mute to whichever element carries the audio.
   useEffect(() => {
-    if (remoteRef.current) remoteRef.current.muted = true;
-    if (remoteAudioRef.current) remoteAudioRef.current.muted = !speakerOn;
-  }, [speakerOn, remoteStream]);
+    if (mode === "video") {
+      if (remoteRef.current) remoteRef.current.muted = !speakerOn;
+      if (remoteAudioRef.current) remoteAudioRef.current.muted = true;
+    } else {
+      if (remoteRef.current) remoteRef.current.muted = true;
+      if (remoteAudioRef.current) remoteAudioRef.current.muted = !speakerOn;
+    }
+  }, [speakerOn, remoteStream, mode]);
 
   const statusLabel = useMemo(() => {
     // Once the SDP answer is exchanged, show the running duration even if
