@@ -1822,6 +1822,9 @@ function CustomWatch({ customId }: { customId: string }) {
               src={videoSrc}
               poster={movie?.backdrop_url ?? movie?.poster_url ?? null}
               locked={!!hostId && !iAmHost}
+              onLockedAttempt={() => {
+                toast.info("Playback is controlled by your partner.", { id: "locked-attempt", duration: 1800 });
+              }}
               onReady={handlePlayerReady}
               onEvent={handleEvent}
             />
