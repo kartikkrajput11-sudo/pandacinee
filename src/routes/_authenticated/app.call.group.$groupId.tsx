@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, Mic, MicOff, Video, VideoOff, PhoneOff, SwitchCamera, Volume2, VolumeX } from "lucide-react";
+import { ArrowLeft, Mic, MicOff, Video, VideoOff, PhoneOff, SwitchCamera, Volume2, VolumeX, MonitorUp, MonitorOff } from "lucide-react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useCallMesh, type RemoteFeed } from "@/hooks/useCallMesh";
@@ -52,6 +52,7 @@ function GroupCall() {
   const {
     localStream, remoteFeeds, status, answered, error: meshError,
     hangup, toggleAudio, toggleVideo, flipCamera,
+    toggleScreenShare, screenSharing,
   } = useCallMesh({ callId, meId: me?.id ?? null, kind });
 
   const [muted, setMuted] = useState(false);
@@ -175,6 +176,9 @@ function GroupCall() {
               {speakerOn ? <Volume2 className="size-5" /> : <VolumeX className="size-5" />}
             </ControlBtn>
           )}
+          <ControlBtn active={screenSharing} onClick={() => void toggleScreenShare()} label={screenSharing ? "Stop sharing" : "Share screen"}>
+            {screenSharing ? <MonitorOff className="size-5" /> : <MonitorUp className="size-5" />}
+          </ControlBtn>
           <button
             onClick={() => { void hangup(); navigate({ to: "/app/chat/group/$groupId", params: { groupId } }); }}
             className="w-20 h-12 rounded-[24px] bg-[#e11d48] text-white flex items-center justify-center shadow-[0_8px_25px_rgba(225,29,72,0.45)]"
