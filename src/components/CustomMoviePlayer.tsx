@@ -161,37 +161,38 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
       if (e.target instanceof HTMLInputElement) return;
       if (e.key === " " || e.key === "k") {
         e.preventDefault();
-        // In locked (follower) mode, allow only play — pause/seek stay host-controlled
-        if (locked && !v.paused) return;
+        if (locked && !v.paused) { onLockedAttempt?.(); return; }
+        if (locked && v.paused) { v.play().catch(() => {}); return; }
         v.paused ? v.play() : v.pause();
       } else if (e.key === "ArrowRight") {
-        if (locked) return;
+        if (locked) { e.preventDefault(); onLockedAttempt?.(); return; }
         v.currentTime = Math.min(v.duration || 0, v.currentTime + 10);
       } else if (e.key === "ArrowLeft") {
-        if (locked) return;
+        if (locked) { e.preventDefault(); onLockedAttempt?.(); return; }
         v.currentTime = Math.max(0, v.currentTime - 10);
       } else if (e.key === "f") {
         toggleFullscreen();
       } else if (e.key === "m") {
         v.muted = !v.muted;
+      } else if (e.key === "j" || e.key === "l") {
+        if (locked) { e.preventDefault(); onLockedAttempt?.(); return; }
+        v.currentTime = Math.max(0, Math.min(v.duration || 0, v.currentTime + (e.key === "l" ? 10 : -10)));
       }
       scheduleHide();
     };
     el.addEventListener("keydown", onKey);
     return () => el.removeEventListener("keydown", onKey);
-  }, [scheduleHide, locked]);
+  }, [scheduleHide, locked, onLockedAttempt]);
 
   function togglePlay() {
     const v = videoRef.current;
     if (!v) return;
-    // Followers can press play (to satisfy browser autoplay + join playback),
-    // but cannot pause — host controls pausing.
-    if (locked && !v.paused) return;
+    if (locked && !v.paused) { onLockedAttempt?.(); return; }
     v.paused ? v.play().catch(() => {}) : v.pause();
   }
 
   function skip(delta: number) {
-    if (locked) return;
+    if (locked) { onLockedAttempt?.(); return; }
     const v = videoRef.current;
     if (!v) return;
     v.currentTime = Math.max(0, Math.min(v.duration || 0, v.currentTime + delta));
@@ -214,7 +215,7 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
   }
 
   function onScrub(e: React.ChangeEvent<HTMLInputElement>) {
-    if (locked) return;
+    if (locked) { onLockedAttempt?.(); return; }
     const v = videoRef.current;
     if (!v || !duration) return;
     const t = (Number(e.target.value) / 1000) * duration;
