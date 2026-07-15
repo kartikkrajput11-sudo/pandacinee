@@ -1,19 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import {
   ArrowLeft,
   Music2,
   Play,
-  Pause,
-  SkipBack,
-  SkipForward,
-  Shuffle,
-  Repeat,
   Trash2,
   Plus,
   Search,
   LogOut,
 } from "lucide-react";
+
 import { toast } from "sonner";
 import {
   completeSpotifyLogin,
