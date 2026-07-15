@@ -5,6 +5,7 @@ import { ArrowLeft, Search, UserPlus, Check, X, Video, Phone } from "lucide-reac
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useFriendships, useFriendActions, FriendProfile } from "@/hooks/useFriends";
+import { useProfile } from "@/hooks/useProfile";
 
 export const Route = createFileRoute("/_authenticated/app/friends")({
   component: Friends,
