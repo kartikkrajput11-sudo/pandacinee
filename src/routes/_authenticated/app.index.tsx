@@ -228,3 +228,33 @@ function useGreeting() {
   if (h < 22) return "Good evening";
   return "Late night";
 }
+
+function SignatureTile({
+  to,
+  Icon,
+  label,
+  caption,
+  swatch,
+}: {
+  to: string;
+  Icon: typeof Heart;
+  label: string;
+  caption: string;
+  swatch: string;
+}) {
+  return (
+    <Link
+      to={to as any}
+      className="group relative aspect-[1.1] p-4 rounded-2xl overflow-hidden bg-velvet border border-petal/20 hover:-translate-y-0.5 transition-transform"
+    >
+      <div className={`absolute inset-0 bg-gradient-to-br ${swatch} opacity-70 pointer-events-none`} />
+      <div className="relative z-10 h-full flex flex-col">
+        <Icon className="size-5 text-candle" />
+        <div className="mt-auto">
+          <p className="text-[10px] uppercase tracking-widest text-candle-muted">{caption}</p>
+          <p className="font-serif italic text-lg text-candle mt-0.5 leading-tight">{label}</p>
+        </div>
+      </div>
+    </Link>
+  );
+}
