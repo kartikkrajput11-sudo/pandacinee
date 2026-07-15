@@ -39,6 +39,8 @@ type Props = {
   locked?: boolean;
   /** Called when a locked viewer attempts a restricted action. */
   onLockedAttempt?: () => void;
+  /** Called when the browser cannot get playable media data from the source. */
+  onLoadIssue?: (reason: "timeout" | "error") => void;
 };
 
 function fmt(sec: number): string {
@@ -53,10 +55,11 @@ function fmt(sec: number): string {
 
 const RATES = [0.5, 0.75, 1, 1.25, 1.5, 2];
 
-export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, locked = false, onLockedAttempt }: Props) {
+export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, locked = false, onLockedAttempt, onLoadIssue }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const onReadyRef = useRef(onReady);
+  const onLoadIssueRef = useRef(onLoadIssue);
   const [playing, setPlaying] = useState(false);
   const [time, setTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -119,6 +122,26 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
   useEffect(() => {
     onReadyRef.current = onReady;
   }, [onReady]);
+
+  useEffect(() => {
+    onLoadIssueRef.current = onLoadIssue;
+  }, [onLoadIssue]);
+
+  useEffect(() => {
+    const v = videoRef.current;
+    setBuffering(false);
+    setDuration(0);
+    setTime(0);
+    if (!v || !src) return;
+    const timer = window.setTimeout(() => {
+      if (v.readyState < 1 || !Number.isFinite(v.duration)) {
+        stopBuffering();
+        setShowControls(true);
+        onLoadIssueRef.current?.("timeout");
+      }
+    }, 9000);
+    return () => window.clearTimeout(timer);
+  }, [src, stopBuffering]);
 
   // Attach handle for parent sync control. Keep this independent from the
   // parent's callback identity so parent state updates cannot retrigger onReady
@@ -268,7 +291,6 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
         className="absolute inset-0 w-full h-full object-contain bg-black"
         playsInline
         preload="auto"
-        crossOrigin="anonymous"
         onLoadedMetadata={(e) => {
           setDuration(e.currentTarget.duration || 0);
           stopBuffering();
@@ -307,7 +329,10 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
         onSeeking={startBuffering}
         onSuspend={stopBuffering}
         onPlaying={stopBuffering}
-        onError={stopBuffering}
+        onError={() => {
+          stopBuffering();
+          onLoadIssueRef.current?.("error");
+        }}
         onEnded={(e) => onEvent?.({ event: "ended", currentTime: e.currentTarget.currentTime, duration: e.currentTarget.duration, playbackRate: e.currentTarget.playbackRate })}
         onClick={locked && playing ? undefined : togglePlay}
       />
