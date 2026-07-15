@@ -122,8 +122,9 @@ export async function startSpotifyLogin() {
 
 
 export async function completeSpotifyLogin(code: string): Promise<Tokens> {
-  const verifier = sessionStorage.getItem(LS_VERIFIER);
+  const verifier = localStorage.getItem(LS_VERIFIER) ?? sessionStorage.getItem(LS_VERIFIER);
   if (!verifier) throw new Error("Missing PKCE verifier — try logging in again.");
+
   const body = new URLSearchParams({
     client_id: SPOTIFY_CLIENT_ID,
     grant_type: "authorization_code",
