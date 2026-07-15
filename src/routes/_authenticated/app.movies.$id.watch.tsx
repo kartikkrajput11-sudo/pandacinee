@@ -674,6 +674,18 @@ function CatalogWatch({ id }: { id: string }) {
     setIframeKey((k) => k + 1);
   }
 
+  function fallbackFromPandacine() {
+    if (!isPandacine || allSources.length < 2) return;
+    const next = allSources.findIndex((source) => source.kind === "vidking");
+    if (next < 0) return;
+    setSourceIdx(next);
+    setSourceMenuOpen(false);
+    setStarted(true);
+    setPlayerLoading(true);
+    setIframeKey((k) => k + 1);
+    toast.info("Pandacine stream is not loading here — switching server.", { id: "pandacine-fallback", duration: 3500 });
+  }
+
   function startCountdown(seconds = 4) {
     const syncTime = peer && peer.currentTime > mine.currentTime ? peer.currentTime : mine.currentTime;
     sendCountdown(seconds, syncTime > 5 ? syncTime : undefined);
@@ -959,6 +971,7 @@ function CatalogWatch({ id }: { id: string }) {
                     setCustomPlayerReady((n) => n + 1);
                     setPlayerLoading(false);
                   }}
+                  onLoadIssue={fallbackFromPandacine}
                   onEvent={(evt) => {
                     if (suppressPlayerEventRef.current) return;
                     const now = Date.now();
