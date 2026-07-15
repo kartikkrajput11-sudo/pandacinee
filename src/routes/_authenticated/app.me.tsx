@@ -319,6 +319,82 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
+function EquipTagsSection({
+  userId,
+  equipped,
+  onChange,
+}: {
+  userId: string;
+  equipped: string[];
+  onChange: (next: string[]) => void;
+}) {
+  const [owned, setOwned] = useState<string[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data } = await (supabase as any)
+        .from("profile_achievements")
+        .select("tag_key,acquired_at")
+        .eq("user_id", userId)
+        .order("acquired_at", { ascending: true });
+      if (!cancelled) setOwned(((data ?? []) as any[]).map((r) => r.tag_key));
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
+
+  if (owned.length === 0) return null;
+
+  function toggle(key: string) {
+    if (equipped.includes(key)) {
+      onChange(equipped.filter((k) => k !== key));
+      return;
+    }
+    if (equipped.length >= MAX_EQUIPPED) {
+      toast.error(`You can equip up to ${MAX_EQUIPPED} tags`);
+      return;
+    }
+    onChange([...equipped, key]);
+  }
+
+  return (
+    <div className="p-5 mb-4 rounded-3xl border border-border bg-surface">
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-[10px] uppercase tracking-widest text-petal">Equip tags</p>
+        <p className="text-[10px] text-candle-muted">{equipped.length} / {MAX_EQUIPPED}</p>
+      </div>
+      <p className="text-xs text-candle-muted mb-3">Choose which tags appear on your profile. Tap to equip or remove.</p>
+      <div className="flex flex-wrap gap-2">
+        {owned.map((k) => {
+          const t = TAG_BY_KEY[k];
+          if (!t) return null;
+          const on = equipped.includes(k);
+          return (
+            <button
+              key={k}
+              type="button"
+              onClick={() => toggle(k)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all"
+              style={{
+                background: on ? `radial-gradient(circle at 30% 30%, ${t.hue}40, ${t.hue}15)` : "transparent",
+                border: `1px solid ${on ? t.hue + "aa" : t.hue + "44"}`,
+                color: t.hue,
+                boxShadow: on ? `0 0 14px -4px ${t.hue}` : "none",
+                opacity: on ? 1 : 0.65,
+              }}
+            >
+              <span className="text-sm">{t.emoji}</span>
+              <span>{t.name}</span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function ThemeSection() {
   const { mode, setMode } = useTheme();
   const options: { id: ThemeMode; label: string; Icon: typeof Sun }[] = [
