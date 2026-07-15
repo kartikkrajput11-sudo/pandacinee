@@ -104,7 +104,7 @@ function ChatList() {
       {partnerThread && (
         <section className="mb-6">
           <h3 className="text-[10px] uppercase tracking-widest text-petal mb-2 flex items-center gap-1">
-            <Heart className="size-2.5 fill-current" /> Your person
+            <Heart className="size-2.5 fill-current" /> Your panda
           </h3>
           <PartnerCard thread={partnerThread} nickname={me?.partner_nickname ?? null} />
         </section>
