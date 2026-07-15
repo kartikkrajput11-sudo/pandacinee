@@ -5,6 +5,7 @@ import { ArrowLeft, Search, UserPlus, Check, X, Video, Phone } from "lucide-reac
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useFriendships, useFriendActions, FriendProfile } from "@/hooks/useFriends";
+import { useProfile } from "@/hooks/useProfile";
 
 export const Route = createFileRoute("/_authenticated/app/friends")({
   component: Friends,
@@ -33,11 +34,19 @@ function Friends() {
     return () => clearTimeout(t);
   }, [q]);
 
+  const { data: profileData } = useProfile();
+  const partnerId = profileData?.profile?.partner_id ?? null;
+
   const me = data?.me;
   const friendships = data?.friendships ?? [];
   const profiles = data?.profiles ?? {};
 
-  const accepted = friendships.filter((f) => f.status === "accepted");
+  const relatedIdOf = (f: typeof friendships[number]) =>
+    f.requester_id === me ? f.addressee_id : f.requester_id;
+
+  const accepted = friendships.filter(
+    (f) => f.status === "accepted" && relatedIdOf(f) !== partnerId
+  );
   const incoming = friendships.filter((f) => f.status === "pending" && f.addressee_id === me);
   const outgoing = friendships.filter((f) => f.status === "pending" && f.requester_id === me);
 
