@@ -4,6 +4,9 @@ export type GameKind =
   | "would-you-rather"
   | "never-have-i-ever"
   | "guess-me"
+  | "two-truths-lie"
+  | "hot-takes"
+  | "emoji-riddle"
   | "tic-tac-toe"
   | "rock-paper-scissors"
   | "paint-together"
@@ -18,6 +21,9 @@ export type GameKind =
 export const GAME_KINDS: GameKind[] = [
   "paint-together",
   "scribble-guess",
+  "two-truths-lie",
+  "hot-takes",
+  "emoji-riddle",
   "daily-challenge",
   "memory-challenge",
   "love-quiz",
@@ -42,6 +48,9 @@ export const GAMES: Record<GameKind, { name: string; emoji: string; body: string
   "would-you-rather": { name: "Would You Rather", emoji: "💭", body: "AI dilemmas, no repeats.", ai: true },
   "never-have-i-ever": { name: "Never Have I Ever", emoji: "🤫", body: "Reveal secrets together.", ai: true },
   "guess-me": { name: "Guess Me", emoji: "🐼", body: "How well do you know me?", ai: true },
+  "two-truths-lie": { name: "Two Truths & a Lie", emoji: "🕵️", body: "Spot the fib — AI writes three.", ai: true },
+  "hot-takes": { name: "Hot Takes", emoji: "🔥", body: "Rate a bold love opinion 1–5.", ai: true },
+  "emoji-riddle": { name: "Emoji Riddle", emoji: "🧩", body: "Guess the movie, song or vibe.", ai: true },
 };
 
 export const TRUTH_OR_DARE: { type: "truth" | "dare"; text: string }[] = [

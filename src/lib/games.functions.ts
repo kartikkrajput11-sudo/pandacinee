@@ -72,6 +72,36 @@ const KIND_PROMPTS: Record<string, KindCfg & { userTyped?: (i: Intensity, seed: 
       `Return ONLY a JSON object like {"text":"..."} for one 'Guess Me' prompt. Intensity: "${i}". ${INTENSITY_GUIDE[i]} A single question the partner must guess about the other. Under 16 words. Seed:${seed}.`,
     fallback: (raw) => ({ text: stripQuotes(raw) }),
   },
+  "two-truths-lie": {
+    system:
+      "You invent 'Two Truths & a Lie' rounds for a committed couple. Return three short first-person statements that a person in a relationship might say — two plausibly true, one a convincing lie. Match the intensity tier. Consensual and tasteful; never illegal or graphic. Always respond with valid JSON only.",
+    schema: z.object({
+      statements: z.array(z.string().min(4)).length(3),
+      lie: z.number().int().min(0).max(2),
+      reveal: z.string().min(4),
+    }),
+    user: (i, seed) =>
+      `Return ONLY a JSON object like {"statements":["...","...","..."],"lie":0,"reveal":"one sentence explaining the lie"} for one Two Truths & a Lie round. Intensity: "${i}". ${INTENSITY_GUIDE[i]} Statements are first-person ("I once…", "I secretly…"), 6-14 words each, believable, no emojis, no numbering. Randomize which index is the lie. Seed:${seed}.`,
+  },
+  "hot-takes": {
+    system:
+      "You write bold, opinionated 'hot takes' about love and relationships for a committed couple to react to. Provocative but respectful. Match the intensity tier. Always respond with valid JSON only.",
+    schema: z.object({ text: z.string().min(6), tag: z.string().optional() }),
+    user: (i, seed) =>
+      `Return ONLY a JSON object like {"text":"one hot take","tag":"short topic tag"} for one relationship hot take. Intensity: "${i}". ${INTENSITY_GUIDE[i]} A single opinionated statement (not a question) that partners will strongly agree or disagree with. Under 20 words. No emojis. No "hot take:" prefix. Tag is 1-2 words. Seed:${seed}.`,
+  },
+  "emoji-riddle": {
+    system:
+      "You encode a well-known movie, song, book, phrase, or shared-life vibe as a short emoji sequence for a couple to guess. Iconic, guessable, playful. Always respond with valid JSON only.",
+    schema: z.object({
+      emojis: z.string().min(2).max(24),
+      answer: z.string().min(2),
+      category: z.enum(["movie", "song", "book", "phrase", "vibe"]),
+      hint: z.string().min(2),
+    }),
+    user: (i, seed) =>
+      `Return ONLY a JSON object like {"emojis":"🦁👑","answer":"The Lion King","category":"movie","hint":"Disney classic"} for one emoji riddle. Intensity: "${i}". ${INTENSITY_GUIDE[i]} 2-6 emojis, iconic and solvable. Answer is 1-5 words. Hint is under 6 words. Rotate categories. Seed:${seed}.`,
+  },
 };
 
 /** Best-effort recover a JSON object from a model that returned prose / fenced code / bare string. */
@@ -106,6 +136,9 @@ export const generateGameCard = createServerFn({ method: "POST" })
           "this-or-that",
           "never-have-i-ever",
           "guess-me",
+          "two-truths-lie",
+          "hot-takes",
+          "emoji-riddle",
         ]),
         intensity: z.enum(INTENSITIES).default("playful"),
         type: z.enum(["truth", "dare"]).optional(),

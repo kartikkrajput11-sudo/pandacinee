@@ -28,6 +28,9 @@ const paramsSchema = z.object({
     "would-you-rather",
     "never-have-i-ever",
     "guess-me",
+    "two-truths-lie",
+    "hot-takes",
+    "emoji-riddle",
     "tic-tac-toe",
     "rock-paper-scissors",
   ]),
@@ -151,6 +154,12 @@ function GameRoute() {
         <PairPick game="would-you-rather" me={me.id} session={session} patch={patch} fallback={WOULD_YOU_RATHER} />
       ) : game === "never-have-i-ever" ? (
         <NeverHaveIEver me={me.id} session={session} patch={patch} />
+      ) : game === "two-truths-lie" ? (
+        <TwoTruthsLie me={me.id} session={session} patch={patch} />
+      ) : game === "hot-takes" ? (
+        <HotTakes me={me.id} session={session} patch={patch} />
+      ) : game === "emoji-riddle" ? (
+        <EmojiRiddle me={me.id} session={session} patch={patch} />
       ) : game === "tic-tac-toe" ? (
         <TicTacToe me={me.id} session={session} patch={patch} />
       ) : game === "rock-paper-scissors" ? (
@@ -190,6 +199,39 @@ function initialState(game: GameKind) {
       tallies: { have: 0, havent: 0 },
       intensity: "playful" as Intensity,
       history: [] as { text: string }[],
+      bestOf: 10,
+    };
+  if (game === "two-truths-lie")
+    return {
+      count: 0,
+      card: null as null | { statements: string[]; lie: number; reveal: string },
+      guesses: {} as Record<string, number>,
+      revealed: false,
+      score: {} as Record<string, number>,
+      intensity: "playful" as Intensity,
+      history: [] as { statements: string[]; lie: number }[],
+      bestOf: 10,
+    };
+  if (game === "hot-takes")
+    return {
+      count: 0,
+      card: null as null | { text: string; tag?: string },
+      ratings: {} as Record<string, number>,
+      alignment: { total: 0, sum: 0 },
+      intensity: "playful" as Intensity,
+      history: [] as { text: string }[],
+      bestOf: 10,
+    };
+  if (game === "emoji-riddle")
+    return {
+      count: 0,
+      card: null as null | { emojis: string; answer: string; category: string; hint: string },
+      guesses: {} as Record<string, string>,
+      hintShown: false,
+      revealed: false,
+      score: {} as Record<string, number>,
+      intensity: "playful" as Intensity,
+      history: [] as { emojis: string; answer: string }[],
       bestOf: 10,
     };
   if (game === "tic-tac-toe")
@@ -471,7 +513,7 @@ function RockPaperScissors({ me, session, patch }: { me: string; session: Sessio
   );
 }
 
-function useCardFetcher(kind: "truth-or-dare" | "would-you-rather" | "this-or-that" | "never-have-i-ever" | "guess-me") {
+function useCardFetcher(kind: "truth-or-dare" | "would-you-rather" | "this-or-that" | "never-have-i-ever" | "guess-me" | "two-truths-lie" | "hot-takes" | "emoji-riddle") {
   const [loading, setLoading] = useState(false);
   async function fetchCard(intensity: Intensity, type?: "truth" | "dare"): Promise<any | null> {
     setLoading(true);
@@ -1241,6 +1283,396 @@ function Bubble({ label, text }: { label: string; text: string }) {
     <div className="p-4 rounded-2xl border border-border bg-surface">
       <p className="text-[10px] uppercase tracking-widest text-petal mb-1">{label}</p>
       <p className="font-serif italic text-lg">{text}</p>
+    </div>
+  );
+}
+
+// ─────────────────────────── Two Truths & a Lie ───────────────────────────
+function TwoTruthsLie({ me, session, patch }: { me: string; session: Session; patch: (s: any) => void }) {
+  const s = session.state ?? {
+    count: 0, card: null, guesses: {}, revealed: false,
+    score: {}, intensity: "playful", history: [], bestOf: 10,
+  };
+  const { loading, fetchCard } = useCardFetcher("two-truths-lie");
+  const otherId = session.host_id === me ? session.partner_id : session.host_id;
+  const card = s.card as null | { statements: string[]; lie: number; reveal: string };
+  const myGuess = s.guesses?.[me];
+  const theirGuess = s.guesses?.[otherId];
+  const bothGuessed = myGuess !== undefined && theirGuess !== undefined;
+  const revealed = !!s.revealed;
+
+  useEffect(() => {
+    if (!s.card && !loading) {
+      fetchCard(s.intensity ?? "playful").then((c) => c && patch({ ...s, card: c }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (bothGuessed && !revealed) patch({ ...s, revealed: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bothGuessed]);
+
+  function guess(i: number) {
+    if (myGuess !== undefined || !card) return;
+    patch({ ...s, guesses: { ...s.guesses, [me]: i } });
+  }
+  async function next() {
+    const myPts = (s.score?.[me] ?? 0) + (myGuess === card?.lie ? 1 : 0);
+    const theirPts = (s.score?.[otherId] ?? 0) + (theirGuess === card?.lie ? 1 : 0);
+    const c = await fetchCard(s.intensity ?? "playful");
+    const history = [...(s.history ?? []), card].filter(Boolean).slice(-20);
+    patch({
+      ...s,
+      count: (s.count ?? 0) + 1,
+      card: c,
+      guesses: {},
+      revealed: false,
+      score: { [me]: myPts, [otherId]: theirPts },
+      history,
+    });
+  }
+
+  const bestOf: number = s.bestOf ?? 10;
+  const round = (s.count ?? 0) + 1;
+  const matchDone = bestOf > 0 && (s.count ?? 0) >= bestOf;
+  function rematch() {
+    patch({ ...s, count: 0, card: null, guesses: {}, revealed: false, score: {}, history: [] });
+  }
+
+  return (
+    <div>
+      <MatchControls round={round} bestOf={bestOf} onBestOf={(n) => patch({ ...s, bestOf: n })} onRematch={rematch} disabled={loading} />
+      <IntensityBar value={s.intensity ?? "playful"} onChange={(v) => patch({ ...s, intensity: v })} disabled={loading} />
+      <p className="text-[10px] uppercase tracking-widest text-petal mb-2 text-center">
+        🕵️ You {s.score?.[me] ?? 0} · Them {s.score?.[otherId] ?? 0}
+      </p>
+
+      {matchDone ? (
+        <MatchComplete
+          title={`You ${s.score?.[me] ?? 0} — Them ${s.score?.[otherId] ?? 0}`}
+          subtitle={(s.score?.[me] ?? 0) === (s.score?.[otherId] ?? 0) ? "Perfectly tied 🤝" : "Well-detected 🔍"}
+          onRematch={rematch}
+        />
+      ) : (
+        <>
+          <p className="text-xs text-candle-muted text-center mb-3">Two are true. One is a lie. Tap the fib.</p>
+          <div className="flex flex-col gap-3 mb-4">
+            {(card?.statements ?? ["…", "…", "…"]).map((line, i) => {
+              const isLie = revealed && card?.lie === i;
+              const isMine = myGuess === i;
+              const isTheirs = theirGuess === i;
+              return (
+                <button
+                  key={i}
+                  onClick={() => guess(i)}
+                  disabled={myGuess !== undefined || !card}
+                  className={`text-left rounded-3xl border p-4 transition-all ${
+                    revealed
+                      ? isLie
+                        ? "border-petal bg-petal-soft"
+                        : "border-border bg-surface opacity-70"
+                      : isMine
+                        ? "border-petal bg-petal-soft"
+                        : "border-border bg-surface"
+                  }`}
+                >
+                  <div className="flex items-start gap-2">
+                    <span className="text-[10px] uppercase tracking-widest text-petal mt-1 shrink-0">
+                      {String.fromCharCode(65 + i)}
+                    </span>
+                    <p className="font-serif italic text-lg leading-snug flex-1">{line}</p>
+                  </div>
+                  {revealed && (
+                    <div className="flex gap-2 mt-2 text-[10px] uppercase tracking-widest">
+                      {isLie && <span className="text-petal">← the lie</span>}
+                      {isMine && <span className="text-candle-muted">your guess</span>}
+                      {isTheirs && <span className="text-candle-muted">their guess</span>}
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+          {revealed && card?.reveal && (
+            <div className="p-4 rounded-2xl border border-petal/40 bg-petal-soft/40 mb-4">
+              <p className="text-[10px] uppercase tracking-widest text-petal mb-1">The reveal</p>
+              <p className="text-sm text-candle">{card.reveal}</p>
+            </div>
+          )}
+          <button
+            onClick={next}
+            disabled={!revealed || loading}
+            className="w-full py-3.5 bg-petal text-velvet rounded-2xl font-semibold flex items-center justify-center gap-2 disabled:opacity-40"
+          >
+            {loading ? <Sparkles className="size-4 animate-pulse" /> : <RefreshCw className="size-4" />}
+            {loading ? "Crafting…" : bothGuessed ? "Next round" : "Waiting for panda…"}
+          </button>
+        </>
+      )}
+      <HistoryStrip items={(s.history ?? []).map((h: any) => h?.statements?.[h.lie] ?? "")} />
+    </div>
+  );
+}
+
+// ─────────────────────────── Hot Takes ───────────────────────────
+function HotTakes({ me, session, patch }: { me: string; session: Session; patch: (s: any) => void }) {
+  const s = session.state ?? {
+    count: 0, card: null, ratings: {}, alignment: { total: 0, sum: 0 },
+    intensity: "playful", history: [], bestOf: 10,
+  };
+  const { loading, fetchCard } = useCardFetcher("hot-takes");
+  const otherId = session.host_id === me ? session.partner_id : session.host_id;
+  const card = s.card as null | { text: string; tag?: string };
+  const myRating = s.ratings?.[me];
+  const theirRating = s.ratings?.[otherId];
+  const bothRated = myRating !== undefined && theirRating !== undefined;
+  const gap = bothRated ? Math.abs(myRating - theirRating) : null;
+
+  useEffect(() => {
+    if (!s.card && !loading) fetchCard(s.intensity ?? "playful").then((c) => c && patch({ ...s, card: c }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function rate(v: number) {
+    if (myRating !== undefined) return;
+    patch({ ...s, ratings: { ...s.ratings, [me]: v } });
+  }
+  async function next() {
+    const g = gap ?? 0;
+    const sum = (s.alignment?.sum ?? 0) + (4 - g); // 4=perfect, 0=opposite
+    const total = (s.alignment?.total ?? 0) + 4;
+    const c = await fetchCard(s.intensity ?? "playful");
+    const history = [...(s.history ?? []), card].filter(Boolean).slice(-20);
+    patch({ ...s, count: (s.count ?? 0) + 1, card: c, ratings: {}, alignment: { sum, total }, history });
+  }
+
+  const bestOf: number = s.bestOf ?? 10;
+  const round = (s.count ?? 0) + 1;
+  const matchDone = bestOf > 0 && (s.count ?? 0) >= bestOf;
+  function rematch() {
+    patch({ ...s, count: 0, card: null, ratings: {}, alignment: { total: 0, sum: 0 }, history: [] });
+  }
+  const alignPct = s.alignment?.total ? Math.round((s.alignment.sum / s.alignment.total) * 100) : 0;
+
+  const LABELS = ["Hard disagree", "Meh no", "Neutral", "Kinda yes", "Hard agree"];
+
+  return (
+    <div>
+      <MatchControls round={round} bestOf={bestOf} onBestOf={(n) => patch({ ...s, bestOf: n })} onRematch={rematch} disabled={loading} />
+      <IntensityBar value={s.intensity ?? "playful"} onChange={(v) => patch({ ...s, intensity: v })} disabled={loading} />
+      <p className="text-[10px] uppercase tracking-widest text-petal mb-2 text-center">
+        🔥 Alignment {alignPct}%
+      </p>
+      {matchDone ? (
+        <MatchComplete
+          title={`${alignPct}% in sync`}
+          subtitle={alignPct >= 70 ? "Same brain, same heart 💞" : alignPct >= 40 ? "Healthy differences 🌿" : "Opposites do attract 🔥"}
+          onRematch={rematch}
+        />
+      ) : (
+        <>
+          <div className="p-6 rounded-3xl border border-petal/40 bg-gradient-to-br from-petal-soft via-transparent to-transparent mb-5 min-h-[160px] flex flex-col justify-center">
+            {card?.tag && (
+              <p className="text-[10px] uppercase tracking-widest text-petal mb-2">🔥 {card.tag}</p>
+            )}
+            <p className="font-serif text-2xl italic leading-snug">
+              {card?.text ?? (loading ? "Cooking a hot take…" : "…")}
+            </p>
+          </div>
+          <div className="mb-4">
+            <div className="grid grid-cols-5 gap-1.5 mb-2">
+              {[1, 2, 3, 4, 5].map((v) => {
+                const mine = myRating === v;
+                const theirs = bothRated && theirRating === v;
+                return (
+                  <button
+                    key={v}
+                    onClick={() => rate(v)}
+                    disabled={myRating !== undefined || !card}
+                    className={`aspect-square rounded-2xl border text-lg font-serif italic transition-all ${
+                      mine ? "border-petal bg-petal-soft" : "border-border bg-surface"
+                    } ${myRating !== undefined && !mine ? "opacity-50" : ""}`}
+                  >
+                    {v}
+                    {theirs && <div className="text-[8px] uppercase tracking-widest text-petal mt-0.5">theirs</div>}
+                  </button>
+                );
+              })}
+            </div>
+            <div className="flex justify-between text-[10px] text-candle-muted">
+              <span>{LABELS[0]}</span>
+              <span>{LABELS[4]}</span>
+            </div>
+          </div>
+          {bothRated && (
+            <div className={`p-4 rounded-2xl border mb-4 text-center ${gap === 0 ? "border-petal bg-petal-soft" : gap! >= 3 ? "border-border bg-surface" : "border-border bg-surface"}`}>
+              <p className="font-serif italic text-lg">
+                {gap === 0 ? "Twinned brains 🧠💞" : gap === 1 ? "Close enough 🌿" : gap === 2 ? "Different lenses 👓" : "Wild disagreement 🔥"}
+              </p>
+              <p className="text-xs text-candle-muted mt-1">You: {myRating} · Them: {theirRating}</p>
+            </div>
+          )}
+          <button
+            onClick={next}
+            disabled={!bothRated || loading}
+            className="w-full py-3.5 bg-petal text-velvet rounded-2xl font-semibold flex items-center justify-center gap-2 disabled:opacity-40"
+          >
+            {loading ? <Sparkles className="size-4 animate-pulse" /> : <RefreshCw className="size-4" />}
+            {loading ? "Cooking…" : bothRated ? "Next take" : "Waiting for panda…"}
+          </button>
+        </>
+      )}
+      <HistoryStrip items={(s.history ?? []).map((h: any) => h?.text ?? "")} />
+    </div>
+  );
+}
+
+// ─────────────────────────── Emoji Riddle ───────────────────────────
+function EmojiRiddle({ me, session, patch }: { me: string; session: Session; patch: (s: any) => void }) {
+  const s = session.state ?? {
+    count: 0, card: null, guesses: {}, hintShown: false, revealed: false,
+    score: {}, intensity: "playful", history: [], bestOf: 10,
+  };
+  const { loading, fetchCard } = useCardFetcher("emoji-riddle");
+  const otherId = session.host_id === me ? session.partner_id : session.host_id;
+  const card = s.card as null | { emojis: string; answer: string; category: string; hint: string };
+  const myGuess = (s.guesses?.[me] ?? "") as string;
+  const theirGuess = (s.guesses?.[otherId] ?? "") as string;
+  const bothGuessed = !!myGuess && !!theirGuess;
+  const revealed = !!s.revealed;
+  const [draft, setDraft] = useState("");
+
+  useEffect(() => {
+    if (!s.card && !loading) fetchCard(s.intensity ?? "playful").then((c) => c && patch({ ...s, card: c }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useEffect(() => { setDraft(""); }, [s.card]);
+
+  function normalize(v: string) {
+    return v.toLowerCase().replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, " ").trim();
+  }
+  function isRight(v: string) {
+    if (!card) return false;
+    const a = normalize(card.answer);
+    const b = normalize(v);
+    return !!b && (a === b || a.includes(b) || b.includes(a));
+  }
+
+  function submitGuess() {
+    if (!draft.trim() || myGuess) return;
+    patch({ ...s, guesses: { ...s.guesses, [me]: draft.trim() } });
+    setDraft("");
+  }
+  function reveal() {
+    if (!card) return;
+    const myPts = (s.score?.[me] ?? 0) + (isRight(myGuess) ? 1 : 0);
+    const theirPts = (s.score?.[otherId] ?? 0) + (isRight(theirGuess) ? 1 : 0);
+    patch({ ...s, revealed: true, score: { [me]: myPts, [otherId]: theirPts } });
+  }
+  async function next() {
+    const c = await fetchCard(s.intensity ?? "playful");
+    const history = [...(s.history ?? []), card].filter(Boolean).slice(-20);
+    patch({ ...s, count: (s.count ?? 0) + 1, card: c, guesses: {}, revealed: false, hintShown: false, history });
+  }
+
+  const bestOf: number = s.bestOf ?? 10;
+  const round = (s.count ?? 0) + 1;
+  const matchDone = bestOf > 0 && (s.count ?? 0) >= bestOf;
+  function rematch() {
+    patch({ ...s, count: 0, card: null, guesses: {}, revealed: false, hintShown: false, score: {}, history: [] });
+  }
+
+  return (
+    <div>
+      <MatchControls round={round} bestOf={bestOf} onBestOf={(n) => patch({ ...s, bestOf: n })} onRematch={rematch} disabled={loading} />
+      <IntensityBar value={s.intensity ?? "playful"} onChange={(v) => patch({ ...s, intensity: v })} disabled={loading} />
+      <p className="text-[10px] uppercase tracking-widest text-petal mb-2 text-center">
+        🧩 You {s.score?.[me] ?? 0} · Them {s.score?.[otherId] ?? 0}
+      </p>
+
+      {matchDone ? (
+        <MatchComplete
+          title={`You ${s.score?.[me] ?? 0} — Them ${s.score?.[otherId] ?? 0}`}
+          subtitle="Emoji whisperers 🧩"
+          onRematch={rematch}
+        />
+      ) : (
+        <>
+          <div className="p-6 rounded-3xl border border-petal/40 bg-gradient-to-br from-petal-soft via-transparent to-transparent mb-5 min-h-[160px] flex flex-col items-center justify-center text-center">
+            {card?.category && (
+              <p className="text-[10px] uppercase tracking-widest text-petal mb-2">Category · {card.category}</p>
+            )}
+            <p className="text-5xl leading-none tracking-widest mb-2">
+              {card?.emojis ?? (loading ? "✨" : "…")}
+            </p>
+            {s.hintShown && card?.hint && (
+              <p className="text-xs text-candle-muted italic mt-1">hint: {card.hint}</p>
+            )}
+          </div>
+
+          {!revealed ? (
+            <>
+              <div className="flex gap-2 mb-3">
+                <input
+                  value={draft}
+                  onChange={(e) => setDraft(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && submitGuess()}
+                  disabled={!!myGuess || !card}
+                  placeholder={myGuess ? "Locked in ✓" : "Type your guess…"}
+                  className="flex-1 bg-surface border border-border rounded-2xl px-4 py-3 text-candle placeholder:text-candle-muted disabled:opacity-60"
+                />
+                <button
+                  onClick={submitGuess}
+                  disabled={!draft.trim() || !!myGuess}
+                  className="px-4 py-3 bg-petal text-velvet rounded-2xl font-semibold disabled:opacity-40"
+                >
+                  <Send className="size-4" />
+                </button>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => patch({ ...s, hintShown: true })}
+                  disabled={s.hintShown || !card}
+                  className="rounded-2xl bg-surface border border-border px-4 py-3 text-sm text-candle disabled:opacity-40"
+                >
+                  💡 Hint
+                </button>
+                <button
+                  onClick={reveal}
+                  disabled={!bothGuessed}
+                  className="flex-1 py-3 bg-petal text-velvet rounded-2xl font-semibold disabled:opacity-40"
+                >
+                  {bothGuessed ? "Reveal answer" : "Waiting for panda…"}
+                </button>
+              </div>
+              {myGuess && !bothGuessed && (
+                <p className="text-xs text-candle-muted text-center mt-3">Locked in. Waiting on your panda…</p>
+              )}
+            </>
+          ) : (
+            <>
+              <div className="p-4 rounded-2xl border border-petal bg-petal-soft mb-3 text-center">
+                <p className="text-[10px] uppercase tracking-widest text-petal mb-1">Answer</p>
+                <p className="font-serif italic text-2xl">{card?.answer}</p>
+              </div>
+              <div className="grid grid-cols-2 gap-2 mb-4">
+                <Bubble label={`You ${isRight(myGuess) ? "✓" : "✗"}`} text={myGuess || "—"} />
+                <Bubble label={`Them ${isRight(theirGuess) ? "✓" : "✗"}`} text={theirGuess || "—"} />
+              </div>
+              <button
+                onClick={next}
+                disabled={loading}
+                className="w-full py-3.5 bg-petal text-velvet rounded-2xl font-semibold flex items-center justify-center gap-2 disabled:opacity-40"
+              >
+                {loading ? <Sparkles className="size-4 animate-pulse" /> : <RefreshCw className="size-4" />}
+                {loading ? "Crafting…" : "Next riddle"}
+              </button>
+            </>
+          )}
+        </>
+      )}
+      <HistoryStrip items={(s.history ?? []).map((h: any) => `${h?.emojis ?? ""} — ${h?.answer ?? ""}`)} />
     </div>
   );
 }
