@@ -73,29 +73,36 @@ export function ChatBubble({
   const isInteractiveTarget = (t: EventTarget | null) =>
     !!(t as HTMLElement | null)?.closest?.("button, a, input, textarea, [data-no-gesture]");
 
+  const dragXRef = useRef(0);
   const onPointerDown = (e: React.PointerEvent) => {
     if (isInteractiveTarget(e.target)) return;
     gesture.current.startX = e.clientX;
     gesture.current.startY = e.clientY;
     gesture.current.moved = false;
     gesture.current.longPressed = false;
+    dragXRef.current = 0;
+    try { (e.currentTarget as Element).setPointerCapture?.(e.pointerId); } catch {}
     clearLongPress();
-    longPressTimer.current = window.setTimeout(() => {
-      gesture.current.longPressed = true;
-      setActionsOpen(true);
-      if ("vibrate" in navigator) navigator.vibrate?.(30);
-    }, 500);
+    // Only use long-press for touch/pen. Mouse users have right-click / hover.
+    if (e.pointerType !== "mouse") {
+      longPressTimer.current = window.setTimeout(() => {
+        if (gesture.current.moved) return;
+        gesture.current.longPressed = true;
+        setActionsOpen(true);
+        if ("vibrate" in navigator) navigator.vibrate?.(30);
+      }, 500);
+    }
   };
   const onPointerMove = (e: React.PointerEvent) => {
-    if (longPressTimer.current === null && !gesture.current.moved) return;
     const dx = e.clientX - gesture.current.startX;
     const dy = e.clientY - gesture.current.startY;
-    if (!gesture.current.moved && Math.hypot(dx, dy) > 8) {
+    if (!gesture.current.moved && Math.hypot(dx, dy) > 6) {
       gesture.current.moved = true;
       clearLongPress();
     }
     if (gesture.current.moved && Math.abs(dx) > Math.abs(dy)) {
       const clamped = mine ? Math.min(0, Math.max(-90, dx)) : Math.max(0, Math.min(90, dx));
+      dragXRef.current = clamped;
       setDragX(clamped);
     }
   };
@@ -103,11 +110,12 @@ export function ChatBubble({
     clearLongPress();
     const wasLP = gesture.current.longPressed;
     const moved = gesture.current.moved;
-    const dx = dragX;
+    const dx = dragXRef.current;
+    dragXRef.current = 0;
     setDragX(0);
     if (wasLP) return;
     if (moved) {
-      if (Math.abs(dx) > 50) {
+      if (Math.abs(dx) > 45) {
         onReply(m);
         if ("vibrate" in navigator) navigator.vibrate?.(20);
       }
