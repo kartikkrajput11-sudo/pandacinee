@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, Copy, Users, Send, LogOut, Play, Pause, RefreshCw, MessageCircle, X } from "lucide-react";
+import { ArrowLeft, Copy, Users, Send, LogOut, Play, Pause, RefreshCw, MessageCircle, X, UserPlus, Check } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -13,6 +13,7 @@ import {
   type WatchPartyMessage,
 } from "@/lib/watchParty";
 import { useProfile } from "@/hooks/useProfile";
+import { useFriendships } from "@/hooks/useFriends";
 
 export const Route = createFileRoute("/_authenticated/app/watch-party/$code")({
   component: WatchPartyRoom,
