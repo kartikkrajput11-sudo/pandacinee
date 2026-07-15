@@ -105,6 +105,7 @@ function LoveQuiz() {
 
   async function spinWheel() {
     if (!me || !partner || !session || spinning) return;
+    gameSfx.spin();
     setSpinning(true);
     setLoading(true);
     try {
