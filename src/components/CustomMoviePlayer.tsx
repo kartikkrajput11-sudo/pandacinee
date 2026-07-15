@@ -299,7 +299,7 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
 
       {/* Controls */}
       <div
-        className={`absolute inset-x-0 bottom-0 px-3 md:px-6 pb-3 md:pb-5 pt-16 bg-gradient-to-t from-black/95 via-black/50 to-transparent transition-all duration-500 ${
+        className={`absolute inset-x-0 bottom-0 px-2 md:px-4 pb-2 md:pb-3 pt-6 bg-gradient-to-t from-black/90 via-black/30 to-transparent transition-all duration-500 ${
           showControls || !playing ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2 pointer-events-none"
         }`}
       >
