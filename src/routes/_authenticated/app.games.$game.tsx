@@ -605,6 +605,7 @@ function TruthOrDare({ me, session, patch }: { me: string; session: Session; pat
 
   async function pick(type: "truth" | "dare") {
     if (matchDone || !myTurn) return;
+    gameSfx.pick();
     const c = await fetchCard(s.intensity ?? "playful", type);
     const fallback = TRUTH_OR_DARE.find((x) => x.type === type) ?? TRUTH_OR_DARE[0];
     const chosen = c && c.type === type ? c : { type, text: c?.text ?? fallback.text };
@@ -613,12 +614,14 @@ function TruthOrDare({ me, session, patch }: { me: string; session: Session; pat
 
   function submitAnswer() {
     if (!input.trim() || !card) return;
+    gameSfx.place();
     patch({ ...s, answer: input.trim(), answeredBy: me, revealed: false, turn });
     setInput("");
   }
 
   function revealAnswer() {
     if (!answer || revealed) return;
+    gameSfx.reveal();
     patch({ ...s, revealed: true });
   }
 
