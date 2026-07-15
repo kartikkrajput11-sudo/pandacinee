@@ -38,7 +38,7 @@ function Me() {
     setDisplayName(me.display_name ?? "");
     setBio(me.bio ?? "");
     setFavoriteColor(me.favorite_color);
-    setFavoriteEmoji(me.favorite_emoji);
+    setEquippedTags(Array.isArray((me as any).equipped_tags) ? ((me as any).equipped_tags as string[]) : []);
     setAnniversary(me.anniversary_date ?? "");
     setPartnerNickname(me.partner_nickname ?? "");
     setAvatarUrl(me.avatar_url);
