@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, Eraser, RotateCcw, Send, Sparkles, Trophy, Crown, X } from "lucide-react";
 import { toast } from "sonner";
+import { gameSfx } from "@/lib/game-sfx";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
 
