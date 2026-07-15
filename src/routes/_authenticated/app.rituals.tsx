@@ -1,9 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Flame, Heart, Wind, X, Check } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { ArrowLeft, Flame, Heart, Wind, X, Check, Coins, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
+import { awardRitualCoins } from "@/lib/achievements.functions";
+import { RITUAL_REWARD } from "@/lib/achievements";
 
 export const Route = createFileRoute("/_authenticated/app/rituals")({
   component: RitualsRoute,
