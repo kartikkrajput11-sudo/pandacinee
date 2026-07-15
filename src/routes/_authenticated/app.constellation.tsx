@@ -62,6 +62,8 @@ function ConstellationRoute() {
       });
     }
 
+    const partnerName = partner?.display_name || partner?.username || "Them";
+
     // Memory-jar entries.
     const { data: mems } = await (supabase as any)
       .from("memory_jar")
@@ -76,6 +78,7 @@ function ConstellationRoute() {
         glyph: m.mood && /\p{Emoji}/u.test(m.mood) ? m.mood : "✦",
         date: m.happened_on ?? m.created_at,
         origin: "memory",
+        author: m.author_id === me.id ? "You" : partnerName,
       });
     }
 
@@ -98,16 +101,18 @@ function ConstellationRoute() {
           glyph: m.emoji ?? "✦",
           date: m.date,
           origin: "mood",
+          author: m.user_id === me.id ? "You" : partnerName,
         });
       }
     }
 
-    // Custom notes.
+    // Custom notes (partner-written + AI-detected).
     const { data: notes } = await (supabase as any)
       .from("constellation_notes")
       .select("*")
       .order("occurred_at", { ascending: false });
     for (const n of (notes ?? []) as any[]) {
+      const isAi = n.source === "ai";
       derived.push({
         id: `note-${n.id}`,
         title: n.title,
@@ -115,8 +120,11 @@ function ConstellationRoute() {
         glyph: n.glyph ?? "✦",
         date: n.occurred_at,
         origin: "note",
+        author: isAi ? null : n.author_id === me.id ? "You" : partnerName,
+        isAi,
       });
     }
+
 
     // De-dupe by id, sort by date desc.
     const map = new Map<string, Star>();
