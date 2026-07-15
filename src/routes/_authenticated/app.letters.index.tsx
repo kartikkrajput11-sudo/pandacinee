@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
 import { draftLoveLetter } from "@/lib/letters.functions";
 
-export const Route = createFileRoute("/_authenticated/app/letters")({
+export const Route = createFileRoute("/_authenticated/app/letters/")({
   component: LettersRoute,
 });
 

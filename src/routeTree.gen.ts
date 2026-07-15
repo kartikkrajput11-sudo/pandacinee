@@ -30,7 +30,6 @@ import { Route as AuthenticatedAppMemoryChallengeRouteImport } from './routes/_a
 import { Route as AuthenticatedAppMemoriesRouteImport } from './routes/_authenticated/app.memories'
 import { Route as AuthenticatedAppMeRouteImport } from './routes/_authenticated/app.me'
 import { Route as AuthenticatedAppLoveQuizRouteImport } from './routes/_authenticated/app.love-quiz'
-import { Route as AuthenticatedAppLettersRouteImport } from './routes/_authenticated/app.letters'
 import { Route as AuthenticatedAppInviteRouteImport } from './routes/_authenticated/app.invite'
 import { Route as AuthenticatedAppHelpRouteImport } from './routes/_authenticated/app.help'
 import { Route as AuthenticatedAppFriendsRouteImport } from './routes/_authenticated/app.friends'
@@ -40,6 +39,7 @@ import { Route as AuthenticatedAppConciergeRouteImport } from './routes/_authent
 import { Route as AuthenticatedAppCallsRouteImport } from './routes/_authenticated/app.calls'
 import { Route as AuthenticatedAppAnniversaryRouteImport } from './routes/_authenticated/app.anniversary'
 import { Route as AuthenticatedAppMoviesIndexRouteImport } from './routes/_authenticated/app.movies.index'
+import { Route as AuthenticatedAppLettersIndexRouteImport } from './routes/_authenticated/app.letters.index'
 import { Route as AuthenticatedAppChatIndexRouteImport } from './routes/_authenticated/app.chat.index'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as AuthenticatedAppUserUserIdRouteImport } from './routes/_authenticated/app.user.$userId'
@@ -162,11 +162,6 @@ const AuthenticatedAppLoveQuizRoute =
     path: '/love-quiz',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
-const AuthenticatedAppLettersRoute = AuthenticatedAppLettersRouteImport.update({
-  id: '/letters',
-  path: '/letters',
-  getParentRoute: () => AuthenticatedAppRoute,
-} as any)
 const AuthenticatedAppInviteRoute = AuthenticatedAppInviteRouteImport.update({
   id: '/invite',
   path: '/invite',
@@ -217,6 +212,12 @@ const AuthenticatedAppMoviesIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedAppMoviesRoute,
   } as any)
+const AuthenticatedAppLettersIndexRoute =
+  AuthenticatedAppLettersIndexRouteImport.update({
+    id: '/letters/',
+    path: '/letters/',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppChatIndexRoute =
   AuthenticatedAppChatIndexRouteImport.update({
     id: '/chat/',
@@ -243,9 +244,9 @@ const AuthenticatedAppMoviesIdRoute =
   } as any)
 const AuthenticatedAppLettersIdRoute =
   AuthenticatedAppLettersIdRouteImport.update({
-    id: '/$id',
-    path: '/$id',
-    getParentRoute: () => AuthenticatedAppLettersRoute,
+    id: '/letters/$id',
+    path: '/letters/$id',
+    getParentRoute: () => AuthenticatedAppRoute,
   } as any)
 const AuthenticatedAppGamesGameRoute =
   AuthenticatedAppGamesGameRouteImport.update({
@@ -303,7 +304,6 @@ export interface FileRoutesByFullPath {
   '/app/friends': typeof AuthenticatedAppFriendsRoute
   '/app/help': typeof AuthenticatedAppHelpRoute
   '/app/invite': typeof AuthenticatedAppInviteRoute
-  '/app/letters': typeof AuthenticatedAppLettersRouteWithChildren
   '/app/love-quiz': typeof AuthenticatedAppLoveQuizRoute
   '/app/me': typeof AuthenticatedAppMeRoute
   '/app/memories': typeof AuthenticatedAppMemoriesRoute
@@ -328,6 +328,7 @@ export interface FileRoutesByFullPath {
   '/app/user/$userId': typeof AuthenticatedAppUserUserIdRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/app/chat/': typeof AuthenticatedAppChatIndexRoute
+  '/app/letters/': typeof AuthenticatedAppLettersIndexRoute
   '/app/movies/': typeof AuthenticatedAppMoviesIndexRoute
   '/app/call/group/$groupId': typeof AuthenticatedAppCallGroupGroupIdRoute
   '/app/chat/group/$groupId': typeof AuthenticatedAppChatGroupGroupIdRoute
@@ -346,7 +347,6 @@ export interface FileRoutesByTo {
   '/app/friends': typeof AuthenticatedAppFriendsRoute
   '/app/help': typeof AuthenticatedAppHelpRoute
   '/app/invite': typeof AuthenticatedAppInviteRoute
-  '/app/letters': typeof AuthenticatedAppLettersRouteWithChildren
   '/app/love-quiz': typeof AuthenticatedAppLoveQuizRoute
   '/app/me': typeof AuthenticatedAppMeRoute
   '/app/memories': typeof AuthenticatedAppMemoriesRoute
@@ -370,6 +370,7 @@ export interface FileRoutesByTo {
   '/app/user/$userId': typeof AuthenticatedAppUserUserIdRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/app/chat': typeof AuthenticatedAppChatIndexRoute
+  '/app/letters': typeof AuthenticatedAppLettersIndexRoute
   '/app/movies': typeof AuthenticatedAppMoviesIndexRoute
   '/app/call/group/$groupId': typeof AuthenticatedAppCallGroupGroupIdRoute
   '/app/chat/group/$groupId': typeof AuthenticatedAppChatGroupGroupIdRoute
@@ -391,7 +392,6 @@ export interface FileRoutesById {
   '/_authenticated/app/friends': typeof AuthenticatedAppFriendsRoute
   '/_authenticated/app/help': typeof AuthenticatedAppHelpRoute
   '/_authenticated/app/invite': typeof AuthenticatedAppInviteRoute
-  '/_authenticated/app/letters': typeof AuthenticatedAppLettersRouteWithChildren
   '/_authenticated/app/love-quiz': typeof AuthenticatedAppLoveQuizRoute
   '/_authenticated/app/me': typeof AuthenticatedAppMeRoute
   '/_authenticated/app/memories': typeof AuthenticatedAppMemoriesRoute
@@ -416,6 +416,7 @@ export interface FileRoutesById {
   '/_authenticated/app/user/$userId': typeof AuthenticatedAppUserUserIdRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/_authenticated/app/chat/': typeof AuthenticatedAppChatIndexRoute
+  '/_authenticated/app/letters/': typeof AuthenticatedAppLettersIndexRoute
   '/_authenticated/app/movies/': typeof AuthenticatedAppMoviesIndexRoute
   '/_authenticated/app/call/group/$groupId': typeof AuthenticatedAppCallGroupGroupIdRoute
   '/_authenticated/app/chat/group/$groupId': typeof AuthenticatedAppChatGroupGroupIdRoute
@@ -437,7 +438,6 @@ export interface FileRouteTypes {
     | '/app/friends'
     | '/app/help'
     | '/app/invite'
-    | '/app/letters'
     | '/app/love-quiz'
     | '/app/me'
     | '/app/memories'
@@ -462,6 +462,7 @@ export interface FileRouteTypes {
     | '/app/user/$userId'
     | '/lovable/email/queue/process'
     | '/app/chat/'
+    | '/app/letters/'
     | '/app/movies/'
     | '/app/call/group/$groupId'
     | '/app/chat/group/$groupId'
@@ -480,7 +481,6 @@ export interface FileRouteTypes {
     | '/app/friends'
     | '/app/help'
     | '/app/invite'
-    | '/app/letters'
     | '/app/love-quiz'
     | '/app/me'
     | '/app/memories'
@@ -504,6 +504,7 @@ export interface FileRouteTypes {
     | '/app/user/$userId'
     | '/lovable/email/queue/process'
     | '/app/chat'
+    | '/app/letters'
     | '/app/movies'
     | '/app/call/group/$groupId'
     | '/app/chat/group/$groupId'
@@ -524,7 +525,6 @@ export interface FileRouteTypes {
     | '/_authenticated/app/friends'
     | '/_authenticated/app/help'
     | '/_authenticated/app/invite'
-    | '/_authenticated/app/letters'
     | '/_authenticated/app/love-quiz'
     | '/_authenticated/app/me'
     | '/_authenticated/app/memories'
@@ -549,6 +549,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/user/$userId'
     | '/lovable/email/queue/process'
     | '/_authenticated/app/chat/'
+    | '/_authenticated/app/letters/'
     | '/_authenticated/app/movies/'
     | '/_authenticated/app/call/group/$groupId'
     | '/_authenticated/app/chat/group/$groupId'
@@ -713,13 +714,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppLoveQuizRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
-    '/_authenticated/app/letters': {
-      id: '/_authenticated/app/letters'
-      path: '/letters'
-      fullPath: '/app/letters'
-      preLoaderRoute: typeof AuthenticatedAppLettersRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
     '/_authenticated/app/invite': {
       id: '/_authenticated/app/invite'
       path: '/invite'
@@ -783,6 +777,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppMoviesIndexRouteImport
       parentRoute: typeof AuthenticatedAppMoviesRoute
     }
+    '/_authenticated/app/letters/': {
+      id: '/_authenticated/app/letters/'
+      path: '/letters'
+      fullPath: '/app/letters/'
+      preLoaderRoute: typeof AuthenticatedAppLettersIndexRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/chat/': {
       id: '/_authenticated/app/chat/'
       path: '/chat'
@@ -813,10 +814,10 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/app/letters/$id': {
       id: '/_authenticated/app/letters/$id'
-      path: '/$id'
+      path: '/letters/$id'
       fullPath: '/app/letters/$id'
       preLoaderRoute: typeof AuthenticatedAppLettersIdRouteImport
-      parentRoute: typeof AuthenticatedAppLettersRoute
+      parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/games/$game': {
       id: '/_authenticated/app/games/$game'
@@ -870,20 +871,6 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface AuthenticatedAppLettersRouteChildren {
-  AuthenticatedAppLettersIdRoute: typeof AuthenticatedAppLettersIdRoute
-}
-
-const AuthenticatedAppLettersRouteChildren: AuthenticatedAppLettersRouteChildren =
-  {
-    AuthenticatedAppLettersIdRoute: AuthenticatedAppLettersIdRoute,
-  }
-
-const AuthenticatedAppLettersRouteWithChildren =
-  AuthenticatedAppLettersRoute._addFileChildren(
-    AuthenticatedAppLettersRouteChildren,
-  )
-
 interface AuthenticatedAppMoviesIdRouteChildren {
   AuthenticatedAppMoviesIdWatchRoute: typeof AuthenticatedAppMoviesIdWatchRoute
   AuthenticatedAppMoviesIdEpisodeSeasonEpisodeRoute: typeof AuthenticatedAppMoviesIdEpisodeSeasonEpisodeRoute
@@ -926,7 +913,6 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppFriendsRoute: typeof AuthenticatedAppFriendsRoute
   AuthenticatedAppHelpRoute: typeof AuthenticatedAppHelpRoute
   AuthenticatedAppInviteRoute: typeof AuthenticatedAppInviteRoute
-  AuthenticatedAppLettersRoute: typeof AuthenticatedAppLettersRouteWithChildren
   AuthenticatedAppLoveQuizRoute: typeof AuthenticatedAppLoveQuizRoute
   AuthenticatedAppMeRoute: typeof AuthenticatedAppMeRoute
   AuthenticatedAppMemoriesRoute: typeof AuthenticatedAppMemoriesRoute
@@ -946,8 +932,10 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppCallPeerIdRoute: typeof AuthenticatedAppCallPeerIdRoute
   AuthenticatedAppChatPeerIdRoute: typeof AuthenticatedAppChatPeerIdRoute
   AuthenticatedAppGamesGameRoute: typeof AuthenticatedAppGamesGameRoute
+  AuthenticatedAppLettersIdRoute: typeof AuthenticatedAppLettersIdRoute
   AuthenticatedAppUserUserIdRoute: typeof AuthenticatedAppUserUserIdRoute
   AuthenticatedAppChatIndexRoute: typeof AuthenticatedAppChatIndexRoute
+  AuthenticatedAppLettersIndexRoute: typeof AuthenticatedAppLettersIndexRoute
   AuthenticatedAppCallGroupGroupIdRoute: typeof AuthenticatedAppCallGroupGroupIdRoute
   AuthenticatedAppChatGroupGroupIdRoute: typeof AuthenticatedAppChatGroupGroupIdRoute
 }
@@ -961,7 +949,6 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppFriendsRoute: AuthenticatedAppFriendsRoute,
   AuthenticatedAppHelpRoute: AuthenticatedAppHelpRoute,
   AuthenticatedAppInviteRoute: AuthenticatedAppInviteRoute,
-  AuthenticatedAppLettersRoute: AuthenticatedAppLettersRouteWithChildren,
   AuthenticatedAppLoveQuizRoute: AuthenticatedAppLoveQuizRoute,
   AuthenticatedAppMeRoute: AuthenticatedAppMeRoute,
   AuthenticatedAppMemoriesRoute: AuthenticatedAppMemoriesRoute,
@@ -981,8 +968,10 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppCallPeerIdRoute: AuthenticatedAppCallPeerIdRoute,
   AuthenticatedAppChatPeerIdRoute: AuthenticatedAppChatPeerIdRoute,
   AuthenticatedAppGamesGameRoute: AuthenticatedAppGamesGameRoute,
+  AuthenticatedAppLettersIdRoute: AuthenticatedAppLettersIdRoute,
   AuthenticatedAppUserUserIdRoute: AuthenticatedAppUserUserIdRoute,
   AuthenticatedAppChatIndexRoute: AuthenticatedAppChatIndexRoute,
+  AuthenticatedAppLettersIndexRoute: AuthenticatedAppLettersIndexRoute,
   AuthenticatedAppCallGroupGroupIdRoute: AuthenticatedAppCallGroupGroupIdRoute,
   AuthenticatedAppChatGroupGroupIdRoute: AuthenticatedAppChatGroupGroupIdRoute,
 }
