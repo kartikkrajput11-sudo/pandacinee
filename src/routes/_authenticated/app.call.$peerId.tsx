@@ -355,7 +355,15 @@ function Call() {
           </div>
         )}
 
-        <audio ref={remoteAudioRef} autoPlay playsInline className="hidden" />
+        <audio
+          ref={remoteAudioRef}
+          autoPlay
+          playsInline
+          // Kept in the DOM (not display:none) — iOS Safari silently drops
+          // audio playback for elements with display:none. Position it
+          // off-screen instead.
+          style={{ position: "absolute", width: 1, height: 1, opacity: 0, pointerEvents: "none" }}
+        />
 
 
         {audioBlocked && !error && (
