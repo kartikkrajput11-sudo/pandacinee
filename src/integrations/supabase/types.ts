@@ -1065,6 +1065,56 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      chat_group_messages: {
+        Args: { _before?: string; _group_id: string; _limit?: number }
+        Returns: {
+          content: string
+          created_at: string
+          expires_at: string | null
+          group_id: string | null
+          id: string
+          media_meta: Json | null
+          media_url: string | null
+          pinned: boolean
+          reactions: Json
+          read_at: string | null
+          receiver_id: string | null
+          reply_to_id: string | null
+          sender_id: string
+          type: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "messages"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      chat_messages_between: {
+        Args: { _before?: string; _limit?: number; _peer: string }
+        Returns: {
+          content: string
+          created_at: string
+          expires_at: string | null
+          group_id: string | null
+          id: string
+          media_meta: Json | null
+          media_url: string | null
+          pinned: boolean
+          reactions: Json
+          read_at: string | null
+          receiver_id: string | null
+          reply_to_id: string | null
+          sender_id: string
+          type: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "messages"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       claim_admin: { Args: { _pin: string }; Returns: boolean }
       couple_streak: {
         Args: { _me: string; _partner: string }
