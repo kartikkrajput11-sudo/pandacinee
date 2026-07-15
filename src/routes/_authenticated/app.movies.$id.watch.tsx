@@ -209,71 +209,100 @@ function CatalogWatch({ id }: { id: string }) {
 
   useEffect(() => {
     let alive = true;
-    (async () => {
-      const [m, ovRes] = await Promise.all([
-        fetchMovie({ data: { id: tmdbId } }).catch(() => null),
-        supabase
-          .from("custom_movies")
-          .select("id, title, overview, poster_url, backdrop_url, runtime, video_url, video_storage_path, media_type, tmdb_id")
-          .eq("tmdb_id", tmdbId)
-          .maybeSingle(),
+
+    // 1) Instant local render: hit Supabase first and paint whatever we have.
+    const localPromise = supabase
+      .from("custom_movies")
+      .select("id, title, overview, poster_url, backdrop_url, runtime, video_url, video_storage_path, media_type, tmdb_id")
+      .eq("tmdb_id", tmdbId)
+      .maybeSingle()
+      .then((ovRes) => {
+        if (!alive) return null;
+        const ov = ovRes.data as {
+          id?: string; title?: string; overview?: string | null;
+          poster_url?: string | null; backdrop_url?: string | null; runtime?: number | null;
+          video_url?: string | null; video_storage_path?: string | null;
+          media_type?: "movie" | "tv" | null;
+        } | null;
+        if (ov) {
+          // Paint immediately from local data
+          setMovie((prev: any) => ({
+            ...(prev ?? {}),
+            id: tmdbId,
+            title: ov.title ?? prev?.title ?? "",
+            overview: ov.overview ?? prev?.overview ?? "",
+            poster_path: ov.poster_url ?? prev?.poster_path ?? null,
+            backdrop_path: ov.backdrop_url ?? prev?.backdrop_path ?? null,
+            runtime: ov.runtime ?? prev?.runtime ?? null,
+            media_type: ov.media_type ?? prev?.media_type ?? null,
+          }));
+          const tv = ov.media_type === "tv";
+          setIsTv(tv);
+          setCustomMovieId(ov.id ?? null);
+
+          // Resolve movie-level Pandacine source right away
+          if (!tv) {
+            if (ov.video_storage_path) {
+              supabase.storage
+                .from("custom-movies")
+                .createSignedUrl(ov.video_storage_path, 60 * 60 * 6)
+                .then(({ data: signed }) => {
+                  if (!alive) return;
+                  if (signed?.signedUrl) setPandacine({ videoSrc: signed.signedUrl, title: ov.title ?? null });
+                });
+            } else if (ov.video_url) {
+              setPandacine({ videoSrc: ov.video_url, title: ov.title ?? null });
+            } else {
+              setPandacine(null);
+            }
+          }
+        }
+        return ov;
+      });
+
+    // 2) Enrich with TMDB in the background (release date, genres, etc.)
+    fetchMovie({ data: { id: tmdbId } })
+      .catch(() => null)
+      .then((m) => {
+        if (!alive || !m) return;
+        setMovie((prev: any) => ({
+          ...m,
+          // Prefer any local overrides already in state
+          title: prev?.title || m.title,
+          overview: prev?.overview || m.overview,
+          poster_path: prev?.poster_path || m.poster_path,
+          backdrop_path: prev?.backdrop_path || m.backdrop_path,
+          runtime: prev?.runtime || m.runtime,
+        }));
+        if (m.media_type === "tv") setIsTv(true);
+      });
+
+    // 3) After local paint, if it's a TV show fetch season list + episode overrides
+    localPromise.then(async (ov) => {
+      if (!alive) return;
+      const tv = ov?.media_type === "tv";
+      if (!tv) { setTvSeasons([]); setCustomEps([]); return; }
+      const [detail, epsRes] = await Promise.all([
+        tvDetailFn({ data: { id: tmdbId } }).catch(() => null),
+        ov?.id
+          ? supabase.from("custom_episodes")
+              .select("season, episode, title, video_url, video_storage_path, use_vidking")
+              .eq("movie_id", ov.id)
+          : Promise.resolve({ data: [] } as any),
       ]);
       if (!alive) return;
-      const ov = ovRes.data as {
-        id?: string; title?: string; overview?: string | null;
-        poster_url?: string | null; backdrop_url?: string | null; runtime?: number | null;
-        video_url?: string | null; video_storage_path?: string | null;
-        media_type?: "movie" | "tv" | null;
-      } | null;
-      if (m && ov) {
-        if (ov.title) m.title = ov.title;
-        if (ov.overview != null) m.overview = ov.overview;
-        if (ov.poster_url) m.poster_path = ov.poster_url;
-        if (ov.backdrop_url) m.backdrop_path = ov.backdrop_url;
-        if (ov.runtime) m.runtime = ov.runtime;
+      if (detail?.seasons) {
+        const s = detail.seasons.filter((x: any) => x.season_number > 0);
+        setTvSeasons(s);
+        if (s.length && !s.find((x: any) => x.season_number === season)) setSeason(s[0].season_number);
       }
-      setMovie(m);
+      setCustomEps(((epsRes as any).data ?? []) as any);
+    });
 
-      const tv = ov?.media_type === "tv" || m?.media_type === "tv";
-      setIsTv(tv);
-      setCustomMovieId(ov?.id ?? null);
-
-      if (tv) {
-        // Load season list + per-episode admin overrides in parallel
-        const [detail, epsRes] = await Promise.all([
-          tvDetailFn({ data: { id: tmdbId } }).catch(() => null),
-          ov?.id
-            ? supabase.from("custom_episodes")
-                .select("season, episode, title, video_url, video_storage_path, use_vidking")
-                .eq("movie_id", ov.id)
-            : Promise.resolve({ data: [] } as any),
-        ]);
-        if (!alive) return;
-        if (detail?.seasons) {
-          const s = detail.seasons.filter((x: any) => x.season_number > 0);
-          setTvSeasons(s);
-          if (s.length && !s.find((x: any) => x.season_number === season)) setSeason(s[0].season_number);
-        }
-        setCustomEps(((epsRes as any).data ?? []) as any);
-      } else {
-        setTvSeasons([]);
-        setCustomEps([]);
-        // Movie: resolve Pandacine source from show-level fields
-        if (ov?.video_storage_path) {
-          const { data: signed } = await supabase.storage
-            .from("custom-movies")
-            .createSignedUrl(ov.video_storage_path, 60 * 60 * 6);
-          if (signed?.signedUrl) setPandacine({ videoSrc: signed.signedUrl, title: ov.title ?? null });
-        } else if (ov?.video_url) {
-          setPandacine({ videoSrc: ov.video_url, title: ov.title ?? null });
-        } else {
-          setPandacine(null);
-        }
-      }
-    })();
     return () => { alive = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tmdbId]);
+
 
   // Load episodes for the selected season (TV only)
   useEffect(() => {
