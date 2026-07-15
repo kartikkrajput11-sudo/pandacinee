@@ -556,6 +556,7 @@ function TimelinePage() {
           100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
         }
         @keyframes timeline-travel { 0% { top: -20%; } 100% { top: 110%; } }
+        @keyframes timeline-travel-x { 0% { left: -20%; } 100% { left: 110%; } }
         @keyframes timeline-ping {
           0% { box-shadow: 0 0 0 0 currentColor; opacity: 0.7; }
           100% { box-shadow: 0 0 0 18px transparent; opacity: 0; }
