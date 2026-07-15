@@ -1,6 +1,27 @@
 // Web Audio-based chess sound effects. No audio assets shipped.
 // All sounds are synthesized on demand; each call is self-contained
 // (no shared graph) so overlapping sounds mix cleanly.
+import thunderRumble from "@/assets/chess/thunder-rumble.mp3.asset.json";
+import thunderCrack from "@/assets/chess/thunder-crack.mp3.asset.json";
+import swordSlash from "@/assets/chess/sword-slash.mp3.asset.json";
+import rainLoop from "@/assets/chess/rain-loop.mp3.asset.json";
+
+function playSample(url: string, { delay = 0, volume = 1, muted = false }: { delay?: number; volume?: number; muted?: boolean } = {}) {
+  if (muted || typeof window === "undefined") return;
+  const start = () => {
+    try {
+      const a = new Audio(url);
+      a.volume = Math.min(1, Math.max(0, volume));
+      a.preload = "auto";
+      void a.play().catch(() => { /* autoplay guard */ });
+    } catch { /* ignore */ }
+  };
+  if (delay > 0) window.setTimeout(start, delay * 1000);
+  else start();
+}
+
+// All sounds are synthesized on demand; each call is self-contained
+// (no shared graph) so overlapping sounds mix cleanly.
 
 let ctx: AudioContext | null = null;
 function getCtx(): AudioContext | null {
@@ -170,35 +191,27 @@ export const sfx = {
   },
 
   // ── Win-animation stinger track (~5.4s) ──
+  // Real recorded thunderstorm + sword sounds, layered with synthesized impacts.
   winCinematic({ muted }: SfxOpts = {}) {
     if (muted) return;
-    // t=0.0  distant thunder rumble
-    noise(1.4, { filter: { type: "lowpass", freq: 220, q: 0.7 }, peak: 0.55, env: { attack: 0.3, decay: 0.4, sustain: 0.6, release: 0.6, peak: 0.55 }, muted });
-    // t=0.2  wind (highpass hiss)
-    noise(1.8, { delay: 0.2, filter: { type: "highpass", freq: 800, q: 0.5, sweepTo: 400 }, peak: 0.18, env: { attack: 0.4, decay: 0.5, sustain: 0.7, release: 0.6, peak: 0.18 }, muted });
-    // t=0.9  lightning crack #1
-    noise(0.25, { delay: 0.9, filter: { type: "highpass", freq: 2000, q: 0.7 }, peak: 0.7, env: { attack: 0.001, decay: 0.05, sustain: 0.2, release: 0.15, peak: 0.7 }, muted });
-    tone(60, 0.6, { type: "sawtooth", delay: 0.95, slideTo: 40, env: { peak: 0.35, release: 0.4 }, muted });
-    // t=1.4  lightning crack #2 — bigger
-    noise(0.35, { delay: 1.4, filter: { type: "highpass", freq: 1500, q: 0.5 }, peak: 0.85, env: { attack: 0.001, decay: 0.06, sustain: 0.25, release: 0.2, peak: 0.85 }, muted });
-    tone(55, 0.9, { type: "sawtooth", delay: 1.45, slideTo: 35, env: { peak: 0.45, release: 0.6 }, muted });
-    // t=1.5  sword whoosh (approach)
-    noise(0.55, { delay: 1.5, filter: { type: "bandpass", freq: 600, q: 2, sweepTo: 3200 }, peak: 0.55, env: { attack: 0.05, decay: 0.1, sustain: 0.7, release: 0.15, peak: 0.55 }, muted });
-    // t=1.95  SLASH — metallic ring + impact
-    noise(0.18, { delay: 1.95, filter: { type: "bandpass", freq: 4200, q: 6 }, peak: 0.75, env: { attack: 0.001, decay: 0.04, sustain: 0.3, release: 0.1, peak: 0.75 }, muted });
-    tone(2400, 0.35, { type: "triangle", delay: 1.96, slideTo: 900, env: { attack: 0.001, decay: 0.08, sustain: 0.3, release: 0.25, peak: 0.45 }, muted });
-    tone(80, 0.5, { type: "sine", delay: 1.96, slideTo: 40, env: { peak: 0.6, release: 0.35 }, muted }); // deep thud
-    // t=2.05  head drop thud
+    // t=0.0  rolling rain bed + distant thunder rumble
+    playSample(rainLoop.url, { volume: 0.55, muted });
+    playSample(thunderRumble.url, { volume: 0.85, muted });
+    // t=0.9  first thunder crack
+    playSample(thunderCrack.url, { delay: 0.9, volume: 0.9, muted });
+    // t=1.4  bigger thunder crack right before the strike
+    playSample(thunderCrack.url, { delay: 1.4, volume: 1.0, muted });
+    // t=1.5  sword swings in from the sky
+    playSample(swordSlash.url, { delay: 1.5, volume: 1.0, muted });
+    // t=1.95  SLASH — layer a synth impact under the sword for punch
+    tone(80, 0.5, { type: "sine", delay: 1.95, slideTo: 40, env: { peak: 0.6, release: 0.35 }, muted });
+    // t=2.15  head drop thud
     tone(120, 0.25, { type: "sine", delay: 2.15, slideTo: 55, env: { peak: 0.4, release: 0.18 }, muted });
     noise(0.15, { delay: 2.15, filter: { type: "lowpass", freq: 400 }, peak: 0.35, muted });
-    // t=2.2+ blood rain patter
-    for (let i = 0; i < 14; i++) {
-      const d = 2.2 + i * 0.11 + Math.random() * 0.05;
-      noise(0.08, { delay: d, filter: { type: "bandpass", freq: 1400 + Math.random() * 800, q: 3 }, peak: 0.18, muted });
-    }
     // t=4.0  victory chord flourish
     [523, 659, 784, 1047].forEach((f, i) =>
       tone(f, 0.9, { type: "sine", delay: 4.0 + i * 0.05, env: { attack: 0.02, decay: 0.1, sustain: 0.7, release: 0.6, peak: 0.18 }, muted }),
     );
   },
 };
+
