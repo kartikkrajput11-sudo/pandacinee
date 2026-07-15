@@ -122,7 +122,13 @@ function Call() {
     const a = remoteAudioRef.current;
     if (a && a.srcObject !== remoteStream) {
       a.srcObject = remoteStream;
+    }
+    if (a) {
       a.muted = !speakerOn;
+      // Kick playback every time a new track arrives (remoteRev bumps on
+      // ontrack). Without this, if the audio track lands AFTER the initial
+      // srcObject attach, the element stays silent because .play() was only
+      // called during the first attach when the stream had no audio yet.
       const p = a.play?.();
       if (p && typeof (p as Promise<void>).catch === "function") {
         (p as Promise<void>).then(() => setAudioBlocked(false)).catch((err) => {
@@ -130,10 +136,8 @@ function Call() {
           if (speakerOn) setAudioBlocked(true);
         });
       }
-    } else if (a) {
-      a.muted = !speakerOn;
     }
-  }, [remoteStream, speakerOn]);
+  }, [remoteStream, remoteRev, speakerOn]);
 
 
   function enableSound() {
