@@ -344,7 +344,6 @@ function Call() {
               ref={remoteRef}
               autoPlay
               playsInline
-              muted
               className="absolute inset-0 w-full h-full object-cover"
             />
             {/* Cinematic overlays on top of the remote video */}
