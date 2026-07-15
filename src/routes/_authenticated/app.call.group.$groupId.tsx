@@ -180,7 +180,7 @@ function GroupCall() {
             {screenSharing ? <MonitorOff className="size-5" /> : <MonitorUp className="size-5" />}
           </ControlBtn>
           <button
-            onClick={() => { void hangup(); navigate({ to: "/app/chat/group/$groupId", params: { groupId } }); }}
+            onClick={() => { void hangup(); }}
             className="w-20 h-12 rounded-[24px] bg-[#e11d48] text-white flex items-center justify-center shadow-[0_8px_25px_rgba(225,29,72,0.45)]"
             aria-label="Leave"
           >
