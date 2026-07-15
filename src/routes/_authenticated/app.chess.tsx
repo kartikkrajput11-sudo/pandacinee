@@ -323,7 +323,7 @@ function GameScreen({
       setChess(loadChess(row.pgn, row.fen));
     });
     const ch = supabase
-      .channel(`chess:${gameId}`)
+      .channel(`chess:${gameId}`, { config: { presence: { key: meId ?? "anon" } } })
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "chess_games", filter: `id=eq.${gameId}` }, (p) => {
         const row = p.new as GameRow;
         setGame(row);
@@ -331,13 +331,20 @@ function GameScreen({
         setHistoryCursor(null);
         playTone(row.status === "checkmate" ? 660 : 440, 90, muted);
       })
-      .subscribe();
+      .on("presence", { event: "sync" }, () => {
+        const state = ch.presenceState();
+        const ids = Object.keys(state);
+        setPartnerHere(ids.length >= 2);
+      })
+      .subscribe(async (status) => {
+        if (status === "SUBSCRIBED" && meId) await ch.track({ id: meId, at: Date.now() });
+      });
     return () => {
       cancelled = true;
       supabase.removeChannel(ch);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gameId, isLocal]);
+  }, [gameId, isLocal, meId]);
 
   // Auto-flip for black player
   useEffect(() => {
