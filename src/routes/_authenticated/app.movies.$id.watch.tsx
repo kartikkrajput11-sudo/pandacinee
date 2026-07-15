@@ -1063,13 +1063,18 @@ function CatalogWatch({ id }: { id: string }) {
 
 
             {started && playerLoading && (
-              <div className="absolute inset-0 pointer-events-none flex items-center justify-center bg-velvet/80">
-                <div className="flex flex-col items-center gap-3 text-candle">
-                  <RefreshCw className="size-6 animate-spin text-petal" />
-                  <span className="text-xs uppercase tracking-widest text-candle-muted">Dimming the lights</span>
+              <div className="absolute inset-0 pointer-events-none flex items-center justify-center bg-velvet/50 backdrop-blur-2xl animate-[fade-in_0.4s_ease-out]">
+                <span aria-hidden className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(238,130,175,0.25),transparent_60%)] animate-[halo-pulse_3s_ease-in-out_infinite]" />
+                <div className="relative flex flex-col items-center gap-4 text-candle">
+                  <span className="relative size-14 rounded-full flex items-center justify-center bg-petal/10 border border-petal/30 backdrop-blur-xl shadow-[0_10px_40px_-10px_rgba(238,130,175,0.6)]">
+                    <span aria-hidden className="absolute inset-0 rounded-full border-t-2 border-petal animate-spin" />
+                    <RefreshCw className="size-5 text-petal" />
+                  </span>
+                  <span className="text-[10px] uppercase tracking-[0.4em] text-candle-muted">Dimming the lights</span>
                 </div>
               </div>
             )}
+
             {countdownRemaining != null && countdownRemaining > 0 && (
               <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-velvet/85 backdrop-blur-sm">
                 <p className="text-[11px] uppercase tracking-[0.3em] text-petal mb-2">Pressing play together in</p>
