@@ -225,6 +225,16 @@ function Call() {
           ? Math.floor((Date.now() - connectedAtRef.current) / 1000)
           : 0;
         const outcome = connectedAtRef.current ? "completed" : "missed";
+        // If the caller gave up before pickup, tell the callee's devices to
+        // stop ringing (multi-device consistency).
+        if (outcome === "missed") {
+          await supabase.from("call_signals").insert({
+            from_id: u.user.id,
+            to_id: peerId,
+            kind: "cancel",
+            payload: { mode } as never,
+          });
+        }
         await supabase.from("messages").insert({
           sender_id: u.user.id,
           receiver_id: peerId,
