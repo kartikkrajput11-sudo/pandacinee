@@ -1716,17 +1716,18 @@ function CustomWatch({ customId }: { customId: string }) {
   const inSync = driftAbs != null && driftAbs < 2;
 
   function handleEvent(evt: {
-    event: "play" | "pause" | "seeked" | "timeupdate" | "ended";
+    event: "play" | "pause" | "seeked" | "timeupdate" | "ended" | "ratechange";
     currentTime: number;
     duration: number;
+    playbackRate: number;
   }) {
     if (suppressRef.current) return;
-    const isDiscrete = evt.event === "play" || evt.event === "pause" || evt.event === "seeked" || evt.event === "ended";
+    const isDiscrete = evt.event === "play" || evt.event === "pause" || evt.event === "seeked" || evt.event === "ended" || evt.event === "ratechange";
     if (isDiscrete && partner && !hostId) claimHost();
     if (partnerIsHost && isDiscrete) return;
-    if (!isDiscrete && Date.now() - lastPublishRef.current < 1500) return;
+    if (!isDiscrete && Date.now() - lastPublishRef.current < 500) return;
     lastPublishRef.current = Date.now();
-    publish({ event: evt.event, currentTime: evt.currentTime, duration: evt.duration, sourceIdx: 0 });
+    publish({ event: evt.event, currentTime: evt.currentTime, duration: evt.duration, sourceIdx: 0, playbackRate: evt.playbackRate });
   }
 
   const syncToPartner = () => {
