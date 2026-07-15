@@ -409,12 +409,28 @@ function GameScreen({
     const result = computeResult(chess);
     if (result.status !== "active" && !confetti) {
       setConfetti(true);
-      playTone(880, 200, muted);
-      setTimeout(() => playTone(1100, 200, muted), 220);
+      if (result.winner === "draw") {
+        sfx.draw({ muted });
+      } else if (result.winner && myColor && myColor !== "both" && result.winner !== myColor) {
+        sfx.lose({ muted });
+      }
+      // The win animation drives its own cinematic stinger via winCinematic.
       setTimeout(() => setConfetti(false), 4500);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chess]);
+
+  // Game-start chime once game/mode is ready
+  const startedRef = useRef(false);
+  useEffect(() => {
+    if (startedRef.current) return;
+    if (isLocal || (game && (mode === "partner" ? partnerHere : true))) {
+      startedRef.current = true;
+      sfx.gameStart({ muted });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLocal, game, partnerHere, mode]);
+
 
   const myColor: Color | "both" | null = useMemo(() => {
     if (historyCursor !== null) return null;
