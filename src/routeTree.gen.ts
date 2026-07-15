@@ -37,6 +37,7 @@ import { Route as AuthenticatedAppFriendsRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAppDailyChallengeRouteImport } from './routes/_authenticated/app.daily-challenge'
 import { Route as AuthenticatedAppConstellationRouteImport } from './routes/_authenticated/app.constellation'
 import { Route as AuthenticatedAppConciergeRouteImport } from './routes/_authenticated/app.concierge'
+import { Route as AuthenticatedAppChessRouteImport } from './routes/_authenticated/app.chess'
 import { Route as AuthenticatedAppCallsRouteImport } from './routes/_authenticated/app.calls'
 import { Route as AuthenticatedAppAnniversaryRouteImport } from './routes/_authenticated/app.anniversary'
 import { Route as AuthenticatedAppMoviesIndexRouteImport } from './routes/_authenticated/app.movies.index'
@@ -201,6 +202,11 @@ const AuthenticatedAppConciergeRoute =
     path: '/concierge',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppChessRoute = AuthenticatedAppChessRouteImport.update({
+  id: '/chess',
+  path: '/chess',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
 const AuthenticatedAppCallsRoute = AuthenticatedAppCallsRouteImport.update({
   id: '/calls',
   path: '/calls',
@@ -304,6 +310,7 @@ export interface FileRoutesByFullPath {
   '/app': typeof AuthenticatedAppRouteWithChildren
   '/app/anniversary': typeof AuthenticatedAppAnniversaryRoute
   '/app/calls': typeof AuthenticatedAppCallsRoute
+  '/app/chess': typeof AuthenticatedAppChessRoute
   '/app/concierge': typeof AuthenticatedAppConciergeRoute
   '/app/constellation': typeof AuthenticatedAppConstellationRoute
   '/app/daily-challenge': typeof AuthenticatedAppDailyChallengeRoute
@@ -348,6 +355,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/app/anniversary': typeof AuthenticatedAppAnniversaryRoute
   '/app/calls': typeof AuthenticatedAppCallsRoute
+  '/app/chess': typeof AuthenticatedAppChessRoute
   '/app/concierge': typeof AuthenticatedAppConciergeRoute
   '/app/constellation': typeof AuthenticatedAppConstellationRoute
   '/app/daily-challenge': typeof AuthenticatedAppDailyChallengeRoute
@@ -394,6 +402,7 @@ export interface FileRoutesById {
   '/_authenticated/app': typeof AuthenticatedAppRouteWithChildren
   '/_authenticated/app/anniversary': typeof AuthenticatedAppAnniversaryRoute
   '/_authenticated/app/calls': typeof AuthenticatedAppCallsRoute
+  '/_authenticated/app/chess': typeof AuthenticatedAppChessRoute
   '/_authenticated/app/concierge': typeof AuthenticatedAppConciergeRoute
   '/_authenticated/app/constellation': typeof AuthenticatedAppConstellationRoute
   '/_authenticated/app/daily-challenge': typeof AuthenticatedAppDailyChallengeRoute
@@ -441,6 +450,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/app/anniversary'
     | '/app/calls'
+    | '/app/chess'
     | '/app/concierge'
     | '/app/constellation'
     | '/app/daily-challenge'
@@ -485,6 +495,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/app/anniversary'
     | '/app/calls'
+    | '/app/chess'
     | '/app/concierge'
     | '/app/constellation'
     | '/app/daily-challenge'
@@ -530,6 +541,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app'
     | '/_authenticated/app/anniversary'
     | '/_authenticated/app/calls'
+    | '/_authenticated/app/chess'
     | '/_authenticated/app/concierge'
     | '/_authenticated/app/constellation'
     | '/_authenticated/app/daily-challenge'
@@ -775,6 +787,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppConciergeRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/chess': {
+      id: '/_authenticated/app/chess'
+      path: '/chess'
+      fullPath: '/app/chess'
+      preLoaderRoute: typeof AuthenticatedAppChessRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/calls': {
       id: '/_authenticated/app/calls'
       path: '/calls'
@@ -926,6 +945,7 @@ const AuthenticatedAppMoviesRouteWithChildren =
 interface AuthenticatedAppRouteChildren {
   AuthenticatedAppAnniversaryRoute: typeof AuthenticatedAppAnniversaryRoute
   AuthenticatedAppCallsRoute: typeof AuthenticatedAppCallsRoute
+  AuthenticatedAppChessRoute: typeof AuthenticatedAppChessRoute
   AuthenticatedAppConciergeRoute: typeof AuthenticatedAppConciergeRoute
   AuthenticatedAppConstellationRoute: typeof AuthenticatedAppConstellationRoute
   AuthenticatedAppDailyChallengeRoute: typeof AuthenticatedAppDailyChallengeRoute
@@ -963,6 +983,7 @@ interface AuthenticatedAppRouteChildren {
 const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppAnniversaryRoute: AuthenticatedAppAnniversaryRoute,
   AuthenticatedAppCallsRoute: AuthenticatedAppCallsRoute,
+  AuthenticatedAppChessRoute: AuthenticatedAppChessRoute,
   AuthenticatedAppConciergeRoute: AuthenticatedAppConciergeRoute,
   AuthenticatedAppConstellationRoute: AuthenticatedAppConstellationRoute,
   AuthenticatedAppDailyChallengeRoute: AuthenticatedAppDailyChallengeRoute,

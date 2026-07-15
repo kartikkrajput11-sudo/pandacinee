@@ -208,6 +208,69 @@ export type Database = {
         }
         Relationships: []
       }
+      chess_games: {
+        Row: {
+          black_id: string
+          black_time_ms: number | null
+          created_at: string
+          draw_offer_by: string | null
+          fen: string
+          id: string
+          last_move_at: string
+          pgn: string
+          rematch_offer_by: string | null
+          status: string
+          time_control_seconds: number | null
+          time_increment_seconds: number | null
+          turn: string
+          undo_request_by: string | null
+          updated_at: string
+          white_id: string
+          white_time_ms: number | null
+          winner: string | null
+        }
+        Insert: {
+          black_id: string
+          black_time_ms?: number | null
+          created_at?: string
+          draw_offer_by?: string | null
+          fen?: string
+          id?: string
+          last_move_at?: string
+          pgn?: string
+          rematch_offer_by?: string | null
+          status?: string
+          time_control_seconds?: number | null
+          time_increment_seconds?: number | null
+          turn?: string
+          undo_request_by?: string | null
+          updated_at?: string
+          white_id: string
+          white_time_ms?: number | null
+          winner?: string | null
+        }
+        Update: {
+          black_id?: string
+          black_time_ms?: number | null
+          created_at?: string
+          draw_offer_by?: string | null
+          fen?: string
+          id?: string
+          last_move_at?: string
+          pgn?: string
+          rematch_offer_by?: string | null
+          status?: string
+          time_control_seconds?: number | null
+          time_increment_seconds?: number | null
+          turn?: string
+          undo_request_by?: string | null
+          updated_at?: string
+          white_id?: string
+          white_time_ms?: number | null
+          winner?: string | null
+        }
+        Relationships: []
+      }
       concierge_suggestions: {
         Row: {
           author_id: string
