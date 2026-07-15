@@ -1120,15 +1120,20 @@ function GuessMe({
 
   function submitAnswer() {
     if (!input.trim()) return;
+    gameSfx.place();
     patch({ ...s, answer: input.trim(), answeredBy: me, guess: null, revealed: false });
     setInput("");
   }
   function submitGuess() {
     if (!input.trim()) return;
+    gameSfx.reveal();
     patch({ ...s, guess: input.trim(), revealed: true });
     setInput("");
   }
   async function next(verdictOverride?: "right" | "close" | "wrong" | null) {
+    if (verdictOverride === "right") gameSfx.correct();
+    else if (verdictOverride === "close") gameSfx.pop();
+    else if (verdictOverride === "wrong") gameSfx.wrong();
     const tally = s.tally ?? { right: 0, close: 0, wrong: 0 };
     const nextTally = verdictOverride
       ? { ...tally, [verdictOverride]: (tally[verdictOverride] ?? 0) + 1 }
