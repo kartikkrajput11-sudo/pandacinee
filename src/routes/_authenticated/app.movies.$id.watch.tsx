@@ -1857,6 +1857,7 @@ function CustomWatch({ customId }: { customId: string }) {
               onReady={handlePlayerReady}
               onLoadIssue={() => {
                 setCustomLoadIssue(true);
+                setVideoSrc(null);
                 toast.error("This uploaded file is not playable in the browser here.", { id: "custom-load-issue", duration: 4500 });
               }}
               onEvent={handleEvent}
