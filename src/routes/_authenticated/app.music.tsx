@@ -248,7 +248,21 @@ function SpotifyPanel({ onPlay }: { onPlay: (s: PlayingSource) => void }) {
     } else {
       setConnected(isSpotifyConnected());
     }
+    // Sync when auth completes in another tab (the popup Spotify opened).
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === "pandacine.spotify.tokens.v1") {
+        setConnected(isSpotifyConnected());
+      }
+    };
+    const onFocus = () => setConnected(isSpotifyConnected());
+    window.addEventListener("storage", onStorage);
+    window.addEventListener("focus", onFocus);
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("focus", onFocus);
+    };
   }, []);
+
 
   const loadEverything = useCallback(async () => {
     setLoading(true);
