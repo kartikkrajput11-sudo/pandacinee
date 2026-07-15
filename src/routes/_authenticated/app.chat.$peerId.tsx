@@ -115,9 +115,44 @@ function ChatPeer() {
     setTimeout(() => setHighlightId((cur) => (cur === id ? null : cur)), 1800);
   }, []);
 
+  // Smart scroll: stick to bottom on new tail messages, preserve position
+  // when older messages prepend (infinite-scroll up).
+  const prevFirstIdRef = useRef<string | null>(null);
+  const prevLastIdRef = useRef<string | null>(null);
+  const prevScrollHeightRef = useRef(0);
   useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
-  }, [messages.length, partnerTyping]);
+    const el = scrollRef.current;
+    if (!el || messages.length === 0) return;
+    const firstId = messages[0].id;
+    const lastId = messages[messages.length - 1].id;
+    const prevFirst = prevFirstIdRef.current;
+    const prevLast = prevLastIdRef.current;
+    if (prevFirst && firstId !== prevFirst) {
+      // older prepended — keep viewport anchored on what user was reading
+      const delta = el.scrollHeight - prevScrollHeightRef.current;
+      el.scrollTop = el.scrollTop + delta;
+    } else if (!prevLast || lastId !== prevLast) {
+      // new message at bottom (or first load) — scroll to bottom
+      el.scrollTo({ top: el.scrollHeight, behavior: prevLast ? "smooth" : "auto" });
+    }
+    prevFirstIdRef.current = firstId;
+    prevLastIdRef.current = lastId;
+    prevScrollHeightRef.current = el.scrollHeight;
+  }, [messages, partnerTyping]);
+
+  // Auto-load older when user scrolls near the top (swipe up)
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const onScroll = () => {
+      if (el.scrollTop < 80 && hasMore && !loadingOlder && !loading) {
+        prevScrollHeightRef.current = el.scrollHeight;
+        loadOlder();
+      }
+    };
+    el.addEventListener("scroll", onScroll, { passive: true });
+    return () => el.removeEventListener("scroll", onScroll);
+  }, [hasMore, loadingOlder, loading, loadOlder]);
 
   // Trigger kiss / nudge FX for partner messages. Plays for anything that is
   // (a) freshly arrived (< 15s old) OR (b) still unread — so if the partner
