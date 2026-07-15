@@ -282,3 +282,26 @@ export const deleteAdminUser = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+export const adminSendCoins = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { userId: string; amount: number }) => {
+    if (!d?.userId) throw new Error("userId required");
+    const n = Math.floor(Number(d.amount));
+    if (!Number.isFinite(n) || n === 0) throw new Error("Amount must be a non-zero integer");
+    return { userId: d.userId, amount: n };
+  })
+  .handler(async ({ data, context }): Promise<{ ok: true; coins: number }> => {
+    await ensureAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const admin = supabaseAdmin as any;
+    const { data: prof, error: readErr } = await admin
+      .from("profiles").select("coins").eq("id", data.userId).maybeSingle();
+    if (readErr) throw new Error(readErr.message);
+    if (!prof) throw new Error("User not found");
+    const next = Math.max(0, (prof.coins ?? 0) + data.amount);
+    const { error: upErr } = await admin
+      .from("profiles").update({ coins: next }).eq("id", data.userId);
+    if (upErr) throw new Error(upErr.message);
+    return { ok: true, coins: next };
+  });
