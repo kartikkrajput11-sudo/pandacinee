@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
 import { ChessBoard } from "@/components/chess/ChessBoard";
 import { PromotionDialog } from "@/components/chess/PromotionDialog";
+import { WinAnimation } from "@/components/chess/WinAnimation";
 import {
   Chess,
   type Square,
