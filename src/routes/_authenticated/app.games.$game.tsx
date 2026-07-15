@@ -627,6 +627,7 @@ function TruthOrDare({ me, session, patch }: { me: string; session: Session; pat
 
   function completeCard() {
     if (!card) return;
+    gameSfx.complete();
     const history = [...(s.history ?? []), { ...card, answer: answer ?? null }].slice(-30);
     const nextTally = { ...tally, [card.type]: (tally[card.type] ?? 0) + 1 };
     // Whoever reveals + taps Done becomes the next picker — turns alternate.
