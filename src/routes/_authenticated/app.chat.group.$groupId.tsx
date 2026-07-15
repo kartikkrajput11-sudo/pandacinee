@@ -21,7 +21,7 @@ function GroupChat() {
   const partnerId = me?.partner_id ?? null;
 
   const { data: groupData, isLoading: groupLoading } = useGroup(groupId);
-  const { messages, loading, send, sendTyping, react, togglePin, remove, setVanish, typingUsers, onlineIds } =
+  const { messages, loading, loadingOlder, hasMore, loadOlder, send, sendTyping, react, togglePin, remove, setVanish, typingUsers, onlineIds } =
     useGroupChat(me?.id ?? null, groupId);
   const leave = useLeaveGroup();
 
@@ -154,6 +154,18 @@ function GroupChat() {
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-2 py-4">
         {loading && <div className="text-center py-8 text-sm text-candle-muted">Loading messages…</div>}
+        {!loading && hasMore && (
+          <div className="flex justify-center pb-3">
+            <button
+              type="button"
+              onClick={loadOlder}
+              disabled={loadingOlder}
+              className="px-3 py-1.5 rounded-full bg-surface border border-border text-xs text-candle-muted hover:text-petal disabled:opacity-60"
+            >
+              {loadingOlder ? "Loading…" : "Load older messages"}
+            </button>
+          </div>
+        )}
         {!loading && messages.length === 0 && (
           <div className="text-center py-12 text-sm text-candle-muted">
             <p className="font-serif italic text-lg text-candle mb-1">Start whispering 💫</p>
