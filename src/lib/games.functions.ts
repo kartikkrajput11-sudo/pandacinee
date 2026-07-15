@@ -36,9 +36,11 @@ const KIND_PROMPTS: Record<string, KindCfg & { userTyped?: (i: Intensity, seed: 
       "You generate romantic couple game cards for a private app used by two committed partners. Match the requested intensity tier precisely — if 'spicy' is asked, the card MUST feel spicy (flirty, sensual, seductive), not sweet. Keep it consensual and tasteful; never include illegal content, graphic anatomy, or explicit sexual acts. Always respond with valid JSON only, no prose, no code fences.",
     schema: z.object({ type: z.enum(["truth", "dare"]), text: z.string() }),
     user: (i, seed) =>
-      `Return ONLY a JSON object like {"type":"truth"|"dare","text":"..."} for one Truth or Dare card. Intensity: "${i}". ${INTENSITY_GUIDE[i]} Vary between truth and dare. Under 22 words. No emojis. Seed:${seed}.`,
+      `Return ONLY a JSON object like {"type":"truth"|"dare","text":"..."} for one Truth or Dare card. Intensity: "${i}". ${INTENSITY_GUIDE[i]} If it's a DARE, it MUST be an interactive action the player performs and SENDS to their partner right now — strongly favor: send a selfie doing X, send a photo of Y around them, send a voice note singing/whispering/reading Z, record a short video doing W, draw a doodle and send it, type a poem/love note. The dare must be doable from a phone in under 2 minutes and produce something the partner receives. Vary between truth and dare. Under 22 words. No emojis. Seed:${seed}.`,
     userTyped: (i, seed, type) =>
-      `Return ONLY a JSON object like {"type":"${type}","text":"..."} for one ${type === "truth" ? "TRUTH question" : "DARE action"} card. Intensity: "${i}". ${INTENSITY_GUIDE[i]} The "type" field MUST be "${type}". Under 22 words. No emojis. Seed:${seed}.`,
+      type === "dare"
+        ? `Return ONLY a JSON object like {"type":"dare","text":"..."} for one DARE card. Intensity: "${i}". ${INTENSITY_GUIDE[i]} The dare MUST be an interactive action the player performs on their phone and SENDS to their partner. Strongly favor one of: send a selfie doing X, send a photo of Y around them, send a voice note singing/whispering/reading Z, record a short video doing W, draw a doodle & send it, type a heartfelt note. Doable in under 2 minutes; must produce something the partner receives. The "type" field MUST be "dare". Under 22 words. No emojis. Seed:${seed}.`
+        : `Return ONLY a JSON object like {"type":"truth","text":"..."} for one TRUTH question card. Intensity: "${i}". ${INTENSITY_GUIDE[i]} The "type" field MUST be "truth". Under 22 words. No emojis. Seed:${seed}.`,
   },
   "would-you-rather": {
     system:
