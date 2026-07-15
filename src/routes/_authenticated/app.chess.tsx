@@ -292,11 +292,13 @@ function GameScreen({
   mode,
   aiLevel,
   meId,
+  partnerName,
 }: {
-  gameId: string;
+  gameId: string | null;
   mode: ChessMode;
   aiLevel: AiLevel;
   meId: string | null;
+  partnerName: string;
 }) {
   const isLocal = mode !== "partner";
   const [game, setGame] = useState<GameRow | null>(null);
@@ -307,11 +309,12 @@ function GameScreen({
   const [historyCursor, setHistoryCursor] = useState<number | null>(null); // null = live
   const [thinking, setThinking] = useState(false);
   const [confetti, setConfetti] = useState(false);
+  const [partnerHere, setPartnerHere] = useState(false);
   const aiRef = useRef(false);
 
   // ── Load / subscribe for partner games ──
   useEffect(() => {
-    if (isLocal) return;
+    if (isLocal || !gameId) return;
     let cancelled = false;
     supabase.from("chess_games").select("*").eq("id", gameId).maybeSingle().then(({ data }) => {
       if (cancelled || !data) return;
