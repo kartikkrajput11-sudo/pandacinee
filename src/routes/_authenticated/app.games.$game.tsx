@@ -1458,12 +1458,14 @@ function HotTakes({ me, session, patch }: { me: string; session: Session; patch:
 
   function rate(v: number) {
     if (myRating !== undefined) return;
+    gameSfx.pick();
     patch({ ...s, ratings: { ...s.ratings, [me]: v } });
   }
   async function next() {
     const g = gap ?? 0;
     const sum = (s.alignment?.sum ?? 0) + (4 - g); // 4=perfect, 0=opposite
     const total = (s.alignment?.total ?? 0) + 4;
+    if (g === 0) gameSfx.correct(); else gameSfx.reveal();
     const c = await fetchCard(s.intensity ?? "playful");
     const history = [...(s.history ?? []), card].filter(Boolean).slice(-20);
     patch({ ...s, count: (s.count ?? 0) + 1, card: c, ratings: {}, alignment: { sum, total }, history });
