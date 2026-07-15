@@ -181,8 +181,12 @@ function LoveQuiz() {
     if (iDone && otherDone) {
       phase = "reveal";
       currentPlayer = null;
+      gameSfx.complete();
     } else if (iDone) {
       currentPlayer = otherId;
+      gameSfx.pop();
+    } else {
+      gameSfx.pick();
     }
     await patch({ ...s, answers, phase, currentPlayer });
   }
