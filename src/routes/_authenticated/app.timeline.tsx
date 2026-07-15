@@ -399,57 +399,98 @@ function TimelinePage() {
                         style={{ background: `linear-gradient(180deg, ${meta.tint}, transparent)` }}
                       />
 
-                      {/* Card — minimalist */}
+                      {/* Card — premium soft minimalism */}
                       <div
-                        className="relative rounded-2xl overflow-hidden transition-all duration-500"
+                        className="relative rounded-[28px] overflow-hidden transition-all duration-700"
                         style={{
-                          background: "rgba(255,255,255,0.03)",
-                          border: `1px solid ${isActive ? meta.tint + "66" : "rgba(255,255,255,0.08)"}`,
-                          minHeight: 240,
+                          background:
+                            "linear-gradient(160deg, rgba(255,255,255,0.055) 0%, rgba(255,255,255,0.02) 45%, rgba(255,255,255,0.01) 100%)",
+                          border: `1px solid ${isActive ? "rgba(255,255,255,0.14)" : "rgba(255,255,255,0.07)"}`,
+                          backdropFilter: "blur(18px) saturate(140%)",
+                          WebkitBackdropFilter: "blur(18px) saturate(140%)",
+                          boxShadow: isActive
+                            ? `0 30px 80px -40px ${meta.tint}55, 0 1px 0 rgba(255,255,255,0.06) inset, 0 0 0 1px ${meta.tint}22 inset`
+                            : "0 20px 60px -40px rgba(0,0,0,0.6), 0 1px 0 rgba(255,255,255,0.04) inset",
+                          minHeight: 260,
                         }}
                       >
-                        <div className="p-5 relative">
-                          {/* Thin accent bar */}
-                          <span
+                        {/* Soft aura glow — active only */}
+                        {isActive && (
+                          <div
                             aria-hidden
-                            className="absolute left-0 top-5 bottom-5 w-[2px] rounded-full"
-                            style={{ background: meta.tint, opacity: isActive ? 1 : 0.5 }}
+                            className="pointer-events-none absolute -inset-24 opacity-60"
+                            style={{
+                              background: `radial-gradient(closest-side, ${meta.tint}33, transparent 70%)`,
+                              filter: "blur(40px)",
+                              animation: "soft-breathe 5s ease-in-out infinite",
+                            }}
                           />
+                        )}
+                        {/* Top highlight hairline */}
+                        <span
+                          aria-hidden
+                          className="absolute inset-x-6 top-0 h-px"
+                          style={{
+                            background:
+                              "linear-gradient(90deg, transparent, rgba(255,255,255,0.28), transparent)",
+                          }}
+                        />
 
+                        <div className="p-6 relative">
                           {/* Header row */}
-                          <div className="flex items-center gap-2 mb-4 pl-3">
-                            <Icon className="size-3.5" style={{ color: meta.tint }} />
+                          <div className="flex items-center gap-2.5 mb-5">
                             <span
-                              className="text-[10px] uppercase tracking-[0.28em] font-medium"
+                              className="size-1.5 rounded-full"
+                              style={{
+                                background: meta.tint,
+                                boxShadow: `0 0 12px ${meta.tint}`,
+                              }}
+                            />
+                            <span
+                              className="text-[10px] uppercase tracking-[0.32em] font-medium"
                               style={{ color: meta.tint }}
                             >
                               {meta.label}
                             </span>
-                            <span className="ml-auto text-[10px] text-white/50">
+                            <span className="ml-auto text-[10px] tracking-wider text-white/45">
                               {fmtDate(it.date)}
                             </span>
                           </div>
 
                           {/* Body */}
-                          <div className="pl-3">
+                          <div className="relative">
                             {it.mood && (
-                              <div className="text-2xl mb-2 leading-none">{it.mood}</div>
+                              <div
+                                className="text-3xl mb-3 leading-none"
+                                style={{ filter: `drop-shadow(0 4px 12px ${meta.tint}66)` }}
+                              >
+                                {it.mood}
+                              </div>
                             )}
-                            <h3 className="font-serif text-xl leading-snug text-white/95">
+                            <h3 className="font-serif text-[26px] leading-tight tracking-tight text-white/95">
                               {it.title}
                             </h3>
                             {it.body && (
-                              <p className="text-sm text-white/55 mt-2 leading-relaxed line-clamp-4">
+                              <p className="text-[13px] text-white/55 mt-2.5 leading-relaxed line-clamp-4">
                                 {it.body}
                               </p>
                             )}
                           </div>
 
-                          {/* Footer — day counter only, quiet */}
+                          {/* Footer — hairline + day counter */}
                           {me?.anniversary_date && (
-                            <div className="pl-3 mt-4 text-[10px] uppercase tracking-[0.22em] text-white/40">
-                              Day {Math.max(0, daysBetween(me.anniversary_date, it.date))}
-                            </div>
+                            <>
+                              <div
+                                className="mt-5 h-px w-full"
+                                style={{
+                                  background:
+                                    "linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent)",
+                                }}
+                              />
+                              <div className="mt-3 text-[10px] uppercase tracking-[0.28em] text-white/40">
+                                Day {Math.max(0, daysBetween(me.anniversary_date, it.date))}
+                              </div>
+                            </>
                           )}
                         </div>
                       </div>
@@ -503,6 +544,10 @@ function TimelinePage() {
       </div>
 
       <style>{`
+        @keyframes soft-breathe {
+          0%, 100% { opacity: 0.45; transform: scale(1); }
+          50% { opacity: 0.75; transform: scale(1.04); }
+        }
         @keyframes timeline-in {
           0% { opacity: 0; transform: translateY(24px) scale(0.96); filter: blur(6px); }
           100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
