@@ -205,6 +205,10 @@ export function useWebRTCCall(peerId: string | null, mode: Mode = "video", isCal
           const answer = await pc.createAnswer();
           await pc.setLocalDescription(answer);
           await sendSignal("answer", answer);
+          // Callee side: SDP answer sent = call picked up. Flip "answered" so
+          // the caller-side missed-call check and duration timer both see it,
+          // even if ICE takes a few more seconds to fully connect.
+          setAnswered(true);
         });
         ch.on("broadcast", { event: "answer" }, async (e) => {
           const answer = e.payload as RTCSessionDescriptionInit;
@@ -212,6 +216,8 @@ export function useWebRTCCall(peerId: string | null, mode: Mode = "video", isCal
             await pc.setRemoteDescription(new RTCSessionDescription(answer));
             remoteSetRef.current = true;
             await flushIce();
+            // Caller side: got SDP answer = peer accepted. Same reasoning.
+            setAnswered(true);
           }
         });
         ch.on("broadcast", { event: "ice" }, async (e) => {
