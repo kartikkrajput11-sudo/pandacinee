@@ -7,7 +7,7 @@ import { DailyQuestionCard } from "@/components/DailyQuestionCard";
 import { PartnerPresenceCard } from "@/components/PartnerPresenceCard";
 
 import { MemoryOfTheDayCard } from "@/components/MemoryOfTheDayCard";
-import { Heart, ArrowRight, Users, LineChart, Clapperboard, BookHeart, Gift, Feather, Sparkles, Stars, Milestone } from "lucide-react";
+import { Heart, ArrowRight, Users, LineChart, Clapperboard, BookHeart, Gift, Feather, Sparkles, Stars, Milestone, Flame, Moon, Wand2, HeartHandshake, Palette } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/app/")({
   component: Home,
@@ -136,6 +136,11 @@ function Home() {
             <SignatureTile to="/app/timeline" Icon={Milestone} label="Timeline" caption="Highlights of us" swatch="from-[#c96b7a]/40 to-[#f0c0cc]/10" />
             <SignatureTile to="/app/constellation" Icon={Stars} label="Constellation" caption="Your night sky" swatch="from-[#5cbdb9]/40 to-[#0d7a5f]/10" />
             <SignatureTile to="/app/concierge" Icon={Sparkles} label="Concierge" caption="AI ideas, tuned" swatch="from-[#f0d78c]/40 to-[#c9a84c]/10" />
+            <SignatureTile to="/app/mood" Icon={HeartHandshake} label="Mood Sync" caption="Two hearts, one beat" swatch="from-[#e88aab]/40 to-[#c96b7a]/10" />
+            <SignatureTile to="/app/rituals" Icon={Flame} label="Rituals" caption="Sacred little habits" swatch="from-[#f0a678]/40 to-[#c96b7a]/10" />
+            <SignatureTile to="/app/tamanna" Icon={Moon} label="Tamanna" caption="Whispered wishes" swatch="from-[#a68adf]/40 to-[#5c4a9c]/10" />
+            <SignatureTile to="/app/love-quiz" Icon={Wand2} label="Love Quiz" caption="How well do we know?" swatch="from-[#f0d78c]/40 to-[#e88aab]/10" />
+            <SignatureTile to="/app/paint" Icon={Palette} label="Duet Canvas" caption="Paint together, live" swatch="from-[#5cbdb9]/40 to-[#a68adf]/10" />
           </div>
         </section>
       )}
