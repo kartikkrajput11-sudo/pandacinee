@@ -53,7 +53,7 @@ function fmt(sec: number): string {
 
 const RATES = [0.5, 0.75, 1, 1.25, 1.5, 2];
 
-export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, locked = false }: Props) {
+export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, locked = false, onLockedAttempt }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const onReadyRef = useRef(onReady);
