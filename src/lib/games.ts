@@ -14,12 +14,14 @@ export type GameKind =
   | "daily-challenge"
   | "memory-challenge"
   | "puzzle-together"
-  | "love-quiz";
+  | "love-quiz"
+  | "chess";
 
 // Games shown in the picker. Rock-Paper-Scissors is retired but the route
 // still handles it for any deep-link, so it stays in GameKind above.
 export const GAME_KINDS: GameKind[] = [
   "paint-together",
+  "chess",
   "scribble-guess",
   "two-truths-lie",
   "hot-takes",
