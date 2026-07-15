@@ -1,9 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, Plus, Sparkles, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { ArrowLeft, Plus, Sparkles, X, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
+import { autoDetectConstellation } from "@/lib/constellation.functions";
 
 export const Route = createFileRoute("/_authenticated/app/constellation")({
   component: ConstellationRoute,
