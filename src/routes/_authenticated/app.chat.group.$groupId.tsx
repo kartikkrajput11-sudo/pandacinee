@@ -47,9 +47,39 @@ function GroupChat() {
     return null;
   }, [messages, me?.id]);
 
+  const prevFirstIdRef = useRef<string | null>(null);
+  const prevLastIdRef = useRef<string | null>(null);
+  const prevScrollHeightRef = useRef(0);
   useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
-  }, [messages.length]);
+    const el = scrollRef.current;
+    if (!el || messages.length === 0) return;
+    const firstId = messages[0].id;
+    const lastId = messages[messages.length - 1].id;
+    const prevFirst = prevFirstIdRef.current;
+    const prevLast = prevLastIdRef.current;
+    if (prevFirst && firstId !== prevFirst) {
+      const delta = el.scrollHeight - prevScrollHeightRef.current;
+      el.scrollTop = el.scrollTop + delta;
+    } else if (!prevLast || lastId !== prevLast) {
+      el.scrollTo({ top: el.scrollHeight, behavior: prevLast ? "smooth" : "auto" });
+    }
+    prevFirstIdRef.current = firstId;
+    prevLastIdRef.current = lastId;
+    prevScrollHeightRef.current = el.scrollHeight;
+  }, [messages]);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const onScroll = () => {
+      if (el.scrollTop < 80 && hasMore && !loadingOlder && !loading) {
+        prevScrollHeightRef.current = el.scrollHeight;
+        loadOlder();
+      }
+    };
+    el.addEventListener("scroll", onScroll, { passive: true });
+    return () => el.removeEventListener("scroll", onScroll);
+  }, [hasMore, loadingOlder, loading, loadOlder]);
 
   if (groupLoading || !me) {
     return <div className="flex h-screen items-center justify-center text-candle-muted">Loading…</div>;
