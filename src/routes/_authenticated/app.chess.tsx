@@ -468,8 +468,12 @@ function GameScreen({
     const move = rebuild.move({ from, to, promotion: promo });
     if (!move) return;
     setChess(rebuild);
-    playTone(move.captured ? 520 : 660, 60, muted);
-    if (rebuild.inCheck()) playTone(300, 120, muted);
+    if (move.captured) sfx.capture({ muted });
+    else if (move.san === "O-O" || move.san === "O-O-O") sfx.castle({ muted });
+    else if (move.promotion) sfx.promote({ muted });
+    else sfx.move({ muted });
+    if (rebuild.inCheck() && !rebuild.isCheckmate()) sfx.check({ muted });
+
     // Persist for partner mode
     if (!isLocal && game) {
       const result = computeResult(rebuild);
