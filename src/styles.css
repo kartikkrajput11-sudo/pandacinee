@@ -263,6 +263,18 @@ html.theme-anim * {
   }
 }
 
+@keyframes halo-pulse {
+  0%, 100% { opacity: 0.55; transform: scale(1); }
+  50% { opacity: 0.9; transform: scale(1.06); }
+}
+
+@keyframes ring-expand {
+  0% { transform: scale(0.85); opacity: 0.9; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
+
+
 
 .animate-petal { animation: float-petal 12s linear infinite; }
 .animate-pulse-soft { animation: pulse-soft 2.4s var(--ease-out-expo) infinite; }
