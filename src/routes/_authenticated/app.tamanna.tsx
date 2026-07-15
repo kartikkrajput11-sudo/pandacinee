@@ -545,6 +545,13 @@ function UserRow({ user: u }: { user: AdminUserRow }) {
           </p>
         </div>
       </Link>
+      <button
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setCoinAmt(""); setCoinsOpen(true); }}
+        title="Send coins"
+        className="shrink-0 size-9 rounded-full bg-velvet border border-petal/30 text-petal hover:bg-petal/10 flex items-center justify-center transition-colors"
+      >
+        <Coins className="size-4" />
+      </button>
       {u.is_admin ? (
         <button
           onClick={openRevoke}
