@@ -82,7 +82,7 @@ function Me() {
         display_name: displayName.trim() || me.display_name,
         bio: bio || null,
         favorite_color: favoriteColor,
-        favorite_emoji: favoriteEmoji,
+        equipped_tags: equippedTags,
         anniversary_date: anniversary || null,
         partner_nickname: partnerNickname || null,
       })
