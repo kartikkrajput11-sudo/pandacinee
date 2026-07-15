@@ -32,13 +32,7 @@ function ConstellationRoute() {
   const [autoRunning, setAutoRunning] = useState(false);
   const runAuto = useServerFn(autoDetectConstellation);
 
-function ConstellationRoute() {
-  const { data } = useProfile();
-  const me = data?.profile;
-  const partner = data?.partner;
-  const [stars, setStars] = useState<Star[]>([]);
-  const [selected, setSelected] = useState<Star | null>(null);
-  const [composing, setComposing] = useState(false);
+
 
   async function load() {
     if (!me) return;
