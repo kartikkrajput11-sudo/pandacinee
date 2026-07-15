@@ -2,7 +2,6 @@ import { createFileRoute, Outlet, useLocation } from "@tanstack/react-router";
 import { BottomNav } from "@/components/BottomNav";
 import { IncomingCallListener } from "@/components/IncomingCallListener";
 import { OnboardingFlow } from "@/components/OnboardingFlow";
-import { PageTransition } from "@/components/PageTransition";
 import { usePresenceHeartbeat } from "@/hooks/usePresenceHeartbeat";
 
 export const Route = createFileRoute("/_authenticated/app")({
@@ -24,12 +23,9 @@ function AppShell() {
       <OnboardingFlow />
       <IncomingCallListener />
       <div className="w-full max-w-[1400px] mx-auto">
-        <PageTransition>
-          <Outlet />
-        </PageTransition>
+        <Outlet />
       </div>
       {!hideNav && <BottomNav />}
     </div>
   );
 }
-
