@@ -44,8 +44,12 @@ function Friends() {
   const relatedIdOf = (f: typeof friendships[number]) =>
     f.requester_id === me ? f.addressee_id : f.requester_id;
 
+  // Only count/show friends whose profile still exists (skip deleted accounts) and exclude partner
   const accepted = friendships.filter(
-    (f) => f.status === "accepted" && relatedIdOf(f) !== partnerId
+    (f) =>
+      f.status === "accepted" &&
+      relatedIdOf(f) !== partnerId &&
+      !!profiles[relatedIdOf(f)]
   );
   const incoming = friendships.filter((f) => f.status === "pending" && f.addressee_id === me);
   const outgoing = friendships.filter((f) => f.status === "pending" && f.requester_id === me);
