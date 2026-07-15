@@ -621,6 +621,56 @@ function UserRow({ user: u }: { user: AdminUserRow }) {
           </div>
         </div>
       )}
+
+      {coinsOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center px-5 bg-velvet/80 backdrop-blur-md animate-in fade-in duration-200"
+          onClick={() => !sendingCoins && setCoinsOpen(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-sm rounded-3xl border border-petal/30 bg-surface p-6 text-center shadow-2xl shadow-petal/20 animate-in zoom-in-95 duration-200"
+          >
+            <div className="size-14 mx-auto mb-4 rounded-full bg-petal-soft flex items-center justify-center">
+              <Coins className="size-6 text-petal" />
+            </div>
+            <h2 className="font-serif text-xl italic mb-1">Send coins</h2>
+            <p className="text-xs text-candle-muted mb-5">
+              Fill or debit the wallet of{" "}
+              <span className="text-candle">{u.display_name ?? u.username ?? "this user"}</span>.
+              Use a negative number to subtract.
+            </p>
+            <form onSubmit={submitCoins}>
+              <input
+                value={coinAmt}
+                onChange={(e) => setCoinAmt(e.target.value.replace(/[^\d-]/g, ""))}
+                inputMode="numeric"
+                autoFocus
+                placeholder="e.g. 500"
+                className="w-full text-center tracking-wider text-2xl font-serif bg-velvet border border-border rounded-2xl px-4 py-4 text-candle placeholder:text-candle-muted focus:outline-none focus:border-petal/60 focus:ring-2 focus:ring-petal/20"
+              />
+              <div className="mt-4 flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setCoinsOpen(false)}
+                  disabled={sendingCoins}
+                  className="flex-1 py-3 rounded-full bg-velvet border border-border text-candle-muted text-sm font-semibold disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={sendingCoins || !coinAmt || coinAmt === "-"}
+                  className="flex-1 py-3 bg-petal text-velvet rounded-full font-semibold text-sm disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {sendingCoins ? <Loader2 className="size-4 animate-spin" /> : <Coins className="size-4" />}
+                  {sendingCoins ? "Sending…" : "Send"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
