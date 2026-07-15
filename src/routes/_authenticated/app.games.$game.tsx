@@ -853,11 +853,13 @@ function PairPick({
 
   function pick(idx: 0 | 1) {
     if (myPick !== undefined) return;
+    gameSfx.pick();
     patch({ ...s, picks: { ...s.picks, [me]: idx } });
   }
   async function next() {
     const matches = (s.score?.matches ?? 0) + (match ? 1 : 0);
     const total = (s.score?.total ?? 0) + 1;
+    if (match) gameSfx.correct(); else gameSfx.reveal();
     const c = await fetchCard(s.intensity ?? "playful");
     const history = [...(s.history ?? []), card].slice(-20);
     patch({
