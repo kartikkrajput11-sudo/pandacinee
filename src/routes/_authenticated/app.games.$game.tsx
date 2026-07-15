@@ -681,6 +681,37 @@ function TruthOrDare({ me, session, patch }: { me: string; session: Session; pat
             <p className="text-[10px] text-candle-muted">Card {round}{bestOf > 0 ? ` / ${bestOf}` : ""}</p>
           </div>
 
+          {card.type === "dare" && myTurn && !answer && (
+            <div className="mb-4">
+              <p className="text-[10px] uppercase tracking-widest text-petal mb-2">Send it to your partner</p>
+              <div className="grid grid-cols-3 gap-2">
+                <Link
+                  to="/app/chat/$peerId"
+                  params={{ peerId: partnerId }}
+                  className="rounded-2xl bg-surface border border-border py-3 text-xs text-candle flex flex-col items-center gap-1"
+                >
+                  <span className="text-lg">📸</span> Photo
+                </Link>
+                <Link
+                  to="/app/chat/$peerId"
+                  params={{ peerId: partnerId }}
+                  className="rounded-2xl bg-surface border border-border py-3 text-xs text-candle flex flex-col items-center gap-1"
+                >
+                  <span className="text-lg">🎤</span> Voice
+                </Link>
+                <Link
+                  to="/app/chat/$peerId"
+                  params={{ peerId: partnerId }}
+                  className="rounded-2xl bg-surface border border-border py-3 text-xs text-candle flex flex-col items-center gap-1"
+                >
+                  <span className="text-lg">💬</span> Chat
+                </Link>
+              </div>
+              <p className="text-[10px] text-candle-muted mt-2 text-center">Do the dare in chat, then come back and mark it done below.</p>
+            </div>
+          )}
+
+
           <div className="mb-4">
             {answer ? (
               revealed ? (
