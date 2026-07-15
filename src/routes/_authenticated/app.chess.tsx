@@ -476,9 +476,11 @@ function GameScreen({
         <button onClick={() => setMuted((m) => !m)} className="p-2 rounded-full bg-surface border border-petal/20">
           {muted ? <VolumeX className="size-4" /> : <Volume2 className="size-4" />}
         </button>
-        <button onClick={() => setOrientation((o) => (o === "w" ? "b" : "w"))} className="p-2 rounded-full bg-surface border border-petal/20">
-          <RefreshCcw className="size-4" />
-        </button>
+        {mode !== "partner" && (
+          <button onClick={() => setOrientation((o) => (o === "w" ? "b" : "w"))} className="p-2 rounded-full bg-surface border border-petal/20">
+            <RefreshCcw className="size-4" />
+          </button>
+        )}
       </header>
 
       {/* Top player bar */}
