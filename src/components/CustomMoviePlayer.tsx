@@ -21,6 +21,7 @@ export type CustomPlayerHandle = {
   isPaused: () => boolean;
   setMuted: (m: boolean) => void;
   isMuted: () => boolean;
+  setPlaybackRate: (r: number) => void;
 };
 
 type Props = {
@@ -28,13 +29,16 @@ type Props = {
   poster?: string | null;
   startAt?: number;
   onEvent?: (evt: {
-    event: "play" | "pause" | "seeked" | "timeupdate" | "ended";
+    event: "play" | "pause" | "seeked" | "timeupdate" | "ended" | "ratechange";
     currentTime: number;
     duration: number;
+    playbackRate: number;
   }) => void;
   onReady?: (handle: CustomPlayerHandle) => void;
   /** When true, only host controls playback: viewer cannot play/pause/seek/skip. */
   locked?: boolean;
+  /** Called when a locked viewer attempts a restricted action. */
+  onLockedAttempt?: () => void;
 };
 
 function fmt(sec: number): string {
