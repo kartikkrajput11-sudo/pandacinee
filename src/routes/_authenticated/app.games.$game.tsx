@@ -577,6 +577,7 @@ function TruthOrDare({ me, session, patch }: { me: string; session: Session; pat
     if (!card) return;
     const history = [...(s.history ?? []), { ...card, answer: answer ?? null }].slice(-30);
     const nextTally = { ...tally, [card.type]: (tally[card.type] ?? 0) + 1 };
+    // Whoever reveals + taps Done becomes the next picker — turns alternate.
     patch({
       ...s,
       count: (s.count ?? 0) + 1,
@@ -586,7 +587,7 @@ function TruthOrDare({ me, session, patch }: { me: string; session: Session; pat
       answer: null,
       answeredBy: null,
       revealed: false,
-      turn: partnerId,
+      turn: me,
     });
     setInput("");
   }
@@ -603,7 +604,7 @@ function TruthOrDare({ me, session, patch }: { me: string; session: Session; pat
       answer: null,
       answeredBy: null,
       revealed: false,
-      turn: partnerId,
+      turn: me,
     });
     setInput("");
   }
