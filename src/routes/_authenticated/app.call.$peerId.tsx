@@ -1,28 +1,19 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  ArrowLeft,
-  Mic,
-  MicOff,
-  Video,
-  VideoOff,
-  PhoneOff,
-  MessageCircle,
-  X,
-  Volume2,
-  VolumeX,
-  Signal,
-  SwitchCamera,
+  ArrowLeft, Mic, MicOff, Video, VideoOff, PhoneOff, MessageCircle, X,
+  Volume2, VolumeX, Signal, SwitchCamera,
 } from "lucide-react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
-import { useWebRTCCall } from "@/hooks/useWebRTCCall";
+import { useCallMesh } from "@/hooks/useCallMesh";
 import { useProfile } from "@/hooks/useProfile";
 import { useChat } from "@/hooks/useChat";
 import { ChatBubble } from "@/components/chat/ChatBubble";
 import { ChatComposer } from "@/components/chat/ChatComposer";
 import type { MessageRow } from "@/lib/chat";
 import { playDialTone } from "@/lib/ringtone";
+import { startDirectCall } from "@/lib/callActions";
 
 function CallAvatar({ path, name }: { path: string | null; name: string }) {
   const [url, setUrl] = useState<string | null>(null);
@@ -47,7 +38,8 @@ function CallAvatar({ path, name }: { path: string | null; name: string }) {
 
 const searchSchema = z.object({
   role: z.enum(["caller", "callee"]).default("caller"),
-  mode: z.enum(["video", "audio"]).default("video"),
+  mode: z.enum(["video", "voice", "audio"]).default("video").transform((v) => (v === "audio" ? "voice" : v)),
+  callId: z.string().optional(),
 });
 
 export const Route = createFileRoute("/_authenticated/app/call/$peerId")({
@@ -66,22 +58,41 @@ function fmtDuration(sec: number) {
 
 function Call() {
   const { peerId } = Route.useParams();
-  const { role, mode } = Route.useSearch();
+  const { role, mode, callId: initialCallId } = Route.useSearch();
   const navigate = useNavigate();
   const { data: profileData } = useProfile();
   const me = profileData?.profile;
-  const { localStream, remoteStream, remoteRev, status, answered, error, hangup, toggleAudio, toggleVideo, flipCamera } = useWebRTCCall(
-    peerId,
-    mode,
-    role === "caller",
-  );
+
+  const kind: "voice" | "video" = mode === "video" ? "video" : "voice";
+  const [callId, setCallId] = useState<string | null>(initialCallId ?? null);
+  const [startError, setStartError] = useState<string | null>(null);
+  const startedRef = useRef(false);
+
+  // Caller: create the call on mount (once)
+  useEffect(() => {
+    if (role !== "caller" || callId || startedRef.current || !me) return;
+    startedRef.current = true;
+    (async () => {
+      try {
+        const call = await startDirectCall(peerId, kind);
+        setCallId(call.id);
+      } catch (e) {
+        setStartError((e as Error).message ?? "Could not start call");
+      }
+    })();
+  }, [role, callId, me, peerId, kind]);
+
+  const {
+    localStream, remoteFeeds, status, answered, error: meshError,
+    hangup, toggleAudio, toggleVideo, flipCamera,
+  } = useCallMesh({ callId, meId: me?.id ?? null, kind });
+
   const [muted, setMuted] = useState(false);
   const [videoOff, setVideoOff] = useState(false);
   const [speakerOn, setSpeakerOn] = useState(true);
   const [audioBlocked, setAudioBlocked] = useState(false);
   const [peer, setPeer] = useState<{ display_name: string; avatar_url: string | null }>({
-    display_name: "",
-    avatar_url: null,
+    display_name: "", avatar_url: null,
   });
   const [chatOpen, setChatOpen] = useState(false);
   const [duration, setDuration] = useState(0);
@@ -90,210 +101,137 @@ function Call() {
   const remoteAudioRef = useRef<HTMLAudioElement>(null);
   const connectedAtRef = useRef<number | null>(null);
 
-  // Send invite signal when caller mounts
-  useEffect(() => {
-    if (role !== "caller") return;
-    (async () => {
-      const { data: u } = await supabase.auth.getUser();
-      if (!u.user) return;
-      await supabase.from("call_signals").insert({
-        from_id: u.user.id, to_id: peerId, kind: "invite", payload: { mode } as never,
-      });
-    })();
-  }, [peerId, role, mode]);
+  // First remote feed (direct call = only one)
+  const primary = remoteFeeds[0] ?? null;
+  const remoteStream = primary?.stream ?? null;
+  const remoteRev = primary?.rev ?? 0;
 
   useEffect(() => {
     if (localRef.current && localStream) localRef.current.srcObject = localStream;
   }, [localStream]);
+
   useEffect(() => {
     if (!remoteStream) return;
     const v = remoteRef.current;
     const a = remoteAudioRef.current;
-
-    // Reliable playback strategy across iOS Safari / Android Chrome:
-    // - In VIDEO calls, play both A/V through the <video> element (unmuted).
-    //   iOS Safari has a long-standing bug where audio routed to a separate
-    //   <audio> tag from a stream that ALSO has a video track goes silent.
-    //   Keep the <audio> element detached in this mode.
-    // - In VOICE calls (no video element rendered), use the <audio> element.
-    if (mode === "video") {
-      if (a) {
-        a.srcObject = null;
-        a.pause?.();
-      }
+    if (kind === "video") {
+      if (a) { a.srcObject = null; a.pause?.(); }
       if (v) {
-        if (v.srcObject !== remoteStream) {
-          v.srcObject = remoteStream;
-        } else if (remoteRev > 0) {
-          // Force iOS Safari to re-scan tracks (audio track often arrives
-          // after the initial srcObject attach).
-          v.srcObject = null;
-          v.srcObject = remoteStream;
-        }
-        v.muted = !speakerOn;
-        v.playsInline = true;
+        if (v.srcObject !== remoteStream) v.srcObject = remoteStream;
+        else if (remoteRev > 0) { v.srcObject = null; v.srcObject = remoteStream; }
+        v.muted = !speakerOn; v.playsInline = true;
         const p = v.play?.();
         if (p && typeof (p as Promise<void>).catch === "function") {
-          (p as Promise<void>).then(() => setAudioBlocked(false)).catch((err) => {
-            console.warn("Remote video/audio autoplay blocked", err);
-            if (speakerOn) setAudioBlocked(true);
-          });
+          (p as Promise<void>).then(() => setAudioBlocked(false)).catch(() => { if (speakerOn) setAudioBlocked(true); });
         }
       }
       return;
     }
-
-    // Voice-only mode.
     if (a) {
-      if (a.srcObject !== remoteStream) {
-        a.srcObject = remoteStream;
-      } else if (remoteRev > 0) {
-        a.srcObject = null;
-        a.srcObject = remoteStream;
-      }
+      if (a.srcObject !== remoteStream) a.srcObject = remoteStream;
+      else if (remoteRev > 0) { a.srcObject = null; a.srcObject = remoteStream; }
       a.muted = !speakerOn;
       const p = a.play?.();
       if (p && typeof (p as Promise<void>).catch === "function") {
-        (p as Promise<void>).then(() => setAudioBlocked(false)).catch((err) => {
-          console.warn("Remote audio autoplay blocked", err);
-          if (speakerOn) setAudioBlocked(true);
-        });
+        (p as Promise<void>).then(() => setAudioBlocked(false)).catch(() => { if (speakerOn) setAudioBlocked(true); });
       }
     }
-  }, [remoteStream, remoteRev, speakerOn, mode]);
-
+  }, [remoteStream, remoteRev, speakerOn, kind]);
 
   function enableSound() {
-    // Unblock whichever element is actually carrying the remote audio for
-    // this call mode.
-    const el = mode === "video" ? remoteRef.current : remoteAudioRef.current;
+    const el = kind === "video" ? remoteRef.current : remoteAudioRef.current;
     if (!el) return;
     el.muted = false;
     const p = el.play?.();
     if (p && typeof (p as Promise<void>).catch === "function") {
       (p as Promise<void>).then(() => setAudioBlocked(false)).catch(() => {});
-    } else {
-      setAudioBlocked(false);
-    }
+    } else { setAudioBlocked(false); }
   }
 
   useEffect(() => {
     (async () => {
       const { data } = await supabase
-        .from("profiles")
-        .select("display_name, avatar_url")
-        .eq("id", peerId)
-        .maybeSingle();
+        .from("profiles").select("display_name, avatar_url").eq("id", peerId).maybeSingle();
       if (data) setPeer({ display_name: data.display_name, avatar_url: data.avatar_url ?? null });
     })();
   }, [peerId]);
 
-  // Duration timer — start the moment SDP is answered (real pickup), not
-  // when ICE fully connects. Over TURN, ICE can take several seconds after
-  // the callee has already picked up.
+  // Duration timer — start on SDP answer / mesh active
   useEffect(() => {
-    if ((answered || status === "connected") && connectedAtRef.current === null) {
+    if ((answered || status === "active") && connectedAtRef.current === null) {
       connectedAtRef.current = Date.now();
     }
-    if (!answered && status !== "connected") return;
+    if (!answered && status !== "active") return;
     const id = window.setInterval(() => {
       setDuration(Math.floor((Date.now() - (connectedAtRef.current ?? Date.now())) / 1000));
     }, 500);
     return () => window.clearInterval(id);
   }, [status, answered]);
 
-  // Dial tone for the caller until the call is picked up (or ends)
+  // Dial tone for the caller until pickup
   useEffect(() => {
     if (role !== "caller") return;
-    if (answered || status === "connected" || status === "ended" || status === "error") return;
+    if (answered || status === "active" || status === "ended" || status === "error") return;
     const handle = playDialTone();
     return () => handle.stop();
   }, [role, status, answered]);
 
-
+  // On end: log a chat message (caller only), then navigate back
   const loggedRef = useRef(false);
   useEffect(() => {
     if (status !== "ended") return;
     if (loggedRef.current) return;
     loggedRef.current = true;
-    // Only the caller writes the log message to avoid duplicates.
     if (role === "caller") {
       (async () => {
         const { data: u } = await supabase.auth.getUser();
         if (!u.user) return;
-        const durSec = connectedAtRef.current
-          ? Math.floor((Date.now() - connectedAtRef.current) / 1000)
-          : 0;
+        const durSec = connectedAtRef.current ? Math.floor((Date.now() - connectedAtRef.current) / 1000) : 0;
         const outcome = connectedAtRef.current ? "completed" : "missed";
-        // If the caller gave up before pickup, tell the callee's devices to
-        // stop ringing (multi-device consistency).
-        if (outcome === "missed") {
-          await supabase.from("call_signals").insert({
-            from_id: u.user.id,
-            to_id: peerId,
-            kind: "cancel",
-            payload: { mode } as never,
-          });
-        }
         await supabase.from("messages").insert({
-          sender_id: u.user.id,
-          receiver_id: peerId,
-          type: "call",
-          content:
-            outcome === "missed"
-              ? `Missed ${mode} call`
-              : `${mode === "video" ? "Video" : "Voice"} call · ${fmtDuration(durSec)}`,
-          media_meta: { mode, outcome, duration_sec: durSec } as never,
+          sender_id: u.user.id, receiver_id: peerId, type: "call",
+          content: outcome === "missed"
+            ? `Missed ${kind === "video" ? "video" : "voice"} call`
+            : `${kind === "video" ? "Video" : "Voice"} call · ${fmtDuration(durSec)}`,
+          media_meta: { mode: kind, outcome, duration_sec: durSec } as never,
         });
       })();
     }
     const t = setTimeout(() => navigate({ to: "/app/chat/$peerId", params: { peerId } }), 800);
     return () => clearTimeout(t);
-  }, [status, navigate, role, peerId, mode]);
+  }, [status, navigate, role, peerId, kind]);
 
-  // Speaker toggle: route mute to whichever element carries the audio.
   useEffect(() => {
-    if (mode === "video") {
+    if (kind === "video") {
       if (remoteRef.current) remoteRef.current.muted = !speakerOn;
       if (remoteAudioRef.current) remoteAudioRef.current.muted = true;
     } else {
       if (remoteRef.current) remoteRef.current.muted = true;
       if (remoteAudioRef.current) remoteAudioRef.current.muted = !speakerOn;
     }
-  }, [speakerOn, remoteStream, mode]);
+  }, [speakerOn, remoteStream, kind]);
 
   const statusLabel = useMemo(() => {
-    // Once the SDP answer is exchanged, show the running duration even if
-    // ICE is still finishing up — the pickup already happened.
-    if (answered || status === "connected") return fmtDuration(duration);
-    switch (status) {
-      case "idle":
-      case "connecting":
-        return role === "caller" ? "Calling…" : "Answering…";
-      case "ringing":
-        return "Ringing…";
-      case "ended":
-        return "Call ended";
-      case "error":
-        return "Connection issue";
-      default:
-        return status;
-    }
+    if (answered || status === "active") return fmtDuration(duration);
+    if (status === "ringing") return role === "caller" ? "Ringing…" : "Incoming…";
+    if (status === "connecting") return role === "caller" ? "Calling…" : "Answering…";
+    if (status === "ended") return "Call ended";
+    if (status === "error") return "Connection issue";
+    return status;
   }, [status, answered, role, duration]);
 
-  const isConnected = answered || status === "connected";
+  const isConnected = answered || status === "active";
   const showRings = !isConnected && status !== "ended";
+  const error = startError ?? meshError;
 
   return (
     <div className="fixed inset-0 flex flex-col overflow-hidden bg-[#0f0714] text-white">
-      {/* Candlelit background — velvet vignette + rose/amber glows + film grain */}
       <div className="absolute inset-0 -z-10">
         <div className="absolute inset-0 bg-[linear-gradient(180deg,#0f0714_0%,#160820_45%,#0a0510_100%)]" />
         <div className="absolute top-1/4 -left-10 w-72 h-72 rounded-full bg-rose-900/20 blur-[110px] animate-[pulse_6s_ease-in-out_infinite]" />
         <div className="absolute bottom-1/4 -right-10 w-80 h-80 rounded-full bg-amber-900/15 blur-[130px] animate-[pulse_7s_ease-in-out_infinite]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,transparent_10%,#0f0714_110%)]" />
       </div>
-      {/* Fine noise grain for cinematic texture */}
       <div
         className="pointer-events-none absolute inset-0 z-[1] opacity-[0.05] mix-blend-overlay"
         style={{
@@ -302,7 +240,6 @@ function Call() {
         }}
       />
 
-      {/* Header */}
       <header className="relative z-20 flex items-start justify-between px-5 pt-6 pb-3">
         <Link
           to="/app"
@@ -313,7 +250,7 @@ function Call() {
         <div className="flex flex-col items-center gap-1 pt-1">
           <span className="text-[10px] font-medium uppercase tracking-[0.4em] text-white/40 flex items-center gap-2">
             <Signal className={`size-2.5 ${isConnected ? "text-amber-300/80" : "text-white/30 animate-pulse"}`} />
-            {mode === "video" ? "Video Call" : "Voice Call"}
+            {kind === "video" ? "Video Call" : "Voice Call"}
           </span>
           <div className="flex items-baseline gap-2">
             <span className="text-base sm:text-lg font-light tracking-wide text-white/85">
@@ -346,21 +283,12 @@ function Call() {
         </button>
       </header>
 
-      {/* Main stage */}
       <div className="relative flex-1 overflow-hidden">
-        {mode === "video" && remoteStream && remoteRev > 0 ? (
+        {kind === "video" && remoteStream && remoteRev > 0 ? (
           <>
-            <video
-              ref={remoteRef}
-              autoPlay
-              playsInline
-              className="absolute inset-0 w-full h-full object-cover"
-            />
-            {/* Cinematic overlays on top of the remote video */}
+            <video ref={remoteRef} autoPlay playsInline className="absolute inset-0 w-full h-full object-cover" />
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0f0714] via-transparent to-[#0f0714]/40" />
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_20%,rgba(15,7,20,0.55)_100%)]" />
-
-            {/* Self-view PiP — glass-edged, candle-glow shadow */}
             <div className="absolute bottom-32 right-5 w-24 h-36 sm:w-28 sm:h-40 rounded-[28px] overflow-hidden border border-white/15 ring-1 ring-white/5 shadow-[0_18px_40px_rgba(0,0,0,0.7)] bg-black">
               <video ref={localRef} autoPlay playsInline muted className="w-full h-full object-cover" />
               <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
@@ -398,12 +326,8 @@ function Call() {
           ref={remoteAudioRef}
           autoPlay
           playsInline
-          // Kept in the DOM (not display:none) — iOS Safari silently drops
-          // audio playback for elements with display:none. Position it
-          // off-screen instead.
           style={{ position: "absolute", width: 1, height: 1, opacity: 0, pointerEvents: "none" }}
         />
-
 
         {audioBlocked && !error && (
           <button
@@ -430,7 +354,6 @@ function Call() {
         )}
       </div>
 
-      {/* Control dock — candlelit glass */}
       <div className="relative z-20 px-5 pb-8 pt-3">
         <div className="mx-auto max-w-md bg-white/[0.04] backdrop-blur-3xl border border-white/10 rounded-[36px] p-2 flex items-center justify-between shadow-[0_12px_40px_rgba(0,0,0,0.6),inset_0_1px_1px_rgba(255,255,255,0.06)]">
           <ControlButton
@@ -441,7 +364,7 @@ function Call() {
             {muted ? <MicOff className="size-5" /> : <Mic className="size-5" />}
           </ControlButton>
 
-          {mode === "video" ? (
+          {kind === "video" ? (
             <>
               <ControlButton
                 active={videoOff}
@@ -465,7 +388,7 @@ function Call() {
           )}
 
           <button
-            onClick={() => { hangup(); navigate({ to: "/app/chat/$peerId", params: { peerId } }); }}
+            onClick={() => { void hangup(); navigate({ to: "/app/chat/$peerId", params: { peerId } }); }}
             className="relative w-20 h-12 rounded-[24px] bg-[#e11d48] text-white flex items-center justify-center shadow-[0_8px_25px_rgba(225,29,72,0.45),inset_0_2px_4px_rgba(255,255,255,0.28)] active:scale-95 active:brightness-90 transition-transform"
             aria-label="End call"
           >
@@ -478,16 +401,8 @@ function Call() {
 }
 
 function ControlButton({
-  children,
-  onClick,
-  active,
-  label,
-}: {
-  children: React.ReactNode;
-  onClick: () => void;
-  active?: boolean;
-  label: string;
-}) {
+  children, onClick, active, label,
+}: { children: React.ReactNode; onClick: () => void; active?: boolean; label: string }) {
   return (
     <button
       onClick={onClick}
@@ -502,7 +417,6 @@ function ControlButton({
     </button>
   );
 }
-
 
 function InCallChat({ meId, partnerId, partnerName, onClose }: { meId: string; partnerId: string; partnerName: string; onClose: () => void }) {
   const { messages, send, react, togglePin, remove, setVanish, sendTyping } = useChat(meId, partnerId);
@@ -519,27 +433,16 @@ function InCallChat({ meId, partnerId, partnerName, onClose }: { meId: string; p
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-2 py-3">
         {messages.slice(-30).map((m) => (
           <ChatBubble
-            key={m.id}
-            m={m}
-            mine={m.sender_id === meId}
+            key={m.id} m={m} mine={m.sender_id === meId}
             replyTo={m.reply_to_id ? messages.find((x) => x.id === m.reply_to_id) ?? null : null}
-            showAvatar
-            isLast={false}
-            onReact={react}
-            onReply={setReplyTo}
-            onPin={togglePin}
-            onDelete={remove}
-            onVanish={setVanish}
+            showAvatar isLast={false}
+            onReact={react} onReply={setReplyTo} onPin={togglePin} onDelete={remove} onVanish={setVanish}
           />
         ))}
       </div>
       <ChatComposer
-        meId={meId}
-        partnerName={partnerName}
-        replyTo={replyTo}
-        onClearReply={() => setReplyTo(null)}
-        onTyping={sendTyping}
-        onSend={send}
+        meId={meId} partnerName={partnerName} replyTo={replyTo}
+        onClearReply={() => setReplyTo(null)} onTyping={sendTyping} onSend={send}
       />
     </div>
   );
