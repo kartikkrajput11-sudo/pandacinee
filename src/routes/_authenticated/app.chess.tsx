@@ -492,14 +492,29 @@ function GameScreen({
         active={displayChess.turn() === (orientation === "w" ? "b" : "w") && result.status === "active"}
       />
 
-      <div className="flex justify-center my-3">
+      <div className="flex justify-center my-3 relative">
         <ChessBoard
           chess={displayChess}
           orientation={orientation}
-          canMoveColor={historyCursor !== null || result.status !== "active" ? null : myColor}
+          canMoveColor={
+            mode === "partner" && !partnerHere
+              ? null
+              : historyCursor !== null || result.status !== "active"
+              ? null
+              : myColor
+          }
           lastMove={lastMove}
           onMove={tryMove}
         />
+        {mode === "partner" && !partnerHere && (
+          <div className="absolute inset-0 flex items-center justify-center rounded-3xl bg-velvet/70 backdrop-blur-sm z-10">
+            <div className="text-center px-6">
+              <div className="text-4xl mb-2 animate-bounce">🐼</div>
+              <p className="font-serif italic text-lg">Waiting for {partnerName}…</p>
+              <p className="text-xs text-candle-muted mt-1">The match starts the moment your panda arrives.</p>
+            </div>
+          </div>
+        )}
       </div>
 
       <PlayerBar
