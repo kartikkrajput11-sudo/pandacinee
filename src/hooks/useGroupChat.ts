@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { expirySeconds, type MessageRow } from "@/lib/chat";
 
-const PAGE_SIZE = 500;
+const PAGE_SIZE = 30;
 
 function isLiveMessage(m: MessageRow) {
   return !m.expires_at || new Date(m.expires_at).getTime() > Date.now();

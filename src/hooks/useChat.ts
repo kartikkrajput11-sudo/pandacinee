@@ -4,7 +4,7 @@ import { chatChannelKey, expirySeconds, type MessageRow } from "@/lib/chat";
 
 type TypingState = { isTyping: boolean; at: number };
 
-const PAGE_SIZE = 500;
+const PAGE_SIZE = 30;
 
 function isLiveMessage(m: MessageRow) {
   return !m.expires_at || new Date(m.expires_at).getTime() > Date.now();
