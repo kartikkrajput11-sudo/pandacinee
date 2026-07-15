@@ -168,8 +168,13 @@ function RitualsRoute() {
 
 function ActiveRitual({ ritual, me, onEnd }: { ritual: Ritual; me: string; onEnd: () => void }) {
   const [now, setNow] = useState(Date.now());
+  const [awarded, setAwarded] = useState<{ reward: number; already: boolean } | null>(null);
+  const [awarding, setAwarding] = useState(false);
+  const award = useServerFn(awardRitualCoins);
+
   useEffect(() => {
-    const t = setInterval(() => setNow(Date.now()), 200);
+    // Tick every second — matches "melts every second" and drives the flame flicker.
+    const t = setInterval(() => setNow(Date.now()), 250);
     return () => clearInterval(t);
   }, []);
 
@@ -192,20 +197,61 @@ function ActiveRitual({ ritual, me, onEnd }: { ritual: Ritual; me: string; onEnd
     await patchState({ acks: { ...acks, [me]: (acks[me] ?? 0) + 1 } });
   }
 
+  // On completion, auto-claim coins.
+  useEffect(() => {
+    if (remaining > 0 || awarded || awarding || ritual.state?.coins_awarded) {
+      if (ritual.state?.coins_awarded && !awarded) {
+        setAwarded({ reward: ritual.state?.reward ?? 0, already: true });
+      }
+      return;
+    }
+    setAwarding(true);
+    award({ data: { ritualId: ritual.id } })
+      .then((res: any) => {
+        setAwarded({ reward: res?.reward ?? 0, already: !!res?.alreadyAwarded });
+      })
+      .catch((e) => {
+        toast.error(e?.message ?? "Couldn't award coins");
+      })
+      .finally(() => setAwarding(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [remaining <= 0]);
+
   if (remaining <= 0) {
     return (
       <div className="p-8 rounded-3xl bg-gradient-to-br from-petal-soft via-transparent to-transparent border border-petal/30 text-center">
         <p className="text-5xl mb-3">{meta.emoji}</p>
         <p className="font-serif italic text-2xl">Held together.</p>
-        <p className="text-sm text-candle-muted mt-2 mb-6">
+        <p className="text-sm text-candle-muted mt-2 mb-4">
           {meta.name} · {meta.minutes} min · both hearts steady
         </p>
-        <button onClick={onEnd} className="px-6 py-3 bg-petal text-velvet rounded-full font-semibold">
-          Close ritual
-        </button>
+        <div className="mx-auto mb-5 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-petal-soft border border-petal/40">
+          <Coins className="size-4 text-petal" />
+          <span className="text-petal font-semibold">
+            {awarding
+              ? "Counting the coins…"
+              : awarded
+                ? awarded.already
+                  ? "Already collected"
+                  : `+${awarded.reward} coins each`
+                : `+${RITUAL_REWARD[ritual.kind] ?? 15} coins each`}
+          </span>
+        </div>
+        <div className="flex gap-2 justify-center">
+          <Link
+            to="/app/shop"
+            className="px-5 py-3 bg-petal text-velvet rounded-full font-semibold inline-flex items-center gap-2"
+          >
+            <Sparkles className="size-4" /> Spend on tags
+          </Link>
+          <button onClick={onEnd} className="px-5 py-3 rounded-full font-semibold border border-border text-candle">
+            Close
+          </button>
+        </div>
       </div>
     );
   }
+
 
   return (
     <div className="relative">
