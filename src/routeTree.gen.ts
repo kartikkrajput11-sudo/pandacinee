@@ -18,6 +18,7 @@ import { Route as AuthenticatedAppIndexRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedAppWishlistRouteImport } from './routes/_authenticated/app.wishlist'
 import { Route as AuthenticatedAppWatchRouteImport } from './routes/_authenticated/app.watch'
 import { Route as AuthenticatedAppTamannaRouteImport } from './routes/_authenticated/app.tamanna'
+import { Route as AuthenticatedAppShopRouteImport } from './routes/_authenticated/app.shop'
 import { Route as AuthenticatedAppScribbleRouteImport } from './routes/_authenticated/app.scribble'
 import { Route as AuthenticatedAppRitualsRouteImport } from './routes/_authenticated/app.rituals'
 import { Route as AuthenticatedAppPuzzleRouteImport } from './routes/_authenticated/app.puzzle'
@@ -96,6 +97,11 @@ const AuthenticatedAppWatchRoute = AuthenticatedAppWatchRouteImport.update({
 const AuthenticatedAppTamannaRoute = AuthenticatedAppTamannaRouteImport.update({
   id: '/tamanna',
   path: '/tamanna',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
+const AuthenticatedAppShopRoute = AuthenticatedAppShopRouteImport.update({
+  id: '/shop',
+  path: '/shop',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
 const AuthenticatedAppScribbleRoute =
@@ -316,6 +322,7 @@ export interface FileRoutesByFullPath {
   '/app/puzzle': typeof AuthenticatedAppPuzzleRoute
   '/app/rituals': typeof AuthenticatedAppRitualsRoute
   '/app/scribble': typeof AuthenticatedAppScribbleRoute
+  '/app/shop': typeof AuthenticatedAppShopRoute
   '/app/tamanna': typeof AuthenticatedAppTamannaRoute
   '/app/watch': typeof AuthenticatedAppWatchRoute
   '/app/wishlist': typeof AuthenticatedAppWishlistRoute
@@ -358,6 +365,7 @@ export interface FileRoutesByTo {
   '/app/puzzle': typeof AuthenticatedAppPuzzleRoute
   '/app/rituals': typeof AuthenticatedAppRitualsRoute
   '/app/scribble': typeof AuthenticatedAppScribbleRoute
+  '/app/shop': typeof AuthenticatedAppShopRoute
   '/app/tamanna': typeof AuthenticatedAppTamannaRoute
   '/app/watch': typeof AuthenticatedAppWatchRoute
   '/app/wishlist': typeof AuthenticatedAppWishlistRoute
@@ -404,6 +412,7 @@ export interface FileRoutesById {
   '/_authenticated/app/puzzle': typeof AuthenticatedAppPuzzleRoute
   '/_authenticated/app/rituals': typeof AuthenticatedAppRitualsRoute
   '/_authenticated/app/scribble': typeof AuthenticatedAppScribbleRoute
+  '/_authenticated/app/shop': typeof AuthenticatedAppShopRoute
   '/_authenticated/app/tamanna': typeof AuthenticatedAppTamannaRoute
   '/_authenticated/app/watch': typeof AuthenticatedAppWatchRoute
   '/_authenticated/app/wishlist': typeof AuthenticatedAppWishlistRoute
@@ -450,6 +459,7 @@ export interface FileRouteTypes {
     | '/app/puzzle'
     | '/app/rituals'
     | '/app/scribble'
+    | '/app/shop'
     | '/app/tamanna'
     | '/app/watch'
     | '/app/wishlist'
@@ -492,6 +502,7 @@ export interface FileRouteTypes {
     | '/app/puzzle'
     | '/app/rituals'
     | '/app/scribble'
+    | '/app/shop'
     | '/app/tamanna'
     | '/app/watch'
     | '/app/wishlist'
@@ -537,6 +548,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/puzzle'
     | '/_authenticated/app/rituals'
     | '/_authenticated/app/scribble'
+    | '/_authenticated/app/shop'
     | '/_authenticated/app/tamanna'
     | '/_authenticated/app/watch'
     | '/_authenticated/app/wishlist'
@@ -628,6 +640,13 @@ declare module '@tanstack/react-router' {
       path: '/tamanna'
       fullPath: '/app/tamanna'
       preLoaderRoute: typeof AuthenticatedAppTamannaRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/shop': {
+      id: '/_authenticated/app/shop'
+      path: '/shop'
+      fullPath: '/app/shop'
+      preLoaderRoute: typeof AuthenticatedAppShopRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/scribble': {
@@ -925,6 +944,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppPuzzleRoute: typeof AuthenticatedAppPuzzleRoute
   AuthenticatedAppRitualsRoute: typeof AuthenticatedAppRitualsRoute
   AuthenticatedAppScribbleRoute: typeof AuthenticatedAppScribbleRoute
+  AuthenticatedAppShopRoute: typeof AuthenticatedAppShopRoute
   AuthenticatedAppTamannaRoute: typeof AuthenticatedAppTamannaRoute
   AuthenticatedAppWatchRoute: typeof AuthenticatedAppWatchRoute
   AuthenticatedAppWishlistRoute: typeof AuthenticatedAppWishlistRoute
@@ -961,6 +981,7 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppPuzzleRoute: AuthenticatedAppPuzzleRoute,
   AuthenticatedAppRitualsRoute: AuthenticatedAppRitualsRoute,
   AuthenticatedAppScribbleRoute: AuthenticatedAppScribbleRoute,
+  AuthenticatedAppShopRoute: AuthenticatedAppShopRoute,
   AuthenticatedAppTamannaRoute: AuthenticatedAppTamannaRoute,
   AuthenticatedAppWatchRoute: AuthenticatedAppWatchRoute,
   AuthenticatedAppWishlistRoute: AuthenticatedAppWishlistRoute,
