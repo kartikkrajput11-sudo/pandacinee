@@ -989,11 +989,13 @@ function NeverHaveIEver({ me, session, patch }: { me: string; session: Session; 
 
   function pick(v: 0 | 1) {
     if (myPick !== undefined) return;
+    gameSfx.pick();
     patch({ ...s, picks: { ...s.picks, [me]: v } });
   }
   async function next() {
     const have = (s.tallies?.have ?? 0) + (myPick === 0 ? 1 : 0) + (theirPick === 0 ? 1 : 0);
     const havent = (s.tallies?.havent ?? 0) + (myPick === 1 ? 1 : 0) + (theirPick === 1 ? 1 : 0);
+    gameSfx.reveal();
     const c = await fetchCard(s.intensity ?? "playful");
     const history = [...(s.history ?? []), s.card].filter(Boolean).slice(-20);
     patch({ ...s, count: (s.count ?? 0) + 1, card: c, picks: {}, tallies: { have, havent }, history });
