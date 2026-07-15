@@ -335,6 +335,7 @@ function Scribble() {
       });
     }
     const isMe = by === me?.id;
+    if (isMe) gameSfx.correct(); else gameSfx.reveal();
     setMessages((m) => [
       ...m,
       {
