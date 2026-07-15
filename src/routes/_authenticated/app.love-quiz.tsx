@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
 import { generateLoveQuiz } from "@/lib/games.functions";
+import { gameSfx } from "@/lib/game-sfx";
 
 export const Route = createFileRoute("/_authenticated/app/love-quiz")({
   component: LoveQuiz,
