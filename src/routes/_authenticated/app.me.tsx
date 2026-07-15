@@ -172,7 +172,14 @@ function Me() {
             </span>
           </Link>
 
-          <AchievementBadges userId={me.id} />
+          <AchievementBadges userId={me.id} equippedOnly />
+
+          <EquipTagsSection
+            userId={me.id}
+            equipped={equippedTags}
+            onChange={setEquippedTags}
+          />
+
 
 
           <div className="space-y-3 mb-4">
