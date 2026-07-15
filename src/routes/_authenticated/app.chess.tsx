@@ -726,7 +726,7 @@ function RequestBanner({ text, onAccept, onDecline }: { text: string; onAccept: 
 // ─────────── Partner actions ───────────
 async function partnerAction(gameId: string, meId: string | null, kind: "draw" | "undo") {
   if (!meId) return;
-  const field = kind === "draw" ? "draw_offer_by" : "undo_request_by";
+  
   const update = kind === "draw" ? { draw_offer_by: meId } : { undo_request_by: meId };
   const { error } = await supabase.from("chess_games").update(update).eq("id", gameId);
   if (error) toast.error(error.message);
