@@ -156,7 +156,9 @@ export async function completeSpotifyLogin(code: string): Promise<Tokens> {
     scope: data.scope,
   };
   setTokens(tokens);
+  localStorage.removeItem(LS_VERIFIER);
   sessionStorage.removeItem(LS_VERIFIER);
+
   return tokens;
 }
 
