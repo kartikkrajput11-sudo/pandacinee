@@ -83,7 +83,9 @@ function ChessPage() {
 
   if (!gameId) return <Lobby me={me} partner={partner} onStart={(mode, ai) => {
     if (mode === "partner") {
-      startPartnerGame(me?.id, partner?.id).then((id) => id && navigate({ to: "/app/chess", search: { game: id, mode: "partner" } }));
+      void startPartnerGame(me?.id, partner?.id).then((id) => {
+        if (id) navigate({ to: "/app/chess", search: { game: id, mode: "partner" } });
+      });
     } else {
       navigate({ to: "/app/chess", search: { mode, ai } });
     }
@@ -725,7 +727,8 @@ function RequestBanner({ text, onAccept, onDecline }: { text: string; onAccept: 
 async function partnerAction(gameId: string, meId: string | null, kind: "draw" | "undo") {
   if (!meId) return;
   const field = kind === "draw" ? "draw_offer_by" : "undo_request_by";
-  const { error } = await supabase.from("chess_games").update({ [field]: meId }).eq("id", gameId);
+  const update = kind === "draw" ? { draw_offer_by: meId } : { undo_request_by: meId };
+  const { error } = await supabase.from("chess_games").update(update).eq("id", gameId);
   if (error) toast.error(error.message);
   else toast.success(kind === "draw" ? "Draw offered" : "Undo requested");
 }
