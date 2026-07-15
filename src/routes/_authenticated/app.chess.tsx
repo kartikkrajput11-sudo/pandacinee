@@ -21,6 +21,7 @@ import {
   type PromotionPiece,
 } from "@/lib/chess";
 import type { AiLevel, ChessMode } from "@/lib/chess";
+import { sfx } from "@/lib/chess-sfx";
 
 const searchSchema = z.object({
   game: z.string().uuid().optional(),
@@ -54,24 +55,6 @@ type GameRow = {
   last_move_at: string;
 };
 
-// Simple beep-based SFX so we don't ship audio assets.
-function playTone(freq: number, duration = 90, muted = false) {
-  if (muted) return;
-  try {
-    const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = "sine";
-    osc.frequency.value = freq;
-    gain.gain.value = 0.08;
-    osc.connect(gain).connect(ctx.destination);
-    osc.start();
-    setTimeout(() => {
-      osc.stop();
-      ctx.close();
-    }, duration);
-  } catch { /* ignore */ }
-}
 
 function ChessPage() {
   const search = Route.useSearch();
@@ -343,10 +326,26 @@ function GameScreen({
       .channel(`chess:${gameId}`, { config: { presence: { key: meId } } })
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "chess_games", filter: `id=eq.${gameId}` }, (p) => {
         const row = p.new as GameRow;
-        setGame(row);
+        setGame((prev) => {
+          // Sound for opponent's move
+          if (prev && prev.pgn !== row.pgn && row.turn === (meId === row.white_id ? "w" : "b")) {
+            try {
+              const c = new Chess();
+              c.loadPgn(row.pgn);
+              const last = c.history({ verbose: true }).pop();
+              if (last) {
+                if (last.captured) sfx.capture({ muted });
+                else if (last.san === "O-O" || last.san === "O-O-O") sfx.castle({ muted });
+                else if (last.promotion) sfx.promote({ muted });
+                else sfx.move({ muted });
+                if (c.inCheck() && !c.isCheckmate()) sfx.check({ muted });
+              }
+            } catch { /* ignore */ }
+          }
+          return row;
+        });
         setChess(loadChess(row.pgn, row.fen));
         setHistoryCursor(null);
-        playTone(row.status === "checkmate" ? 660 : 440, 90, muted);
       })
       .on("presence", { event: "sync" }, () => {
         const state = ch.presenceState<{ id: string }>();
@@ -392,12 +391,28 @@ function GameScreen({
     const result = computeResult(chess);
     if (result.status !== "active" && !confetti) {
       setConfetti(true);
-      playTone(880, 200, muted);
-      setTimeout(() => playTone(1100, 200, muted), 220);
+      if (result.winner === "draw") {
+        sfx.draw({ muted });
+      } else if (result.winner && myColor && myColor !== "both" && result.winner !== myColor) {
+        sfx.lose({ muted });
+      }
+      // The win animation drives its own cinematic stinger via winCinematic.
       setTimeout(() => setConfetti(false), 4500);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chess]);
+
+  // Game-start chime once game/mode is ready
+  const startedRef = useRef(false);
+  useEffect(() => {
+    if (startedRef.current) return;
+    if (isLocal || (game && (mode === "partner" ? partnerHere : true))) {
+      startedRef.current = true;
+      sfx.gameStart({ muted });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLocal, game, partnerHere, mode]);
+
 
   const myColor: Color | "both" | null = useMemo(() => {
     if (historyCursor !== null) return null;
@@ -435,8 +450,12 @@ function GameScreen({
     const move = rebuild.move({ from, to, promotion: promo });
     if (!move) return;
     setChess(rebuild);
-    playTone(move.captured ? 520 : 660, 60, muted);
-    if (rebuild.inCheck()) playTone(300, 120, muted);
+    if (move.captured) sfx.capture({ muted });
+    else if (move.san === "O-O" || move.san === "O-O-O") sfx.castle({ muted });
+    else if (move.promotion) sfx.promote({ muted });
+    else sfx.move({ muted });
+    if (rebuild.inCheck() && !rebuild.isCheckmate()) sfx.check({ muted });
+
     // Persist for partner mode
     if (!isLocal && game) {
       const result = computeResult(rebuild);
@@ -577,8 +596,10 @@ function GameScreen({
           demoWin ? demoWin.loser :
           result.winner === "w" ? "b" : result.winner === "b" ? "w" : null
         }
+        muted={muted}
         onDone={() => setDemoWin(null)}
       />
+
 
       {/* Draw / stalemate — soft confetti */}
       {confetti && result.winner === "draw" && (

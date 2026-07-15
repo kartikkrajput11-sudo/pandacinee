@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { sfx } from "@/lib/chess-sfx";
 
 /**
  * Cinematic checkmate finish:
@@ -10,10 +11,12 @@ import { useEffect, useState } from "react";
 export function WinAnimation({
   trigger,
   loserColor,
+  muted = false,
   onDone,
 }: {
   trigger: number | string | null;
   loserColor: "w" | "b" | null;
+  muted?: boolean;
   onDone?: () => void;
 }) {
   const [playing, setPlaying] = useState(false);
@@ -21,12 +24,14 @@ export function WinAnimation({
   useEffect(() => {
     if (!trigger || !loserColor) return;
     setPlaying(true);
+    sfx.winCinematic({ muted });
     const t = window.setTimeout(() => {
       setPlaying(false);
       onDone?.();
     }, 5400);
     return () => window.clearTimeout(t);
-  }, [trigger, loserColor, onDone]);
+  }, [trigger, loserColor, muted, onDone]);
+
 
   if (!playing || !loserColor) return null;
 
