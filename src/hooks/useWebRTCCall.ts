@@ -52,6 +52,7 @@ export function useWebRTCCall(peerId: string | null, mode: Mode = "video", isCal
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
   const [remoteRev, setRemoteRev] = useState(0);
   const [status, setStatus] = useState<"idle" | "connecting" | "ringing" | "connected" | "ended" | "error">("idle");
+  const [answered, setAnswered] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [facing, setFacing] = useState<FacingMode>("user");
   const pcRef = useRef<RTCPeerConnection | null>(null);
