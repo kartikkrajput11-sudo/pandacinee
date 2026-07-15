@@ -4,6 +4,9 @@ export type GameKind =
   | "would-you-rather"
   | "never-have-i-ever"
   | "guess-me"
+  | "two-truths-lie"
+  | "hot-takes"
+  | "emoji-riddle"
   | "tic-tac-toe"
   | "rock-paper-scissors"
   | "paint-together"
@@ -18,6 +21,9 @@ export type GameKind =
 export const GAME_KINDS: GameKind[] = [
   "paint-together",
   "scribble-guess",
+  "two-truths-lie",
+  "hot-takes",
+  "emoji-riddle",
   "daily-challenge",
   "memory-challenge",
   "love-quiz",
