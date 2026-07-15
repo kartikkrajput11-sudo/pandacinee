@@ -33,7 +33,7 @@ export function ChessBoard({ chess, orientation, canMoveColor, lastMove, onMove 
     return null;
   }, [chess]);
 
-  const canMove = (piece: { color: Color } | null): boolean => {
+  const canMove = (piece: { color: Color } | null | undefined): boolean => {
     if (!piece || canMoveColor === null) return false;
     if (canMoveColor === "both") return true;
     return piece.color === canMoveColor && chess.turn() === piece.color;
