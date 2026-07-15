@@ -97,10 +97,6 @@ function Home() {
         </div>
       )}
 
-      {/* Quick actions */}
-      <div className="relative z-10">
-        <QuickActions />
-      </div>
 
       {/* Mood entry */}
       {profile && (
