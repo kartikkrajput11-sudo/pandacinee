@@ -303,13 +303,43 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
           showControls || !playing ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
       >
-        {/* Progress */}
-        <div className="relative mb-2 group/scrub">
-          <div className="h-1.5 rounded-full bg-white/20 overflow-hidden">
+        {/* Progress — luxury scrub bar */}
+        <div className="relative mb-3 group/scrub py-2">
+          {/* Ambient glow that intensifies on hover */}
+          <div
+            aria-hidden
+            className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-6 rounded-full pointer-events-none opacity-0 group-hover/scrub:opacity-100 transition-opacity duration-500"
+            style={{
+              background:
+                "radial-gradient(60% 100% at var(--px, 0%) 50%, rgba(238,130,175,0.35), transparent 70%)",
+              filter: "blur(10px)",
+            }}
+          />
+          {/* Track */}
+          <div className="relative h-[3px] group-hover/scrub:h-[6px] transition-[height] duration-300 rounded-full bg-white/15 backdrop-blur-sm overflow-hidden ring-1 ring-white/5">
+            {/* Base track shimmer */}
+            <div aria-hidden className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0" />
+            {/* Filled portion — gradient + shine sweep */}
             <div
-              className="h-full bg-petal transition-[width] duration-100"
-              style={{ width: `${progressPct}%` }}
-            />
+              className="relative h-full rounded-full transition-[width] duration-100"
+              style={{
+                width: `${progressPct}%`,
+                background:
+                  "linear-gradient(90deg, rgba(238,130,175,0.9) 0%, rgba(255,180,205,1) 55%, rgba(238,130,175,0.95) 100%)",
+                boxShadow:
+                  "0 0 12px rgba(238,130,175,0.55), 0 0 24px rgba(238,130,175,0.35), inset 0 0 6px rgba(255,255,255,0.35)",
+              }}
+            >
+              <span
+                aria-hidden
+                className="absolute inset-y-0 -right-4 w-8 opacity-70"
+                style={{
+                  background:
+                    "linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent)",
+                  filter: "blur(2px)",
+                }}
+              />
+            </div>
           </div>
           <input
             type="range"
@@ -321,15 +351,31 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
             onTouchStart={() => (scrubbing.current = true)}
             onTouchEnd={() => (scrubbing.current = false)}
             onChange={onScrub}
+            onMouseMove={(e) => {
+              const el = e.currentTarget as HTMLInputElement;
+              const rect = el.getBoundingClientRect();
+              const pct = ((e.clientX - rect.left) / rect.width) * 100;
+              el.parentElement?.style.setProperty("--px", `${pct}%`);
+            }}
             disabled={locked}
             aria-label="Seek"
-            className={`absolute inset-0 w-full opacity-0 h-6 -top-2 ${locked ? "cursor-not-allowed pointer-events-none" : "cursor-pointer"}`}
+            className={`absolute inset-x-0 top-1/2 -translate-y-1/2 w-full h-8 opacity-0 ${locked ? "cursor-not-allowed pointer-events-none" : "cursor-pointer"}`}
           />
+          {/* Thumb — jeweled */}
           <div
-            className="absolute -top-1 size-3.5 rounded-full bg-white shadow pointer-events-none transition-[left]"
-            style={{ left: `calc(${progressPct}% - 7px)` }}
-          />
+            className="absolute top-1/2 pointer-events-none transition-[left,transform] duration-100"
+            style={{ left: `calc(${progressPct}% - 8px)`, transform: "translateY(-50%)" }}
+          >
+            <span
+              aria-hidden
+              className="absolute -inset-2 rounded-full bg-petal/40 blur-md opacity-0 group-hover/scrub:opacity-100 transition-opacity duration-300"
+            />
+            <span
+              className="relative block size-4 rounded-full bg-gradient-to-br from-white to-white/70 ring-2 ring-petal/70 shadow-[0_2px_10px_rgba(238,130,175,0.9),0_0_0_1px_rgba(255,255,255,0.4)_inset] scale-90 group-hover/scrub:scale-110 transition-transform duration-300"
+            />
+          </div>
         </div>
+
 
         <div className="flex items-center gap-2 text-white text-xs">
           {!locked && (
