@@ -35,9 +35,11 @@ import { Route as AuthenticatedAppFriendsRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAppDailyChallengeRouteImport } from './routes/_authenticated/app.daily-challenge'
 import { Route as AuthenticatedAppCallsRouteImport } from './routes/_authenticated/app.calls'
 import { Route as AuthenticatedAppAnniversaryRouteImport } from './routes/_authenticated/app.anniversary'
+import { Route as AuthenticatedAppWatchPartyIndexRouteImport } from './routes/_authenticated/app.watch-party.index'
 import { Route as AuthenticatedAppMoviesIndexRouteImport } from './routes/_authenticated/app.movies.index'
 import { Route as AuthenticatedAppChatIndexRouteImport } from './routes/_authenticated/app.chat.index'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
+import { Route as AuthenticatedAppWatchPartyCodeRouteImport } from './routes/_authenticated/app.watch-party.$code'
 import { Route as AuthenticatedAppUserUserIdRouteImport } from './routes/_authenticated/app.user.$userId'
 import { Route as AuthenticatedAppMoviesIdRouteImport } from './routes/_authenticated/app.movies.$id'
 import { Route as AuthenticatedAppGamesGameRouteImport } from './routes/_authenticated/app.games.$game'
@@ -184,6 +186,12 @@ const AuthenticatedAppAnniversaryRoute =
     path: '/anniversary',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppWatchPartyIndexRoute =
+  AuthenticatedAppWatchPartyIndexRouteImport.update({
+    id: '/watch-party/',
+    path: '/watch-party/',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppMoviesIndexRoute =
   AuthenticatedAppMoviesIndexRouteImport.update({
     id: '/',
@@ -201,6 +209,12 @@ const LovableEmailQueueProcessRoute =
     id: '/lovable/email/queue/process',
     path: '/lovable/email/queue/process',
     getParentRoute: () => rootRouteImport,
+  } as any)
+const AuthenticatedAppWatchPartyCodeRoute =
+  AuthenticatedAppWatchPartyCodeRouteImport.update({
+    id: '/watch-party/$code',
+    path: '/watch-party/$code',
+    getParentRoute: () => AuthenticatedAppRoute,
   } as any)
 const AuthenticatedAppUserUserIdRoute =
   AuthenticatedAppUserUserIdRouteImport.update({
@@ -288,9 +302,11 @@ export interface FileRoutesByFullPath {
   '/app/games/$game': typeof AuthenticatedAppGamesGameRoute
   '/app/movies/$id': typeof AuthenticatedAppMoviesIdRouteWithChildren
   '/app/user/$userId': typeof AuthenticatedAppUserUserIdRoute
+  '/app/watch-party/$code': typeof AuthenticatedAppWatchPartyCodeRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/app/chat/': typeof AuthenticatedAppChatIndexRoute
   '/app/movies/': typeof AuthenticatedAppMoviesIndexRoute
+  '/app/watch-party/': typeof AuthenticatedAppWatchPartyIndexRoute
   '/app/call/group/$groupId': typeof AuthenticatedAppCallGroupGroupIdRoute
   '/app/chat/group/$groupId': typeof AuthenticatedAppChatGroupGroupIdRoute
   '/app/movies/$id/watch': typeof AuthenticatedAppMoviesIdWatchRoute
@@ -325,9 +341,11 @@ export interface FileRoutesByTo {
   '/app/games/$game': typeof AuthenticatedAppGamesGameRoute
   '/app/movies/$id': typeof AuthenticatedAppMoviesIdRouteWithChildren
   '/app/user/$userId': typeof AuthenticatedAppUserUserIdRoute
+  '/app/watch-party/$code': typeof AuthenticatedAppWatchPartyCodeRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/app/chat': typeof AuthenticatedAppChatIndexRoute
   '/app/movies': typeof AuthenticatedAppMoviesIndexRoute
+  '/app/watch-party': typeof AuthenticatedAppWatchPartyIndexRoute
   '/app/call/group/$groupId': typeof AuthenticatedAppCallGroupGroupIdRoute
   '/app/chat/group/$groupId': typeof AuthenticatedAppChatGroupGroupIdRoute
   '/app/movies/$id/watch': typeof AuthenticatedAppMoviesIdWatchRoute
@@ -366,9 +384,11 @@ export interface FileRoutesById {
   '/_authenticated/app/games/$game': typeof AuthenticatedAppGamesGameRoute
   '/_authenticated/app/movies/$id': typeof AuthenticatedAppMoviesIdRouteWithChildren
   '/_authenticated/app/user/$userId': typeof AuthenticatedAppUserUserIdRoute
+  '/_authenticated/app/watch-party/$code': typeof AuthenticatedAppWatchPartyCodeRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/_authenticated/app/chat/': typeof AuthenticatedAppChatIndexRoute
   '/_authenticated/app/movies/': typeof AuthenticatedAppMoviesIndexRoute
+  '/_authenticated/app/watch-party/': typeof AuthenticatedAppWatchPartyIndexRoute
   '/_authenticated/app/call/group/$groupId': typeof AuthenticatedAppCallGroupGroupIdRoute
   '/_authenticated/app/chat/group/$groupId': typeof AuthenticatedAppChatGroupGroupIdRoute
   '/_authenticated/app/movies/$id/watch': typeof AuthenticatedAppMoviesIdWatchRoute
@@ -407,9 +427,11 @@ export interface FileRouteTypes {
     | '/app/games/$game'
     | '/app/movies/$id'
     | '/app/user/$userId'
+    | '/app/watch-party/$code'
     | '/lovable/email/queue/process'
     | '/app/chat/'
     | '/app/movies/'
+    | '/app/watch-party/'
     | '/app/call/group/$groupId'
     | '/app/chat/group/$groupId'
     | '/app/movies/$id/watch'
@@ -444,9 +466,11 @@ export interface FileRouteTypes {
     | '/app/games/$game'
     | '/app/movies/$id'
     | '/app/user/$userId'
+    | '/app/watch-party/$code'
     | '/lovable/email/queue/process'
     | '/app/chat'
     | '/app/movies'
+    | '/app/watch-party'
     | '/app/call/group/$groupId'
     | '/app/chat/group/$groupId'
     | '/app/movies/$id/watch'
@@ -484,9 +508,11 @@ export interface FileRouteTypes {
     | '/_authenticated/app/games/$game'
     | '/_authenticated/app/movies/$id'
     | '/_authenticated/app/user/$userId'
+    | '/_authenticated/app/watch-party/$code'
     | '/lovable/email/queue/process'
     | '/_authenticated/app/chat/'
     | '/_authenticated/app/movies/'
+    | '/_authenticated/app/watch-party/'
     | '/_authenticated/app/call/group/$groupId'
     | '/_authenticated/app/chat/group/$groupId'
     | '/_authenticated/app/movies/$id/watch'
@@ -685,6 +711,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppAnniversaryRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/watch-party/': {
+      id: '/_authenticated/app/watch-party/'
+      path: '/watch-party'
+      fullPath: '/app/watch-party/'
+      preLoaderRoute: typeof AuthenticatedAppWatchPartyIndexRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/movies/': {
       id: '/_authenticated/app/movies/'
       path: '/'
@@ -705,6 +738,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/lovable/email/queue/process'
       preLoaderRoute: typeof LovableEmailQueueProcessRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/app/watch-party/$code': {
+      id: '/_authenticated/app/watch-party/$code'
+      path: '/watch-party/$code'
+      fullPath: '/app/watch-party/$code'
+      preLoaderRoute: typeof AuthenticatedAppWatchPartyCodeRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/user/$userId': {
       id: '/_authenticated/app/user/$userId'
@@ -831,7 +871,9 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppChatPeerIdRoute: typeof AuthenticatedAppChatPeerIdRoute
   AuthenticatedAppGamesGameRoute: typeof AuthenticatedAppGamesGameRoute
   AuthenticatedAppUserUserIdRoute: typeof AuthenticatedAppUserUserIdRoute
+  AuthenticatedAppWatchPartyCodeRoute: typeof AuthenticatedAppWatchPartyCodeRoute
   AuthenticatedAppChatIndexRoute: typeof AuthenticatedAppChatIndexRoute
+  AuthenticatedAppWatchPartyIndexRoute: typeof AuthenticatedAppWatchPartyIndexRoute
   AuthenticatedAppCallGroupGroupIdRoute: typeof AuthenticatedAppCallGroupGroupIdRoute
   AuthenticatedAppChatGroupGroupIdRoute: typeof AuthenticatedAppChatGroupGroupIdRoute
 }
@@ -862,7 +904,9 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppChatPeerIdRoute: AuthenticatedAppChatPeerIdRoute,
   AuthenticatedAppGamesGameRoute: AuthenticatedAppGamesGameRoute,
   AuthenticatedAppUserUserIdRoute: AuthenticatedAppUserUserIdRoute,
+  AuthenticatedAppWatchPartyCodeRoute: AuthenticatedAppWatchPartyCodeRoute,
   AuthenticatedAppChatIndexRoute: AuthenticatedAppChatIndexRoute,
+  AuthenticatedAppWatchPartyIndexRoute: AuthenticatedAppWatchPartyIndexRoute,
   AuthenticatedAppCallGroupGroupIdRoute: AuthenticatedAppCallGroupGroupIdRoute,
   AuthenticatedAppChatGroupGroupIdRoute: AuthenticatedAppChatGroupGroupIdRoute,
 }
