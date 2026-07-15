@@ -161,17 +161,19 @@ function Call() {
     })();
   }, [peerId]);
 
-  // Duration timer
+  // Duration timer — start the moment SDP is answered (real pickup), not
+  // when ICE fully connects. Over TURN, ICE can take several seconds after
+  // the callee has already picked up.
   useEffect(() => {
-    if (status === "connected" && connectedAtRef.current === null) {
+    if ((answered || status === "connected") && connectedAtRef.current === null) {
       connectedAtRef.current = Date.now();
     }
-    if (status !== "connected") return;
+    if (!answered && status !== "connected") return;
     const id = window.setInterval(() => {
       setDuration(Math.floor((Date.now() - (connectedAtRef.current ?? Date.now())) / 1000));
     }, 500);
     return () => window.clearInterval(id);
-  }, [status]);
+  }, [status, answered]);
 
   // Dial tone for the caller until the call connects (or ends)
   useEffect(() => {
