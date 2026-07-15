@@ -247,6 +247,8 @@ function ConstellationRoute() {
                     <p className="text-[10px] text-white/40">
                       {new Date(s.date).toLocaleDateString([], { dateStyle: "medium" })} ·{" "}
                       <span className="text-[#c9a84c]/70 uppercase tracking-widest">{s.origin}</span>
+                      {s.author && <> · <span className="text-white/60 normal-case tracking-normal">{s.author}</span></>}
+                      {s.isAi && <> · <span className="text-[#c9a84c]/80 uppercase tracking-widest">auto</span></>}
                     </p>
                   </div>
                 </button>
