@@ -245,24 +245,28 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
           if (scrubbing.current) return;
           const v = e.currentTarget;
           setTime(v.currentTime);
-          onEvent?.({ event: "timeupdate", currentTime: v.currentTime, duration: v.duration });
+          onEvent?.({ event: "timeupdate", currentTime: v.currentTime, duration: v.duration, playbackRate: v.playbackRate });
         }}
         onPlay={(e) => {
           setPlaying(true);
           scheduleHide();
-          onEvent?.({ event: "play", currentTime: e.currentTarget.currentTime, duration: e.currentTarget.duration });
+          onEvent?.({ event: "play", currentTime: e.currentTarget.currentTime, duration: e.currentTarget.duration, playbackRate: e.currentTarget.playbackRate });
         }}
         onPause={(e) => {
           setPlaying(false);
           setShowControls(true);
-          onEvent?.({ event: "pause", currentTime: e.currentTarget.currentTime, duration: e.currentTarget.duration });
+          onEvent?.({ event: "pause", currentTime: e.currentTarget.currentTime, duration: e.currentTarget.duration, playbackRate: e.currentTarget.playbackRate });
         }}
         onSeeked={(e) => {
-          onEvent?.({ event: "seeked", currentTime: e.currentTarget.currentTime, duration: e.currentTarget.duration });
+          onEvent?.({ event: "seeked", currentTime: e.currentTarget.currentTime, duration: e.currentTarget.duration, playbackRate: e.currentTarget.playbackRate });
+        }}
+        onRateChange={(e) => {
+          setRate(e.currentTarget.playbackRate);
+          onEvent?.({ event: "ratechange", currentTime: e.currentTarget.currentTime, duration: e.currentTarget.duration, playbackRate: e.currentTarget.playbackRate });
         }}
         onWaiting={() => setBuffering(true)}
         onPlaying={() => setBuffering(false)}
-        onEnded={(e) => onEvent?.({ event: "ended", currentTime: e.currentTarget.currentTime, duration: e.currentTarget.duration })}
+        onEnded={(e) => onEvent?.({ event: "ended", currentTime: e.currentTarget.currentTime, duration: e.currentTarget.duration, playbackRate: e.currentTarget.playbackRate })}
         onClick={locked && playing ? undefined : togglePlay}
       />
 
