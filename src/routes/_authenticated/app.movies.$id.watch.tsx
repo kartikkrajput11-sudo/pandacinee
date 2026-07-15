@@ -477,6 +477,13 @@ function CatalogWatch({ id }: { id: string }) {
     setSourceIdx(peer.sourceIdx);
   }, [partnerIsHost, peer, sourceIdx, allSources.length]);
 
+  // Follower: mirror host's season/episode (TV series only)
+  useEffect(() => {
+    if (!partnerIsHost || !peer || !isTv) return;
+    if (typeof peer.season === "number" && peer.season !== season) setSeason(peer.season);
+    if (typeof peer.episode === "number" && peer.episode !== episode) setEpisode(peer.episode);
+  }, [partnerIsHost, peer, isTv, season, episode]);
+
   // Follower auto-sync: when partner is host, mirror their play/pause/seek
   useEffect(() => {
     if (!peer || !partnerIsHost || !me) return;
