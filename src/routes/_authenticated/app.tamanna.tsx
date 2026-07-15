@@ -17,7 +17,7 @@ import {
 } from "@/lib/admin.functions";
 import { tmdbSearch, tmdbMovie, tmdbTvDetail, tmdbTvSeason, type TmdbMovie } from "@/lib/tmdb.functions";
 
-import { getAdminStats, getRecentActivity, getAdminUsers, deleteAdminUser, type ActivityItem, type AdminUserRow } from "@/lib/admin-stats.functions";
+import { getAdminStats, getRecentActivity, getAdminUsers, deleteAdminUser, adminSendCoins, type ActivityItem, type AdminUserRow } from "@/lib/admin-stats.functions";
 
 export const Route = createFileRoute("/_authenticated/app/tamanna")({
   component: AdminPage,
