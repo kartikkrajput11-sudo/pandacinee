@@ -492,11 +492,9 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
               {fullscreen ? <Minimize2 className="size-4" /> : <Maximize2 className="size-4" />}
             </button>
           </div>
-          </div>
+        </div>
         </div>
       </div>
     </div>
-  );
-}
   );
 }
