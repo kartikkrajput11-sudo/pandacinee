@@ -125,6 +125,9 @@ function UserProfilePage() {
         )}
       </div>
 
+      <AchievementBadges userId={user.id} />
+
+
       {!isMe && (
         <div className="grid grid-cols-3 gap-2 mb-4">
           <Link
