@@ -259,6 +259,7 @@ export type Database = {
           note: string
           occurred_at: string
           partner_id: string
+          source: string
           title: string
           updated_at: string
         }
@@ -270,6 +271,7 @@ export type Database = {
           note?: string
           occurred_at?: string
           partner_id: string
+          source?: string
           title: string
           updated_at?: string
         }
@@ -281,6 +283,7 @@ export type Database = {
           note?: string
           occurred_at?: string
           partner_id?: string
+          source?: string
           title?: string
           updated_at?: string
         }

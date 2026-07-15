@@ -1,0 +1,2 @@
+ALTER TABLE public.constellation_notes ADD COLUMN IF NOT EXISTS source text NOT NULL DEFAULT 'partner' CHECK (source IN ('partner','ai'));
+CREATE INDEX IF NOT EXISTS constellation_notes_couple_source_idx ON public.constellation_notes (author_id, partner_id, source, created_at DESC);

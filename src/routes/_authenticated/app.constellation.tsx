@@ -1,9 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, Plus, Sparkles, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { ArrowLeft, Plus, Sparkles, X, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
+import { autoDetectConstellation } from "@/lib/constellation.functions";
 
 export const Route = createFileRoute("/_authenticated/app/constellation")({
   component: ConstellationRoute,
@@ -16,6 +18,8 @@ type Star = {
   glyph: string;
   date: string; // ISO date
   origin: "paired" | "anniversary" | "memory" | "mood" | "note";
+  author?: string | null; // "You" | partner display name | null (system/AI)
+  isAi?: boolean;
 };
 
 function ConstellationRoute() {
@@ -25,6 +29,10 @@ function ConstellationRoute() {
   const [stars, setStars] = useState<Star[]>([]);
   const [selected, setSelected] = useState<Star | null>(null);
   const [composing, setComposing] = useState(false);
+  const [autoRunning, setAutoRunning] = useState(false);
+  const runAuto = useServerFn(autoDetectConstellation);
+
+
 
   async function load() {
     if (!me) return;
@@ -54,6 +62,8 @@ function ConstellationRoute() {
       });
     }
 
+    const partnerName = partner?.display_name || partner?.username || "Them";
+
     // Memory-jar entries.
     const { data: mems } = await (supabase as any)
       .from("memory_jar")
@@ -68,6 +78,7 @@ function ConstellationRoute() {
         glyph: m.mood && /\p{Emoji}/u.test(m.mood) ? m.mood : "✦",
         date: m.happened_on ?? m.created_at,
         origin: "memory",
+        author: m.author_id === me.id ? "You" : partnerName,
       });
     }
 
@@ -90,16 +101,18 @@ function ConstellationRoute() {
           glyph: m.emoji ?? "✦",
           date: m.date,
           origin: "mood",
+          author: m.user_id === me.id ? "You" : partnerName,
         });
       }
     }
 
-    // Custom notes.
+    // Custom notes (partner-written + AI-detected).
     const { data: notes } = await (supabase as any)
       .from("constellation_notes")
       .select("*")
       .order("occurred_at", { ascending: false });
     for (const n of (notes ?? []) as any[]) {
+      const isAi = n.source === "ai";
       derived.push({
         id: `note-${n.id}`,
         title: n.title,
@@ -107,8 +120,11 @@ function ConstellationRoute() {
         glyph: n.glyph ?? "✦",
         date: n.occurred_at,
         origin: "note",
+        author: isAi ? null : n.author_id === me.id ? "You" : partnerName,
+        isAi,
       });
     }
+
 
     // De-dupe by id, sort by date desc.
     const map = new Map<string, Star>();
@@ -118,6 +134,32 @@ function ConstellationRoute() {
 
   useEffect(() => {
     load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [me?.id, partner?.id]);
+
+  // Auto-detect new stars from recent couple activity, on mount and every 6h.
+  async function triggerAuto(showToast = false) {
+    if (!me || !partner || autoRunning) return;
+    setAutoRunning(true);
+    try {
+      const res = (await runAuto()) as any;
+      if (showToast) {
+        if (res?.inserted > 0) toast.success(`Discovered ${res.inserted} new star${res.inserted > 1 ? "s" : ""}.`);
+        else toast("The sky is quiet — check back later.");
+      }
+      if (res?.inserted > 0) load();
+    } catch {
+      if (showToast) toast.error("Couldn't scan the sky right now.");
+    } finally {
+      setAutoRunning(false);
+    }
+  }
+
+  useEffect(() => {
+    if (!me || !partner) return;
+    triggerAuto(false);
+    const iv = setInterval(() => triggerAuto(false), 6 * 3600_000);
+    return () => clearInterval(iv);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [me?.id, partner?.id]);
 
@@ -151,13 +193,24 @@ function ConstellationRoute() {
             <h1 className="font-serif text-2xl italic text-white">Constellation of Us</h1>
           </div>
           {partner && (
-            <button
-              onClick={() => setComposing(true)}
-              className="size-10 rounded-2xl bg-[#c9a84c] text-[#050716] flex items-center justify-center"
-              aria-label="Pin a star"
-            >
-              <Plus className="size-4" />
-            </button>
+            <>
+              <button
+                onClick={() => triggerAuto(true)}
+                disabled={autoRunning}
+                className="size-10 rounded-2xl border border-[#c9a84c]/40 text-[#c9a84c] flex items-center justify-center disabled:opacity-50"
+                aria-label="Scan the sky"
+                title="Let the app find new stars"
+              >
+                <Wand2 className={`size-4 ${autoRunning ? "animate-pulse" : ""}`} />
+              </button>
+              <button
+                onClick={() => setComposing(true)}
+                className="size-10 rounded-2xl bg-[#c9a84c] text-[#050716] flex items-center justify-center"
+                aria-label="Pin a star"
+              >
+                <Plus className="size-4" />
+              </button>
+            </>
           )}
         </header>
 
@@ -194,6 +247,8 @@ function ConstellationRoute() {
                     <p className="text-[10px] text-white/40">
                       {new Date(s.date).toLocaleDateString([], { dateStyle: "medium" })} ·{" "}
                       <span className="text-[#c9a84c]/70 uppercase tracking-widest">{s.origin}</span>
+                      {s.author && <> · <span className="text-white/60 normal-case tracking-normal">{s.author}</span></>}
+                      {s.isAi && <> · <span className="text-[#c9a84c]/80 uppercase tracking-widest">auto</span></>}
                     </p>
                   </div>
                 </button>
@@ -338,6 +393,17 @@ function StarSheet({ star, onClose }: { star: Star; onClose: () => void }) {
         {star.detail && (
           <p className="text-white/80 text-sm leading-relaxed font-serif italic">{star.detail}</p>
         )}
+        <div className="mt-4 pt-3 border-t border-white/10 flex items-center gap-2 text-[11px]">
+          {star.isAi ? (
+            <span className="inline-flex items-center gap-1 text-[#c9a84c]/90">
+              <Sparkles className="size-3" /> Auto-discovered by the app
+            </span>
+          ) : star.author ? (
+            <span className="text-white/60">Written by <span className="text-white/90">{star.author}</span></span>
+          ) : (
+            <span className="text-white/40">From your shared timeline</span>
+          )}
+        </div>
       </div>
     </div>
   );
