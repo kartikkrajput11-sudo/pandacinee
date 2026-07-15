@@ -230,22 +230,8 @@ function Me() {
                 ))}
               </div>
             </Field>
-            <Field label="Favorite emoji">
-              <div className="flex gap-2 flex-wrap">
-                {EMOJIS.map((e) => (
-                  <button
-                    key={e}
-                    onClick={() => setFavoriteEmoji(e)}
-                    className={`size-10 rounded-2xl border bg-velvet text-xl transition-all ${
-                      favoriteEmoji === e ? "border-petal scale-110" : "border-border"
-                    }`}
-                  >
-                    {e}
-                  </button>
-                ))}
-              </div>
-            </Field>
           </div>
+
 
           <button
             onClick={save}
