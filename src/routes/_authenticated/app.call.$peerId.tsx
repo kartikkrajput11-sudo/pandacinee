@@ -108,22 +108,46 @@ function Call() {
   useEffect(() => {
     if (!remoteStream) return;
     const v = remoteRef.current;
-    if (v && v.srcObject !== remoteStream) {
-      v.srcObject = remoteStream;
-      const p = v.play?.();
-      if (p && typeof (p as Promise<void>).catch === "function") {
-        (p as Promise<void>).catch(() => {});
-      }
-    }
     const a = remoteAudioRef.current;
+
+    // Reliable playback strategy across iOS Safari / Android Chrome:
+    // - In VIDEO calls, play both A/V through the <video> element (unmuted).
+    //   iOS Safari has a long-standing bug where audio routed to a separate
+    //   <audio> tag from a stream that ALSO has a video track goes silent.
+    //   Keep the <audio> element detached in this mode.
+    // - In VOICE calls (no video element rendered), use the <audio> element.
+    if (mode === "video") {
+      if (a) {
+        a.srcObject = null;
+        a.pause?.();
+      }
+      if (v) {
+        if (v.srcObject !== remoteStream) {
+          v.srcObject = remoteStream;
+        } else if (remoteRev > 0) {
+          // Force iOS Safari to re-scan tracks (audio track often arrives
+          // after the initial srcObject attach).
+          v.srcObject = null;
+          v.srcObject = remoteStream;
+        }
+        v.muted = !speakerOn;
+        v.playsInline = true;
+        const p = v.play?.();
+        if (p && typeof (p as Promise<void>).catch === "function") {
+          (p as Promise<void>).then(() => setAudioBlocked(false)).catch((err) => {
+            console.warn("Remote video/audio autoplay blocked", err);
+            if (speakerOn) setAudioBlocked(true);
+          });
+        }
+      }
+      return;
+    }
+
+    // Voice-only mode.
     if (a) {
-      // Safari/iOS don't pick up tracks added to a MediaStream that's already
-      // attached. Re-assign srcObject on every remoteRev bump so a mid-call
-      // audio track is actually rendered.
       if (a.srcObject !== remoteStream) {
         a.srcObject = remoteStream;
       } else if (remoteRev > 0) {
-        // Force the element to re-scan tracks on Safari.
         a.srcObject = null;
         a.srcObject = remoteStream;
       }
@@ -136,13 +160,16 @@ function Call() {
         });
       }
     }
-  }, [remoteStream, remoteRev, speakerOn]);
+  }, [remoteStream, remoteRev, speakerOn, mode]);
 
 
   function enableSound() {
-    if (!remoteAudioRef.current) return;
-    remoteAudioRef.current.muted = false;
-    const p = remoteAudioRef.current.play?.();
+    // Unblock whichever element is actually carrying the remote audio for
+    // this call mode.
+    const el = mode === "video" ? remoteRef.current : remoteAudioRef.current;
+    if (!el) return;
+    el.muted = false;
+    const p = el.play?.();
     if (p && typeof (p as Promise<void>).catch === "function") {
       (p as Promise<void>).then(() => setAudioBlocked(false)).catch(() => {});
     } else {
@@ -214,13 +241,16 @@ function Call() {
     return () => clearTimeout(t);
   }, [status, navigate, role, peerId, mode]);
 
-  // Speaker toggle: mute the dedicated remote audio element. The video
-  // element is always muted (audio comes from the <audio> tag) to avoid
-  // double playback.
+  // Speaker toggle: route mute to whichever element carries the audio.
   useEffect(() => {
-    if (remoteRef.current) remoteRef.current.muted = true;
-    if (remoteAudioRef.current) remoteAudioRef.current.muted = !speakerOn;
-  }, [speakerOn, remoteStream]);
+    if (mode === "video") {
+      if (remoteRef.current) remoteRef.current.muted = !speakerOn;
+      if (remoteAudioRef.current) remoteAudioRef.current.muted = true;
+    } else {
+      if (remoteRef.current) remoteRef.current.muted = true;
+      if (remoteAudioRef.current) remoteAudioRef.current.muted = !speakerOn;
+    }
+  }, [speakerOn, remoteStream, mode]);
 
   const statusLabel = useMemo(() => {
     // Once the SDP answer is exchanged, show the running duration even if
@@ -314,7 +344,6 @@ function Call() {
               ref={remoteRef}
               autoPlay
               playsInline
-              muted
               className="absolute inset-0 w-full h-full object-cover"
             />
             {/* Cinematic overlays on top of the remote video */}
