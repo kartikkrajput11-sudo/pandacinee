@@ -175,13 +175,13 @@ function Call() {
     return () => window.clearInterval(id);
   }, [status, answered]);
 
-  // Dial tone for the caller until the call connects (or ends)
+  // Dial tone for the caller until the call is picked up (or ends)
   useEffect(() => {
     if (role !== "caller") return;
-    if (status === "connected" || status === "ended" || status === "error") return;
+    if (answered || status === "connected" || status === "ended" || status === "error") return;
     const handle = playDialTone();
     return () => handle.stop();
-  }, [role, status]);
+  }, [role, status, answered]);
 
 
   const loggedRef = useRef(false);
