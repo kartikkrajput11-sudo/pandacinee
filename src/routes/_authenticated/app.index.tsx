@@ -7,7 +7,7 @@ import { DailyQuestionCard } from "@/components/DailyQuestionCard";
 import { PartnerPresenceCard } from "@/components/PartnerPresenceCard";
 import { QuickActions } from "@/components/QuickActions";
 import { MemoryOfTheDayCard } from "@/components/MemoryOfTheDayCard";
-import { Heart, ArrowRight, Users, LineChart, Clapperboard, BookHeart, Gift } from "lucide-react";
+import { Heart, ArrowRight, Users, LineChart, Clapperboard, BookHeart, Gift, Feather, Sparkles, Stars, Flame } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/app/")({
   component: Home,
@@ -129,6 +129,21 @@ function Home() {
         <MemoryOfTheDayCard />
       </div>
 
+      {/* Section: Signature — luxury features for two */}
+      {partner && (
+        <section className="relative z-10">
+          <p className="text-[10px] uppercase tracking-[0.22em] text-candle-muted mb-3 px-1 flex items-center gap-2">
+            <span className="text-petal">✦</span> Signature
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            <SignatureTile to="/app/letters" Icon={Feather} label="Love Letters" caption="Seal now, open later" swatch="from-[#c9a84c]/40 to-[#f0d78c]/10" />
+            <SignatureTile to="/app/rituals" Icon={Flame} label="Rituals" caption="Nightly, synced" swatch="from-[#c96b7a]/40 to-[#f0c0cc]/10" />
+            <SignatureTile to="/app/constellation" Icon={Stars} label="Constellation" caption="Your night sky" swatch="from-[#5cbdb9]/40 to-[#0d7a5f]/10" />
+            <SignatureTile to="/app/concierge" Icon={Sparkles} label="Concierge" caption="AI ideas, tuned" swatch="from-[#f0d78c]/40 to-[#c9a84c]/10" />
+          </div>
+        </section>
+      )}
+
       {/* Section: Together */}
       <section className="relative z-10">
         <p className="text-[10px] uppercase tracking-[0.22em] text-candle-muted mb-3 px-1">Together</p>
@@ -212,4 +227,34 @@ function useGreeting() {
   if (h < 17) return "Good afternoon";
   if (h < 22) return "Good evening";
   return "Late night";
+}
+
+function SignatureTile({
+  to,
+  Icon,
+  label,
+  caption,
+  swatch,
+}: {
+  to: string;
+  Icon: typeof Heart;
+  label: string;
+  caption: string;
+  swatch: string;
+}) {
+  return (
+    <Link
+      to={to as any}
+      className="group relative aspect-[1.1] p-4 rounded-2xl overflow-hidden bg-velvet border border-petal/20 hover:-translate-y-0.5 transition-transform"
+    >
+      <div className={`absolute inset-0 bg-gradient-to-br ${swatch} opacity-70 pointer-events-none`} />
+      <div className="relative z-10 h-full flex flex-col">
+        <Icon className="size-5 text-candle" />
+        <div className="mt-auto">
+          <p className="text-[10px] uppercase tracking-widest text-candle-muted">{caption}</p>
+          <p className="font-serif italic text-lg text-candle mt-0.5 leading-tight">{label}</p>
+        </div>
+      </div>
+    </Link>
+  );
 }

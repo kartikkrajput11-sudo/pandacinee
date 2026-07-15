@@ -208,6 +208,84 @@ export type Database = {
         }
         Relationships: []
       }
+      concierge_suggestions: {
+        Row: {
+          author_id: string
+          body: string
+          created_at: string
+          dismissed: boolean
+          id: string
+          kind: string
+          meta: Json
+          partner_id: string
+          saved: boolean
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author_id: string
+          body?: string
+          created_at?: string
+          dismissed?: boolean
+          id?: string
+          kind: string
+          meta?: Json
+          partner_id: string
+          saved?: boolean
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          body?: string
+          created_at?: string
+          dismissed?: boolean
+          id?: string
+          kind?: string
+          meta?: Json
+          partner_id?: string
+          saved?: boolean
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      constellation_notes: {
+        Row: {
+          author_id: string
+          created_at: string
+          glyph: string
+          id: string
+          note: string
+          occurred_at: string
+          partner_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author_id: string
+          created_at?: string
+          glyph?: string
+          id?: string
+          note?: string
+          occurred_at?: string
+          partner_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          created_at?: string
+          glyph?: string
+          id?: string
+          note?: string
+          occurred_at?: string
+          partner_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       custom_episodes: {
         Row: {
           created_at: string
@@ -551,6 +629,48 @@ export type Database = {
           partner_id?: string
           state?: Json
           updated_at?: string
+        }
+        Relationships: []
+      }
+      love_letters: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          opened_at: string | null
+          recipient_id: string
+          sender_id: string
+          theme: string
+          title: string
+          unlock_at: string
+          updated_at: string
+          voice_url: string | null
+        }
+        Insert: {
+          body?: string
+          created_at?: string
+          id?: string
+          opened_at?: string | null
+          recipient_id: string
+          sender_id: string
+          theme?: string
+          title?: string
+          unlock_at?: string
+          updated_at?: string
+          voice_url?: string | null
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          opened_at?: string | null
+          recipient_id?: string
+          sender_id?: string
+          theme?: string
+          title?: string
+          unlock_at?: string
+          updated_at?: string
+          voice_url?: string | null
         }
         Relationships: []
       }
@@ -979,6 +1099,42 @@ export type Database = {
           },
         ]
       }
+      rituals: {
+        Row: {
+          ended_at: string | null
+          host_id: string
+          id: string
+          kind: string
+          partner_id: string
+          started_at: string
+          state: Json
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          ended_at?: string | null
+          host_id: string
+          id?: string
+          kind: string
+          partner_id: string
+          started_at?: string
+          state?: Json
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          ended_at?: string | null
+          host_id?: string
+          id?: string
+          kind?: string
+          partner_id?: string
+          started_at?: string
+          state?: Json
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       scribble_stats: {
         Row: {
           correct_guesses: number
@@ -1355,6 +1511,28 @@ export type Database = {
           source_queue: string
         }
         Returns: number
+      }
+      open_love_letter: {
+        Args: { _id: string }
+        Returns: {
+          body: string
+          created_at: string
+          id: string
+          opened_at: string | null
+          recipient_id: string
+          sender_id: string
+          theme: string
+          title: string
+          unlock_at: string
+          updated_at: string
+          voice_url: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "love_letters"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       pair_with_invite_code: {
         Args: { _code: string }
