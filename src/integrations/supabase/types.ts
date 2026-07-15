@@ -14,32 +14,143 @@ export type Database = {
   }
   public: {
     Tables: {
-      call_signals: {
+      call_participants: {
         Row: {
+          call_id: string
           created_at: string
-          from_id: string
+          device_id: string | null
           id: string
-          kind: string
-          payload: Json | null
-          to_id: string
+          joined_at: string | null
+          left_at: string | null
+          state: Database["public"]["Enums"]["call_participant_state"]
+          user_id: string
         }
         Insert: {
+          call_id: string
           created_at?: string
-          from_id: string
+          device_id?: string | null
           id?: string
-          kind: string
-          payload?: Json | null
-          to_id: string
+          joined_at?: string | null
+          left_at?: string | null
+          state?: Database["public"]["Enums"]["call_participant_state"]
+          user_id: string
         }
         Update: {
+          call_id?: string
           created_at?: string
-          from_id?: string
+          device_id?: string | null
           id?: string
-          kind?: string
-          payload?: Json | null
-          to_id?: string
+          joined_at?: string | null
+          left_at?: string | null
+          state?: Database["public"]["Enums"]["call_participant_state"]
+          user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "call_participants_call_id_fkey"
+            columns: ["call_id"]
+            isOneToOne: false
+            referencedRelation: "calls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      call_signals: {
+        Row: {
+          call_id: string
+          created_at: string
+          from_device: string
+          from_user: string
+          id: string
+          kind: Database["public"]["Enums"]["call_signal_kind"]
+          payload: Json | null
+          to_device: string
+          to_user: string
+        }
+        Insert: {
+          call_id: string
+          created_at?: string
+          from_device: string
+          from_user: string
+          id?: string
+          kind: Database["public"]["Enums"]["call_signal_kind"]
+          payload?: Json | null
+          to_device: string
+          to_user: string
+        }
+        Update: {
+          call_id?: string
+          created_at?: string
+          from_device?: string
+          from_user?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["call_signal_kind"]
+          payload?: Json | null
+          to_device?: string
+          to_user?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "call_signals_call_id_fkey"
+            columns: ["call_id"]
+            isOneToOne: false
+            referencedRelation: "calls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      calls: {
+        Row: {
+          answered_at: string | null
+          duration_seconds: number | null
+          ended_at: string | null
+          ended_reason: string | null
+          group_id: string | null
+          id: string
+          initiator_id: string
+          kind: Database["public"]["Enums"]["call_kind"]
+          peer_id: string | null
+          scope: Database["public"]["Enums"]["call_scope"]
+          started_at: string
+          status: Database["public"]["Enums"]["call_status"]
+        }
+        Insert: {
+          answered_at?: string | null
+          duration_seconds?: number | null
+          ended_at?: string | null
+          ended_reason?: string | null
+          group_id?: string | null
+          id?: string
+          initiator_id: string
+          kind: Database["public"]["Enums"]["call_kind"]
+          peer_id?: string | null
+          scope: Database["public"]["Enums"]["call_scope"]
+          started_at?: string
+          status?: Database["public"]["Enums"]["call_status"]
+        }
+        Update: {
+          answered_at?: string | null
+          duration_seconds?: number | null
+          ended_at?: string | null
+          ended_reason?: string | null
+          group_id?: string | null
+          id?: string
+          initiator_id?: string
+          kind?: Database["public"]["Enums"]["call_kind"]
+          peer_id?: string | null
+          scope?: Database["public"]["Enums"]["call_scope"]
+          started_at?: string
+          status?: Database["public"]["Enums"]["call_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calls_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "chat_groups"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       chat_group_members: {
         Row: {
@@ -1065,6 +1176,85 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      call_answer: {
+        Args: { _call_id: string; _device_id: string }
+        Returns: {
+          answered_at: string | null
+          duration_seconds: number | null
+          ended_at: string | null
+          ended_reason: string | null
+          group_id: string | null
+          id: string
+          initiator_id: string
+          kind: Database["public"]["Enums"]["call_kind"]
+          peer_id: string | null
+          scope: Database["public"]["Enums"]["call_scope"]
+          started_at: string
+          status: Database["public"]["Enums"]["call_status"]
+        }
+        SetofOptions: {
+          from: "*"
+          to: "calls"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      call_decline: { Args: { _call_id: string }; Returns: undefined }
+      call_end: {
+        Args: { _call_id: string; _reason?: string }
+        Returns: undefined
+      }
+      call_leave: { Args: { _call_id: string }; Returns: undefined }
+      call_start_direct: {
+        Args: { _kind: Database["public"]["Enums"]["call_kind"]; _peer: string }
+        Returns: {
+          answered_at: string | null
+          duration_seconds: number | null
+          ended_at: string | null
+          ended_reason: string | null
+          group_id: string | null
+          id: string
+          initiator_id: string
+          kind: Database["public"]["Enums"]["call_kind"]
+          peer_id: string | null
+          scope: Database["public"]["Enums"]["call_scope"]
+          started_at: string
+          status: Database["public"]["Enums"]["call_status"]
+        }
+        SetofOptions: {
+          from: "*"
+          to: "calls"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      call_start_group: {
+        Args: {
+          _group_id: string
+          _kind: Database["public"]["Enums"]["call_kind"]
+        }
+        Returns: {
+          answered_at: string | null
+          duration_seconds: number | null
+          ended_at: string | null
+          ended_reason: string | null
+          group_id: string | null
+          id: string
+          initiator_id: string
+          kind: Database["public"]["Enums"]["call_kind"]
+          peer_id: string | null
+          scope: Database["public"]["Enums"]["call_scope"]
+          started_at: string
+          status: Database["public"]["Enums"]["call_status"]
+        }
+        SetofOptions: {
+          from: "*"
+          to: "calls"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      call_timeout: { Args: { _call_id: string }; Returns: undefined }
       chat_group_messages: {
         Args: { _before?: string; _group_id: string; _limit?: number }
         Returns: {
@@ -1144,6 +1334,10 @@ export type Database = {
       }
       is_accepted_friend: { Args: { _other: string }; Returns: boolean }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_call_participant: {
+        Args: { _call_id: string; _uid: string }
+        Returns: boolean
+      }
       is_group_admin: { Args: { _gid: string; _uid: string }; Returns: boolean }
       is_group_member: {
         Args: { _gid: string; _uid: string }
@@ -1200,6 +1394,7 @@ export type Database = {
         }
       }
       purge_expired_messages: { Args: never; Returns: undefined }
+      purge_stale_call_signals: { Args: never; Returns: undefined }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
         Returns: {
@@ -1224,6 +1419,16 @@ export type Database = {
       unpair_partner: { Args: never; Returns: undefined }
     }
     Enums: {
+      call_kind: "voice" | "video"
+      call_participant_state:
+        | "ringing"
+        | "joined"
+        | "declined"
+        | "left"
+        | "missed"
+      call_scope: "direct" | "group"
+      call_signal_kind: "offer" | "answer" | "ice" | "bye"
+      call_status: "ringing" | "active" | "ended" | "missed"
       punishment_status: "active" | "completed" | "cancelled" | "expired"
       punishment_type:
         | "write"
@@ -1364,6 +1569,17 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      call_kind: ["voice", "video"],
+      call_participant_state: [
+        "ringing",
+        "joined",
+        "declined",
+        "left",
+        "missed",
+      ],
+      call_scope: ["direct", "group"],
+      call_signal_kind: ["offer", "answer", "ice", "bye"],
+      call_status: ["ringing", "active", "ended", "missed"],
       punishment_status: ["active", "completed", "cancelled", "expired"],
       punishment_type: [
         "write",
