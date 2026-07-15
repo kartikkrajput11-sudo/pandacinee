@@ -107,10 +107,6 @@ function Call() {
   }, [localStream]);
   useEffect(() => {
     if (!remoteStream) return;
-    // Attach srcObject ONCE per stream identity. New tracks added to the same
-    // MediaStream propagate to the element automatically — re-assigning
-    // srcObject mid-call aborts the current playback ("play() interrupted by
-    // a new load request") and produces audible glitches / lag spikes.
     const v = remoteRef.current;
     if (v && v.srcObject !== remoteStream) {
       v.srcObject = remoteStream;
@@ -120,15 +116,18 @@ function Call() {
       }
     }
     const a = remoteAudioRef.current;
-    if (a && a.srcObject !== remoteStream) {
-      a.srcObject = remoteStream;
-    }
     if (a) {
+      // Safari/iOS don't pick up tracks added to a MediaStream that's already
+      // attached. Re-assign srcObject on every remoteRev bump so a mid-call
+      // audio track is actually rendered.
+      if (a.srcObject !== remoteStream) {
+        a.srcObject = remoteStream;
+      } else if (remoteRev > 0) {
+        // Force the element to re-scan tracks on Safari.
+        a.srcObject = null;
+        a.srcObject = remoteStream;
+      }
       a.muted = !speakerOn;
-      // Kick playback every time a new track arrives (remoteRev bumps on
-      // ontrack). Without this, if the audio track lands AFTER the initial
-      // srcObject attach, the element stays silent because .play() was only
-      // called during the first attach when the stream had no audio yet.
       const p = a.play?.();
       if (p && typeof (p as Promise<void>).catch === "function") {
         (p as Promise<void>).then(() => setAudioBlocked(false)).catch((err) => {
