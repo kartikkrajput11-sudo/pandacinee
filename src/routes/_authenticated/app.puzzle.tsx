@@ -123,6 +123,7 @@ function PuzzleTogether() {
   useEffect(() => {
     if (slots.length && slots.every((v, i) => v === i) && !solved) {
       setSolved(true);
+      gameSfx.complete();
       const t = Math.floor((Date.now() - startedAt) / 1000);
       setBestTimes((prev) => {
         const cur = prev[total];
