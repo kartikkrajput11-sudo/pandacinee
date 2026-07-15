@@ -21,6 +21,7 @@ export type CustomPlayerHandle = {
   isPaused: () => boolean;
   setMuted: (m: boolean) => void;
   isMuted: () => boolean;
+  setPlaybackRate: (r: number) => void;
 };
 
 type Props = {
@@ -28,13 +29,16 @@ type Props = {
   poster?: string | null;
   startAt?: number;
   onEvent?: (evt: {
-    event: "play" | "pause" | "seeked" | "timeupdate" | "ended";
+    event: "play" | "pause" | "seeked" | "timeupdate" | "ended" | "ratechange";
     currentTime: number;
     duration: number;
+    playbackRate: number;
   }) => void;
   onReady?: (handle: CustomPlayerHandle) => void;
   /** When true, only host controls playback: viewer cannot play/pause/seek/skip. */
   locked?: boolean;
+  /** Called when a locked viewer attempts a restricted action. */
+  onLockedAttempt?: () => void;
 };
 
 function fmt(sec: number): string {
@@ -49,7 +53,7 @@ function fmt(sec: number): string {
 
 const RATES = [0.5, 0.75, 1, 1.25, 1.5, 2];
 
-export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, locked = false }: Props) {
+export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, locked = false, onLockedAttempt }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const onReadyRef = useRef(onReady);
@@ -116,6 +120,7 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
       isPaused: () => v.paused,
       setMuted: (m: boolean) => { v.muted = m; setMuted(m); },
       isMuted: () => v.muted,
+      setPlaybackRate: (r: number) => { try { v.playbackRate = r; setRate(r); } catch {} },
     });
   }, [src]);
 
@@ -156,37 +161,38 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
       if (e.target instanceof HTMLInputElement) return;
       if (e.key === " " || e.key === "k") {
         e.preventDefault();
-        // In locked (follower) mode, allow only play — pause/seek stay host-controlled
-        if (locked && !v.paused) return;
+        if (locked && !v.paused) { onLockedAttempt?.(); return; }
+        if (locked && v.paused) { v.play().catch(() => {}); return; }
         v.paused ? v.play() : v.pause();
       } else if (e.key === "ArrowRight") {
-        if (locked) return;
+        if (locked) { e.preventDefault(); onLockedAttempt?.(); return; }
         v.currentTime = Math.min(v.duration || 0, v.currentTime + 10);
       } else if (e.key === "ArrowLeft") {
-        if (locked) return;
+        if (locked) { e.preventDefault(); onLockedAttempt?.(); return; }
         v.currentTime = Math.max(0, v.currentTime - 10);
       } else if (e.key === "f") {
         toggleFullscreen();
       } else if (e.key === "m") {
         v.muted = !v.muted;
+      } else if (e.key === "j" || e.key === "l") {
+        if (locked) { e.preventDefault(); onLockedAttempt?.(); return; }
+        v.currentTime = Math.max(0, Math.min(v.duration || 0, v.currentTime + (e.key === "l" ? 10 : -10)));
       }
       scheduleHide();
     };
     el.addEventListener("keydown", onKey);
     return () => el.removeEventListener("keydown", onKey);
-  }, [scheduleHide, locked]);
+  }, [scheduleHide, locked, onLockedAttempt]);
 
   function togglePlay() {
     const v = videoRef.current;
     if (!v) return;
-    // Followers can press play (to satisfy browser autoplay + join playback),
-    // but cannot pause — host controls pausing.
-    if (locked && !v.paused) return;
+    if (locked && !v.paused) { onLockedAttempt?.(); return; }
     v.paused ? v.play().catch(() => {}) : v.pause();
   }
 
   function skip(delta: number) {
-    if (locked) return;
+    if (locked) { onLockedAttempt?.(); return; }
     const v = videoRef.current;
     if (!v) return;
     v.currentTime = Math.max(0, Math.min(v.duration || 0, v.currentTime + delta));
@@ -209,7 +215,7 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
   }
 
   function onScrub(e: React.ChangeEvent<HTMLInputElement>) {
-    if (locked) return;
+    if (locked) { onLockedAttempt?.(); return; }
     const v = videoRef.current;
     if (!v || !duration) return;
     const t = (Number(e.target.value) / 1000) * duration;
@@ -240,24 +246,28 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
           if (scrubbing.current) return;
           const v = e.currentTarget;
           setTime(v.currentTime);
-          onEvent?.({ event: "timeupdate", currentTime: v.currentTime, duration: v.duration });
+          onEvent?.({ event: "timeupdate", currentTime: v.currentTime, duration: v.duration, playbackRate: v.playbackRate });
         }}
         onPlay={(e) => {
           setPlaying(true);
           scheduleHide();
-          onEvent?.({ event: "play", currentTime: e.currentTarget.currentTime, duration: e.currentTarget.duration });
+          onEvent?.({ event: "play", currentTime: e.currentTarget.currentTime, duration: e.currentTarget.duration, playbackRate: e.currentTarget.playbackRate });
         }}
         onPause={(e) => {
           setPlaying(false);
           setShowControls(true);
-          onEvent?.({ event: "pause", currentTime: e.currentTarget.currentTime, duration: e.currentTarget.duration });
+          onEvent?.({ event: "pause", currentTime: e.currentTarget.currentTime, duration: e.currentTarget.duration, playbackRate: e.currentTarget.playbackRate });
         }}
         onSeeked={(e) => {
-          onEvent?.({ event: "seeked", currentTime: e.currentTarget.currentTime, duration: e.currentTarget.duration });
+          onEvent?.({ event: "seeked", currentTime: e.currentTarget.currentTime, duration: e.currentTarget.duration, playbackRate: e.currentTarget.playbackRate });
+        }}
+        onRateChange={(e) => {
+          setRate(e.currentTarget.playbackRate);
+          onEvent?.({ event: "ratechange", currentTime: e.currentTarget.currentTime, duration: e.currentTarget.duration, playbackRate: e.currentTarget.playbackRate });
         }}
         onWaiting={() => setBuffering(true)}
         onPlaying={() => setBuffering(false)}
-        onEnded={(e) => onEvent?.({ event: "ended", currentTime: e.currentTarget.currentTime, duration: e.currentTarget.duration })}
+        onEnded={(e) => onEvent?.({ event: "ended", currentTime: e.currentTarget.currentTime, duration: e.currentTarget.duration, playbackRate: e.currentTarget.playbackRate })}
         onClick={locked && playing ? undefined : togglePlay}
       />
 
@@ -390,35 +400,37 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
               {fmt(time)} / {fmt(duration)}
             </span>
 
-            <div className="relative">
-              <button
-                onClick={() => setRateOpen((o) => !o)}
-                className="h-9 px-3 rounded-full bg-white/10 hover:bg-white/20 flex items-center gap-1"
-                aria-label="Playback speed"
-              >
-                <Gauge className="size-3.5" />
-                <span>{rate}x</span>
-              </button>
-              {rateOpen && (
-                <div className="absolute right-0 bottom-11 bg-black/90 border border-white/10 rounded-2xl p-1.5 flex flex-col gap-0.5 min-w-[80px]">
-                  {RATES.map((r) => (
-                    <button
-                      key={r}
-                      onClick={() => {
-                        const v = videoRef.current;
-                        if (!v) return;
-                        v.playbackRate = r;
-                        setRate(r);
-                        setRateOpen(false);
-                      }}
-                      className={`px-2 py-1 rounded-lg text-left text-xs hover:bg-white/10 ${r === rate ? "text-petal" : "text-white"}`}
-                    >
-                      {r}x
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+            {!locked && (
+              <div className="relative">
+                <button
+                  onClick={() => setRateOpen((o) => !o)}
+                  className="h-9 px-3 rounded-full bg-white/10 hover:bg-white/20 flex items-center gap-1"
+                  aria-label="Playback speed"
+                >
+                  <Gauge className="size-3.5" />
+                  <span>{rate}x</span>
+                </button>
+                {rateOpen && (
+                  <div className="absolute right-0 bottom-11 bg-black/90 border border-white/10 rounded-2xl p-1.5 flex flex-col gap-0.5 min-w-[80px]">
+                    {RATES.map((r) => (
+                      <button
+                        key={r}
+                        onClick={() => {
+                          const v = videoRef.current;
+                          if (!v) return;
+                          v.playbackRate = r;
+                          setRate(r);
+                          setRateOpen(false);
+                        }}
+                        className={`px-2 py-1 rounded-lg text-left text-xs hover:bg-white/10 ${r === rate ? "text-petal" : "text-white"}`}
+                      >
+                        {r}x
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
 
             <button onClick={togglePip} aria-label="Picture-in-picture" className="hidden sm:flex size-9 rounded-full bg-white/10 hover:bg-white/20 items-center justify-center">
               <PictureInPicture2 className="size-4" />

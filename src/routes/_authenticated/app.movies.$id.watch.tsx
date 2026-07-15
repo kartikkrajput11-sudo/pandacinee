@@ -477,33 +477,36 @@ function CatalogWatch({ id }: { id: string }) {
     setSourceIdx(peer.sourceIdx);
   }, [partnerIsHost, peer, sourceIdx, allSources.length]);
 
+  // Follower: mirror host's season/episode (TV series only)
+  useEffect(() => {
+    if (!partnerIsHost || !peer || !isTv) return;
+    if (typeof peer.season === "number" && peer.season !== season) setSeason(peer.season);
+    if (typeof peer.episode === "number" && peer.episode !== episode) setEpisode(peer.episode);
+  }, [partnerIsHost, peer, isTv, season, episode]);
+
   // Follower auto-sync: when partner is host, mirror their play/pause/seek
   useEffect(() => {
     if (!peer || !partnerIsHost || !me) return;
     if (peer.updatedAt <= lastAppliedPeerEventRef.current) return;
     const evt = peer.event;
     // Only react to discrete transport events
-    if (evt !== "play" && evt !== "pause" && evt !== "seeked" && evt !== "timeupdate") return;
-    // For timeupdate, only re-sync if drift is significant. Pandacine (our own
-    // <video>) can be nudged smoothly, so use a tighter threshold there.
+    if (evt !== "play" && evt !== "pause" && evt !== "seeked" && evt !== "timeupdate" && evt !== "ratechange") return;
+
+    // Tight sync on Pandacine (<video>): use 150/700 ms thresholds w/ rate ramp.
+    // For third-party iframes we can't nudge, so keep coarse thresholds.
     if (evt === "timeupdate") {
       const d = Math.abs(mine.currentTime - peer.currentTime);
-      const threshold = isPandacine ? 2 : 6;
-      if (d < threshold) return;
+      if (isPandacine) {
+        if (d < 0.15) return; // in-sync
+        // medium/large drift handled below via player handle
+      } else {
+        if (d < 6) return;
+      }
     }
     lastAppliedPeerEventRef.current = peer.updatedAt;
 
-    // Follower hasn't tapped "Raise the curtain" yet. Browsers block
-    // cross-origin autoplay-with-sound, but they DO allow muted autoplay,
-    // so when the host presses play we auto-open the player muted and jump
-    // to the host's timestamp. The viewer just taps 🔊 to unmute.
     if (!started) {
       if (evt === "pause") return;
-      // For Pandacine (our own <video>), we can force muted autoplay so
-      // playback truly starts together with the host. For third-party
-      // iframes (VidKing, etc.) we cannot inject muted, and browsers block
-      // autoplay-with-sound on a fresh load — so leave the big "Join"
-      // button visible; the pulsing CTA below makes it obvious.
       if (!isPandacine) {
         setStartAt(peer.currentTime);
         return;
@@ -517,13 +520,34 @@ function CatalogWatch({ id }: { id: string }) {
       return;
     }
 
-
-    // Pandacine (our own server): control the <video> directly through the
-    // player handle so the follower keeps watching without a full remount.
+    // Pandacine tight sync: control the <video> via handle.
     if (isPandacine && customPlayerRef.current) {
       const h = customPlayerRef.current;
+      const drift = h.currentTime() - peer.currentTime; // positive => ahead
+      const abs = Math.abs(drift);
       runSuppressedPlayerAction(() => {
-        if (Math.abs(h.currentTime() - peer.currentTime) > 1.5) h.seek(peer.currentTime);
+        // Rate sync (always — cheap)
+        if (typeof peer.playbackRate === "number" && peer.playbackRate > 0) {
+          h.setPlaybackRate(peer.playbackRate);
+        }
+        if (evt === "seeked" || abs > 0.7) {
+          h.seek(peer.currentTime);
+          // Restore intended rate after seek
+          if (typeof peer.playbackRate === "number") h.setPlaybackRate(peer.playbackRate);
+        } else if (abs > 0.15) {
+          // Gradual rate correction: ±5% for ~1s per 150ms of drift
+          const baseRate = peer.playbackRate ?? 1;
+          const correction = drift > 0 ? -0.05 : 0.05;
+          h.setPlaybackRate(Math.max(0.25, baseRate + correction));
+          window.setTimeout(() => {
+            const cur = customPlayerRef.current;
+            if (cur) {
+              suppressPlayerEventRef.current = true;
+              cur.setPlaybackRate(baseRate);
+              window.setTimeout(() => { suppressPlayerEventRef.current = false; }, 100);
+            }
+          }, 1000);
+        }
         if (evt === "pause") h.pause();
         if (evt === "play") h.play();
       });
@@ -535,7 +559,7 @@ function CatalogWatch({ id }: { id: string }) {
     if (evt === "pause") {
       applySeek(peer.currentTime, { pause: true });
       toast.info(`${partner?.display_name.split(" ")[0]} paused`);
-    } else {
+    } else if (evt === "play" || evt === "seeked") {
       applySeek(peer.currentTime, { pause: false });
       if (evt === "seeked") toast.info(`${partner?.display_name.split(" ")[0]} skipped`);
     }
@@ -929,6 +953,9 @@ function CatalogWatch({ id }: { id: string }) {
                   poster={backdropUrl}
                   startAt={startAt}
                   locked={!!hostId && !iAmHost}
+                  onLockedAttempt={() => {
+                    toast.info("Playback is controlled by your partner.", { id: "locked-attempt", duration: 1800 });
+                  }}
                   onReady={(h) => {
                     customPlayerRef.current = h;
                     setCustomPlayerReady((n) => n + 1);
@@ -937,12 +964,21 @@ function CatalogWatch({ id }: { id: string }) {
                   onEvent={(evt) => {
                     if (suppressPlayerEventRef.current) return;
                     const now = Date.now();
-                    const isDiscrete = evt.event === "play" || evt.event === "pause" || evt.event === "seeked" || evt.event === "ended";
+                    const isDiscrete = evt.event === "play" || evt.event === "pause" || evt.event === "seeked" || evt.event === "ended" || evt.event === "ratechange";
                     if (isDiscrete && partner && !hostId) claimHost();
                     if (partnerIsHost && isDiscrete) return;
-                    if (isDiscrete || now - lastPublishRef.current > 2000) {
+                    // Tighter publish cadence for Pandacine host so followers stay ±100ms.
+                    if (isDiscrete || now - lastPublishRef.current > 500) {
                       lastPublishRef.current = now;
-                      publish({ event: evt.event, currentTime: evt.currentTime, duration: evt.duration, sourceIdx });
+                      publish({
+                        event: evt.event,
+                        currentTime: evt.currentTime,
+                        duration: evt.duration,
+                        sourceIdx,
+                        playbackRate: evt.playbackRate,
+                        season: isTv ? season : null,
+                        episode: isTv ? episode : null,
+                      });
                     }
                   }}
                 />
@@ -1666,26 +1702,46 @@ function CustomWatch({ customId }: { customId: string }) {
     clearIncomingSeek();
   }, [incomingSeek, clearIncomingSeek, playerReady, runSuppressed]);
 
-  // Follower: mirror host's discrete events + drift correction
+  // Follower: mirror host's discrete events + tight drift correction (PandaCine).
   useEffect(() => {
     if (!peer || !partnerIsHost) return;
     if (peer.updatedAt <= lastAppliedPeerEventRef.current) return;
     const h = handleRef.current;
     if (!h) return;
     const evt = peer.event;
-    if (evt !== "play" && evt !== "pause" && evt !== "seeked" && evt !== "timeupdate") return;
+    if (evt !== "play" && evt !== "pause" && evt !== "seeked" && evt !== "timeupdate" && evt !== "ratechange") return;
+
+    const applyRate = () => {
+      if (typeof peer.playbackRate === "number" && peer.playbackRate > 0) {
+        h.setPlaybackRate(peer.playbackRate);
+      }
+    };
 
     if (evt === "timeupdate") {
-      const d = Math.abs(h.currentTime() - peer.currentTime);
-      if (d < 2) return; // native drift is tight
+      const drift = h.currentTime() - peer.currentTime;
+      const abs = Math.abs(drift);
+      if (abs < 0.15) return;
       lastAppliedPeerEventRef.current = peer.updatedAt;
-      runSuppressed(() => h.seek(peer.currentTime), 300);
+      runSuppressed(() => {
+        applyRate();
+        if (abs > 0.7) {
+          h.seek(peer.currentTime);
+        } else {
+          const baseRate = peer.playbackRate ?? 1;
+          const correction = drift > 0 ? -0.05 : 0.05;
+          h.setPlaybackRate(Math.max(0.25, baseRate + correction));
+          window.setTimeout(() => {
+            handleRef.current?.setPlaybackRate(baseRate);
+          }, 1000);
+        }
+      }, 300);
       return;
     }
 
     lastAppliedPeerEventRef.current = peer.updatedAt;
     runSuppressed(() => {
-      if (Math.abs(h.currentTime() - peer.currentTime) > 0.8) h.seek(peer.currentTime);
+      applyRate();
+      if (Math.abs(h.currentTime() - peer.currentTime) > 0.15) h.seek(peer.currentTime);
       if (evt === "play") h.play();
       if (evt === "pause") h.pause();
     });
@@ -1716,17 +1772,18 @@ function CustomWatch({ customId }: { customId: string }) {
   const inSync = driftAbs != null && driftAbs < 2;
 
   function handleEvent(evt: {
-    event: "play" | "pause" | "seeked" | "timeupdate" | "ended";
+    event: "play" | "pause" | "seeked" | "timeupdate" | "ended" | "ratechange";
     currentTime: number;
     duration: number;
+    playbackRate: number;
   }) {
     if (suppressRef.current) return;
-    const isDiscrete = evt.event === "play" || evt.event === "pause" || evt.event === "seeked" || evt.event === "ended";
+    const isDiscrete = evt.event === "play" || evt.event === "pause" || evt.event === "seeked" || evt.event === "ended" || evt.event === "ratechange";
     if (isDiscrete && partner && !hostId) claimHost();
     if (partnerIsHost && isDiscrete) return;
-    if (!isDiscrete && Date.now() - lastPublishRef.current < 1500) return;
+    if (!isDiscrete && Date.now() - lastPublishRef.current < 500) return;
     lastPublishRef.current = Date.now();
-    publish({ event: evt.event, currentTime: evt.currentTime, duration: evt.duration, sourceIdx: 0 });
+    publish({ event: evt.event, currentTime: evt.currentTime, duration: evt.duration, sourceIdx: 0, playbackRate: evt.playbackRate });
   }
 
   const syncToPartner = () => {
@@ -1785,6 +1842,9 @@ function CustomWatch({ customId }: { customId: string }) {
               src={videoSrc}
               poster={movie?.backdrop_url ?? movie?.poster_url ?? null}
               locked={!!hostId && !iAmHost}
+              onLockedAttempt={() => {
+                toast.info("Playback is controlled by your partner.", { id: "locked-attempt", duration: 1800 });
+              }}
               onReady={handlePlayerReady}
               onEvent={handleEvent}
             />
