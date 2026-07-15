@@ -1335,11 +1335,13 @@ function TwoTruthsLie({ me, session, patch }: { me: string; session: Session; pa
 
   function guess(i: number) {
     if (myGuess !== undefined || !card) return;
+    gameSfx.pick();
     patch({ ...s, guesses: { ...s.guesses, [me]: i } });
   }
   async function next() {
     const myPts = (s.score?.[me] ?? 0) + (myGuess === card?.lie ? 1 : 0);
     const theirPts = (s.score?.[otherId] ?? 0) + (theirGuess === card?.lie ? 1 : 0);
+    if (myGuess === card?.lie) gameSfx.correct(); else gameSfx.wrong();
     const c = await fetchCard(s.intensity ?? "playful");
     const history = [...(s.history ?? []), card].filter(Boolean).slice(-20);
     patch({
