@@ -5,6 +5,7 @@ import { ArrowLeft, MessageCircle, Phone, Video, Heart, Ban, ShieldCheck } from 
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile, type Profile } from "@/hooks/useProfile";
+import { AchievementBadges } from "@/components/AchievementBadges";
 
 export const Route = createFileRoute("/_authenticated/app/user/$userId")({
   component: UserProfilePage,
