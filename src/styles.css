@@ -171,15 +171,63 @@ html.theme-anim * {
 }
 
 @utility glass {
-  background: color-mix(in oklab, var(--surface) 70%, transparent);
-  backdrop-filter: blur(24px) saturate(140%);
-  border: 1px solid color-mix(in oklab, var(--candle) 10%, transparent);
+  background: color-mix(in oklab, var(--surface) 55%, transparent);
+  backdrop-filter: blur(24px) saturate(160%);
+  border: 1px solid color-mix(in oklab, var(--candle) 12%, transparent);
+  box-shadow:
+    inset 0 1px 0 color-mix(in oklab, var(--candle) 18%, transparent),
+    inset 0 -1px 0 color-mix(in oklab, var(--velvet) 30%, transparent),
+    0 12px 40px -20px oklch(0 0 0 / 0.5);
 }
 
 @utility glass-strong {
-  background: color-mix(in oklab, var(--surface-elevated) 82%, transparent);
-  backdrop-filter: blur(32px) saturate(160%);
-  border: 1px solid color-mix(in oklab, var(--candle) 14%, transparent);
+  background: color-mix(in oklab, var(--surface-elevated) 62%, transparent);
+  backdrop-filter: blur(38px) saturate(180%);
+  border: 1px solid color-mix(in oklab, var(--candle) 16%, transparent);
+  box-shadow:
+    inset 0 1px 0 color-mix(in oklab, var(--candle) 22%, transparent),
+    inset 0 -1px 0 color-mix(in oklab, var(--velvet) 40%, transparent),
+    0 20px 60px -25px oklch(0 0 0 / 0.55);
+}
+
+/* iOS 26 "Liquid Glass" — deep frost with refractive edge + soft inner light */
+@utility glass-liquid {
+  position: relative;
+  background:
+    radial-gradient(
+      120% 80% at 20% 0%,
+      color-mix(in oklab, var(--candle) 14%, transparent) 0%,
+      transparent 55%
+    ),
+    color-mix(in oklab, var(--surface-elevated) 48%, transparent);
+  backdrop-filter: blur(40px) saturate(200%) brightness(1.05);
+  border: 1px solid color-mix(in oklab, var(--candle) 18%, transparent);
+  box-shadow:
+    inset 0 1px 0 color-mix(in oklab, var(--candle) 28%, transparent),
+    inset 0 -1px 0 color-mix(in oklab, var(--velvet) 50%, transparent),
+    inset 0 0 0 1px color-mix(in oklab, var(--petal) 6%, transparent),
+    0 30px 80px -30px oklch(0 0 0 / 0.6),
+    0 0 40px -10px color-mix(in oklab, var(--petal) 18%, transparent);
+}
+
+/* Bubble variant — heavier chromatic edge, used on floating pills / nav */
+@utility glass-bubble {
+  position: relative;
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--candle) 10%, transparent),
+      color-mix(in oklab, var(--velvet) 20%, transparent)
+    ),
+    color-mix(in oklab, var(--surface-elevated) 45%, transparent);
+  backdrop-filter: blur(44px) saturate(220%) brightness(1.08);
+  border: 1px solid color-mix(in oklab, var(--candle) 22%, transparent);
+  box-shadow:
+    inset 0 1.5px 0 color-mix(in oklab, var(--candle) 35%, transparent),
+    inset 0 -1.5px 0 color-mix(in oklab, var(--velvet) 55%, transparent),
+    inset 2px 0 6px -4px color-mix(in oklab, var(--lavender) 40%, transparent),
+    inset -2px 0 6px -4px color-mix(in oklab, var(--petal) 40%, transparent),
+    0 24px 60px -22px oklch(0 0 0 / 0.6);
 }
 
 @utility ring-petal {
