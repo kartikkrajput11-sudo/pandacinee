@@ -32,31 +32,77 @@ export function IncomingCallListener() {
   useEffect(() => {
     let cancelled = false;
     let channel: ReturnType<typeof supabase.channel> | null = null;
+    let me: string | null = null;
+    const seen = new Set<string>();
+
+    async function surfaceSignal(sig: any) {
+      if (!sig || sig.kind !== "invite" || seen.has(sig.id)) return;
+      seen.add(sig.id);
+      // Ignore invites older than 45s — the caller has almost certainly given up.
+      if (sig.created_at) {
+        const age = Date.now() - new Date(sig.created_at).getTime();
+        if (age > 45_000) return;
+      }
+      const { data: p } = await supabase
+        .from("profiles")
+        .select("display_name")
+        .eq("id", sig.from_id)
+        .maybeSingle();
+      // Don't overwrite an already-visible incoming banner with an older one.
+      setIncoming((prev) =>
+        prev ? prev : { from_id: sig.from_id, mode: sig.payload?.mode ?? "video", name: p?.display_name },
+      );
+    }
+
+    async function catchUp() {
+      if (!me) return;
+      const since = new Date(Date.now() - 45_000).toISOString();
+      const { data } = await supabase
+        .from("call_signals")
+        .select("id, from_id, kind, payload, created_at")
+        .eq("to_id", me)
+        .eq("kind", "invite")
+        .gte("created_at", since)
+        .order("created_at", { ascending: false })
+        .limit(5);
+      // Surface newest first; surfaceSignal is a no-op once one is showing.
+      for (const sig of data ?? []) await surfaceSignal(sig);
+    }
+
+    function onVisible() {
+      if (document.visibilityState === "visible") catchUp();
+    }
+
     (async () => {
       const { data: u } = await supabase.auth.getUser();
       if (!u.user || cancelled) return;
-      const me = u.user.id;
+      me = u.user.id;
       const topic = `incoming-${me}-${Math.random().toString(36).slice(2)}`;
       channel = supabase.channel(topic);
       channel
         .on(
           "postgres_changes",
           { event: "INSERT", schema: "public", table: "call_signals", filter: `to_id=eq.${me}` },
-          async (payload: any) => {
-            const sig = payload.new;
-            if (sig.kind !== "invite") return;
-            const { data: p } = await supabase
-              .from("profiles")
-              .select("display_name")
-              .eq("id", sig.from_id)
-              .maybeSingle();
-            setIncoming({ from_id: sig.from_id, mode: sig.payload?.mode ?? "video", name: p?.display_name });
-          }
+          (payload: any) => {
+            void surfaceSignal(payload.new);
+          },
         )
-        .subscribe();
+        .subscribe((status) => {
+          // After the channel is actually attached, sweep for invites that
+          // arrived in the gap between mount and SUBSCRIBED, or during a
+          // recent disconnect.
+          if (status === "SUBSCRIBED") void catchUp();
+        });
+      // Also catch up on initial mount immediately (covers the case where
+      // subscribe is slow but a stale invite is already sitting there).
+      void catchUp();
+      window.addEventListener("focus", catchUp);
+      document.addEventListener("visibilitychange", onVisible);
     })();
     return () => {
       cancelled = true;
+      window.removeEventListener("focus", catchUp);
+      document.removeEventListener("visibilitychange", onVisible);
       if (channel) supabase.removeChannel(channel);
     };
   }, []);
