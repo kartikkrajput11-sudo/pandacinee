@@ -928,6 +928,7 @@ export type Database = {
           coins: number
           created_at: string
           display_name: string
+          equipped_tags: string[]
           favorite_color: string | null
           favorite_emoji: string | null
           id: string
@@ -961,6 +962,7 @@ export type Database = {
           coins?: number
           created_at?: string
           display_name: string
+          equipped_tags?: string[]
           favorite_color?: string | null
           favorite_emoji?: string | null
           id: string
@@ -994,6 +996,7 @@ export type Database = {
           coins?: number
           created_at?: string
           display_name?: string
+          equipped_tags?: string[]
           favorite_color?: string | null
           favorite_emoji?: string | null
           id?: string
@@ -1570,6 +1573,7 @@ export type Database = {
           coins: number
           created_at: string
           display_name: string
+          equipped_tags: string[]
           favorite_color: string | null
           favorite_emoji: string | null
           id: string

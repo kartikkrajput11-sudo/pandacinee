@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS equipped_tags text[] NOT NULL DEFAULT '{}';
