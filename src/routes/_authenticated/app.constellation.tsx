@@ -393,6 +393,17 @@ function StarSheet({ star, onClose }: { star: Star; onClose: () => void }) {
         {star.detail && (
           <p className="text-white/80 text-sm leading-relaxed font-serif italic">{star.detail}</p>
         )}
+        <div className="mt-4 pt-3 border-t border-white/10 flex items-center gap-2 text-[11px]">
+          {star.isAi ? (
+            <span className="inline-flex items-center gap-1 text-[#c9a84c]/90">
+              <Sparkles className="size-3" /> Auto-discovered by the app
+            </span>
+          ) : star.author ? (
+            <span className="text-white/60">Written by <span className="text-white/90">{star.author}</span></span>
+          ) : (
+            <span className="text-white/40">From your shared timeline</span>
+          )}
+        </div>
       </div>
     </div>
   );
