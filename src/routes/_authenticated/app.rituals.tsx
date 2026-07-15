@@ -304,19 +304,123 @@ function ActiveRitual({ ritual, me, onEnd }: { ritual: Ritual; me: string; onEnd
   );
 }
 
-function CandleVisual({ progress }: { progress: number }) {
-  const height = Math.max(20, 140 - progress * 120);
+function CandleVisual({ progress, now }: { progress: number; now: number }) {
+  // Real candle: melts every second across a 3-minute burn. Height goes from
+  // 100% → ~8% linearly, with a soft rounded top and a drip streak on the side.
+  const MAX_H = 170;
+  const MIN_H = 14;
+  const height = Math.max(MIN_H, MAX_H - progress * (MAX_H - MIN_H));
+
+  // Flame flicker — deterministic wobble driven by `now` so both partners
+  // stay in loose visual sync (they see similar phase).
+  const flick = Math.sin(now / 140) * 0.35 + Math.sin(now / 71) * 0.15;
+  const flameH = 34 + flick * 6;
+  const flameW = 18 - Math.abs(flick) * 2;
+  const flameOffset = Math.sin(now / 210) * 1.6;
+  const glowOpacity = 0.55 + Math.sin(now / 180) * 0.12;
+
+  // Wax drip length grows with progress.
+  const dripLen = 8 + progress * 42;
+
   return (
-    <div className="relative flex flex-col items-center z-10">
-      <div className="text-4xl animate-pulse" style={{ animationDuration: "2.5s" }}>🔥</div>
+    <div className="relative flex flex-col items-center z-10" aria-label="Melting candle">
+      {/* Halo of light */}
       <div
-        className="w-6 rounded-full bg-gradient-to-b from-[#f5efd8] to-[#c9a84c] shadow-[0_0_30px_rgba(232,196,100,0.5)] transition-all"
-        style={{ height: `${height}px`, transitionDuration: "1000ms" }}
+        className="absolute -inset-16 rounded-full pointer-events-none"
+        style={{
+          background: `radial-gradient(circle, rgba(255,190,90,${glowOpacity}) 0%, rgba(232,140,60,0.15) 40%, transparent 70%)`,
+          filter: "blur(12px)",
+        }}
       />
-      <div className="w-14 h-2 rounded-full bg-[#3a1a10] mt-1" />
+
+      {/* Flame */}
+      <div
+        className="relative"
+        style={{
+          transform: `translateX(${flameOffset}px) rotate(${flameOffset * 1.2}deg)`,
+          transition: "transform 120ms linear",
+        }}
+      >
+        <div
+          style={{
+            width: flameW,
+            height: flameH,
+            background:
+              "radial-gradient(ellipse at 50% 80%, #fff2b0 0%, #ffcf5c 25%, #ff8a2b 55%, #b13a0a 85%, transparent 100%)",
+            borderRadius: "50% 50% 45% 45% / 65% 65% 35% 35%",
+            filter: "blur(0.4px) drop-shadow(0 0 14px rgba(255,170,60,0.9))",
+          }}
+        />
+        {/* Inner blue core */}
+        <div
+          className="absolute left-1/2 -translate-x-1/2"
+          style={{
+            bottom: 2,
+            width: flameW * 0.35,
+            height: flameH * 0.35,
+            background:
+              "radial-gradient(ellipse, rgba(140,200,255,0.9) 0%, rgba(140,200,255,0) 70%)",
+            borderRadius: "50%",
+          }}
+        />
+      </div>
+
+      {/* Wick */}
+      <div className="w-[2px] h-2 bg-[#2a1005] -mt-1 z-10" />
+
+      {/* Wax body */}
+      <div
+        className="relative w-14 shrink-0 overflow-visible"
+        style={{
+          height: `${height}px`,
+          background:
+            "linear-gradient(180deg,#faf3d6 0%,#f2dc99 25%,#e6c07a 55%,#c8975c 100%)",
+          borderRadius: "12px 12px 6px 6px",
+          boxShadow:
+            "inset -6px 0 12px rgba(120,70,20,0.35), inset 6px 0 10px rgba(255,240,190,0.6), 0 0 40px rgba(255,180,80,0.35)",
+          transition: "height 1000ms linear",
+        }}
+      >
+        {/* Melted top pool */}
+        <div
+          className="absolute -top-1 left-1/2 -translate-x-1/2 w-14 h-3 rounded-[50%]"
+          style={{
+            background:
+              "radial-gradient(ellipse at 50% 30%, #fff2c8 0%, #e6b866 60%, #a06a2a 100%)",
+            boxShadow: "0 2px 6px rgba(0,0,0,0.4)",
+          }}
+        />
+        {/* Wax drip on the side */}
+        <div
+          className="absolute top-1 -right-1 w-2 rounded-b-full"
+          style={{
+            height: `${dripLen}px`,
+            background:
+              "linear-gradient(180deg,#f2dc99 0%,#e6c07a 60%,#c8975c 100%)",
+            boxShadow: "inset -1px 0 2px rgba(80,40,10,0.4)",
+            transition: "height 1000ms linear",
+          }}
+        />
+      </div>
+
+      {/* Holder / base */}
+      <div
+        className="w-20 h-3 rounded-b-2xl -mt-0.5"
+        style={{
+          background: "linear-gradient(180deg,#3a1a10 0%,#1a0805 100%)",
+          boxShadow: "0 6px 14px rgba(0,0,0,0.5)",
+        }}
+      />
+      <div className="w-24 h-1 rounded-full bg-[#0e0303] mt-0.5" />
+
+      {/* Melt readout */}
+      <p className="text-[10px] uppercase tracking-widest text-petal/80 mt-3">
+        {Math.round((1 - progress) * 100)}% left
+      </p>
     </div>
   );
 }
+
 
 function BreathVisual({ now }: { now: number }) {
   // 4s in, 7s hold, 8s out — visualize as expanding circle
