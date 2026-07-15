@@ -164,9 +164,12 @@ function Call() {
 
 
   function enableSound() {
-    if (!remoteAudioRef.current) return;
-    remoteAudioRef.current.muted = false;
-    const p = remoteAudioRef.current.play?.();
+    // Unblock whichever element is actually carrying the remote audio for
+    // this call mode.
+    const el = mode === "video" ? remoteRef.current : remoteAudioRef.current;
+    if (!el) return;
+    el.muted = false;
+    const p = el.play?.();
     if (p && typeof (p as Promise<void>).catch === "function") {
       (p as Promise<void>).then(() => setAudioBlocked(false)).catch(() => {});
     } else {
