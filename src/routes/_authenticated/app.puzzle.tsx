@@ -202,6 +202,7 @@ function PuzzleTogether() {
     setSlots(next);
     setSelected(null);
     setMoves((m) => m + 1);
+    gameSfx.place();
   }
 
   function resetLocal() {
