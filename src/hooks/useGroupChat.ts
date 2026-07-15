@@ -17,10 +17,12 @@ export function useGroupChat(meId: string | null, groupId: string | null) {
     setLoading(true);
 
     (async () => {
+      const nowIso = new Date().toISOString();
       const { data } = await supabase
         .from("messages")
         .select("*")
         .eq("group_id", groupId)
+        .or(`expires_at.is.null,expires_at.gt.${nowIso}`)
         .order("created_at", { ascending: true })
         .limit(400);
       if (!cancelled && data) setMessages(data as unknown as MessageRow[]);

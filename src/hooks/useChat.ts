@@ -20,12 +20,16 @@ export function useChat(meId: string | null, partnerId: string | null) {
     setLoading(true);
 
     (async () => {
+      const nowIso = new Date().toISOString();
       const { data } = await supabase
         .from("messages")
         .select("*")
         .or(
           `and(sender_id.eq.${meId},receiver_id.eq.${partnerId}),and(sender_id.eq.${partnerId},receiver_id.eq.${meId})`,
         )
+        // Hide messages that already expired — otherwise they briefly appear
+        // on refresh and then vanish again when the local reaper runs.
+        .or(`expires_at.is.null,expires_at.gt.${nowIso}`)
         .order("created_at", { ascending: true })
         .limit(300);
       if (!cancelled && data) setMessages(data as MessageRow[]);
