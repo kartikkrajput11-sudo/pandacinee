@@ -52,6 +52,7 @@ export function useWebRTCCall(peerId: string | null, mode: Mode = "video", isCal
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
   const [remoteRev, setRemoteRev] = useState(0);
   const [status, setStatus] = useState<"idle" | "connecting" | "ringing" | "connected" | "ended" | "error">("idle");
+  const [answered, setAnswered] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [facing, setFacing] = useState<FacingMode>("user");
   const pcRef = useRef<RTCPeerConnection | null>(null);
@@ -204,6 +205,10 @@ export function useWebRTCCall(peerId: string | null, mode: Mode = "video", isCal
           const answer = await pc.createAnswer();
           await pc.setLocalDescription(answer);
           await sendSignal("answer", answer);
+          // Callee side: SDP answer sent = call picked up. Flip "answered" so
+          // the caller-side missed-call check and duration timer both see it,
+          // even if ICE takes a few more seconds to fully connect.
+          setAnswered(true);
         });
         ch.on("broadcast", { event: "answer" }, async (e) => {
           const answer = e.payload as RTCSessionDescriptionInit;
@@ -211,6 +216,8 @@ export function useWebRTCCall(peerId: string | null, mode: Mode = "video", isCal
             await pc.setRemoteDescription(new RTCSessionDescription(answer));
             remoteSetRef.current = true;
             await flushIce();
+            // Caller side: got SDP answer = peer accepted. Same reasoning.
+            setAnswered(true);
           }
         });
         ch.on("broadcast", { event: "ice" }, async (e) => {
@@ -308,5 +315,5 @@ export function useWebRTCCall(peerId: string | null, mode: Mode = "video", isCal
     }
   }, [facing, mode]);
 
-  return { localStream, remoteStream, remoteRev, status, error, hangup, toggleAudio, toggleVideo, flipCamera, facing };
+  return { localStream, remoteStream, remoteRev, status, answered, error, hangup, toggleAudio, toggleVideo, flipCamera, facing };
 }

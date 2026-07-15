@@ -70,7 +70,7 @@ function Call() {
   const navigate = useNavigate();
   const { data: profileData } = useProfile();
   const me = profileData?.profile;
-  const { localStream, remoteStream, remoteRev, status, error, hangup, toggleAudio, toggleVideo, flipCamera } = useWebRTCCall(
+  const { localStream, remoteStream, remoteRev, status, answered, error, hangup, toggleAudio, toggleVideo, flipCamera } = useWebRTCCall(
     peerId,
     mode,
     role === "caller",
@@ -107,10 +107,6 @@ function Call() {
   }, [localStream]);
   useEffect(() => {
     if (!remoteStream) return;
-    // Attach srcObject ONCE per stream identity. New tracks added to the same
-    // MediaStream propagate to the element automatically — re-assigning
-    // srcObject mid-call aborts the current playback ("play() interrupted by
-    // a new load request") and produces audible glitches / lag spikes.
     const v = remoteRef.current;
     if (v && v.srcObject !== remoteStream) {
       v.srcObject = remoteStream;
@@ -120,15 +116,18 @@ function Call() {
       }
     }
     const a = remoteAudioRef.current;
-    if (a && a.srcObject !== remoteStream) {
-      a.srcObject = remoteStream;
-    }
     if (a) {
+      // Safari/iOS don't pick up tracks added to a MediaStream that's already
+      // attached. Re-assign srcObject on every remoteRev bump so a mid-call
+      // audio track is actually rendered.
+      if (a.srcObject !== remoteStream) {
+        a.srcObject = remoteStream;
+      } else if (remoteRev > 0) {
+        // Force the element to re-scan tracks on Safari.
+        a.srcObject = null;
+        a.srcObject = remoteStream;
+      }
       a.muted = !speakerOn;
-      // Kick playback every time a new track arrives (remoteRev bumps on
-      // ontrack). Without this, if the audio track lands AFTER the initial
-      // srcObject attach, the element stays silent because .play() was only
-      // called during the first attach when the stream had no audio yet.
       const p = a.play?.();
       if (p && typeof (p as Promise<void>).catch === "function") {
         (p as Promise<void>).then(() => setAudioBlocked(false)).catch((err) => {
@@ -162,25 +161,27 @@ function Call() {
     })();
   }, [peerId]);
 
-  // Duration timer
+  // Duration timer — start the moment SDP is answered (real pickup), not
+  // when ICE fully connects. Over TURN, ICE can take several seconds after
+  // the callee has already picked up.
   useEffect(() => {
-    if (status === "connected" && connectedAtRef.current === null) {
+    if ((answered || status === "connected") && connectedAtRef.current === null) {
       connectedAtRef.current = Date.now();
     }
-    if (status !== "connected") return;
+    if (!answered && status !== "connected") return;
     const id = window.setInterval(() => {
       setDuration(Math.floor((Date.now() - (connectedAtRef.current ?? Date.now())) / 1000));
     }, 500);
     return () => window.clearInterval(id);
-  }, [status]);
+  }, [status, answered]);
 
-  // Dial tone for the caller until the call connects (or ends)
+  // Dial tone for the caller until the call is picked up (or ends)
   useEffect(() => {
     if (role !== "caller") return;
-    if (status === "connected" || status === "ended" || status === "error") return;
+    if (answered || status === "connected" || status === "ended" || status === "error") return;
     const handle = playDialTone();
     return () => handle.stop();
-  }, [role, status]);
+  }, [role, status, answered]);
 
 
   const loggedRef = useRef(false);
@@ -222,14 +223,15 @@ function Call() {
   }, [speakerOn, remoteStream]);
 
   const statusLabel = useMemo(() => {
+    // Once the SDP answer is exchanged, show the running duration even if
+    // ICE is still finishing up — the pickup already happened.
+    if (answered || status === "connected") return fmtDuration(duration);
     switch (status) {
       case "idle":
       case "connecting":
         return role === "caller" ? "Calling…" : "Answering…";
       case "ringing":
         return "Ringing…";
-      case "connected":
-        return fmtDuration(duration);
       case "ended":
         return "Call ended";
       case "error":
@@ -237,9 +239,9 @@ function Call() {
       default:
         return status;
     }
-  }, [status, role, duration]);
+  }, [status, answered, role, duration]);
 
-  const isConnected = status === "connected";
+  const isConnected = answered || status === "connected";
   const showRings = !isConnected && status !== "ended";
 
   return (
