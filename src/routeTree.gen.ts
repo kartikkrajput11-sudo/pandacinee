@@ -33,6 +33,7 @@ import { Route as AuthenticatedAppInviteRouteImport } from './routes/_authentica
 import { Route as AuthenticatedAppHelpRouteImport } from './routes/_authenticated/app.help'
 import { Route as AuthenticatedAppFriendsRouteImport } from './routes/_authenticated/app.friends'
 import { Route as AuthenticatedAppDailyChallengeRouteImport } from './routes/_authenticated/app.daily-challenge'
+import { Route as AuthenticatedAppCallsRouteImport } from './routes/_authenticated/app.calls'
 import { Route as AuthenticatedAppAnniversaryRouteImport } from './routes/_authenticated/app.anniversary'
 import { Route as AuthenticatedAppMoviesIndexRouteImport } from './routes/_authenticated/app.movies.index'
 import { Route as AuthenticatedAppChatIndexRouteImport } from './routes/_authenticated/app.chat.index'
@@ -44,6 +45,7 @@ import { Route as AuthenticatedAppChatPeerIdRouteImport } from './routes/_authen
 import { Route as AuthenticatedAppCallPeerIdRouteImport } from './routes/_authenticated/app.call.$peerId'
 import { Route as AuthenticatedAppMoviesIdWatchRouteImport } from './routes/_authenticated/app.movies.$id.watch'
 import { Route as AuthenticatedAppChatGroupGroupIdRouteImport } from './routes/_authenticated/app.chat.group.$groupId'
+import { Route as AuthenticatedAppCallGroupGroupIdRouteImport } from './routes/_authenticated/app.call.group.$groupId'
 import { Route as AuthenticatedAppMoviesIdEpisodeSeasonEpisodeRouteImport } from './routes/_authenticated/app.movies.$id.episode.$season.$episode'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -171,6 +173,11 @@ const AuthenticatedAppDailyChallengeRoute =
     path: '/daily-challenge',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppCallsRoute = AuthenticatedAppCallsRouteImport.update({
+  id: '/calls',
+  path: '/calls',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
 const AuthenticatedAppAnniversaryRoute =
   AuthenticatedAppAnniversaryRouteImport.update({
     id: '/anniversary',
@@ -237,6 +244,12 @@ const AuthenticatedAppChatGroupGroupIdRoute =
     path: '/chat/group/$groupId',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppCallGroupGroupIdRoute =
+  AuthenticatedAppCallGroupGroupIdRouteImport.update({
+    id: '/call/group/$groupId',
+    path: '/call/group/$groupId',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppMoviesIdEpisodeSeasonEpisodeRoute =
   AuthenticatedAppMoviesIdEpisodeSeasonEpisodeRouteImport.update({
     id: '/episode/$season/$episode',
@@ -250,6 +263,7 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/app': typeof AuthenticatedAppRouteWithChildren
   '/app/anniversary': typeof AuthenticatedAppAnniversaryRoute
+  '/app/calls': typeof AuthenticatedAppCallsRoute
   '/app/daily-challenge': typeof AuthenticatedAppDailyChallengeRoute
   '/app/friends': typeof AuthenticatedAppFriendsRoute
   '/app/help': typeof AuthenticatedAppHelpRoute
@@ -277,6 +291,7 @@ export interface FileRoutesByFullPath {
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/app/chat/': typeof AuthenticatedAppChatIndexRoute
   '/app/movies/': typeof AuthenticatedAppMoviesIndexRoute
+  '/app/call/group/$groupId': typeof AuthenticatedAppCallGroupGroupIdRoute
   '/app/chat/group/$groupId': typeof AuthenticatedAppChatGroupGroupIdRoute
   '/app/movies/$id/watch': typeof AuthenticatedAppMoviesIdWatchRoute
   '/app/movies/$id/episode/$season/$episode': typeof AuthenticatedAppMoviesIdEpisodeSeasonEpisodeRoute
@@ -286,6 +301,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
   '/app/anniversary': typeof AuthenticatedAppAnniversaryRoute
+  '/app/calls': typeof AuthenticatedAppCallsRoute
   '/app/daily-challenge': typeof AuthenticatedAppDailyChallengeRoute
   '/app/friends': typeof AuthenticatedAppFriendsRoute
   '/app/help': typeof AuthenticatedAppHelpRoute
@@ -312,6 +328,7 @@ export interface FileRoutesByTo {
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/app/chat': typeof AuthenticatedAppChatIndexRoute
   '/app/movies': typeof AuthenticatedAppMoviesIndexRoute
+  '/app/call/group/$groupId': typeof AuthenticatedAppCallGroupGroupIdRoute
   '/app/chat/group/$groupId': typeof AuthenticatedAppChatGroupGroupIdRoute
   '/app/movies/$id/watch': typeof AuthenticatedAppMoviesIdWatchRoute
   '/app/movies/$id/episode/$season/$episode': typeof AuthenticatedAppMoviesIdEpisodeSeasonEpisodeRoute
@@ -324,6 +341,7 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/_authenticated/app': typeof AuthenticatedAppRouteWithChildren
   '/_authenticated/app/anniversary': typeof AuthenticatedAppAnniversaryRoute
+  '/_authenticated/app/calls': typeof AuthenticatedAppCallsRoute
   '/_authenticated/app/daily-challenge': typeof AuthenticatedAppDailyChallengeRoute
   '/_authenticated/app/friends': typeof AuthenticatedAppFriendsRoute
   '/_authenticated/app/help': typeof AuthenticatedAppHelpRoute
@@ -351,6 +369,7 @@ export interface FileRoutesById {
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/_authenticated/app/chat/': typeof AuthenticatedAppChatIndexRoute
   '/_authenticated/app/movies/': typeof AuthenticatedAppMoviesIndexRoute
+  '/_authenticated/app/call/group/$groupId': typeof AuthenticatedAppCallGroupGroupIdRoute
   '/_authenticated/app/chat/group/$groupId': typeof AuthenticatedAppChatGroupGroupIdRoute
   '/_authenticated/app/movies/$id/watch': typeof AuthenticatedAppMoviesIdWatchRoute
   '/_authenticated/app/movies/$id/episode/$season/$episode': typeof AuthenticatedAppMoviesIdEpisodeSeasonEpisodeRoute
@@ -363,6 +382,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/app'
     | '/app/anniversary'
+    | '/app/calls'
     | '/app/daily-challenge'
     | '/app/friends'
     | '/app/help'
@@ -390,6 +410,7 @@ export interface FileRouteTypes {
     | '/lovable/email/queue/process'
     | '/app/chat/'
     | '/app/movies/'
+    | '/app/call/group/$groupId'
     | '/app/chat/group/$groupId'
     | '/app/movies/$id/watch'
     | '/app/movies/$id/episode/$season/$episode'
@@ -399,6 +420,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/reset-password'
     | '/app/anniversary'
+    | '/app/calls'
     | '/app/daily-challenge'
     | '/app/friends'
     | '/app/help'
@@ -425,6 +447,7 @@ export interface FileRouteTypes {
     | '/lovable/email/queue/process'
     | '/app/chat'
     | '/app/movies'
+    | '/app/call/group/$groupId'
     | '/app/chat/group/$groupId'
     | '/app/movies/$id/watch'
     | '/app/movies/$id/episode/$season/$episode'
@@ -436,6 +459,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/_authenticated/app'
     | '/_authenticated/app/anniversary'
+    | '/_authenticated/app/calls'
     | '/_authenticated/app/daily-challenge'
     | '/_authenticated/app/friends'
     | '/_authenticated/app/help'
@@ -463,6 +487,7 @@ export interface FileRouteTypes {
     | '/lovable/email/queue/process'
     | '/_authenticated/app/chat/'
     | '/_authenticated/app/movies/'
+    | '/_authenticated/app/call/group/$groupId'
     | '/_authenticated/app/chat/group/$groupId'
     | '/_authenticated/app/movies/$id/watch'
     | '/_authenticated/app/movies/$id/episode/$season/$episode'
@@ -646,6 +671,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppDailyChallengeRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/calls': {
+      id: '/_authenticated/app/calls'
+      path: '/calls'
+      fullPath: '/app/calls'
+      preLoaderRoute: typeof AuthenticatedAppCallsRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/anniversary': {
       id: '/_authenticated/app/anniversary'
       path: '/anniversary'
@@ -723,6 +755,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppChatGroupGroupIdRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/call/group/$groupId': {
+      id: '/_authenticated/app/call/group/$groupId'
+      path: '/call/group/$groupId'
+      fullPath: '/app/call/group/$groupId'
+      preLoaderRoute: typeof AuthenticatedAppCallGroupGroupIdRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/movies/$id/episode/$season/$episode': {
       id: '/_authenticated/app/movies/$id/episode/$season/$episode'
       path: '/episode/$season/$episode'
@@ -768,6 +807,7 @@ const AuthenticatedAppMoviesRouteWithChildren =
 
 interface AuthenticatedAppRouteChildren {
   AuthenticatedAppAnniversaryRoute: typeof AuthenticatedAppAnniversaryRoute
+  AuthenticatedAppCallsRoute: typeof AuthenticatedAppCallsRoute
   AuthenticatedAppDailyChallengeRoute: typeof AuthenticatedAppDailyChallengeRoute
   AuthenticatedAppFriendsRoute: typeof AuthenticatedAppFriendsRoute
   AuthenticatedAppHelpRoute: typeof AuthenticatedAppHelpRoute
@@ -792,11 +832,13 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppGamesGameRoute: typeof AuthenticatedAppGamesGameRoute
   AuthenticatedAppUserUserIdRoute: typeof AuthenticatedAppUserUserIdRoute
   AuthenticatedAppChatIndexRoute: typeof AuthenticatedAppChatIndexRoute
+  AuthenticatedAppCallGroupGroupIdRoute: typeof AuthenticatedAppCallGroupGroupIdRoute
   AuthenticatedAppChatGroupGroupIdRoute: typeof AuthenticatedAppChatGroupGroupIdRoute
 }
 
 const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppAnniversaryRoute: AuthenticatedAppAnniversaryRoute,
+  AuthenticatedAppCallsRoute: AuthenticatedAppCallsRoute,
   AuthenticatedAppDailyChallengeRoute: AuthenticatedAppDailyChallengeRoute,
   AuthenticatedAppFriendsRoute: AuthenticatedAppFriendsRoute,
   AuthenticatedAppHelpRoute: AuthenticatedAppHelpRoute,
@@ -821,6 +863,7 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppGamesGameRoute: AuthenticatedAppGamesGameRoute,
   AuthenticatedAppUserUserIdRoute: AuthenticatedAppUserUserIdRoute,
   AuthenticatedAppChatIndexRoute: AuthenticatedAppChatIndexRoute,
+  AuthenticatedAppCallGroupGroupIdRoute: AuthenticatedAppCallGroupGroupIdRoute,
   AuthenticatedAppChatGroupGroupIdRoute: AuthenticatedAppChatGroupGroupIdRoute,
 }
 
