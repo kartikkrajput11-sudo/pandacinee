@@ -95,7 +95,10 @@ export function spotifyDisconnect() {
 
 export async function startSpotifyLogin() {
   const verifier = randomString(96);
-  sessionStorage.setItem(LS_VERIFIER, verifier);
+  // Use localStorage (not sessionStorage) so the verifier survives across
+  // tabs — auth completes in a fresh top-level tab that doesn't share
+  // sessionStorage with the caller.
+  localStorage.setItem(LS_VERIFIER, verifier);
   const challenge = b64url(await sha256(verifier));
   const params = new URLSearchParams({
     client_id: SPOTIFY_CLIENT_ID,
@@ -105,8 +108,18 @@ export async function startSpotifyLogin() {
     code_challenge: challenge,
     scope: SCOPES,
   });
-  window.location.href = `${AUTH_URL}?${params.toString()}`;
+  const url = `${AUTH_URL}?${params.toString()}`;
+  // Open Spotify auth in a new top-level tab. This escapes the Lovable
+  // editor iframe (Spotify refuses to render inside iframes) and avoids the
+  // preview's fetch proxy for the token exchange POST.
+  const win = window.open(url, "_blank", "noopener,noreferrer");
+  if (!win) {
+    // Popup blocked — fall back to same-tab redirect. Users in the editor
+    // iframe should test on the preview or published URL for this to work.
+    window.location.href = url;
+  }
 }
+
 
 export async function completeSpotifyLogin(code: string): Promise<Tokens> {
   const verifier = sessionStorage.getItem(LS_VERIFIER);
