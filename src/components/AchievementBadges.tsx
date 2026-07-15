@@ -2,23 +2,32 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { TAG_BY_KEY } from "@/lib/achievements";
 
-export function AchievementBadges({ userId }: { userId: string }) {
+export function AchievementBadges({ userId, equippedOnly = true }: { userId: string; equippedOnly?: boolean }) {
   const [keys, setKeys] = useState<string[]>([]);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const { data } = await (supabase as any)
-        .from("profile_achievements")
-        .select("tag_key,acquired_at")
-        .eq("user_id", userId)
-        .order("acquired_at", { ascending: true });
-      if (!cancelled) setKeys(((data ?? []) as any[]).map((r) => r.tag_key));
+      if (equippedOnly) {
+        const { data } = await (supabase as any)
+          .from("profiles")
+          .select("equipped_tags")
+          .eq("id", userId)
+          .maybeSingle();
+        if (!cancelled) setKeys(((data?.equipped_tags ?? []) as string[]));
+      } else {
+        const { data } = await (supabase as any)
+          .from("profile_achievements")
+          .select("tag_key,acquired_at")
+          .eq("user_id", userId)
+          .order("acquired_at", { ascending: true });
+        if (!cancelled) setKeys(((data ?? []) as any[]).map((r) => r.tag_key));
+      }
     })();
     return () => {
       cancelled = true;
     };
-  }, [userId]);
+  }, [userId, equippedOnly]);
 
   if (keys.length === 0) return null;
 
