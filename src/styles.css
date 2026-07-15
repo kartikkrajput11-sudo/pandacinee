@@ -171,15 +171,63 @@ html.theme-anim * {
 }
 
 @utility glass {
-  background: color-mix(in oklab, var(--surface) 70%, transparent);
-  backdrop-filter: blur(24px) saturate(140%);
-  border: 1px solid color-mix(in oklab, var(--candle) 10%, transparent);
+  background: color-mix(in oklab, var(--surface) 55%, transparent);
+  backdrop-filter: blur(24px) saturate(160%);
+  border: 1px solid color-mix(in oklab, var(--candle) 12%, transparent);
+  box-shadow:
+    inset 0 1px 0 color-mix(in oklab, var(--candle) 18%, transparent),
+    inset 0 -1px 0 color-mix(in oklab, var(--velvet) 30%, transparent),
+    0 12px 40px -20px oklch(0 0 0 / 0.5);
 }
 
 @utility glass-strong {
-  background: color-mix(in oklab, var(--surface-elevated) 82%, transparent);
-  backdrop-filter: blur(32px) saturate(160%);
-  border: 1px solid color-mix(in oklab, var(--candle) 14%, transparent);
+  background: color-mix(in oklab, var(--surface-elevated) 62%, transparent);
+  backdrop-filter: blur(38px) saturate(180%);
+  border: 1px solid color-mix(in oklab, var(--candle) 16%, transparent);
+  box-shadow:
+    inset 0 1px 0 color-mix(in oklab, var(--candle) 22%, transparent),
+    inset 0 -1px 0 color-mix(in oklab, var(--velvet) 40%, transparent),
+    0 20px 60px -25px oklch(0 0 0 / 0.55);
+}
+
+/* iOS 26 "Liquid Glass" — deep frost with refractive edge + soft inner light */
+@utility glass-liquid {
+  position: relative;
+  background:
+    radial-gradient(
+      120% 80% at 20% 0%,
+      color-mix(in oklab, var(--candle) 14%, transparent) 0%,
+      transparent 55%
+    ),
+    color-mix(in oklab, var(--surface-elevated) 48%, transparent);
+  backdrop-filter: blur(40px) saturate(200%) brightness(1.05);
+  border: 1px solid color-mix(in oklab, var(--candle) 18%, transparent);
+  box-shadow:
+    inset 0 1px 0 color-mix(in oklab, var(--candle) 28%, transparent),
+    inset 0 -1px 0 color-mix(in oklab, var(--velvet) 50%, transparent),
+    inset 0 0 0 1px color-mix(in oklab, var(--petal) 6%, transparent),
+    0 30px 80px -30px oklch(0 0 0 / 0.6),
+    0 0 40px -10px color-mix(in oklab, var(--petal) 18%, transparent);
+}
+
+/* Bubble variant — heavier chromatic edge, used on floating pills / nav */
+@utility glass-bubble {
+  position: relative;
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--candle) 10%, transparent),
+      color-mix(in oklab, var(--velvet) 20%, transparent)
+    ),
+    color-mix(in oklab, var(--surface-elevated) 45%, transparent);
+  backdrop-filter: blur(44px) saturate(220%) brightness(1.08);
+  border: 1px solid color-mix(in oklab, var(--candle) 22%, transparent);
+  box-shadow:
+    inset 0 1.5px 0 color-mix(in oklab, var(--candle) 35%, transparent),
+    inset 0 -1.5px 0 color-mix(in oklab, var(--velvet) 55%, transparent),
+    inset 2px 0 6px -4px color-mix(in oklab, var(--lavender) 40%, transparent),
+    inset -2px 0 6px -4px color-mix(in oklab, var(--petal) 40%, transparent),
+    0 24px 60px -22px oklch(0 0 0 / 0.6);
 }
 
 @utility ring-petal {
@@ -282,3 +330,97 @@ html.theme-anim * {
 .animate-kiss { animation: kiss-float 2.2s ease-out forwards; }
 .animate-partner-glow { animation: partner-glow 2.6s ease-in-out infinite; }
 .font-partner { font-family: var(--font-serif); font-style: italic; letter-spacing: 0.01em; }
+
+/* ============================================================
+ * iOS 26 — Liquid Glass page transitions & global smoothness
+ * ============================================================ */
+
+html { scroll-behavior: smooth; }
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Every interactive element eases by default — small detail, big luxe */
+a, button, [role="button"], .transition-luxe {
+  transition:
+    transform 380ms var(--ease-out-expo),
+    opacity 380ms var(--ease-out-expo),
+    background-color 380ms var(--ease-out-expo),
+    box-shadow 380ms var(--ease-out-expo),
+    filter 380ms var(--ease-out-expo);
+}
+
+@keyframes page-glass-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.965) translateY(10px);
+    filter: blur(14px) saturate(140%);
+  }
+  55% {
+    filter: blur(3px) saturate(160%);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    filter: blur(0) saturate(100%);
+  }
+}
+
+@keyframes glass-bubble-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.6);
+    backdrop-filter: blur(0px);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.04);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes glass-sheen {
+  0% { transform: translateX(-130%) skewX(-18deg); opacity: 0; }
+  40% { opacity: 0.55; }
+  100% { transform: translateX(180%) skewX(-18deg); opacity: 0; }
+}
+
+.animate-page-glass { animation: page-glass-in 620ms var(--ease-out-expo) both; }
+.animate-glass-bubble { animation: glass-bubble-pop 480ms var(--ease-out-expo) both; }
+
+/* Attach ::after sheen with .glass-sheen — parent must be position:relative + overflow:hidden */
+@utility glass-sheen {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      100deg,
+      transparent 20%,
+      color-mix(in oklab, var(--candle) 22%, transparent) 45%,
+      color-mix(in oklab, var(--candle) 6%, transparent) 55%,
+      transparent 80%
+    );
+    transform: translateX(-130%) skewX(-18deg);
+    pointer-events: none;
+    animation: glass-sheen 5.5s var(--ease-out-expo) infinite;
+    z-index: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-page-glass,
+  .animate-glass-bubble {
+    animation: none !important;
+  }
+  .glass-sheen::after { animation: none !important; }
+  html { scroll-behavior: auto; }
+}
