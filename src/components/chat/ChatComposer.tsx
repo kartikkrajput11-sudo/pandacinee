@@ -11,7 +11,9 @@ import { EmojiPicker } from "./EmojiPicker";
 import { GameInvitePicker, type GamePick } from "./GameInvitePicker";
 import { MovieWheelPicker, type WheelEntry } from "./MovieWheelPicker";
 import { PandaStickerPicker } from "./PandaStickerPicker";
+import { AiStickerPicker } from "./AiStickerPicker";
 import { pandaStickerContent, type PandaStickerId } from "@/lib/panda-stickers";
+import type { AiStickerMood } from "@/lib/ai-stickers.functions";
 import type { TmdbMovie } from "@/lib/tmdb.functions";
 
 const KISS_EMOJIS = ["💋", "💜", "🌸", "🫧", "💫", "🐼", "🌷", "🫶"];
