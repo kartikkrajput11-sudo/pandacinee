@@ -139,11 +139,20 @@ export function ChessBoard({ chess, orientation, canMoveColor, lastMove, onMove 
                     draggable={canMove(piece)}
                     onDragStart={(e) => onDragStart(e, sq)}
                     className={`text-[clamp(1.8rem,7vw,3.2rem)] leading-none drop-shadow-md ${
-                      piece.color === "w" ? "text-white" : "text-black"
+                      emojiPieces
+                        ? piece.color === "w" ? "grayscale-0" : "grayscale contrast-125"
+                        : piece.color === "w" ? "text-white" : "text-black"
                     }`}
-                    style={{ textShadow: piece.color === "w" ? "0 1px 2px rgba(0,0,0,0.6)" : "0 1px 2px rgba(255,255,255,0.35)" }}
+                    style={{
+                      textShadow: emojiPieces
+                        ? "0 1px 2px rgba(0,0,0,0.5)"
+                        : piece.color === "w"
+                          ? "0 1px 2px rgba(0,0,0,0.6)"
+                          : "0 1px 2px rgba(255,255,255,0.35)",
+                      filter: emojiPieces && piece.color === "b" ? "drop-shadow(0 0 1px rgba(0,0,0,0.9))" : undefined,
+                    }}
                   >
-                    {PIECE_GLYPH[piece.color as Color][piece.type as PieceSymbol]}
+                    {pieceGlyph(piece.color as Color, piece.type as PieceSymbol)}
                   </span>
                 )}
                 {isTarget && !piece && (
