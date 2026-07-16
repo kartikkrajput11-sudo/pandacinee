@@ -263,86 +263,92 @@ function ChatPeer() {
 
   return (
     <div className={`relative flex flex-col h-screen ${shake ? "animate-chat-shake" : ""}`}>
-      <header className="relative px-4 pt-6 pb-3 flex items-center gap-2 border-b border-border bg-velvet sticky top-0 z-10">
-        <Link to="/app/chat" className="text-candle-muted"><ArrowLeft className="size-5" /></Link>
+      <header className="relative px-5 pt-7 pb-4 flex items-center gap-4 border-b border-white/5 bg-velvet/90 backdrop-blur-md sticky top-0 z-10">
+        <Link to="/app/chat" className="text-candle/60 hover:text-candle transition-colors shrink-0">
+          <ArrowLeft className="size-5" strokeWidth={1.5} />
+        </Link>
         <Link
           to="/app/user/$userId"
           params={{ userId: peer.id }}
-          className="flex items-center gap-2 flex-1 min-w-0 hover:opacity-80 transition-opacity"
+          className="flex items-center gap-3 flex-1 min-w-0 hover:opacity-90 transition-opacity"
         >
-          <div className="size-10 rounded-full bg-petal-soft flex items-center justify-center overflow-hidden shrink-0">
-            {peer.avatar_url ? <img src={peer.avatar_url} alt="" className="size-full object-cover" /> : <span className="text-lg">🐼</span>}
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-1.5 min-w-0">
-              <h1 className="font-serif italic text-lg leading-tight truncate">{peerDisplay}</h1>
-              {isPartner && streakDays > 0 && (
-                <span className="shrink-0 flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-petal/15 text-[10px] text-petal font-bold border border-petal/25">
-                  <Flame className="size-2.5" />
-                  {streakDays}
+          <div className="size-10 rounded-full bg-gradient-to-tr from-petal to-candle/90 p-[1.5px] shrink-0">
+            <div className="size-full rounded-full bg-velvet flex items-center justify-center overflow-hidden">
+              {peer.avatar_url ? (
+                <img src={peer.avatar_url} alt="" className="size-full object-cover rounded-full" />
+              ) : (
+                <span className="font-serif italic text-petal text-base">
+                  {(peerDisplay || "·").slice(0, 1).toUpperCase()}
                 </span>
               )}
             </div>
-            <p className="text-[10px] text-petal flex items-center gap-1">
-              <span className={`size-1.5 rounded-full ${partnerOnline ? "bg-green-400" : "bg-candle-muted"}`} />
-              {partnerTyping ? "typing…" : formatLastSeen(peer.last_seen_at, partnerOnline)}
-              {isPartner && <span className="text-candle-muted">· 💜 partner</span>}
-            </p>
+          </div>
+          <div className="flex-1 min-w-0">
+            <h1 className="font-serif italic text-[19px] leading-none text-candle truncate">{peerDisplay}</h1>
+            <div className="mt-1 flex items-center gap-1.5 min-w-0">
+              <span className={`size-1.5 rounded-full shrink-0 ${partnerOnline ? "bg-petal" : "bg-candle/25"}`} />
+              <span className="text-[9px] uppercase tracking-[0.15em] text-candle/40 font-medium truncate">
+                {partnerTyping ? "typing…" : formatLastSeen(peer.last_seen_at, partnerOnline)}
+              </span>
+              {isPartner && (
+                <>
+                  <span className="text-[9px] text-candle/20">·</span>
+                  <span className="text-[9px] uppercase tracking-[0.15em] text-petal font-semibold shrink-0">Partner</span>
+                </>
+              )}
+              {isPartner && streakDays > 0 && (
+                <>
+                  <span className="text-[9px] text-candle/20">·</span>
+                  <span className="shrink-0 inline-flex items-center gap-0.5 text-[9px] uppercase tracking-[0.15em] text-petal font-semibold">
+                    <Flame className="size-2.5" strokeWidth={2} />
+                    {streakDays}
+                  </span>
+                </>
+              )}
+            </div>
           </div>
         </Link>
-        <ChatSearch messages={messages} onJump={jumpTo} />
-        <Link to="/app/call/$peerId" params={{ peerId: peer.id }} search={{ role: "caller", mode: "audio" }} className="size-10 rounded-full bg-surface border border-border flex items-center justify-center text-petal">
-          <Phone className="size-4" />
-        </Link>
-        <Link to="/app/call/$peerId" params={{ peerId: peer.id }} search={{ role: "caller", mode: "video" }} className="size-10 rounded-full bg-surface border border-border flex items-center justify-center text-petal">
-          <Video className="size-4" />
-        </Link>
-        {isPartner && !activeLock && (me as any).punishment_lock_enabled !== false && (peer as any).punishment_lock_enabled !== false && (
-          <button
-            onClick={() => setLockDialogOpen(true)}
-            className="size-10 rounded-full bg-surface border border-border flex items-center justify-center text-petal"
-            title="Lock chat as punishment"
-            aria-label="Lock chat as punishment"
-          >
-            <Lock className="size-4" />
-          </button>
-        )}
+        <div className="flex items-center gap-4 text-candle/55 shrink-0">
+          <ChatSearch messages={messages} onJump={jumpTo} />
+          <Link to="/app/call/$peerId" params={{ peerId: peer.id }} search={{ role: "caller", mode: "audio" }} aria-label="Voice call" className="hover:text-petal transition-colors">
+            <Phone className="size-[18px]" strokeWidth={1.5} />
+          </Link>
+          <Link to="/app/call/$peerId" params={{ peerId: peer.id }} search={{ role: "caller", mode: "video" }} aria-label="Video call" className="hover:text-petal transition-colors">
+            <Video className="size-[18px]" strokeWidth={1.5} />
+          </Link>
+          {isPartner && !activeLock && (me as any).punishment_lock_enabled !== false && (peer as any).punishment_lock_enabled !== false && (
+            <button
+              onClick={() => setLockDialogOpen(true)}
+              className="hover:text-petal transition-colors"
+              title="Lock chat as punishment"
+              aria-label="Lock chat as punishment"
+            >
+              <Lock className="size-[18px]" strokeWidth={1.5} />
+            </button>
+          )}
+        </div>
       </header>
 
-      
-
-      {isPartner && (sharedMedia.length > 0 || daysTogether > 0) && (
-        <div className="px-3 py-2 flex items-center gap-2 border-b border-border bg-petal/5">
-          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar flex-1 min-w-0">
-            {sharedMedia.map((m) => (
+      {isPartner && daysTogether > 0 && (
+        <div className="px-6 py-2.5 border-b border-white/5 bg-petal/[0.04] flex items-center justify-center gap-5">
+          <span className="text-[9px] uppercase tracking-[0.3em] text-petal/80 font-semibold">
+            Together · {daysTogether}d
+          </span>
+          {sharedMedia.length > 0 && (
+            <>
+              <span className="h-3 w-px bg-petal/20" />
               <button
-                key={m.id}
                 type="button"
-                onClick={() => jumpTo(m.id)}
-                className="size-9 shrink-0 rounded-lg bg-surface border border-petal/20 overflow-hidden hover:border-petal/50 transition-colors"
-                title="Jump to media"
+                onClick={() => sharedMedia[0] && jumpTo(sharedMedia[0].id)}
+                className="text-[9px] uppercase tracking-[0.3em] text-candle/50 hover:text-petal transition-colors font-semibold"
               >
-                {m.media_url && m.type === "image" ? (
-                  <img src={m.media_url} alt="" className="size-full object-cover" />
-                ) : (
-                  <div className="size-full flex items-center justify-center text-[13px]">🎬</div>
-                )}
+                {sharedMedia.length} shared
               </button>
-            ))}
-            {sharedMedia.length === 0 && (
-              <span className="text-[10px] text-candle-muted italic px-1">No shared photos yet — send one 💫</span>
-            )}
-          </div>
-          {daysTogether > 0 && (
-            <div className="pl-2.5 ml-1 border-l border-petal/15 flex flex-col items-end shrink-0">
-              <span className="text-[9px] text-candle-muted uppercase font-bold tracking-wider flex items-center gap-1">
-                <HeartIcon className="size-2.5 text-petal" /> Together
-              </span>
-              <span className="text-[11px] font-semibold text-petal">{daysTogether}d</span>
-            </div>
+            </>
           )}
         </div>
       )}
+
 
 
       {activeLock && iAmLocker && (
