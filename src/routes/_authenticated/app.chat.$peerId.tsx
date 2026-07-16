@@ -274,15 +274,7 @@ function ChatPeer() {
           className="flex items-center gap-3 flex-1 min-w-0 hover:opacity-90 transition-opacity"
         >
           <div className="size-10 rounded-full bg-gradient-to-tr from-petal to-candle/90 p-[1.5px] shrink-0">
-            <div className="size-full rounded-full bg-velvet flex items-center justify-center overflow-hidden">
-              {peer.avatar_url ? (
-                <img src={peer.avatar_url} alt="" className="size-full object-cover rounded-full" />
-              ) : (
-                <span className="font-serif italic text-petal text-base">
-                  {(peerDisplay || "·").slice(0, 1).toUpperCase()}
-                </span>
-              )}
-            </div>
+            <UserAvatar src={peer.avatar_url} name={peerDisplay} className="size-full" />
           </div>
           <div className="flex-1 min-w-0">
             <h1 className="font-serif italic text-[19px] leading-none text-candle truncate">{peerDisplay}</h1>
