@@ -85,6 +85,43 @@ function ChatPeer() {
     return null;
   }, [messages, me?.id]);
 
+  // Chat richness: streak (consecutive days with 2-way activity), shared media, anniversary, day dividers.
+  const { streakDays, sharedMedia, daysTogether } = useMemo(() => {
+    if (messages.length === 0) return { streakDays: 0, sharedMedia: [] as MessageRow[], daysTogether: 0 };
+    const dayKey = (iso: string) => {
+      const d = new Date(iso);
+      return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+    };
+    const dayMap = new Map<string, Set<string>>();
+    for (const m of messages) {
+      const k = dayKey(m.created_at);
+      if (!dayMap.has(k)) dayMap.set(k, new Set());
+      dayMap.get(k)!.add(m.sender_id);
+    }
+    // count consecutive days ending today (or most recent activity day) with both sides
+    const today = new Date();
+    let streak = 0;
+    const cursor = new Date(today);
+    while (streak < 365) {
+      const k = `${cursor.getFullYear()}-${cursor.getMonth()}-${cursor.getDate()}`;
+      const s = dayMap.get(k);
+      if (s && s.size >= 2) streak++;
+      else if (streak === 0 && s && s.size >= 1) {
+        // allow 1-sided today so streak isn't 0 the moment you open
+        streak++;
+      } else break;
+      cursor.setDate(cursor.getDate() - 1);
+    }
+    const media = messages
+      .filter((m) => m.type === "image" || m.type === "video")
+      .slice(-6)
+      .reverse();
+    const first = messages[0]?.created_at;
+    const days = first ? Math.max(1, Math.floor((Date.now() - new Date(first).getTime()) / 86400000)) : 0;
+    return { streakDays: streak, sharedMedia: media, daysTogether: days };
+  }, [messages]);
+
+
   // Note: the 10-message cap now lives inside the temporary verification chat
   // (PunishmentVerificationChat) — the actual DM is not throttled.
 
