@@ -127,6 +127,7 @@ export function useGroupChat(groupId: string | null, meId: string | null) {
         reply_to_id: input.reply_to_id ?? null,
       });
       if (error) throw error;
+      sfxSend();
     },
     [meId, groupId],
   );
