@@ -125,7 +125,8 @@ function InfoTab({
   const [draftAvatar, setDraftAvatar] = useState(avatar ?? "💜");
   const update = useUpdateGroup();
   const leave = useLeaveGroup();
-  const [muted, setMuted] = useState(() => isGroupMuted(groupId));
+  const [muted, setMuted] = useState(false);
+  useEffect(() => { setMuted(isGroupMuted(groupId)); }, [groupId]);
   const [searchOpen, setSearchOpen] = useState(false);
   const [q, setQ] = useState("");
 
