@@ -221,18 +221,21 @@ export function AiStickerPicker({ open, onClose, onPick }: Props) {
               {moods.map((mood) => {
                 const row = byMood.get(mood);
                 const busy = busyMood === mood;
+                const locked = !isMoodUnlocked(mood);
                 return (
                   <StickerCell
                     key={mood}
                     label={MOOD_LABEL[mood]}
                     row={row}
                     busy={busy}
+                    locked={locked}
                     canRegenerate={canRegenerate}
                     onPick={() => row && onPick(row.storage_path, mood)}
                     onGenerate={() => generate(mood)}
                   />
                 );
               })}
+
             </div>
             <p className="text-[10px] text-candle-muted text-center mt-3">
               {tab === "me" && "Tap ✨ to generate, tap a sticker to send."}
