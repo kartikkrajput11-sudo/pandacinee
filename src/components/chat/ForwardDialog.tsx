@@ -213,7 +213,7 @@ export function ForwardDialog({
                   <div className="flex-1 min-w-0 text-left">
                     <p className="text-sm text-candle truncate flex items-center gap-1">
                       {d.name}
-                      {d.isPartner && <Heart className="size-3 text-petal fill-petal" />}
+                      {d.kind === "dm" && d.isPartner && <Heart className="size-3 text-petal fill-petal" />}
                     </p>
                     <p className="text-[10px] text-candle-muted flex items-center gap-1">
                       {d.kind === "group" ? <><Users className="size-2.5" /> Group</> : "Direct message"}
