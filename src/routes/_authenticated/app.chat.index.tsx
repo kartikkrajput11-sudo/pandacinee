@@ -149,11 +149,7 @@ function PartnerCard({ thread, nickname }: { thread: NonNullable<ReturnType<type
       className="flex items-center gap-3 p-4 rounded-3xl bg-gradient-to-br from-petal-soft to-petal-soft/40 border border-petal/30 petal-glow"
     >
       <div className="relative size-14 rounded-full bg-petal-soft ring-2 ring-petal petal-glow flex items-center justify-center overflow-hidden shrink-0">
-        {thread.peer.avatar_url ? (
-          <img src={thread.peer.avatar_url} alt="" className="size-full object-cover" />
-        ) : (
-          <span className="text-2xl">🐼</span>
-        )}
+        <UserAvatar src={thread.peer.avatar_url} name={thread.peer.display_name} className="size-full" />
         <span className="absolute -bottom-0.5 -right-0.5 size-5 rounded-full bg-petal text-velvet flex items-center justify-center">
           <Heart className="size-2.5 fill-current" />
         </span>
