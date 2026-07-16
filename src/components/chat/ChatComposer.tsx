@@ -444,13 +444,13 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
               onBlur={() => onTyping(false)}
               placeholder={whisper ? `Whisper to ${partnerName}…` : `Message ${partnerName}…`}
               disabled={recording}
-              className={`w-full px-4 py-3 bg-surface border rounded-full text-sm text-candle placeholder:text-candle-muted focus:outline-none transition-colors ${
-                whisper ? "border-petal/70 focus:border-petal" : "border-border focus:border-petal/60"
+              className={`w-full pl-4 py-3 bg-surface border rounded-full text-sm text-candle placeholder:text-candle-muted focus:outline-none transition-colors ${
+                whisper ? "border-petal/70 focus:border-petal pr-24" : "border-border focus:border-petal/60 pr-4"
               }`}
             />
             {whisper && (
-              <span className="absolute -top-2 right-3 text-[10px] px-1.5 py-0.5 rounded-full bg-petal text-velvet">
-                🤫 whisper
+              <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[10px] leading-none px-2 py-1 rounded-full bg-petal text-velvet shadow-[0_2px_8px_-2px_rgba(236,72,153,0.5)] flex items-center gap-1">
+                🤫 <span className="tracking-wide">whisper</span>
               </span>
             )}
           </div>
