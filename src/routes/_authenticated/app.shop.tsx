@@ -13,6 +13,7 @@ import {
   Crown,
   Sticker,
   Award,
+  Grid3x3,
   Coins as CoinsIcon,
 } from "lucide-react";
 import { createCoinOrder, verifyCoinPayment } from "@/lib/razorpay.functions";
@@ -53,6 +54,7 @@ type Category =
   | "chat_perk"
   | "profile_flair"
   | "ai_sticker_pack"
+  | "chess_board"
   | "tag";
 
 const CATS: { key: Category; label: string; icon: any; blurb: string }[] = [
@@ -62,8 +64,10 @@ const CATS: { key: Category; label: string; icon: any; blurb: string }[] = [
   { key: "chat_perk", label: "Perks", icon: Wand2, blurb: "Sticker packs, kisses, and effects" },
   { key: "profile_flair", label: "Flair", icon: Crown, blurb: "Avatar rings & profile highlights" },
   { key: "ai_sticker_pack", label: "AI Packs", icon: Sticker, blurb: "AI-generated sticker sets for chat" },
+  { key: "chess_board", label: "Chess", icon: Grid3x3, blurb: "Themed chess boards to unlock for your matches" },
   { key: "tag", label: "Tags", icon: Award, blurb: "Achievement tags for your profile" },
 ];
+
 
 type CoinBundle = {
   id: string;
@@ -573,6 +577,48 @@ function ItemPreview({ item, compact = false }: { item: ShopItem; compact?: bool
         <div className="absolute bottom-1 right-1 text-[8px] text-candle-muted font-semibold inline-flex items-center gap-0.5">
           <Sparkles className="size-2.5" /> AI
         </div>
+      </div>
+    );
+  }
+  if (item.category === "chess_board") {
+    const light = meta.light ?? "oklch(0.82 0.04 320)";
+    const dark = meta.dark ?? "oklch(0.42 0.09 310)";
+    const accent = meta.accent ?? "#e879a5";
+    const size = compact ? 6 : 8;
+    return (
+      <div className="w-full h-full bg-gradient-to-br from-velvet to-surface flex items-center justify-center p-3 relative">
+        <div
+          className="grid rounded-lg overflow-hidden shadow-lg border"
+          style={{
+            gridTemplateColumns: `repeat(${size}, 1fr)`,
+            gridTemplateRows: `repeat(${size}, 1fr)`,
+            width: compact ? "70%" : "78%",
+            aspectRatio: "1 / 1",
+            borderColor: `${accent}55`,
+            boxShadow: `0 0 24px -8px ${accent}`,
+          }}
+        >
+          {Array.from({ length: size * size }).map((_, i) => {
+            const row = Math.floor(i / size);
+            const col = i % size;
+            const isLight = (row + col) % 2 === 0;
+            const showPiece = !compact && ((i === 0) || (i === size + 1) || (i === size * size - 1) || (i === size * size - size - 2));
+            return (
+              <div key={i} className="flex items-center justify-center" style={{ background: isLight ? light : dark }}>
+                {showPiece && (
+                  <span className="text-[10px] leading-none" style={{ color: i < size * size / 2 ? "#000" : "#fff", textShadow: "0 1px 1px rgba(0,0,0,0.4)" }}>
+                    {i < size * size / 2 ? "♛" : "♕"}
+                  </span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+        {meta.label && (
+          <div className="absolute bottom-1 right-2 text-[9px] uppercase tracking-[0.2em] font-bold" style={{ color: accent }}>
+            {meta.label}
+          </div>
+        )}
       </div>
     );
   }

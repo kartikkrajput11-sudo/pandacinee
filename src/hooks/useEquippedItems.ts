@@ -24,14 +24,23 @@ export type FlairMeta = {
   badge?: "supporter" | string;
 };
 
+export type ChessBoardMeta = {
+  light?: string;
+  dark?: string;
+  accent?: string;
+  label?: string;
+  premium?: boolean;
+};
+
 export type EquippedItems = {
   chatTheme: ChatThemeMeta | null;
   siteTheme: SiteThemeMeta | null;
   flairRing: FlairMeta | null;
   flairNameGradient: FlairMeta | null;
   flairBadge: FlairMeta | null;
-  ownedPerks: Set<string>; // e.g. "kiss_gold", "hug_warm", "confetti", "petal_rain", "wax_seal"
-  ownedPackMoods: Set<string>; // moods unlocked via ai_sticker_pack purchases
+  chessBoard: ChessBoardMeta | null;
+  ownedPerks: Set<string>;
+  ownedPackMoods: Set<string>;
   loaded: boolean;
   refresh: () => Promise<void>;
 };
@@ -53,6 +62,7 @@ export function useEquippedItems(): EquippedItems {
   const [flairRing, setFlairRing] = useState<FlairMeta | null>(null);
   const [flairNameGradient, setFlairNameGradient] = useState<FlairMeta | null>(null);
   const [flairBadge, setFlairBadge] = useState<FlairMeta | null>(null);
+  const [chessBoard, setChessBoard] = useState<ChessBoardMeta | null>(null);
   const [ownedPerks, setOwnedPerks] = useState<Set<string>>(new Set());
   const [ownedPackMoods, setOwnedPackMoods] = useState<Set<string>>(new Set());
   const [loaded, setLoaded] = useState(false);
@@ -70,6 +80,7 @@ export function useEquippedItems(): EquippedItems {
     let fRing: FlairMeta | null = null;
     let fName: FlairMeta | null = null;
     let fBadge: FlairMeta | null = null;
+    let cb: ChessBoardMeta | null = null;
     const perks = new Set<string>();
     const moods = new Set<string>();
 
@@ -86,6 +97,7 @@ export function useEquippedItems(): EquippedItems {
       if (!r.equipped) continue;
       if (item.category === "chat_theme") ct = meta;
       else if (item.category === "site_theme") st = meta;
+      else if (item.category === "chess_board") cb = meta;
       else if (item.category === "profile_flair") {
         if (meta.ring) fRing = meta;
         if (meta.name_gradient) fName = meta;
@@ -98,6 +110,7 @@ export function useEquippedItems(): EquippedItems {
     setFlairRing(fRing);
     setFlairNameGradient(fName);
     setFlairBadge(fBadge);
+    setChessBoard(cb);
     setOwnedPerks(perks);
     setOwnedPackMoods(moods);
     setLoaded(true);
@@ -135,6 +148,7 @@ export function useEquippedItems(): EquippedItems {
     flairRing,
     flairNameGradient,
     flairBadge,
+    chessBoard,
     ownedPerks,
     ownedPackMoods,
     loaded,
