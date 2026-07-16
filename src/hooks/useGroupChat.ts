@@ -121,7 +121,7 @@ export function useGroupChat(groupId: string | null, meId: string | null) {
         content: input.content,
         type: input.type ?? "text",
         media_url: input.media_url ?? null,
-        media_meta: input.media_meta ?? null,
+        media_meta: (input.media_meta ?? null) as never,
         reply_to_id: input.reply_to_id ?? null,
       });
       if (error) throw error;
