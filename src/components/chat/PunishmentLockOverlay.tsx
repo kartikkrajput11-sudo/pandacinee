@@ -1,5 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Lock, Send, Sparkles, Palette, Copy, HeartHandshake, Timer, Check } from "lucide-react";
+import { Lock, Send, Sparkles, Palette, HeartHandshake, Timer, Check } from "lucide-react";
+
+// Normalize for locked-chat matching: lowercase, strip punctuation, collapse whitespace.
+// Capital letters and punctuation are forgiven — only the sequence of words must match.
+function normalizeWords(s: string) {
+  return s
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
 import { toast } from "sonner";
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
