@@ -271,6 +271,29 @@ function ChatPeer() {
     }
   }, [messages, me]);
 
+  // Confetti / petal-rain perks: fire when a recent message (own or partner's)
+  // contains 🎉 / 🎊 (confetti) or 🌸 / 🌺 / 🌷 (petals) and the perk is owned.
+  const playedPerkRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    if (!me || messages.length === 0) return;
+    if (!hasConfetti && !hasPetalRain) return;
+    const now = Date.now();
+    for (const m of messages.slice(-8)) {
+      if (playedPerkRef.current.has(m.id)) continue;
+      if (now - new Date(m.created_at).getTime() > 15000) continue;
+      const text = m.content ?? "";
+      if (hasConfetti && /[🎉🎊🥳]/u.test(text)) {
+        playedPerkRef.current.add(m.id);
+        setConfettiTick((n) => n + 1);
+      } else if (hasPetalRain && /[🌸🌺🌷🌹💮]/u.test(text)) {
+        playedPerkRef.current.add(m.id);
+        setPetalTick((n) => n + 1);
+      }
+    }
+  }, [messages, me, hasConfetti, hasPetalRain]);
+
+
+
 
   if (isLoading || peerQ.isLoading) {
     return <div className="flex flex-col h-screen items-center justify-center text-candle-muted">Loading…</div>;
