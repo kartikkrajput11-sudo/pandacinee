@@ -215,6 +215,8 @@ function Composer({
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [theme, setTheme] = useState<Letter["theme"]>("gold");
+  const [motto, setMotto] = useState("");
+  const [previewBreaking, setPreviewBreaking] = useState(false);
   const [tone, setTone] = useState<"tender" | "playful" | "poetic" | "vulnerable">("tender");
   const [hints, setHints] = useState("");
   const [unlockChoice, setUnlockChoice] = useState<"now" | "tomorrow" | "week" | "custom">("tomorrow");
@@ -225,6 +227,11 @@ function Composer({
   });
   const [aiLoading, setAiLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  function testAnimation() {
+    setPreviewBreaking(true);
+    setTimeout(() => setPreviewBreaking(false), 1500);
+  }
 
   const unlockAt = useMemo(() => {
     const d = new Date();
