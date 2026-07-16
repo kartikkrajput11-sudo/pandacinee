@@ -124,6 +124,7 @@ export function useEquippedItems(): EquippedItems {
     setFlairNameGradient(fName);
     setFlairBadge(fBadge);
     setChessBoard(cb);
+    setChessPieces(cp);
     setOwnedPerks(perks);
     setOwnedPackMoods(moods);
     setLoaded(true);
