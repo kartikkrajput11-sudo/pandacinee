@@ -69,23 +69,8 @@ export function PandacineWaxSeal({
         }}
       />
 
-      {/* Rotating radial rays behind the disc */}
-      <svg className="pcs-rays" viewBox="0 0 200 200" aria-hidden>
-        <defs>
-          <radialGradient id={`ray-${tone}`} cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor={p.hi} stopOpacity="0.5" />
-            <stop offset="100%" stopColor={p.hi} stopOpacity="0" />
-          </radialGradient>
-        </defs>
-        {Array.from({ length: 12 }).map((_, i) => (
-          <polygon
-            key={i}
-            points="100,100 96,4 104,4"
-            fill={`url(#ray-${tone})`}
-            transform={`rotate(${i * 30} 100 100)`}
-          />
-        ))}
-      </svg>
+
+
 
       {/* Pulsing outer glow ring */}
       <span
