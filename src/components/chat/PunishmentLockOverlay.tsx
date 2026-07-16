@@ -421,34 +421,76 @@ export function PunishmentLockOverlay({
           </div>
         ) : (
           <>
-            {(lock.type === "write" || lock.type === "compliment" || lock.type === "funny") && (
-              <div className="space-y-3">
-                <textarea
-                  value={entry}
-                  onChange={(e) => setEntry(e.target.value)}
-                  placeholder={
-                    lock.type === "write"
-                      ? `Type exactly: "${lock.prompt}"`
-                      : lock.type === "compliment"
-                        ? "A unique compliment…"
-                        : "Type your entry…"
-                  }
-                  rows={lock.type === "funny" ? 4 : 2}
-                  className="w-full bg-white/[0.03] border border-white/10 focus:border-petal/50 rounded-2xl px-4 py-3 text-sm text-candle resize-none placeholder:text-candle-muted/60 outline-none transition-colors"
-                />
-                <LuxuryButton
-                  onClick={
-                    lock.type === "write"
-                      ? submitWrite
-                      : lock.type === "compliment"
-                        ? submitCompliment
-                        : submitFunny
-                  }
-                >
-                  <Send className="size-3.5" /> Submit
-                </LuxuryButton>
-              </div>
-            )}
+            {(lock.type === "write" || lock.type === "compliment" || lock.type === "funny") && (() => {
+              const minLen = lock.type === "compliment" ? 5 : lock.type === "funny" ? 10 : 0;
+              const target = lock.prompt.trim().toLowerCase();
+              const val = entry.trim();
+              const writeMatch = lock.type === "write" && val.length > 0
+                ? (val.toLowerCase() === target
+                    ? "match"
+                    : target.startsWith(val.toLowerCase())
+                      ? "progress"
+                      : "mismatch")
+                : null;
+              return (
+                <div className="space-y-3">
+                  <div className="relative">
+                    <textarea
+                      value={entry}
+                      onChange={(e) => setEntry(e.target.value)}
+                      placeholder={
+                        lock.type === "write"
+                          ? `Type exactly: "${lock.prompt}"`
+                          : lock.type === "compliment"
+                            ? "A unique compliment…"
+                            : "Type your entry…"
+                      }
+                      rows={lock.type === "funny" ? 4 : 2}
+                      className={`w-full bg-white/[0.03] border rounded-2xl px-4 py-3 text-sm text-candle resize-none placeholder:text-candle-muted/60 outline-none transition-colors ${
+                        writeMatch === "match"
+                          ? "border-emerald-400/60"
+                          : writeMatch === "mismatch"
+                            ? "border-rose-400/60"
+                            : "border-white/10 focus:border-petal/50"
+                      }`}
+                    />
+                    {/* Feedback chip */}
+                    <div className="absolute right-3 bottom-3 flex items-center gap-2 text-[10px] tracking-wide">
+                      {lock.type === "write" && writeMatch === "match" && (
+                        <span className="flex items-center gap-1 text-emerald-300">
+                          <Check className="size-3" /> Perfect
+                        </span>
+                      )}
+                      {lock.type === "write" && writeMatch === "progress" && (
+                        <span className="text-petal/80 tabular-nums">
+                          {val.length} / {target.length}
+                        </span>
+                      )}
+                      {lock.type === "write" && writeMatch === "mismatch" && (
+                        <span className="text-rose-300">Off script</span>
+                      )}
+                      {lock.type !== "write" && (
+                        <span className={`tabular-nums ${val.length < minLen ? "text-candle-muted" : "text-emerald-300"}`}>
+                          {val.length}{minLen ? ` / ${minLen}+` : ""}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <LuxuryButton
+                    onClick={
+                      lock.type === "write"
+                        ? submitWrite
+                        : lock.type === "compliment"
+                          ? submitCompliment
+                          : submitFunny
+                    }
+                  >
+                    <Send className="size-3.5" /> Submit
+                  </LuxuryButton>
+                </div>
+              );
+            })()}
+
 
             {lock.type === "photo" && (
               <>
