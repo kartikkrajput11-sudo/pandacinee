@@ -95,6 +95,16 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
     }
   }
 
+  async function sendHug() {
+    setMenuOpen(false);
+    try {
+      await onSend({ type: "hug", content: `🫂 A warm hug for ${partnerName}`, disappear_seconds: disappearSecs });
+      toast.success(`You hugged ${partnerName} 🫂`);
+    } catch (err: any) {
+      toast.error(err?.message ?? "Couldn't send");
+    }
+  }
+
 
   async function sendWatchInvite(movie: TmdbMovie) {
     setWatchPickerOpen(false);
