@@ -210,6 +210,13 @@ function GroupChat() {
                   )}
                   {m.type === "image" && m.media_url ? (
                     <GroupImage path={m.media_url} />
+                  ) : m.type === "poll" ? (
+                    <PollMessage
+                      messageId={m.id}
+                      meta={m.media_meta}
+                      meId={meId}
+                      memberById={memberById}
+                    />
                   ) : (
                     <span>{m.content}</span>
                   )}
