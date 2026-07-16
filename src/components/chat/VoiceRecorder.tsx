@@ -85,7 +85,14 @@ export function VoiceRecorder({
         toast.error("Microphone unavailable on this device.");
         return;
       }
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+          channelCount: 1,
+        },
+      });
       streamRef.current = stream;
       const picked = pickMime();
       mimeRef.current = picked;
@@ -98,12 +105,21 @@ export function VoiceRecorder({
         const type = rec.mimeType || picked.mime || "audio/mp4";
         blobRef.current = new Blob(chunksRef.current, { type });
       };
-      rec.start();
-      recRef.current = rec;
-      startRef.current = Date.now();
+
+      // Show recording UI immediately so users get feedback…
       setRecording(true);
       onRecordingChange?.(true);
       setElapsed(0);
+
+      // …but discard the first ~350ms where the mic's AGC/echo canceller
+      // is still calibrating and produces a click/hiss burst.
+      await new Promise((r) => setTimeout(r, 350));
+      // User may have cancelled during warmup.
+      if (!streamRef.current) return;
+
+      rec.start();
+      recRef.current = rec;
+      startRef.current = Date.now();
 
       timerRef.current = window.setInterval(() => {
         setElapsed(Math.floor((Date.now() - startRef.current) / 1000));
