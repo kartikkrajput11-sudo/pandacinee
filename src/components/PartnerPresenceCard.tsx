@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Circle, Clock } from "lucide-react";
 import type { Profile } from "@/hooks/useProfile";
+import { UserAvatar } from "@/components/UserAvatar";
 
 export function PartnerPresenceCard({
   partner,
