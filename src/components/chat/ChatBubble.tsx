@@ -382,6 +382,25 @@ function ChatBubbleImpl({
             );
           })()}
 
+          {isHug && (() => {
+            const time = new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false });
+            const sender = mine ? "You" : (partnerName || "Them");
+            return (
+              <div className="flex flex-col items-center py-2 w-full">
+                <div className="relative rounded-2xl px-5 py-3 flex items-center gap-3 border border-petal/25 bg-gradient-to-r from-petal-soft/25 via-transparent to-[hsl(38_60%_60%/0.18)] backdrop-blur-sm">
+                  <span className="text-2xl">🫂</span>
+                  <div className="flex flex-col">
+                    <span className="text-[9px] uppercase tracking-[0.28em] text-petal">Hug from {sender}</span>
+                    <span className="font-serif italic text-candle text-base leading-tight">a warm embrace</span>
+                    <span className="text-[8px] tracking-[0.2em] uppercase text-candle/40 mt-1">{time}</span>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+
+
+
 
 
 
