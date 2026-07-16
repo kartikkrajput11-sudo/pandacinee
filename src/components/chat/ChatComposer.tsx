@@ -199,6 +199,23 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
     }
   }
 
+  async function sendAiSticker(storagePath: string, mood: AiStickerMood) {
+    setAiOpen(false);
+    try {
+      await onSend({
+        content: `ai:${mood}`,
+        type: "sticker",
+        media_url: storagePath,
+        media_meta: { kind: "ai_sticker", mood },
+        reply_to_id: replyTo?.id ?? null,
+        disappear_seconds: disappearSecs,
+      });
+      onClearReply();
+    } catch (err: any) {
+      toast.error(err?.message ?? "Failed");
+    }
+  }
+
   async function uploadAndSend(
     file: File,
     kind: "image" | "video" | "file",
