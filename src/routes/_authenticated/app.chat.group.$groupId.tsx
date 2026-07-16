@@ -262,6 +262,15 @@ function GroupChat() {
                     >
                       <Reply className="size-3.5" />
                     </button>
+                    {["text","image","video","voice","file","sticker"].includes(m.type) && (
+                      <button
+                        onClick={(ev) => { ev.stopPropagation(); setForwardMsg(m as unknown as MessageRow); setOpenBubbleId(null); }}
+                        className="size-7 rounded-full bg-surface border border-border flex items-center justify-center text-candle-muted"
+                        aria-label="Forward"
+                      >
+                        <Forward className="size-3.5" />
+                      </button>
+                    )}
                     {canPin && (
                       <button
                         onClick={(ev) => { ev.stopPropagation(); chat.pin(m.id, !m.pinned_at); setOpenBubbleId(null); }}
