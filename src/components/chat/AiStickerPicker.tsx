@@ -43,6 +43,11 @@ type Props = {
 
 type Tab = "me" | "partner" | "us";
 
+function hasUploadedProfilePhoto(id: string | null | undefined, avatar: string | null | undefined) {
+  const value = avatar?.trim();
+  return !!id && !!value && !/^(https?:|data:)/i.test(value) && value.startsWith(`${id}/`);
+}
+
 export function AiStickerPicker({ open, onClose, onPick }: Props) {
   const { data: profileData } = useProfile();
   const me = profileData?.profile;
@@ -56,13 +61,17 @@ export function AiStickerPicker({ open, onClose, onPick }: Props) {
   const isCoupleTab = tab === "us";
   // Couple stickers are stored under the current user's row so they can regenerate.
   const activeUserId = tab === "partner" ? partner?.id : me?.id;
-  const activeAvatar = tab === "partner" ? partner?.avatar_url : me?.avatar_url;
+  const activeHasUploadedPhoto = tab === "partner"
+    ? hasUploadedProfilePhoto(partner?.id, partner?.avatar_url)
+    : hasUploadedProfilePhoto(me?.id, me?.avatar_url);
+  const meHasUploadedPhoto = hasUploadedProfilePhoto(me?.id, me?.avatar_url);
+  const partnerHasUploadedPhoto = hasUploadedProfilePhoto(partner?.id, partner?.avatar_url);
   const partnerName = me?.partner_nickname || partner?.display_name || "them";
   const activeName = tab === "me" ? "you" : tab === "partner" ? partnerName : "us";
 
   const moods = isCoupleTab ? AI_STICKER_COUPLE_MOODS : AI_STICKER_SOLO_MOODS;
   const canRegenerate = tab === "me" || tab === "us";
-  const needsPartnerAvatar = isCoupleTab && !partner?.avatar_url;
+  const needsPartnerAvatar = isCoupleTab && !partnerHasUploadedPhoto;
 
   const { data: rows } = useQuery({
     enabled: open && !!activeUserId,
@@ -97,8 +106,12 @@ export function AiStickerPicker({ open, onClose, onPick }: Props) {
       toast.info("Pair with your partner first to make couple stickers.");
       return;
     }
-    if (isCoupleTab && !partner?.avatar_url) {
-      toast.info(`${partnerName} needs to upload a profile photo first.`);
+    if (isCoupleTab && !meHasUploadedPhoto) {
+      toast.info("Upload your real profile photo first so couple stickers match your face.");
+      return;
+    }
+    if (isCoupleTab && !partnerHasUploadedPhoto) {
+      toast.info(`${partnerName} needs to upload a real profile photo first.`);
       return;
     }
     setBusyMood(mood);
@@ -157,7 +170,7 @@ export function AiStickerPicker({ open, onClose, onPick }: Props) {
           </div>
         )}
 
-        {!activeAvatar || needsPartnerAvatar ? (
+        {!activeHasUploadedPhoto || needsPartnerAvatar ? (
           <div className="py-10 text-center px-4">
             <div className="size-16 mx-auto mb-3 rounded-full bg-petal-soft/40 border border-petal/30 flex items-center justify-center">
               <ImagePlus className="size-7 text-petal" />
@@ -165,18 +178,18 @@ export function AiStickerPicker({ open, onClose, onPick }: Props) {
             <p className="font-serif italic text-lg text-candle mb-1">
               {tab === "me" && "Add a profile photo first"}
               {tab === "partner" && `${partnerName} needs a profile photo`}
-              {isCoupleTab && (!me?.avatar_url
+              {isCoupleTab && (!meHasUploadedPhoto
                 ? "Add your profile photo first"
-                : `${partnerName} needs a profile photo`)}
+                : `${partnerName} needs a real profile photo`)}
             </p>
             <p className="text-xs text-candle-muted mb-4 max-w-xs mx-auto">
-              {tab === "me" && "To create AI anime stickers of yourself, upload a profile picture first."}
-              {tab === "partner" && `Ask ${partnerName} to upload their profile photo so we can make anime stickers of them.`}
-              {isCoupleTab && (!me?.avatar_url
-                ? "Couple stickers use both of your profile photos — upload yours to get started."
-                : `Couple stickers use both photos — ask ${partnerName} to upload theirs.`)}
+              {tab === "me" && "To create accurate AI anime stickers of yourself, upload a real profile picture first."}
+              {tab === "partner" && `Ask ${partnerName} to upload a real profile photo so stickers can match their face accurately.`}
+              {isCoupleTab && (!meHasUploadedPhoto
+                ? "Couple stickers require both real profile photos — upload yours to get started."
+                : `Couple stickers require both real photos — ask ${partnerName} to upload theirs.`)}
             </p>
-            {(tab === "me" || (isCoupleTab && !me?.avatar_url)) && (
+            {(tab === "me" || (isCoupleTab && !meHasUploadedPhoto)) && (
               <Link
                 to="/app/me"
                 onClick={onClose}
