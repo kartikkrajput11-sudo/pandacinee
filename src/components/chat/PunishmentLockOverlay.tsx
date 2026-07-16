@@ -188,15 +188,32 @@ export function PunishmentLockOverlay({
             "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>\")",
         }}
       />
+      {/* Ambient drifting petals */}
+      <FloatingPetals />
       {celebrate && <Confetti />}
 
-      <div className="w-full max-w-md">
+      <div className="w-full max-w-md relative">
+        {/* Corner filigree ornaments */}
+        <FiligreeCorner className="absolute -top-1 -left-1" />
+        <FiligreeCorner className="absolute -top-1 -right-1 scale-x-[-1]" />
+
         <div className="flex flex-col items-center text-center mb-6">
-          {/* Wax-seal style emblem */}
+          {/* Wax-seal style emblem with orbiting sparks */}
           <div className="relative mb-4">
             <div
               className="absolute inset-0 rounded-full blur-2xl opacity-70"
               style={{ background: "radial-gradient(circle, rgba(236,72,153,0.55), transparent 70%)" }}
+            />
+            {/* Rotating rune ring */}
+            <div
+              className="absolute -inset-3 rounded-full opacity-50 pointer-events-none"
+              style={{
+                background:
+                  "conic-gradient(from 0deg, transparent 0deg, hsl(38 60% 68% / 0.6) 40deg, transparent 80deg, transparent 180deg, hsl(340 65% 60% / 0.5) 220deg, transparent 260deg)",
+                mask: "radial-gradient(circle, transparent 55%, black 56%, black 66%, transparent 67%)",
+                WebkitMask: "radial-gradient(circle, transparent 55%, black 56%, black 66%, transparent 67%)",
+                animation: "spinRing 12s linear infinite",
+              }}
             />
             <div
               className="relative size-20 rounded-full flex items-center justify-center"
@@ -211,15 +228,20 @@ export function PunishmentLockOverlay({
                 <Lock className="size-6 text-petal" strokeWidth={1.6} />
               </div>
             </div>
+            {/* Twinkles */}
+            <Sparkles className="absolute -top-1 -right-2 size-3.5 text-[hsl(38_70%_75%)] animate-pulse" />
+            <Sparkles className="absolute -bottom-1 -left-2 size-3 text-petal/80 animate-pulse [animation-delay:600ms]" />
           </div>
 
-          {/* Ornate label */}
+          {/* Ornate divider with center diamond */}
           <div className="flex items-center gap-3 mb-2">
-            <span className="h-px w-8 bg-gradient-to-r from-transparent to-petal/60" />
+            <span className="h-px w-10 bg-gradient-to-r from-transparent to-petal/60" />
+            <span className="size-1 rotate-45 bg-petal/70" />
             <p className="text-[9px] uppercase tracking-[0.42em] text-petal">
               Sealed by {partnerName}
             </p>
-            <span className="h-px w-8 bg-gradient-to-l from-transparent to-petal/60" />
+            <span className="size-1 rotate-45 bg-petal/70" />
+            <span className="h-px w-10 bg-gradient-to-l from-transparent to-petal/60" />
           </div>
 
           <h2 className="font-serif italic text-2xl text-candle">
@@ -245,7 +267,15 @@ export function PunishmentLockOverlay({
               &rdquo;
             </span>
           </div>
+
+          {/* Fleuron scroll divider */}
+          <div className="flex items-center gap-3 mt-8 w-full">
+            <span className="h-px flex-1 bg-gradient-to-r from-transparent via-petal/30 to-petal/40" />
+            <span className="text-petal/70 text-sm">❦</span>
+            <span className="h-px flex-1 bg-gradient-to-l from-transparent via-petal/30 to-petal/40" />
+          </div>
         </div>
+
 
         {/* Progress rail — champagne */}
         <div className="mb-6 rounded-2xl border border-white/5 bg-white/[0.02] backdrop-blur-sm px-4 py-3">
