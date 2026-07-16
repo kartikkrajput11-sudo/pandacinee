@@ -474,6 +474,14 @@ function Composer({
                 </button>
               ))}
             </div>
+            {anniversaryDate && (
+              <button
+                onClick={() => setUnlockChoice("anniversary")}
+                className={`mt-2 w-full py-2 rounded-xl text-xs border inline-flex items-center justify-center gap-2 ${unlockChoice === "anniversary" ? "border-petal bg-petal-soft text-candle" : "border-border text-candle-muted"}`}
+              >
+                <span className="text-petal">❤︎</span> On our anniversary
+              </button>
+            )}
             {unlockChoice === "custom" && (
               <input
                 type="date"
@@ -486,6 +494,79 @@ function Composer({
             <p className="text-[11px] text-candle-muted mt-2">
               Will open {formatDate(unlockAt)} at {unlockAt.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}.
             </p>
+          </div>
+
+          {/* Keepsakes: photo + voice note */}
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.25em] text-candle-muted mb-2">Keepsakes</p>
+
+            {/* Photo */}
+            <input ref={fileInputRef} type="file" accept="image/*" hidden onChange={onPickPhoto} />
+            {photoPreview ? (
+              <div className="relative rounded-2xl overflow-hidden border border-border mb-3">
+                <img src={photoPreview} alt="attachment" className="w-full max-h-56 object-cover" />
+                <button
+                  onClick={() => { setPhotoPath(null); setPhotoPreview(null); }}
+                  className="absolute top-2 right-2 size-8 rounded-full bg-velvet/80 text-candle flex items-center justify-center"
+                  aria-label="Remove photo"
+                >
+                  <Trash2 className="size-4" />
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={photoUploading}
+                className="w-full py-3 rounded-2xl border border-dashed border-border text-sm text-candle-muted inline-flex items-center justify-center gap-2 mb-3 disabled:opacity-60"
+              >
+                <ImageIcon className="size-4" />
+                {photoUploading ? "Uploading…" : "Attach a photo"}
+              </button>
+            )}
+
+            {/* Voice */}
+            {voicePath ? (
+              <div className="flex items-center gap-3 p-3 rounded-2xl bg-surface border border-border">
+                <div className="size-9 rounded-full bg-petal-soft text-petal flex items-center justify-center">
+                  <Mic className="size-4" />
+                </div>
+                <div className="flex-1 text-sm text-candle">
+                  Voice note attached
+                  <p className="text-[11px] text-candle-muted">{Math.max(1, Math.round(voiceMs / 1000))}s</p>
+                </div>
+                <button
+                  onClick={() => { setVoicePath(null); setVoiceMs(0); }}
+                  className="text-candle-muted"
+                  aria-label="Remove voice note"
+                >
+                  <Trash2 className="size-4" />
+                </button>
+              </div>
+            ) : showRecorder ? (
+              <div className="rounded-2xl bg-surface border border-border p-3">
+                <VoiceRecorder
+                  userId={me}
+                  onSend={async (path, durationMs) => {
+                    setVoicePath(path);
+                    setVoiceMs(durationMs);
+                    setShowRecorder(false);
+                  }}
+                />
+                <button
+                  onClick={() => setShowRecorder(false)}
+                  className="mt-2 w-full py-1.5 text-[11px] uppercase tracking-widest text-candle-muted"
+                >
+                  Cancel recording
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setShowRecorder(true)}
+                className="w-full py-3 rounded-2xl border border-dashed border-border text-sm text-candle-muted inline-flex items-center justify-center gap-2"
+              >
+                <Mic className="size-4" /> Record a voice note
+              </button>
+            )}
           </div>
         </div>
 
