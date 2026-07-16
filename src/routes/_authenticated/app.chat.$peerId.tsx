@@ -520,6 +520,12 @@ function ChatPeer() {
         peerPrefs={peer as unknown as Record<string, boolean>}
         onCreate={createLock}
       />
+
+      <ForwardDialog
+        message={forwardMsg}
+        open={!!forwardMsg}
+        onClose={() => setForwardMsg(null)}
+      />
     </div>
   );
 }
