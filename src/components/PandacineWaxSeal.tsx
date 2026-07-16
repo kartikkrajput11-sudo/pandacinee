@@ -69,6 +69,50 @@ export function PandacineWaxSeal({
         }}
       />
 
+      {/* Rotating radial rays behind the disc */}
+      <svg className="pcs-rays" viewBox="0 0 200 200" aria-hidden>
+        <defs>
+          <radialGradient id={`ray-${tone}`} cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor={p.hi} stopOpacity="0.5" />
+            <stop offset="100%" stopColor={p.hi} stopOpacity="0" />
+          </radialGradient>
+        </defs>
+        {Array.from({ length: 12 }).map((_, i) => (
+          <polygon
+            key={i}
+            points="100,100 96,4 104,4"
+            fill={`url(#ray-${tone})`}
+            transform={`rotate(${i * 30} 100 100)`}
+          />
+        ))}
+      </svg>
+
+      {/* Pulsing outer glow ring */}
+      <span
+        className="pcs-pulse-ring"
+        style={{ boxShadow: `0 0 0 2px ${p.mid}55, 0 0 40px 8px ${p.glow}` }}
+      />
+
+      {/* Twinkling star specks around the seal */}
+      <div className="pcs-twinkle-field" aria-hidden>
+        {[
+          { top: "6%", left: "18%", d: "0s" },
+          { top: "12%", left: "82%", d: "0.4s" },
+          { top: "44%", left: "94%", d: "0.9s" },
+          { top: "78%", left: "88%", d: "0.2s" },
+          { top: "92%", left: "50%", d: "1.1s" },
+          { top: "80%", left: "10%", d: "0.6s" },
+          { top: "40%", left: "4%", d: "1.3s" },
+          { top: "22%", left: "6%", d: "0.8s" },
+        ].map((s, i) => (
+          <span
+            key={i}
+            className="pcs-tw"
+            style={{ top: s.top, left: s.left, animationDelay: s.d, color: p.hi }}
+          />
+        ))}
+      </div>
+
       {/* Wax drips underneath (revealed by melt) */}
       <svg className="pcs-drips" viewBox="0 0 200 200" aria-hidden>
         <defs>
