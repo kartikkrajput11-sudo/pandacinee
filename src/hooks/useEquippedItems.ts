@@ -110,6 +110,7 @@ export function useEquippedItems(): EquippedItems {
       if (item.category === "chat_theme") ct = meta;
       else if (item.category === "site_theme") st = meta;
       else if (item.category === "chess_board") cb = meta;
+      else if (item.category === "chess_pieces") cp = meta;
       else if (item.category === "profile_flair") {
         if (meta.ring) fRing = meta;
         if (meta.name_gradient) fName = meta;
