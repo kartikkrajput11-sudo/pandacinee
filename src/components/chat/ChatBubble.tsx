@@ -361,10 +361,18 @@ export function ChatBubble({
           </div>
         )}
 
-        {mine && isLast && (
-          <div className="flex items-center gap-1 mt-0.5 justify-end text-[10px] text-candle-muted">
-            {m.read_at ? <CheckCheck className="size-3 text-petal" /> : <Check className="size-3" />}
-            <span>{m.read_at ? "Seen" : "Sent"}</span>
+        {mine ? (
+          isLast && (
+            <div className="flex items-center gap-1 mt-0.5 justify-end text-[10px] text-candle-muted">
+              {m.read_at ? <CheckCheck className="size-3 text-petal" /> : <Check className="size-3" />}
+              <span>
+                {m.read_at ? `Seen ${relTime(m.read_at)}` : `Sent ${relTime(m.created_at)}`}
+              </span>
+            </div>
+          )
+        ) : (
+          <div className="mt-0.5 text-[10px] text-candle-muted">
+            {relTime(m.created_at)}
           </div>
         )}
 
