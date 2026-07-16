@@ -85,7 +85,7 @@ export function VoiceRecorder({
         toast.error("Microphone unavailable on this device.");
         return;
       }
-      const stream = await navigator.mediaDevices.getUserMedia({
+      const rawStream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: true,
           noiseSuppression: true,
@@ -93,47 +93,52 @@ export function VoiceRecorder({
           channelCount: 1,
         },
       });
-      streamRef.current = stream;
+      streamRef.current = rawStream;
+
+      // Route mic → GainNode → MediaStreamDestination. We start gain at 0
+      // and ramp up over ~250ms so the mic activation click/pop is encoded
+      // as silence instead of a "blast" at the head of every voice note.
+      const AC = window.AudioContext || (window as any).webkitAudioContext;
+      const ctx = new AC();
+      audioCtxRef.current = ctx;
+      const src = ctx.createMediaStreamSource(rawStream);
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(1, ctx.currentTime + 0.28);
+      const dest = ctx.createMediaStreamDestination();
+      src.connect(gain);
+      gain.connect(dest);
+
+      // Analyser tap off the same graph so the waveform reflects what is
+      // actually being recorded (also silent for the first 250ms).
+      const analyser = ctx.createAnalyser();
+      analyser.fftSize = 128;
+      gain.connect(analyser);
+      analyserRef.current = analyser;
+
+      const recordStream = dest.stream;
       const picked = pickMime();
       mimeRef.current = picked;
       const rec = picked.mime
-        ? new MediaRecorder(stream, { mimeType: picked.mime })
-        : new MediaRecorder(stream);
+        ? new MediaRecorder(recordStream, { mimeType: picked.mime })
+        : new MediaRecorder(recordStream);
       chunksRef.current = [];
       rec.ondataavailable = (e) => e.data.size > 0 && chunksRef.current.push(e.data);
       rec.onstop = () => {
         const type = rec.mimeType || picked.mime || "audio/mp4";
         blobRef.current = new Blob(chunksRef.current, { type });
       };
-
-      // Show recording UI immediately so users get feedback…
-      setRecording(true);
-      onRecordingChange?.(true);
-      setElapsed(0);
-
-      // …but discard the first ~350ms where the mic's AGC/echo canceller
-      // is still calibrating and produces a click/hiss burst.
-      await new Promise((r) => setTimeout(r, 350));
-      // User may have cancelled during warmup.
-      if (!streamRef.current) return;
-
       rec.start();
       recRef.current = rec;
       startRef.current = Date.now();
+      setRecording(true);
+      onRecordingChange?.(true);
+      setElapsed(0);
 
       timerRef.current = window.setInterval(() => {
         setElapsed(Math.floor((Date.now() - startRef.current) / 1000));
       }, 250);
 
-      // Waveform
-      const AC = window.AudioContext || (window as any).webkitAudioContext;
-      const ctx = new AC();
-      audioCtxRef.current = ctx;
-      const src = ctx.createMediaStreamSource(stream);
-      const analyser = ctx.createAnalyser();
-      analyser.fftSize = 128;
-      src.connect(analyser);
-      analyserRef.current = analyser;
       rafRef.current = requestAnimationFrame(tickAnalyser);
     } catch (err: any) {
       const msg =
