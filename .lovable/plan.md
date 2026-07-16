@@ -1,60 +1,69 @@
-# Watch Party (Cineby-style) on Movies
+## Group Chat Feature Upgrade
 
-Add a shareable **watch-party room** on top of the current movie/episode player so multiple friends (not just the paired partner) can watch the same title together, in sync, with a live chat sidebar.
+Adding four feature tiers to group chats. Existing tables: `chat_groups`, `chat_group_members` (role admin/member), `messages`.
 
-## What the user gets
+### 1. Basic essentials (Group Info screen)
+New route `src/routes/_authenticated/app.chat.group.$groupId.info.tsx`:
+- Rename group (admin only)
+- Change group avatar — upload to `chat-media` bucket (admin only)
+- Members list with role badges
+- Add members (from friends + partner)
+- Remove member (admin only)
+- Promote / demote admin (admin only) — **admin switch**
+- Leave group (existing `useLeaveGroup`)
+- Mute notifications (local per-device via `localStorage`, keyed by group id)
 
-On any movie or episode page:
+Header of `app.chat.group.$groupId.tsx` links to the info screen.
 
-1. A new **"Watch Party"** button next to the existing controls.
-2. Clicking it creates a room and gives a **6-character invite code** + shareable link.
-3. Friends open the link (or paste the code on `/app/watch-party`) and land in the same player.
-4. Everyone sees the **same source, same title, same episode**, synced play/pause/seek from whoever is host.
-5. A collapsible **chat panel** on the side (text only) so people can react while watching.
-6. A small **"● 3 watching"** presence pill showing who's in the room.
+### 2. Message tools (extend existing chat UI)
+Reuse for both direct + group chats where feasible:
+- **Reply/quote**: add `reply_to_id` column on `messages`; long-press/hover shows Reply; composer displays quoted preview; bubble renders quoted snippet that scrolls to source
+- **Reactions**: new `message_reactions` table (`message_id`, `user_id`, `emoji`); tap emoji on bubble; grouped counts under bubble
+- **Pin messages**: add `pinned_at`, `pinned_by` on `messages`; pinned banner at top of group thread; admin-only pin/unpin
+- **Search within group**: reuse `ChatSearch` component, wired to group message list
+- **Delete for everyone**: admin OR original sender; sets `deleted_at` and renders "message deleted"
 
-Anyone can leave anytime; when the host leaves, the next person becomes host automatically. Rooms auto-expire after 6h of inactivity.
+### 3. Media & sharing (Media tab in Group Info)
+- Tabs: Media (images/video), Files, Links
+- Query `messages` filtered by group + type in ('image','video','file') sorted desc
+- Link previews: extract first URL, store `link_preview` jsonb (title, description, image) fetched by a server function using existing infra pattern; render inline in bubbles
 
-## Scope
+### 4. Step 3 — Theme selection + Admin switch
+- **Theme selection**: add `theme` text column on `chat_groups` (default `'aurora'`). Options: `aurora`, `sunset`, `midnight`, `sakura`, `forest`, `mono`. Admin picks from Info screen. Chat background + accent tokens driven by `data-group-theme` attribute mapped in `styles.css`.
+- **Admin switch**: Promote/demote handled in Members list. Enforced by RLS via existing `is_group_admin()` function. At least one admin must remain (checked in mutation).
 
-- Works for **movies** and **TV episodes** (uses existing `/app/movies/$id/watch` and `/app/movies/$id/episode/$s/$e`).
-- Sync sends `play / pause / seek / source change / episode change` events. Third-party iframes (vidking.net) can't be script-controlled, so for those sources sync is **soft** — everyone's iframe reloads to the same episode/source, and the host's play/pause/seek is broadcast as a "resync" nudge (host's timestamp shown; one-tap "Catch up" button). For Pandacine self-hosted sources, sync is **tight** (auto seek + play/pause).
-- Chat is room-scoped, ephemeral (cleared when room expires). No media in chat — just text + emoji.
-- No changes to auth, movies catalog, or the existing partner-only sync on `/app/watch`.
+### Data changes (single migration)
+```sql
+alter table public.messages
+  add column reply_to_id uuid references public.messages(id) on delete set null,
+  add column pinned_at timestamptz,
+  add column pinned_by uuid references auth.users(id),
+  add column deleted_at timestamptz,
+  add column link_preview jsonb;
 
-## Technical details
+alter table public.chat_groups add column theme text not null default 'aurora';
 
-### Backend (Lovable Cloud migration)
-
-New tables:
-
-- `watch_parties` — `id uuid pk`, `code text unique` (6 chars), `host_id uuid`, `media_kind text` ('movie'|'tv'), `media_id text` (TMDB id or custom id), `season int null`, `episode int null`, `source_idx int`, `position_seconds float`, `is_playing bool`, `last_actor_id uuid`, `last_event text`, `updated_at timestamptz`, `created_at timestamptz`.
-- `watch_party_members` — `party_id uuid`, `user_id uuid`, `joined_at`, `last_seen_at`, PK `(party_id, user_id)`.
-- `watch_party_messages` — `id`, `party_id`, `sender_id`, `body text`, `created_at`. Realtime enabled.
-
-RLS: only members can SELECT/INSERT rows for a given party; joining by code goes through a `SECURITY DEFINER` RPC `join_watch_party(_code text)` that inserts the caller into `watch_party_members` and returns the party row. GRANTs to `authenticated` + `service_role`. Realtime enabled on all three tables.
-
-### Frontend
-
-- `src/routes/_authenticated/app.watch-party.$code.tsx` — the room page (player + chat + presence).
-- `src/routes/_authenticated/app.watch-party.index.tsx` — join-by-code screen.
-- **Player reuse**: extract the iframe/player block from `app.movies.$id.watch.tsx` into a small `MoviePlayer` component so the watch-party route can reuse it with `mode="party"`.
-- **Sync hook** `useWatchPartySync(partyId)`: postgres_changes subscription on `watch_parties` + `watch_party_members`; debounced host publisher (200ms) for play/pause/seek; follower reconciler with a 1.5s drift threshold (same pattern as the existing partner sync).
-- **Chat panel**: right-side drawer on desktop, bottom sheet on mobile; realtime insert subscription on `watch_party_messages`.
-- **Entry points**: add a "Watch Party" button to the existing watch page header — opens a small modal to "Start party" (creates room, copies invite link) or "Join with code".
-
-### Non-goals
-
-- No voice/video chat inside the party (calls stay on the existing call routes).
-- No download / offline.
-- No moderation UI beyond the host being able to kick a member (v2).
-
-```text
-┌─────────────────────────────┬──────────────┐
-│                             │  ● 3 watching │
-│         Player              │──────────────│
-│  (iframe or <video>)        │  Chat        │
-│                             │  ...         │
-│  ▶ ⏸ ⏱ 00:24:11             │  [type...]   │
-└─────────────────────────────┴──────────────┘
+create table public.message_reactions (
+  id uuid primary key default gen_random_uuid(),
+  message_id uuid not null references public.messages(id) on delete cascade,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  emoji text not null,
+  created_at timestamptz not null default now(),
+  unique(message_id, user_id, emoji)
+);
+-- GRANTs + RLS: users can react to messages they can read; delete own reactions.
 ```
+
+New RLS on new columns/table + policies for admin pin/unpin, admin/sender delete, admin theme/rename/avatar/role changes.
+
+### Files touched (est.)
+- 1 migration
+- New: `app.chat.group.$groupId.info.tsx`, `GroupInfo/` components (Members, MediaTab, ThemePicker), `useMessageReactions.ts`, `useGroupMedia.ts`
+- Edited: `app.chat.group.$groupId.tsx`, `ChatBubble.tsx`, `ChatComposer.tsx`, `useGroupChat.ts`, `useGroups.ts`, `styles.css`, `types.ts` (auto-regen after migration)
+
+### Notes
+- Message tools (reply/reactions/pin/delete) will also appear in direct chats since they share `ChatBubble`/`ChatComposer` — acceptable and expected.
+- Link preview fetching runs via server function; failures degrade to plain link.
+- Notification mute is device-local (no push infra yet).
+
+Confirm to proceed and I'll ship it in order: migration → basics + admin switch → message tools → media tab → themes.

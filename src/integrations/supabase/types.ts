@@ -212,6 +212,7 @@ export type Database = {
           created_by: string
           id: string
           name: string
+          theme: string
           updated_at: string
         }
         Insert: {
@@ -220,6 +221,7 @@ export type Database = {
           created_by: string
           id?: string
           name: string
+          theme?: string
           updated_at?: string
         }
         Update: {
@@ -228,6 +230,7 @@ export type Database = {
           created_by?: string
           id?: string
           name?: string
+          theme?: string
           updated_at?: string
         }
         Relationships: []
@@ -821,16 +824,52 @@ export type Database = {
         }
         Relationships: []
       }
+      message_reactions: {
+        Row: {
+          created_at: string
+          emoji: string
+          id: string
+          message_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          emoji: string
+          id?: string
+          message_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          emoji?: string
+          id?: string
+          message_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_reactions_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           content: string
           created_at: string
+          deleted_at: string | null
           expires_at: string | null
           group_id: string | null
           id: string
+          link_preview: Json | null
           media_meta: Json | null
           media_url: string | null
           pinned: boolean
+          pinned_at: string | null
+          pinned_by: string | null
           reactions: Json
           read_at: string | null
           receiver_id: string | null
@@ -841,12 +880,16 @@ export type Database = {
         Insert: {
           content: string
           created_at?: string
+          deleted_at?: string | null
           expires_at?: string | null
           group_id?: string | null
           id?: string
+          link_preview?: Json | null
           media_meta?: Json | null
           media_url?: string | null
           pinned?: boolean
+          pinned_at?: string | null
+          pinned_by?: string | null
           reactions?: Json
           read_at?: string | null
           receiver_id?: string | null
@@ -857,12 +900,16 @@ export type Database = {
         Update: {
           content?: string
           created_at?: string
+          deleted_at?: string | null
           expires_at?: string | null
           group_id?: string | null
           id?: string
+          link_preview?: Json | null
           media_meta?: Json | null
           media_url?: string | null
           pinned?: boolean
+          pinned_at?: string | null
+          pinned_by?: string | null
           reactions?: Json
           read_at?: string | null
           receiver_id?: string | null
@@ -1602,12 +1649,16 @@ export type Database = {
         Returns: {
           content: string
           created_at: string
+          deleted_at: string | null
           expires_at: string | null
           group_id: string | null
           id: string
+          link_preview: Json | null
           media_meta: Json | null
           media_url: string | null
           pinned: boolean
+          pinned_at: string | null
+          pinned_by: string | null
           reactions: Json
           read_at: string | null
           receiver_id: string | null
@@ -1627,12 +1678,16 @@ export type Database = {
         Returns: {
           content: string
           created_at: string
+          deleted_at: string | null
           expires_at: string | null
           group_id: string | null
           id: string
+          link_preview: Json | null
           media_meta: Json | null
           media_url: string | null
           pinned: boolean
+          pinned_at: string | null
+          pinned_by: string | null
           reactions: Json
           read_at: string | null
           receiver_id: string | null
