@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft, Settings, Phone, Video as VideoIcon, Send, Image as ImageIcon,
-  Smile, Pin, Trash2, Reply, X, MoreVertical, PinOff,
+  Smile, Pin, Trash2, Reply, X, MoreVertical, PinOff, BarChart3,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useProfile } from "@/hooks/useProfile";
@@ -12,6 +12,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { uploadChatMedia, signMedia } from "@/lib/chat";
 import { startGroupCall } from "@/lib/callActions";
 import { UserAvatar } from "@/components/UserAvatar";
+import { PollComposer } from "@/components/chat/PollComposer";
+import { PollMessage } from "@/components/chat/PollMessage";
+import type { PollMeta } from "@/lib/poll";
 
 const QUICK_REACTIONS = ["❤️", "😂", "🥺", "🔥", "🐼", "👍"];
 
