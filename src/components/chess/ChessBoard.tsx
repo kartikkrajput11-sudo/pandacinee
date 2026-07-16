@@ -22,6 +22,7 @@ export function ChessBoard({ chess, orientation, canMoveColor, lastMove, onMove 
     return g ?? PIECE_GLYPH[color][type];
   };
   const emojiPieces = chessPieces?.emoji === true;
+  const glassPieces = chessPieces?.style === "glass";
 
   const targets = useMemo(() => {
     if (!selected) return new Map<Square, boolean>();
