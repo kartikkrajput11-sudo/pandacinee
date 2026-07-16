@@ -123,7 +123,7 @@ export function ChatBubble({
       clearLongPress();
     }
     if (gesture.current.moved && Math.abs(dx) > Math.abs(dy)) {
-      const clamped = mine ? Math.min(0, Math.max(-90, dx)) : Math.max(0, Math.min(90, dx));
+      const clamped = Math.max(-100, Math.min(100, dx));
       dragXRef.current = clamped;
       setDragX(clamped);
     }
@@ -137,7 +137,8 @@ export function ChatBubble({
     setDragX(0);
     if (wasLP) return;
     if (moved) {
-      if (Math.abs(dx) > 45) {
+      // Right swipe = reply. Left swipe = peek timestamp (no commit).
+      if (dx > 45) {
         onReply(m);
         if ("vibrate" in navigator) navigator.vibrate?.(20);
       }
@@ -169,12 +170,21 @@ export function ChatBubble({
 
   return (
     <div className={`group flex ${mine ? "justify-end" : "justify-start"} mt-1.5 px-1 relative`}>
-      {dragX !== 0 && (
+      {dragX > 0 && (
         <div
-          className={`absolute top-1/2 -translate-y-1/2 ${mine ? "right-3" : "left-3"} size-8 rounded-full bg-petal/20 border border-petal/40 flex items-center justify-center text-petal pointer-events-none`}
-          style={{ opacity: Math.min(1, Math.abs(dragX) / 50) }}
+          className="absolute top-1/2 -translate-y-1/2 left-3 size-8 rounded-full bg-petal/20 border border-petal/40 flex items-center justify-center text-petal pointer-events-none"
+          style={{ opacity: Math.min(1, dragX / 50) }}
         >
           <Reply className="size-4" />
+        </div>
+      )}
+      {dragX < 0 && (
+        <div
+          className="absolute top-1/2 -translate-y-1/2 right-3 text-[10px] text-candle-muted whitespace-nowrap pointer-events-none"
+          style={{ opacity: Math.min(1, Math.abs(dragX) / 40) }}
+        >
+          {new Date(m.created_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
+          {m.read_at && <span className="ml-1 text-petal">· seen {relTime(m.read_at)}</span>}
         </div>
       )}
       <div
