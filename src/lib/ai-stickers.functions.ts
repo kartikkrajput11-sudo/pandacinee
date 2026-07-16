@@ -49,7 +49,7 @@ const SOLO_MOOD_PROMPTS: Record<AiStickerSoloMood, string> = {
 };
 
 const COUPLE_MOOD_PROMPTS: Record<AiStickerCoupleMood, string> = {
-  "couple-kiss": "the two characters sharing a sweet kiss on the lips, eyes gently closed, cheeks pink, a big glossy heart floating above them",
+  "couple-kiss": "the two characters sharing a sweet innocent peck, faces close together with eyes gently closed and cheeks softly pink, a big glossy heart floating above their heads — wholesome and cute",
   "couple-hug": "the two characters wrapped in a tight warm hug, one cheek pressed against the other's shoulder, soft blush, tiny sparkles",
   "couple-hearts": "the two characters standing close together, both making heart-hands together forming one big heart in the middle, glowing pink hearts around",
   "couple-holding-hands": "the two characters holding hands and looking at each other with soft smiles, tiny pink hearts floating between them",
@@ -199,9 +199,41 @@ Pose / expression: ${SOLO_MOOD_PROMPTS[data.mood as AiStickerSoloMood]}.`;
       throw new Error(`Sticker generation failed (${aiRes.status}). ${errText.slice(0, 200)}`);
     }
 
-    const payload = (await aiRes.json()) as { data?: { b64_json?: string }[] };
-    const outB64 = payload.data?.[0]?.b64_json;
-    if (!outB64) throw new Error("The model didn't return a sticker. Try again.");
+    const payload = (await aiRes.json()) as any;
+    // Try both image_generations and chat_completions response shapes.
+    let outB64: string | undefined = payload?.data?.[0]?.b64_json;
+    if (!outB64) {
+      const url: string | undefined = payload?.data?.[0]?.url;
+      if (url?.startsWith("data:")) outB64 = url.split(",")[1];
+    }
+    if (!outB64) {
+      // Chat-completions style: choices[0].message.images[0].image_url.url
+      const imgs = payload?.choices?.[0]?.message?.images;
+      const u = imgs?.[0]?.image_url?.url ?? imgs?.[0]?.url;
+      if (typeof u === "string" && u.startsWith("data:")) outB64 = u.split(",")[1];
+    }
+    if (!outB64) {
+      // Content parts array
+      const parts = payload?.choices?.[0]?.message?.content;
+      if (Array.isArray(parts)) {
+        for (const p of parts) {
+          const u = p?.image_url?.url ?? p?.image?.url;
+          if (typeof u === "string" && u.startsWith("data:")) { outB64 = u.split(",")[1]; break; }
+          if (typeof p?.b64_json === "string") { outB64 = p.b64_json; break; }
+        }
+      }
+    }
+    if (!outB64) {
+      const refusal =
+        payload?.choices?.[0]?.message?.content?.toString?.() ||
+        payload?.data?.[0]?.revised_prompt ||
+        "";
+      throw new Error(
+        isCouple
+          ? `Couldn't generate this couple sticker — try a gentler pose or a different mood.${refusal ? ` (${String(refusal).slice(0, 120)})` : ""}`
+          : "The model didn't return a sticker. Try again.",
+      );
+    }
 
     const binary = atob(outB64);
     const out = new Uint8Array(binary.length);
