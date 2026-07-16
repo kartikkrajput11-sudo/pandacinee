@@ -188,15 +188,32 @@ export function PunishmentLockOverlay({
             "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>\")",
         }}
       />
+      {/* Ambient drifting petals */}
+      <FloatingPetals />
       {celebrate && <Confetti />}
 
-      <div className="w-full max-w-md">
+      <div className="w-full max-w-md relative">
+        {/* Corner filigree ornaments */}
+        <FiligreeCorner className="absolute -top-1 -left-1" />
+        <FiligreeCorner className="absolute -top-1 -right-1 scale-x-[-1]" />
+
         <div className="flex flex-col items-center text-center mb-6">
-          {/* Wax-seal style emblem */}
+          {/* Wax-seal style emblem with orbiting sparks */}
           <div className="relative mb-4">
             <div
               className="absolute inset-0 rounded-full blur-2xl opacity-70"
               style={{ background: "radial-gradient(circle, rgba(236,72,153,0.55), transparent 70%)" }}
+            />
+            {/* Rotating rune ring */}
+            <div
+              className="absolute -inset-3 rounded-full opacity-50 pointer-events-none"
+              style={{
+                background:
+                  "conic-gradient(from 0deg, transparent 0deg, hsl(38 60% 68% / 0.6) 40deg, transparent 80deg, transparent 180deg, hsl(340 65% 60% / 0.5) 220deg, transparent 260deg)",
+                mask: "radial-gradient(circle, transparent 55%, black 56%, black 66%, transparent 67%)",
+                WebkitMask: "radial-gradient(circle, transparent 55%, black 56%, black 66%, transparent 67%)",
+                animation: "spinRing 12s linear infinite",
+              }}
             />
             <div
               className="relative size-20 rounded-full flex items-center justify-center"
@@ -211,15 +228,20 @@ export function PunishmentLockOverlay({
                 <Lock className="size-6 text-petal" strokeWidth={1.6} />
               </div>
             </div>
+            {/* Twinkles */}
+            <Sparkles className="absolute -top-1 -right-2 size-3.5 text-[hsl(38_70%_75%)] animate-pulse" />
+            <Sparkles className="absolute -bottom-1 -left-2 size-3 text-petal/80 animate-pulse [animation-delay:600ms]" />
           </div>
 
-          {/* Ornate label */}
+          {/* Ornate divider with center diamond */}
           <div className="flex items-center gap-3 mb-2">
-            <span className="h-px w-8 bg-gradient-to-r from-transparent to-petal/60" />
+            <span className="h-px w-10 bg-gradient-to-r from-transparent to-petal/60" />
+            <span className="size-1 rotate-45 bg-petal/70" />
             <p className="text-[9px] uppercase tracking-[0.42em] text-petal">
               Sealed by {partnerName}
             </p>
-            <span className="h-px w-8 bg-gradient-to-l from-transparent to-petal/60" />
+            <span className="size-1 rotate-45 bg-petal/70" />
+            <span className="h-px w-10 bg-gradient-to-l from-transparent to-petal/60" />
           </div>
 
           <h2 className="font-serif italic text-2xl text-candle">
@@ -245,7 +267,15 @@ export function PunishmentLockOverlay({
               &rdquo;
             </span>
           </div>
+
+          {/* Fleuron scroll divider */}
+          <div className="flex items-center gap-3 mt-8 w-full">
+            <span className="h-px flex-1 bg-gradient-to-r from-transparent via-petal/30 to-petal/40" />
+            <span className="text-petal/70 text-sm">❦</span>
+            <span className="h-px flex-1 bg-gradient-to-l from-transparent via-petal/30 to-petal/40" />
+          </div>
         </div>
+
 
         {/* Progress rail — champagne */}
         <div className="mb-6 rounded-2xl border border-white/5 bg-white/[0.02] backdrop-blur-sm px-4 py-3">
@@ -423,3 +453,74 @@ function Confetti() {
     </div>
   );
 }
+
+function FiligreeCorner({ className = "" }: { className?: string }) {
+  return (
+    <svg
+      className={`pointer-events-none w-16 h-16 opacity-70 ${className}`}
+      viewBox="0 0 64 64"
+      fill="none"
+    >
+      <defs>
+        <linearGradient id="filGold" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="hsl(38 70% 78%)" />
+          <stop offset="100%" stopColor="hsl(340 55% 55%)" />
+        </linearGradient>
+      </defs>
+      <path
+        d="M2 2 L26 2 M2 2 L2 26 M2 2 Q22 6 26 22 M2 2 Q6 22 22 26 M14 4 Q18 10 14 14 Q10 10 14 4 Z"
+        stroke="url(#filGold)"
+        strokeWidth="1"
+        fill="none"
+        strokeLinecap="round"
+      />
+      <circle cx="14" cy="14" r="1.4" fill="url(#filGold)" />
+    </svg>
+  );
+}
+
+function FloatingPetals() {
+  const petals = Array.from({ length: 14 });
+  return (
+    <div className="fixed inset-0 -z-10 pointer-events-none overflow-hidden">
+      {petals.map((_, i) => {
+        const left = (i * 97) % 100;
+        const size = 8 + ((i * 13) % 10);
+        const delay = (i * 0.7) % 6;
+        const duration = 14 + ((i * 3) % 10);
+        const drift = (i % 2 === 0 ? 1 : -1) * (10 + (i % 5) * 4);
+        const hue = i % 3 === 0 ? 38 : 335;
+        const sat = i % 3 === 0 ? 60 : 65;
+        return (
+          <span
+            key={i}
+            className="absolute rounded-full blur-[1px]"
+            style={{
+              left: `${left}%`,
+              top: "-8%",
+              width: size,
+              height: size,
+              background: `radial-gradient(circle at 35% 30%, hsl(${hue} ${sat}% 78% / 0.9), hsl(${hue} ${sat}% 55% / 0.35))`,
+              boxShadow: `0 0 12px hsl(${hue} ${sat}% 60% / 0.35)`,
+              animation: `petalDrift ${duration}s ${delay}s linear infinite`,
+              // @ts-expect-error css var
+              "--drift": `${drift}px`,
+            }}
+          />
+        );
+      })}
+      <style>{`
+        @keyframes petalDrift {
+          0% { transform: translate3d(0, -10vh, 0) rotate(0deg); opacity: 0; }
+          10% { opacity: 0.9; }
+          90% { opacity: 0.9; }
+          100% { transform: translate3d(var(--drift, 0px), 110vh, 0) rotate(360deg); opacity: 0; }
+        }
+        @keyframes spinRing {
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
+    </div>
+  );
+}
+
