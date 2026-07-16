@@ -122,14 +122,19 @@ function LetterView() {
   async function open() {
     if (!canOpen) return;
     setBreaking(true);
+    setReveal("breaking");
     try {
       const res = await openLoveLetter({ data: { id } });
       if (res) setLetter(res as Letter);
     } catch (err: any) {
       toast.error(err.message ?? "Could not open");
     }
-    // Let the seal-break animation play before we drop it.
-    setTimeout(() => setBreaking(false), 1200);
+    // Wax crack → shards fly → melt drips (~1200ms), then unfold the paper.
+    setTimeout(() => setReveal("unfolding"), 1300);
+    setTimeout(() => {
+      setBreaking(false);
+      setReveal("done");
+    }, 2600);
   }
 
   async function unseal() {
