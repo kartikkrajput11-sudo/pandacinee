@@ -129,7 +129,7 @@ export function PandacineWaxSeal({
           <text fill={p.deep} fillOpacity="0.72" fontSize="10.5" letterSpacing="4"
                 fontFamily="'Cormorant Garamond','Playfair Display',Georgia,serif" fontStyle="italic" fontWeight="600">
             <textPath href={`#ringpath-${tone}`} startOffset="0%">
-              PANDACINE · SEALED WITH LOVE · PANDACINE · SEALED WITH LOVE ·
+              {ringText}
             </textPath>
           </text>
 
