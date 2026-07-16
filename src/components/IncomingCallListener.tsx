@@ -48,6 +48,7 @@ export function IncomingCallListener() {
       if (!c) return;
       const call = c as unknown as CallRow;
       if (call.status !== "ringing") return;
+      if (call.scope === "group") return;
       // Ignore stale (>50s old)
       if (Date.now() - new Date(call.started_at).getTime() > 50_000) return;
       const { data: p } = await supabase
