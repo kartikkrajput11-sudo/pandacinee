@@ -10,6 +10,8 @@ import { useTheme, type ThemeMode } from "@/components/ThemeProvider";
 import { CATEGORY_SETTINGS } from "@/lib/punishment";
 import { AchievementBadges } from "@/components/AchievementBadges";
 import { TAG_BY_KEY } from "@/lib/achievements";
+import { useEquippedItems } from "@/hooks/useEquippedItems";
+
 
 export const Route = createFileRoute("/_authenticated/app/me")({
   component: Me,
@@ -25,6 +27,11 @@ function Me() {
   const me = data?.profile;
   const partner = data?.partner;
   const fileRef = useRef<HTMLInputElement>(null);
+  const { flairRing, flairNameGradient } = useEquippedItems();
+  const ringClass =
+    flairRing?.ring === "aurora" ? "avatar-flair-aurora" : flairRing?.ring === "gold" ? "avatar-flair-gold" : "";
+  const nameClass = flairNameGradient?.name_gradient === "sunset" ? "name-gradient-sunset" : "";
+
 
   const [displayName, setDisplayName] = useState("");
   const [bio, setBio] = useState("");
@@ -132,7 +139,7 @@ function Me() {
           <div className="flex items-center gap-4 mb-6">
             <button
               onClick={() => fileRef.current?.click()}
-              className="relative size-20 rounded-full bg-petal-soft border border-petal/20 flex items-center justify-center overflow-hidden group"
+              className={`relative size-20 rounded-full bg-petal-soft border border-petal/20 flex items-center justify-center overflow-hidden group ${ringClass}`}
             >
               {avatarUrl ? (
                 <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
@@ -156,10 +163,11 @@ function Me() {
               }}
             />
             <div className="min-w-0 flex-1">
-              <p className="font-serif text-2xl italic truncate">{me.display_name}</p>
+              <p className={`font-serif text-2xl italic truncate ${nameClass}`}>{me.display_name}</p>
               <p className="text-sm text-candle-muted truncate">@{me.username}</p>
             </div>
           </div>
+
 
           <Link
             to="/app/shop"

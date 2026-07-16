@@ -145,6 +145,27 @@ export const generateAiSticker = createServerFn({ method: "POST" })
 
     const isCouple = (COUPLE_MOODS as readonly string[]).includes(data.mood);
 
+    // Enforce pack ownership. Base free moods are available to everyone;
+    // every other mood must be unlocked via an AI sticker pack purchase.
+    const FREE_MOODS = new Set<string>(["happy", "love", "wave"]);
+    if (!FREE_MOODS.has(data.mood)) {
+      const { data: invRows } = await (context.supabase as any)
+        .from("user_inventory")
+        .select("shop_items:item_id(category, metadata)")
+        .eq("user_id", userId);
+      const unlocked = new Set<string>();
+      for (const r of (invRows ?? []) as any[]) {
+        const item = r.shop_items;
+        if (!item || item.category !== "ai_sticker_pack") continue;
+        const moods = item.metadata?.moods;
+        if (Array.isArray(moods)) for (const m of moods) unlocked.add(String(m));
+      }
+      if (!unlocked.has(data.mood)) {
+        throw new Error("This AI sticker mood is part of a pack. Unlock it in the shop first.");
+      }
+    }
+
+
     const { data: me } = await (context.supabase as any)
       .from("profiles")
       .select("avatar_url, partner_id")

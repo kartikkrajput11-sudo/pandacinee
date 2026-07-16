@@ -21,6 +21,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
 import { ACHIEVEMENT_TAGS } from "@/lib/achievements";
 import { purchaseTag } from "@/lib/achievements.functions";
+import { invalidateEquippedItems } from "@/hooks/useEquippedItems";
+
 
 export const Route = createFileRoute("/_authenticated/app/shop")({
   component: ShopRoute,
@@ -138,6 +140,7 @@ function ShopRoute() {
       if (error) throw error;
       toast.success(`${item.name} unlocked ✨`);
       await Promise.all([load(), refetch?.()]);
+      invalidateEquippedItems();
       setPreview(null);
     } catch (e: any) {
       toast.error(e?.message ?? "Couldn't purchase");
@@ -157,6 +160,8 @@ function ShopRoute() {
       if (error) throw error;
       toast.success(currentlyEquipped ? "Unequipped" : "Equipped ✨");
       await load();
+      invalidateEquippedItems();
+
     } catch (e: any) {
       toast.error(e?.message ?? "Couldn't equip");
     } finally {
@@ -170,6 +175,7 @@ function ShopRoute() {
       await buyTag({ data: { tagKey: key } });
       toast.success("Tag unlocked ✨");
       await Promise.all([load(), refetch?.()]);
+      invalidateEquippedItems();
     } catch (e: any) {
       toast.error(e?.message ?? "Couldn't purchase");
     } finally {
@@ -211,6 +217,7 @@ function ShopRoute() {
                 description: "Payment successful",
               });
               await Promise.all([load(), refetch?.()]);
+      invalidateEquippedItems();
               resolve();
             } catch (e: any) {
               toast.error(e?.message ?? "Verification failed");
