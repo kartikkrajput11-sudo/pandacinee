@@ -13,6 +13,7 @@ import {
   Crown,
   Sticker,
   Award,
+  Grid3x3,
   Coins as CoinsIcon,
 } from "lucide-react";
 import { createCoinOrder, verifyCoinPayment } from "@/lib/razorpay.functions";
