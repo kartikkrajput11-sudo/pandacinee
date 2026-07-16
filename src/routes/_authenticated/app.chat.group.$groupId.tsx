@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft, Settings, Phone, Video as VideoIcon, Send, Image as ImageIcon,
-  Smile, Pin, Trash2, Reply, X, MoreVertical, PinOff, BarChart3,
+  Smile, Pin, Trash2, Reply, X, MoreVertical, PinOff, BarChart3, Forward,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useProfile } from "@/hooks/useProfile";
