@@ -237,8 +237,10 @@ export function useChat(meId: string | null, partnerId: string | null) {
       if (!meId) return;
       const reactions = { ...(m.reactions ?? {}) } as Record<string, string[]>;
       const list = reactions[emoji] ?? [];
-      reactions[emoji] = list.includes(meId) ? list.filter((x) => x !== meId) : [...list, meId];
+      const adding = !list.includes(meId);
+      reactions[emoji] = adding ? [...list, meId] : list.filter((x) => x !== meId);
       if (reactions[emoji].length === 0) delete reactions[emoji];
+      if (adding) sfxReaction();
       await supabase.from("messages").update({ reactions }).eq("id", m.id);
     },
     [meId],
