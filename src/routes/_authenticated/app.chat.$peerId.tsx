@@ -439,6 +439,7 @@ function ChatPeer() {
                   onPin={togglePin}
                   onDelete={remove}
                   onVanish={setVanish}
+                  onForward={canForward(m) ? setForwardMsg : undefined}
                   partnerName={peerDisplay}
 
                 />
