@@ -257,8 +257,49 @@ function ShopRoute() {
 
       <p className="text-xs text-candle-muted mb-4 italic">{activeCat.blurb}</p>
 
-      {/* Tag category — legacy achievement tags */}
-      {tab === "tag" ? (
+      {/* Coin bundles — Razorpay checkout */}
+      {tab === "coins" ? (
+        <div className="grid grid-cols-2 gap-3">
+          {bundles.map((b) => {
+            const rupees = (b.price_paise / 100).toFixed(0);
+            const isBusy = busy === b.id;
+            return (
+              <button
+                key={b.id}
+                onClick={() => buyBundle(b)}
+                disabled={isBusy}
+                className="text-left rounded-2xl border border-border bg-surface p-4 active:scale-[0.98] transition relative overflow-hidden disabled:opacity-60"
+              >
+                {b.bonus_label && (
+                  <span className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-petal text-velvet text-[10px] font-bold">
+                    {b.bonus_label}
+                  </span>
+                )}
+                <div className="text-3xl mb-2">🐼</div>
+                <p className="font-serif italic text-base leading-tight">{b.name}</p>
+                <p className="mt-1 inline-flex items-center gap-1 text-petal font-bold text-lg">
+                  <Coins className="size-4" /> {b.coins.toLocaleString()}
+                </p>
+                {b.description && (
+                  <p className="text-[11px] text-candle-muted mt-1">{b.description}</p>
+                )}
+                <div className="mt-3 px-3 py-1.5 rounded-full bg-petal text-velvet text-xs font-bold text-center">
+                  {isBusy ? "…" : `₹${rupees}`}
+                </div>
+              </button>
+            );
+          })}
+          {bundles.length === 0 && (
+            <div className="col-span-2 rounded-2xl border border-dashed border-candle/15 bg-velvet/40 px-5 py-10 text-center">
+              <p className="text-3xl mb-2">🐼</p>
+              <p className="font-serif italic text-candle/80 text-sm">Bundles loading…</p>
+            </div>
+          )}
+          <p className="col-span-2 text-[10px] text-candle-muted/70 text-center mt-2 italic">
+            Secure UPI / cards / netbanking via Razorpay. Coins credit instantly.
+          </p>
+        </div>
+      ) : tab === "tag" ? (
         <div className="space-y-3">
           {ACHIEVEMENT_TAGS.map((t) => {
             const isOwned = ownedTags.has(t.key);
