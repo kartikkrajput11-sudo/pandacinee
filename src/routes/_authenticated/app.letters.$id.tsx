@@ -1,11 +1,13 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Trash2, Clock, Sparkles } from "lucide-react";
+import { ArrowLeft, Trash2, Clock, Sparkles, Mic, Send } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
 import { openLoveLetter } from "@/lib/letters.functions";
 import { PandacineWaxSeal } from "@/components/PandacineWaxSeal";
+import { VoicePlayer } from "@/components/chat/VoicePlayer";
+import { signMedia } from "@/lib/chat";
 
 export const Route = createFileRoute("/_authenticated/app/letters/$id")({
   component: LetterView,
@@ -23,6 +25,11 @@ type Letter = {
   opened_at: string | null;
   created_at: string;
   seal_motto: string | null;
+  photo_url: string | null;
+  reply_body: string | null;
+  reply_reaction: string | null;
+  replied_at: string | null;
+  unlock_on_anniversary: boolean;
 };
 
 const THEME_STYLE: Record<Letter["theme"], { seal: string; page: string; text: string; ring: string }> = {
@@ -238,12 +245,27 @@ function LetterView() {
                 {letter.title}
               </h1>
             )}
+
+            {letter.photo_url && (
+              <LetterPhoto path={letter.photo_url} />
+            )}
+
             <div
               className={`${style.text} whitespace-pre-wrap leading-relaxed text-lg`}
               style={{ fontFamily: "'Cormorant Garamond', 'Playfair Display', Georgia, serif" }}
             >
               {letter.body}
             </div>
+
+            {letter.voice_url && (
+              <div className="mt-6 rounded-2xl border border-white/10 p-3">
+                <p className={`text-[10px] uppercase tracking-[0.25em] ${style.text} opacity-70 mb-2 flex items-center gap-1.5`}>
+                  <Mic className="size-3" /> Voice note
+                </p>
+                <VoicePlayer path={letter.voice_url} />
+              </div>
+            )}
+
             <footer className={`mt-10 pt-6 border-t border-white/10 ${style.text} opacity-60 text-xs flex items-center gap-2`}>
               <Clock className="size-3" />
               Sealed {new Date(letter.created_at).toLocaleDateString([], { dateStyle: "long" })}
@@ -251,6 +273,8 @@ function LetterView() {
                 <>· Opened {new Date(letter.opened_at).toLocaleDateString([], { dateStyle: "long" })}</>
               )}
             </footer>
+
+            <ReplyPanel letter={letter} isRecipient={!!isRecipient} style={style} onUpdate={setLetter} />
           </article>
         )}
 
@@ -262,5 +286,157 @@ function LetterView() {
         )}
       </div>
     </div>
+  );
+}
+
+function LetterPhoto({ path }: { path: string }) {
+  const [url, setUrl] = useState<string | null>(null);
+  useEffect(() => {
+    let alive = true;
+    signMedia(path).then((u) => alive && setUrl(u));
+    return () => { alive = false; };
+  }, [path]);
+  if (!url) return <div className="mb-6 h-40 rounded-2xl bg-white/5 animate-pulse" />;
+  return (
+    <figure className="mb-6 rounded-2xl overflow-hidden border border-white/10">
+      <img src={url} alt="Keepsake" className="w-full max-h-[60vh] object-cover animate-fade-in" />
+    </figure>
+  );
+}
+
+const REACTIONS = ["❤️", "🥺", "😭", "😘", "🌸", "✨"];
+
+function ReplyPanel({
+  letter,
+  isRecipient,
+  style,
+  onUpdate,
+}: {
+  letter: {
+    id: string;
+    reply_body: string | null;
+    reply_reaction: string | null;
+    replied_at: string | null;
+  };
+  isRecipient: boolean;
+  style: { text: string };
+  onUpdate: (l: any) => void;
+}) {
+  const [draft, setDraft] = useState(letter.reply_body ?? "");
+  const [saving, setSaving] = useState(false);
+  const [editing, setEditing] = useState(!letter.replied_at);
+
+  async function saveReaction(r: string) {
+    const next = letter.reply_reaction === r ? null : r;
+    const { data, error } = await (supabase as any)
+      .from("love_letters")
+      .update({
+        reply_reaction: next,
+        replied_at: next || letter.reply_body ? new Date().toISOString() : null,
+      })
+      .eq("id", letter.id)
+      .select()
+      .maybeSingle();
+    if (error) return toast.error(error.message);
+    if (data) onUpdate(data);
+  }
+
+  async function saveReply() {
+    if (!draft.trim()) {
+      toast.error("Write a line first.");
+      return;
+    }
+    setSaving(true);
+    const { data, error } = await (supabase as any)
+      .from("love_letters")
+      .update({
+        reply_body: draft.trim(),
+        replied_at: new Date().toISOString(),
+      })
+      .eq("id", letter.id)
+      .select()
+      .maybeSingle();
+    setSaving(false);
+    if (error) return toast.error(error.message);
+    if (data) {
+      onUpdate(data);
+      setEditing(false);
+      toast.success("Reply sent.");
+    }
+  }
+
+  // Existing reply (visible to both).
+  if (letter.reply_body && !editing) {
+    return (
+      <section className={`mt-10 pt-6 border-t border-white/10`}>
+        <p className={`text-[10px] uppercase tracking-[0.25em] ${style.text} opacity-70 mb-2`}>
+          {isRecipient ? "Your reply" : "They replied"}
+        </p>
+        <div className={`rounded-2xl border border-white/10 p-4 ${style.text}`}>
+          {letter.reply_reaction && (
+            <div className="text-3xl mb-1">{letter.reply_reaction}</div>
+          )}
+          <p className="font-serif italic text-lg leading-relaxed whitespace-pre-wrap">{letter.reply_body}</p>
+          <p className="text-[10px] opacity-50 uppercase tracking-widest mt-3">
+            {letter.replied_at ? new Date(letter.replied_at).toLocaleDateString([], { dateStyle: "long" }) : ""}
+          </p>
+        </div>
+        {isRecipient && (
+          <button
+            onClick={() => setEditing(true)}
+            className={`mt-2 text-[11px] uppercase tracking-[0.25em] ${style.text} opacity-70`}
+          >
+            Edit reply
+          </button>
+        )}
+      </section>
+    );
+  }
+
+  // Reply composer — recipient only.
+  if (!isRecipient) return null;
+
+  return (
+    <section className="mt-10 pt-6 border-t border-white/10">
+      <p className={`text-[10px] uppercase tracking-[0.25em] ${style.text} opacity-70 mb-3`}>Write back</p>
+
+      <div className="flex flex-wrap gap-2 mb-3">
+        {REACTIONS.map((r) => (
+          <button
+            key={r}
+            onClick={() => saveReaction(r)}
+            className={`size-10 rounded-full text-xl border ${letter.reply_reaction === r ? "border-white/60 bg-white/10" : "border-white/10"} hover:scale-105 transition-transform`}
+          >
+            {r}
+          </button>
+        ))}
+      </div>
+
+      <textarea
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        rows={4}
+        placeholder="A word back — even one line."
+        className={`w-full bg-white/5 rounded-2xl px-4 py-3 ${style.text} placeholder:opacity-40 resize-none focus:outline-none focus:ring-1 focus:ring-white/30 font-serif italic text-base leading-relaxed`}
+        style={{ fontFamily: "'Cormorant Garamond', 'Playfair Display', Georgia, serif" }}
+      />
+      <div className="mt-3 flex gap-2">
+        {letter.replied_at && (
+          <button
+            onClick={() => { setDraft(letter.reply_body ?? ""); setEditing(false); }}
+            className={`flex-1 py-3 rounded-2xl border border-white/10 text-sm ${style.text} opacity-80`}
+          >
+            Cancel
+          </button>
+        )}
+        <button
+          onClick={saveReply}
+          disabled={saving}
+          className={`flex-[2] py-3 rounded-2xl bg-white/10 border border-white/20 text-sm font-semibold ${style.text} inline-flex items-center justify-center gap-2 disabled:opacity-60`}
+        >
+          <Send className="size-4" /> {saving ? "Sending…" : "Send reply"}
+        </button>
+      </div>
+    </section>
   );
 }

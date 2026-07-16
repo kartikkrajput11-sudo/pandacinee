@@ -704,12 +704,17 @@ export type Database = {
           created_at: string
           id: string
           opened_at: string | null
+          photo_url: string | null
           recipient_id: string
+          replied_at: string | null
+          reply_body: string | null
+          reply_reaction: string | null
           seal_motto: string | null
           sender_id: string
           theme: string
           title: string
           unlock_at: string
+          unlock_on_anniversary: boolean
           updated_at: string
           voice_url: string | null
         }
@@ -718,12 +723,17 @@ export type Database = {
           created_at?: string
           id?: string
           opened_at?: string | null
+          photo_url?: string | null
           recipient_id: string
+          replied_at?: string | null
+          reply_body?: string | null
+          reply_reaction?: string | null
           seal_motto?: string | null
           sender_id: string
           theme?: string
           title?: string
           unlock_at?: string
+          unlock_on_anniversary?: boolean
           updated_at?: string
           voice_url?: string | null
         }
@@ -732,12 +742,17 @@ export type Database = {
           created_at?: string
           id?: string
           opened_at?: string | null
+          photo_url?: string | null
           recipient_id?: string
+          replied_at?: string | null
+          reply_body?: string | null
+          reply_reaction?: string | null
           seal_motto?: string | null
           sender_id?: string
           theme?: string
           title?: string
           unlock_at?: string
+          unlock_on_anniversary?: boolean
           updated_at?: string
           voice_url?: string | null
         }
@@ -1615,12 +1630,17 @@ export type Database = {
           created_at: string
           id: string
           opened_at: string | null
+          photo_url: string | null
           recipient_id: string
+          replied_at: string | null
+          reply_body: string | null
+          reply_reaction: string | null
           seal_motto: string | null
           sender_id: string
           theme: string
           title: string
           unlock_at: string
+          unlock_on_anniversary: boolean
           updated_at: string
           voice_url: string | null
         }
