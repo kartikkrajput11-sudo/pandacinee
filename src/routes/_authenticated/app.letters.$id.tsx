@@ -23,6 +23,11 @@ type Letter = {
   opened_at: string | null;
   created_at: string;
   seal_motto: string | null;
+  photo_url: string | null;
+  reply_body: string | null;
+  reply_reaction: string | null;
+  replied_at: string | null;
+  unlock_on_anniversary: boolean;
 };
 
 const THEME_STYLE: Record<Letter["theme"], { seal: string; page: string; text: string; ring: string }> = {
