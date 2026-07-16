@@ -61,6 +61,7 @@ function ChatBubbleImpl({
   onPin,
   onDelete,
   onVanish,
+  partnerName,
 }: {
   m: MessageRow;
   mine: boolean;
@@ -73,6 +74,8 @@ function ChatBubbleImpl({
   onPin: (m: MessageRow) => void;
   onDelete: (m: MessageRow) => void;
   onVanish?: (m: MessageRow, seconds: number | null) => void;
+  partnerName?: string;
+
 }) {
   const [actionsOpen, setActionsOpen] = useState(false);
   const [vanishOpen, setVanishOpen] = useState(false);
