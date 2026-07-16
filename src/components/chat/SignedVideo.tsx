@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Play, Pause, Volume2, VolumeX, Maximize2 } from "lucide-react";
+import { Play, Pause, Volume2, VolumeX, Maximize2, Minimize2 } from "lucide-react";
 import { signMedia } from "@/lib/chat";
 
 function fmt(t: number) {
@@ -19,7 +19,24 @@ export function SignedVideo({ path }: { path: string }) {
   const [duration, setDuration] = useState(0);
   const [ready, setReady] = useState(false);
   const [showControls, setShowControls] = useState(true);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const hideTimer = useRef<number | null>(null);
+
+  useEffect(() => {
+    function onFsChange() {
+      const fsEl =
+        document.fullscreenElement ||
+        (document as any).webkitFullscreenElement ||
+        (document as any).webkitCurrentFullScreenElement;
+      setIsFullscreen(!!fsEl);
+    }
+    document.addEventListener("fullscreenchange", onFsChange);
+    document.addEventListener("webkitfullscreenchange", onFsChange as any);
+    return () => {
+      document.removeEventListener("fullscreenchange", onFsChange);
+      document.removeEventListener("webkitfullscreenchange", onFsChange as any);
+    };
+  }, []);
 
   useEffect(() => {
     let m = true;
@@ -57,14 +74,21 @@ export function SignedVideo({ path }: { path: string }) {
     nudgeControls();
   }
 
-  function requestFullscreen() {
+  async function toggleFullscreen() {
     const el = wrapRef.current;
+    const doc: any = document;
+    const fsEl = doc.fullscreenElement || doc.webkitFullscreenElement || doc.webkitCurrentFullScreenElement;
+    if (fsEl) {
+      const exit = doc.exitFullscreen || doc.webkitExitFullscreen || doc.webkitCancelFullScreen;
+      if (exit) { try { await exit.call(doc); } catch { /* ignore */ } }
+      return;
+    }
     if (!el) return;
     const anyEl = el as any;
-    const fn = el.requestFullscreen || anyEl.webkitRequestFullscreen || anyEl.webkitEnterFullscreen;
-    if (fn) fn.call(el);
-    else {
-      // iOS Safari fallback: fullscreen the video element itself
+    const fn = el.requestFullscreen || anyEl.webkitRequestFullscreen;
+    if (fn) {
+      try { await fn.call(el); } catch { /* ignore */ }
+    } else {
       const v = videoRef.current as any;
       if (v?.webkitEnterFullscreen) v.webkitEnterFullscreen();
     }
@@ -130,14 +154,14 @@ export function SignedVideo({ path }: { path: string }) {
 
       {/* Bottom controls */}
       <div
-        className={`absolute inset-x-0 bottom-0 px-3 pb-2 pt-6 bg-gradient-to-t from-black/80 via-black/40 to-transparent transition-opacity ${
+        className={`absolute inset-x-0 bottom-0 px-3 pb-3 pt-8 bg-gradient-to-t from-black/85 via-black/45 to-transparent transition-opacity ${
           showControls ? "opacity-100" : "opacity-0"
         }`}
       >
         <div className="flex items-center gap-2">
           <button
             onClick={(e) => { e.stopPropagation(); togglePlay(); }}
-            className="size-7 rounded-full bg-white/10 hover:bg-petal/70 text-white flex items-center justify-center transition-colors"
+            className="size-7 shrink-0 rounded-full bg-white/10 hover:bg-petal/70 text-white flex items-center justify-center transition-colors"
             aria-label={playing ? "Pause" : "Play"}
           >
             {playing ? <Pause className="size-3.5 fill-current" /> : <Play className="size-3.5 fill-current translate-x-[1px]" />}
@@ -154,7 +178,7 @@ export function SignedVideo({ path }: { path: string }) {
             value={duration ? (current / duration) * 1000 : 0}
             onChange={onSeek}
             onClick={(e) => e.stopPropagation()}
-            className="flex-1 h-1 accent-petal cursor-pointer"
+            className="flex-1 min-w-0 h-1 accent-petal cursor-pointer"
             aria-label="Seek"
           />
 
@@ -164,18 +188,18 @@ export function SignedVideo({ path }: { path: string }) {
 
           <button
             onClick={(e) => { e.stopPropagation(); toggleMute(); }}
-            className="size-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center"
+            className="size-7 shrink-0 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center"
             aria-label={muted ? "Unmute" : "Mute"}
           >
             {muted ? <VolumeX className="size-3.5" /> : <Volume2 className="size-3.5" />}
           </button>
 
           <button
-            onClick={(e) => { e.stopPropagation(); requestFullscreen(); }}
-            className="size-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center"
-            aria-label="Fullscreen"
+            onClick={(e) => { e.stopPropagation(); toggleFullscreen(); }}
+            className="size-7 shrink-0 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center"
+            aria-label={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
           >
-            <Maximize2 className="size-3.5" />
+            {isFullscreen ? <Minimize2 className="size-3.5" /> : <Maximize2 className="size-3.5" />}
           </button>
         </div>
       </div>
