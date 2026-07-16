@@ -15,7 +15,6 @@ export const Route = createFileRoute("/_authenticated/app/chat/group/$groupId")(
 
 function GroupChat() {
   const { groupId } = Route.useParams();
-  const navigate = useNavigate();
   const { data: profileData } = useProfile();
   const me = profileData?.profile;
   const partnerId = me?.partner_id ?? null;
@@ -23,7 +22,6 @@ function GroupChat() {
   const { data: groupData, isLoading: groupLoading } = useGroup(groupId);
   const { messages, loading, loadingOlder, hasMore, loadOlder, send, sendTyping, react, togglePin, remove, setVanish, typingUsers, onlineIds } =
     useGroupChat(me?.id ?? null, groupId);
-  const leave = useLeaveGroup();
 
   const [replyTo, setReplyTo] = useState<MessageRow | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
