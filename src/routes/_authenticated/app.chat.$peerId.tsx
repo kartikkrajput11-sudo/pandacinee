@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, Phone, Video, Pin, ChevronDown, Lock } from "lucide-react";
+import { ArrowLeft, Phone, Video, Pin, ChevronDown, Lock, Flame, ArrowDown, Heart as HeartIcon } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile, type Profile } from "@/hooks/useProfile";
@@ -85,6 +85,43 @@ function ChatPeer() {
     return null;
   }, [messages, me?.id]);
 
+  // Chat richness: streak (consecutive days with 2-way activity), shared media, anniversary, day dividers.
+  const { streakDays, sharedMedia, daysTogether } = useMemo(() => {
+    if (messages.length === 0) return { streakDays: 0, sharedMedia: [] as MessageRow[], daysTogether: 0 };
+    const dayKey = (iso: string) => {
+      const d = new Date(iso);
+      return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+    };
+    const dayMap = new Map<string, Set<string>>();
+    for (const m of messages) {
+      const k = dayKey(m.created_at);
+      if (!dayMap.has(k)) dayMap.set(k, new Set());
+      dayMap.get(k)!.add(m.sender_id);
+    }
+    // count consecutive days ending today (or most recent activity day) with both sides
+    const today = new Date();
+    let streak = 0;
+    const cursor = new Date(today);
+    while (streak < 365) {
+      const k = `${cursor.getFullYear()}-${cursor.getMonth()}-${cursor.getDate()}`;
+      const s = dayMap.get(k);
+      if (s && s.size >= 2) streak++;
+      else if (streak === 0 && s && s.size >= 1) {
+        // allow 1-sided today so streak isn't 0 the moment you open
+        streak++;
+      } else break;
+      cursor.setDate(cursor.getDate() - 1);
+    }
+    const media = messages
+      .filter((m) => m.type === "image" || m.type === "video")
+      .slice(-6)
+      .reverse();
+    const first = messages[0]?.created_at;
+    const days = first ? Math.max(1, Math.floor((Date.now() - new Date(first).getTime()) / 86400000)) : 0;
+    return { streakDays: streak, sharedMedia: media, daysTogether: days };
+  }, [messages]);
+
+
   // Note: the 10-message cap now lives inside the temporary verification chat
   // (PunishmentVerificationChat) — the actual DM is not throttled.
 
@@ -140,7 +177,8 @@ function ChatPeer() {
     prevScrollHeightRef.current = el.scrollHeight;
   }, [messages, partnerTyping]);
 
-  // Auto-load older when user scrolls near the top (swipe up)
+  // Auto-load older when user scrolls near the top, and track scroll-to-bottom FAB visibility.
+  const [showScrollFab, setShowScrollFab] = useState(false);
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
@@ -149,10 +187,19 @@ function ChatPeer() {
         prevScrollHeightRef.current = el.scrollHeight;
         loadOlder();
       }
+      const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+      setShowScrollFab(distanceFromBottom > 240);
     };
     el.addEventListener("scroll", onScroll, { passive: true });
     return () => el.removeEventListener("scroll", onScroll);
   }, [hasMore, loadingOlder, loading, loadOlder]);
+
+  const scrollToBottom = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
+  }, []);
+
 
   // Trigger kiss / nudge FX for partner messages. Plays for anything that is
   // (a) freshly arrived (< 15s old) OR (b) still unread — so if the partner
@@ -215,7 +262,7 @@ function ChatPeer() {
   const peerDisplay = (isPartner && me.partner_nickname) ? me.partner_nickname : peer.display_name;
 
   return (
-    <div className={`flex flex-col h-screen ${shake ? "animate-chat-shake" : ""}`}>
+    <div className={`relative flex flex-col h-screen ${shake ? "animate-chat-shake" : ""}`}>
       <header className="relative px-4 pt-6 pb-3 flex items-center gap-2 border-b border-border bg-velvet sticky top-0 z-10">
         <Link to="/app/chat" className="text-candle-muted"><ArrowLeft className="size-5" /></Link>
         <Link
@@ -227,7 +274,15 @@ function ChatPeer() {
             {peer.avatar_url ? <img src={peer.avatar_url} alt="" className="size-full object-cover" /> : <span className="text-lg">🐼</span>}
           </div>
           <div className="flex-1 min-w-0">
-            <h1 className="font-serif italic text-lg leading-tight truncate">{peerDisplay}</h1>
+            <div className="flex items-center gap-1.5 min-w-0">
+              <h1 className="font-serif italic text-lg leading-tight truncate">{peerDisplay}</h1>
+              {isPartner && streakDays > 0 && (
+                <span className="shrink-0 flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-petal/15 text-[10px] text-petal font-bold border border-petal/25">
+                  <Flame className="size-2.5" />
+                  {streakDays}
+                </span>
+              )}
+            </div>
             <p className="text-[10px] text-petal flex items-center gap-1">
               <span className={`size-1.5 rounded-full ${partnerOnline ? "bg-green-400" : "bg-candle-muted"}`} />
               {partnerTyping ? "typing…" : formatLastSeen(peer.last_seen_at, partnerOnline)}
@@ -255,6 +310,40 @@ function ChatPeer() {
       </header>
 
       <MoodBar me={me} partner={peer} />
+
+      {isPartner && (sharedMedia.length > 0 || daysTogether > 0) && (
+        <div className="px-3 py-2 flex items-center gap-2 border-b border-border bg-petal/5">
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar flex-1 min-w-0">
+            {sharedMedia.map((m) => (
+              <button
+                key={m.id}
+                type="button"
+                onClick={() => jumpTo(m.id)}
+                className="size-9 shrink-0 rounded-lg bg-surface border border-petal/20 overflow-hidden hover:border-petal/50 transition-colors"
+                title="Jump to media"
+              >
+                {m.media_url && m.type === "image" ? (
+                  <img src={m.media_url} alt="" className="size-full object-cover" />
+                ) : (
+                  <div className="size-full flex items-center justify-center text-[13px]">🎬</div>
+                )}
+              </button>
+            ))}
+            {sharedMedia.length === 0 && (
+              <span className="text-[10px] text-candle-muted italic px-1">No shared photos yet — send one 💫</span>
+            )}
+          </div>
+          {daysTogether > 0 && (
+            <div className="pl-2.5 ml-1 border-l border-petal/15 flex flex-col items-end shrink-0">
+              <span className="text-[9px] text-candle-muted uppercase font-bold tracking-wider flex items-center gap-1">
+                <HeartIcon className="size-2.5 text-petal" /> Together
+              </span>
+              <span className="text-[11px] font-semibold text-petal">{daysTogether}d</span>
+            </div>
+          )}
+        </div>
+      )}
+
 
       {activeLock && iAmLocker && (
         <PunishmentLockBanner
@@ -318,24 +407,39 @@ function ChatPeer() {
           const prev = messages[i - 1];
           const showAvatar = !prev || prev.sender_id !== m.sender_id;
           const isLastMine = m.id === lastMineId;
+          const curDay = new Date(m.created_at).toDateString();
+          const prevDay = prev ? new Date(prev.created_at).toDateString() : null;
+          const showDivider = curDay !== prevDay;
+          const today = new Date().toDateString();
+          const yesterday = new Date(Date.now() - 86400000).toDateString();
+          const label = curDay === today ? "Today" : curDay === yesterday ? "Yesterday" :
+            new Date(m.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" });
           return (
-            <div
-              key={m.id}
-              ref={(el) => { bubbleRefs.current[m.id] = el; }}
-              className={`transition-colors rounded-2xl ${highlightId === m.id ? "bg-petal/15 ring-1 ring-petal/40" : ""}`}
-            >
-              <ChatBubble
-                m={m}
-                mine={m.sender_id === me.id}
-                replyTo={m.reply_to_id ? messagesById[m.reply_to_id] ?? null : null}
-                showAvatar={showAvatar}
-                isLast={isLastMine}
-                onReact={react}
-                onReply={setReplyTo}
-                onPin={togglePin}
-                onDelete={remove}
-                onVanish={setVanish}
-              />
+            <div key={m.id}>
+              {showDivider && (
+                <div className="flex justify-center my-3">
+                  <span className="px-3 py-1 rounded-full bg-surface/60 border border-border text-[10px] text-candle-muted tracking-widest uppercase font-bold">
+                    {label}
+                  </span>
+                </div>
+              )}
+              <div
+                ref={(el) => { bubbleRefs.current[m.id] = el; }}
+                className={`transition-colors rounded-2xl ${highlightId === m.id ? "bg-petal/15 ring-1 ring-petal/40" : ""}`}
+              >
+                <ChatBubble
+                  m={m}
+                  mine={m.sender_id === me.id}
+                  replyTo={m.reply_to_id ? messagesById[m.reply_to_id] ?? null : null}
+                  showAvatar={showAvatar}
+                  isLast={isLastMine}
+                  onReact={react}
+                  onReply={setReplyTo}
+                  onPin={togglePin}
+                  onDelete={remove}
+                  onVanish={setVanish}
+                />
+              </div>
             </div>
           );
         })}
@@ -351,6 +455,31 @@ function ChatPeer() {
           </div>
         )}
       </div>
+
+      {showScrollFab && (
+        <button
+          type="button"
+          onClick={scrollToBottom}
+          aria-label="Scroll to latest"
+          className="absolute right-4 bottom-40 size-10 rounded-full bg-surface-elevated/90 backdrop-blur-md border border-petal/30 flex items-center justify-center text-petal shadow-lg animate-fade-in z-20"
+        >
+          <ArrowDown className="size-4" />
+        </button>
+      )}
+
+      <div className="px-3 pt-2 pb-1 flex gap-2 overflow-x-auto no-scrollbar border-t border-border/40 bg-velvet">
+        {["Miss you 💜", "Call?", "Omw!", "Hahaha", "Goodnight 🌙"].map((q) => (
+          <button
+            key={q}
+            type="button"
+            onClick={() => { void send({ content: q, type: "text" }); }}
+            className="shrink-0 px-3 py-1.5 rounded-full bg-surface border border-border text-[11px] font-medium text-candle hover:border-petal/40 hover:text-petal transition-colors"
+          >
+            {q}
+          </button>
+        ))}
+      </div>
+
 
       <ChatComposer
         meId={me.id}
