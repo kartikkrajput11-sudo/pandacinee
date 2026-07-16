@@ -272,17 +272,27 @@ function ShopRoute() {
             </div>
             <div className="mt-4 flex gap-2">
               {inventory.has(preview.id) ? (
-                <button
-                  onClick={() => toggleEquip(preview)}
-                  disabled={busy === preview.id}
-                  className="flex-1 px-4 py-3 rounded-2xl bg-petal text-velvet font-semibold text-sm disabled:opacity-50"
-                >
-                  {busy === preview.id
-                    ? "…"
-                    : inventory.get(preview.id)
-                      ? "Unequip"
-                      : "Equip"}
-                </button>
+                preview.category === "ai_sticker_pack" ? (
+                  <Link
+                    to="/app/chat"
+                    onClick={() => setPreview(null)}
+                    className="flex-1 px-4 py-3 rounded-2xl bg-petal text-velvet font-semibold text-sm inline-flex items-center justify-center gap-1.5"
+                  >
+                    <Sparkles className="size-4" /> Generate in chat
+                  </Link>
+                ) : (
+                  <button
+                    onClick={() => toggleEquip(preview)}
+                    disabled={busy === preview.id}
+                    className="flex-1 px-4 py-3 rounded-2xl bg-petal text-velvet font-semibold text-sm disabled:opacity-50"
+                  >
+                    {busy === preview.id
+                      ? "…"
+                      : inventory.get(preview.id)
+                        ? "Unequip"
+                        : "Equip"}
+                  </button>
+                )
               ) : (
                 <button
                   onClick={() => purchase(preview)}
