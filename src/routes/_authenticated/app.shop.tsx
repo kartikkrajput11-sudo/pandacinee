@@ -27,6 +27,7 @@ export const Route = createFileRoute("/_authenticated/app/shop")({
 });
 
 type Category =
+  | "coins"
   | "chat_theme"
   | "site_theme"
   | "chat_perk"
@@ -35,6 +36,7 @@ type Category =
   | "tag";
 
 const CATS: { key: Category; label: string; icon: any; blurb: string }[] = [
+  { key: "coins", label: "Coins", icon: CoinsIcon, blurb: "Top up Panda Coins with UPI, cards, or netbanking" },
   { key: "chat_theme", label: "Chat", icon: MessageCircle, blurb: "Bubble palettes & chat wallpapers" },
   { key: "site_theme", label: "Site", icon: Palette, blurb: "Global accent skins for the whole app" },
   { key: "chat_perk", label: "Perks", icon: Wand2, blurb: "Sticker packs, kisses, and effects" },
@@ -42,6 +44,18 @@ const CATS: { key: Category; label: string; icon: any; blurb: string }[] = [
   { key: "ai_sticker_pack", label: "AI Packs", icon: Sticker, blurb: "AI-generated sticker sets for chat" },
   { key: "tag", label: "Tags", icon: Award, blurb: "Achievement tags for your profile" },
 ];
+
+type CoinBundle = {
+  id: string;
+  bundle_key: string;
+  name: string;
+  description: string | null;
+  coins: number;
+  price_paise: number;
+  currency: string;
+  bonus_label: string | null;
+  sort_order: number;
+};
 
 type ShopItem = {
   id: string;
