@@ -24,6 +24,10 @@ import { UnlockCelebration } from "@/components/chat/UnlockCelebration";
 import { typeMeta } from "@/lib/punishment";
 import { UserAvatar } from "@/components/UserAvatar";
 import { ForwardDialog, canForward } from "@/components/chat/ForwardDialog";
+import { ChatThemeScope } from "@/components/chat/ChatThemeScope";
+import { ConfettiBurst, PetalRain } from "@/components/chat/PerkEffects";
+import { useEquippedItems } from "@/hooks/useEquippedItems";
+
 
 
 
