@@ -49,18 +49,18 @@ const SOLO_MOOD_PROMPTS: Record<AiStickerSoloMood, string> = {
 };
 
 const COUPLE_MOOD_PROMPTS: Record<AiStickerCoupleMood, string> = {
-  "couple-kiss": "the two characters sharing a sweet innocent peck, faces close together with eyes gently closed and cheeks softly pink, a big glossy heart floating above their heads — wholesome and cute",
-  "couple-hug": "the two characters wrapped in a tight warm hug, one cheek pressed against the other's shoulder, soft blush, tiny sparkles",
+  "couple-kiss": "the two characters in a wholesome almost-kiss pose with cheeks close but no lip contact, eyes gently closed, soft blush, a big glossy heart floating above their heads",
+  "couple-hug": "the two characters sharing a warm side hug, shoulders touching, happy closed-eye smiles, tiny sparkles",
   "couple-hearts": "the two characters standing close together, both making heart-hands together forming one big heart in the middle, glowing pink hearts around",
   "couple-holding-hands": "the two characters holding hands and looking at each other with soft smiles, tiny pink hearts floating between them",
-  "couple-forehead-kiss": "one character tenderly kissing the other on the forehead, the other's eyes gently closed with a shy smile, warm glow",
-  "couple-dance": "the two characters slow-dancing together, one hand joined, the other on the waist, music notes and sparkles around",
+  "couple-forehead-kiss": "the two characters touching foreheads gently with eyes closed, warm smiles, shy blush, glowing heart sparkles",
+  "couple-dance": "the two characters doing a cute formal dance pose with hands joined, twirling gently, music notes and sparkles around",
   "couple-piggyback": "one character giving the other a playful piggyback ride, both laughing brightly, motion lines and sparkles",
   "couple-selfie": "the two characters cheek to cheek taking a cute selfie, one holding a tiny phone, both giving peace signs, big smiles",
-  "couple-cuddle": "the two characters cuddling under a shared blanket, sleepy soft smiles, tiny 'zzz' and hearts",
-  "couple-picnic": "the two characters sitting on a picnic blanket sharing a strawberry, tiny basket, hearts and sparkles",
+  "couple-cuddle": "the two characters sitting side by side wrapped in one cozy scarf, leaning shoulders together, sleepy soft smiles, tiny hearts",
+  "couple-picnic": "the two characters sitting on a picnic blanket holding a tiny basket together, cheerful smiles, hearts and sparkles",
   "couple-umbrella": "the two characters sharing a small pink umbrella in gentle rain, leaning close, warm blush, tiny heart raindrops",
-  "couple-sleepy": "the two characters napping side by side, heads leaned together, eyes closed, 'zzz' floating above, cozy",
+  "couple-sleepy": "the two characters resting side by side with heads gently leaned together, eyes closed, cozy scarves, tiny 'zzz' floating above",
 };
 
 const BASE_STYLE = `Ultra-professional kawaii chibi anime sticker in the style of a premium LINE / Kakao sticker pack.
@@ -83,6 +83,7 @@ Absolutely no text, no captions, no watermark, no logo, no signature.`;
 
 const COUPLE_STYLE = `Ultra-professional kawaii chibi anime COUPLE sticker in the style of a premium LINE / Kakao sticker pack.
 Render BOTH people from the reference photos together in ONE sticker as chibi anime characters.
+Keep it wholesome, cute, non-sexual, fully clothed, and friendship/romance-safe. Avoid lip contact, sensual posing, bedroom framing, nudity, or suggestive content.
 Rendering: soft cel-shaded anime, clean crisp ink lineart of consistent weight, glossy highlights, subtle rim light, delicate blush, tiny catchlights in the eyes, big expressive eyes.
 Finish: die-cut sticker with a thin uniform white outer border and a soft drop shadow beneath.
 For EACH person, faithfully reproduce from their reference photo:
@@ -101,10 +102,21 @@ Composition: both characters together, full upper body or full body as needed, c
 Background: PURE SOLID WHITE (#FFFFFF), no scenery behind them, no gradients.
 Absolutely no text, no captions, no watermark, no logo.`;
 
+function isUploadedProfilePhoto(userId: string | null | undefined, rawAvatar: string | null | undefined) {
+  const avatar = rawAvatar?.trim();
+  if (!userId || !avatar) return false;
+  if (/^(https?:|data:)/i.test(avatar)) return false;
+  return avatar.startsWith(`${userId}/`);
+}
+
 async function fetchAvatarDataUrl(
   supabase: any,
+  userId: string,
   rawAvatar: string,
 ): Promise<string> {
+  if (!isUploadedProfilePhoto(userId, rawAvatar)) {
+    throw new Error("Upload a real profile photo first so the sticker can match faces accurately.");
+  }
   let fetchUrl = rawAvatar;
   if (!/^https?:\/\//i.test(rawAvatar)) {
     const { data: signed } = await supabase.storage
@@ -138,8 +150,8 @@ export const generateAiSticker = createServerFn({ method: "POST" })
       .maybeSingle();
 
     const myAvatar = me?.avatar_url as string | null | undefined;
-    if (!myAvatar) {
-      throw new Error("Add a profile photo first to generate AI stickers.");
+    if (!isUploadedProfilePhoto(context.userId, myAvatar)) {
+      throw new Error("Upload your profile photo first so AI stickers can match your face accurately.");
     }
 
     const content: Array<
@@ -157,12 +169,12 @@ export const generateAiSticker = createServerFn({ method: "POST" })
         .eq("id", me.partner_id)
         .maybeSingle();
       const partnerAvatar = partner?.avatar_url as string | null | undefined;
-      if (!partnerAvatar) {
-        throw new Error("Your partner needs to upload a profile photo first.");
+      if (!isUploadedProfilePhoto(me.partner_id, partnerAvatar)) {
+        throw new Error("Your partner needs to upload a real profile photo first so couple stickers can match their face accurately.");
       }
       const [aUrl, bUrl] = await Promise.all([
-        fetchAvatarDataUrl(context.supabase, myAvatar),
-        fetchAvatarDataUrl(context.supabase, partnerAvatar),
+        fetchAvatarDataUrl(context.supabase, context.userId, myAvatar),
+        fetchAvatarDataUrl(context.supabase, me.partner_id, partnerAvatar),
       ]);
       const prompt = `${COUPLE_STYLE}
 Scene / pose: ${COUPLE_MOOD_PROMPTS[data.mood as AiStickerCoupleMood]}.`;
@@ -172,7 +184,7 @@ Scene / pose: ${COUPLE_MOOD_PROMPTS[data.mood as AiStickerCoupleMood]}.`;
       content.push({ type: "text", text: "Reference for Person B (the second person):" });
       content.push({ type: "image_url", image_url: { url: bUrl } });
     } else {
-      const dataUrl = await fetchAvatarDataUrl(context.supabase, myAvatar);
+      const dataUrl = await fetchAvatarDataUrl(context.supabase, context.userId, myAvatar);
       const prompt = `${BASE_STYLE}
 Pose / expression: ${SOLO_MOOD_PROMPTS[data.mood as AiStickerSoloMood]}.`;
       content.push({ type: "text", text: prompt });
@@ -186,7 +198,7 @@ Pose / expression: ${SOLO_MOOD_PROMPTS[data.mood as AiStickerSoloMood]}.`;
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash-image",
+        model: "google/gemini-3.1-flash-image",
         messages: [{ role: "user", content }],
         modalities: ["image", "text"],
       }),
@@ -230,7 +242,7 @@ Pose / expression: ${SOLO_MOOD_PROMPTS[data.mood as AiStickerSoloMood]}.`;
         "";
       throw new Error(
         isCouple
-          ? `Couldn't generate this couple sticker — try a gentler pose or a different mood.${refusal ? ` (${String(refusal).slice(0, 120)})` : ""}`
+          ? `Couldn't generate this couple sticker safely — try another Us mood.${refusal ? ` (${String(refusal).slice(0, 120)})` : ""}`
           : "The model didn't return a sticker. Try again.",
       );
     }
