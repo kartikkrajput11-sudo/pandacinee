@@ -52,7 +52,7 @@ function GroupCall() {
     navigate({ to: "/app/chat/group/$groupId", params: { groupId } });
   }
 
-  const feeds = Object.values(call.remoteFeeds);
+  const feeds = call.remoteFeeds;
   const group = groupData?.group;
 
   return (
