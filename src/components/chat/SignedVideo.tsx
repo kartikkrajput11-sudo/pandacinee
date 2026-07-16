@@ -154,14 +154,14 @@ export function SignedVideo({ path }: { path: string }) {
 
       {/* Bottom controls */}
       <div
-        className={`absolute inset-x-0 bottom-0 px-3 pb-2 pt-6 bg-gradient-to-t from-black/80 via-black/40 to-transparent transition-opacity ${
+        className={`absolute inset-x-0 bottom-0 px-3 pb-3 pt-8 bg-gradient-to-t from-black/85 via-black/45 to-transparent transition-opacity ${
           showControls ? "opacity-100" : "opacity-0"
         }`}
       >
         <div className="flex items-center gap-2">
           <button
             onClick={(e) => { e.stopPropagation(); togglePlay(); }}
-            className="size-7 rounded-full bg-white/10 hover:bg-petal/70 text-white flex items-center justify-center transition-colors"
+            className="size-7 shrink-0 rounded-full bg-white/10 hover:bg-petal/70 text-white flex items-center justify-center transition-colors"
             aria-label={playing ? "Pause" : "Play"}
           >
             {playing ? <Pause className="size-3.5 fill-current" /> : <Play className="size-3.5 fill-current translate-x-[1px]" />}
@@ -178,7 +178,7 @@ export function SignedVideo({ path }: { path: string }) {
             value={duration ? (current / duration) * 1000 : 0}
             onChange={onSeek}
             onClick={(e) => e.stopPropagation()}
-            className="flex-1 h-1 accent-petal cursor-pointer"
+            className="flex-1 min-w-0 h-1 accent-petal cursor-pointer"
             aria-label="Seek"
           />
 
@@ -188,16 +188,19 @@ export function SignedVideo({ path }: { path: string }) {
 
           <button
             onClick={(e) => { e.stopPropagation(); toggleMute(); }}
-            className="size-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center"
+            className="size-7 shrink-0 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center"
             aria-label={muted ? "Unmute" : "Mute"}
           >
             {muted ? <VolumeX className="size-3.5" /> : <Volume2 className="size-3.5" />}
           </button>
 
           <button
-            onClick={(e) => { e.stopPropagation(); requestFullscreen(); }}
-            className="size-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center"
-            aria-label="Fullscreen"
+            onClick={(e) => { e.stopPropagation(); toggleFullscreen(); }}
+            className="size-7 shrink-0 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center"
+            aria-label={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
+          >
+            {isFullscreen ? <Minimize2 className="size-3.5" /> : <Maximize2 className="size-3.5" />}
+          </button>
           >
             <Maximize2 className="size-3.5" />
           </button>
