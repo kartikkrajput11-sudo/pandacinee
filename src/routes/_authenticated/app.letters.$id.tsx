@@ -217,6 +217,7 @@ function LetterView() {
               breaking={breaking}
               onClick={open}
               size={192}
+              motto={letter.seal_motto ?? undefined}
             />
             <p className={`font-serif italic text-2xl ${style.text} mt-8`}>Break the seal.</p>
             <p className={`${style.text} opacity-70 text-sm mt-1`}>Tap to open.</p>
