@@ -585,7 +585,10 @@ function ChatPeer() {
       />
       <KissOverlay trigger={kissTick} />
       <HugOverlay trigger={hugTick} />
+      <ConfettiBurst trigger={confettiTick} />
+      <PetalRain trigger={petalTick} />
       <UnlockCelebration trigger={unlockTick || null} />
+
 
       {activeLock && iAmLocked && !isVerifyMode && (
         <PunishmentLockOverlay
