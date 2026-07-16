@@ -112,6 +112,10 @@ export function AiStickerPicker({ open, onClose, onPick }: Props) {
       toast.info(`${partnerName} needs to generate their own AI stickers.`);
       return;
     }
+    if (!isMoodUnlocked(mood)) {
+      toast.info("This mood is part of an AI Pack — unlock it in the shop.");
+      return;
+    }
     if (isCoupleTab && !partner) {
       toast.info("Pair with your partner first to make couple stickers.");
       return;
@@ -124,6 +128,17 @@ export function AiStickerPicker({ open, onClose, onPick }: Props) {
       toast.info(`${partnerName} needs to upload a real profile photo first.`);
       return;
     }
+    setBusyMood(mood);
+    try {
+      await genFn({ data: { mood } });
+      qc.invalidateQueries({ queryKey: ["ai-stickers", me?.id] });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Couldn't generate sticker");
+    } finally {
+      setBusyMood(null);
+    }
+  }
+
     setBusyMood(mood);
     try {
       await genFn({ data: { mood } });
