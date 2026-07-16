@@ -140,6 +140,8 @@ export const generateAiSticker = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const key = process.env.LOVABLE_API_KEY;
     if (!key) throw new Error("AI is not configured");
+    const userId = context.userId;
+    if (!userId) throw new Error("Sign in again to generate AI stickers.");
 
     const isCouple = (COUPLE_MOODS as readonly string[]).includes(data.mood);
 
@@ -150,9 +152,10 @@ export const generateAiSticker = createServerFn({ method: "POST" })
       .maybeSingle();
 
     const myAvatar = me?.avatar_url as string | null | undefined;
-    if (!isUploadedProfilePhoto(context.userId, myAvatar)) {
+    if (!isUploadedProfilePhoto(userId, myAvatar)) {
       throw new Error("Upload your profile photo first so AI stickers can match your face accurately.");
     }
+    const myAvatarPath = myAvatar.trim();
 
     const content: Array<
       | { type: "text"; text: string }
@@ -172,9 +175,10 @@ export const generateAiSticker = createServerFn({ method: "POST" })
       if (!isUploadedProfilePhoto(me.partner_id, partnerAvatar)) {
         throw new Error("Your partner needs to upload a real profile photo first so couple stickers can match their face accurately.");
       }
+      const partnerAvatarPath = partnerAvatar.trim();
       const [aUrl, bUrl] = await Promise.all([
-        fetchAvatarDataUrl(context.supabase, context.userId, myAvatar),
-        fetchAvatarDataUrl(context.supabase, me.partner_id, partnerAvatar),
+        fetchAvatarDataUrl(context.supabase, userId, myAvatarPath),
+        fetchAvatarDataUrl(context.supabase, me.partner_id, partnerAvatarPath),
       ]);
       const prompt = `${COUPLE_STYLE}
 Scene / pose: ${COUPLE_MOOD_PROMPTS[data.mood as AiStickerCoupleMood]}.`;
@@ -184,7 +188,7 @@ Scene / pose: ${COUPLE_MOOD_PROMPTS[data.mood as AiStickerCoupleMood]}.`;
       content.push({ type: "text", text: "Reference for Person B (the second person):" });
       content.push({ type: "image_url", image_url: { url: bUrl } });
     } else {
-      const dataUrl = await fetchAvatarDataUrl(context.supabase, context.userId, myAvatar);
+      const dataUrl = await fetchAvatarDataUrl(context.supabase, userId, myAvatarPath);
       const prompt = `${BASE_STYLE}
 Pose / expression: ${SOLO_MOOD_PROMPTS[data.mood as AiStickerSoloMood]}.`;
       content.push({ type: "text", text: prompt });
@@ -251,7 +255,7 @@ Pose / expression: ${SOLO_MOOD_PROMPTS[data.mood as AiStickerSoloMood]}.`;
     const out = new Uint8Array(binary.length);
     for (let i = 0; i < binary.length; i++) out[i] = binary.charCodeAt(i);
 
-    const path = `${context.userId}/ai-sticker/${data.mood}-${crypto.randomUUID()}.png`;
+    const path = `${userId}/ai-sticker/${data.mood}-${crypto.randomUUID()}.png`;
     const { error: upErr } = await context.supabase.storage
       .from("chat-media")
       .upload(path, out, { contentType: "image/png", upsert: true });
@@ -260,12 +264,12 @@ Pose / expression: ${SOLO_MOOD_PROMPTS[data.mood as AiStickerSoloMood]}.`;
     await (context.supabase as any)
       .from("ai_stickers")
       .delete()
-      .eq("user_id", context.userId)
+      .eq("user_id", userId)
       .eq("mood", data.mood);
 
     const { data: inserted, error: insErr } = await (context.supabase as any)
       .from("ai_stickers")
-      .insert({ user_id: context.userId, mood: data.mood, storage_path: path })
+      .insert({ user_id: userId, mood: data.mood, storage_path: path })
       .select("*")
       .single();
     if (insErr) throw new Error(insErr.message);
