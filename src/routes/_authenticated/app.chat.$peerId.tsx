@@ -316,12 +316,25 @@ function ChatPeer() {
         </Link>
         <div className="flex items-center gap-4 text-candle/55 shrink-0">
           <ChatSearch messages={messages} onJump={jumpTo} />
-          <Link to="/app/call/$peerId" params={{ peerId: peer.id }} search={{ role: "caller", mode: "audio" }} aria-label="Voice call" className="hover:text-petal transition-colors">
-            <Phone className="size-[18px]" strokeWidth={1.5} />
-          </Link>
-          <Link to="/app/call/$peerId" params={{ peerId: peer.id }} search={{ role: "caller", mode: "video" }} aria-label="Video call" className="hover:text-petal transition-colors">
-            <Video className="size-[18px]" strokeWidth={1.5} />
-          </Link>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="hover:text-petal transition-colors" aria-label="Call">
+                <Phone className="size-[18px]" strokeWidth={1.5} />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="bg-velvet border-candle/20">
+              <DropdownMenuItem asChild className="gap-2 focus:bg-petal/10 focus:text-petal">
+                <Link to="/app/call/$peerId" params={{ peerId: peer.id }} search={{ role: "caller", mode: "audio" }}>
+                  <Phone className="size-4" /> Voice call
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild className="gap-2 focus:bg-petal/10 focus:text-petal">
+                <Link to="/app/call/$peerId" params={{ peerId: peer.id }} search={{ role: "caller", mode: "video" }}>
+                  <Video className="size-4" /> Video call
+                </Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           {isPartner && !activeLock && (me as any).punishment_lock_enabled !== false && (peer as any).punishment_lock_enabled !== false && (
             <button
               onClick={() => setLockDialogOpen(true)}
