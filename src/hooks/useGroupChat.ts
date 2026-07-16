@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { MessageRow } from "@/lib/chat";
 import { sfxSend, sfxReceive, sfxReaction } from "@/lib/sfx";
+import { setGroupLastRead } from "@/lib/groupRead";
 
 export type GroupMessage = MessageRow & {
   deleted_at: string | null;
