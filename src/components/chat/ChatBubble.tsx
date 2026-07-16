@@ -101,8 +101,9 @@ function ChatBubbleImpl({
   // ---- Gestures: long-press for actions, swipe for reply, double-tap for heart ----
   const [dragX, setDragX] = useState(0);
   const [heartPop, setHeartPop] = useState(0);
-  const gesture = useRef({ startX: 0, startY: 0, moved: false, longPressed: false, lastTapAt: 0, singleTapTimer: 0 });
+  const gesture = useRef({ startX: 0, startY: 0, moved: false, longPressed: false, lastTapAt: 0, singleTapTimer: 0, pointerId: -1 });
   const longPressTimer = useRef<number | null>(null);
+  const dragFrame = useRef<number | null>(null);
   const clearLongPress = () => {
     if (longPressTimer.current) { window.clearTimeout(longPressTimer.current); longPressTimer.current = null; }
   };
@@ -110,13 +111,30 @@ function ChatBubbleImpl({
     !!(t as HTMLElement | null)?.closest?.("button, a, input, textarea, [data-no-gesture]");
 
   const dragXRef = useRef(0);
+  const paintDrag = (x: number) => {
+    dragXRef.current = x;
+    if (dragFrame.current != null) return;
+    dragFrame.current = window.requestAnimationFrame(() => {
+      dragFrame.current = null;
+      setDragX(dragXRef.current);
+    });
+  };
+  const resetDrag = () => {
+    dragXRef.current = 0;
+    if (dragFrame.current != null) {
+      window.cancelAnimationFrame(dragFrame.current);
+      dragFrame.current = null;
+    }
+    setDragX(0);
+  };
   const onPointerDown = (e: React.PointerEvent) => {
     if (isInteractiveTarget(e.target)) return;
     gesture.current.startX = e.clientX;
     gesture.current.startY = e.clientY;
     gesture.current.moved = false;
     gesture.current.longPressed = false;
-    dragXRef.current = 0;
+    gesture.current.pointerId = e.pointerId;
+    resetDrag();
     try { (e.currentTarget as Element).setPointerCapture?.(e.pointerId); } catch {}
     clearLongPress();
     // Only use long-press for touch/pen. Mouse users have right-click / hover.
@@ -130,6 +148,7 @@ function ChatBubbleImpl({
     }
   };
   const onPointerMove = (e: React.PointerEvent) => {
+    if (gesture.current.pointerId !== e.pointerId) return;
     const dx = e.clientX - gesture.current.startX;
     const dy = e.clientY - gesture.current.startY;
     if (!gesture.current.moved && Math.hypot(dx, dy) > 6) {
@@ -138,22 +157,23 @@ function ChatBubbleImpl({
     }
     if (gesture.current.moved && Math.abs(dx) > Math.abs(dy)) {
       const clamped = Math.max(-100, Math.min(100, dx));
-      dragXRef.current = clamped;
-      setDragX(clamped);
+      paintDrag(clamped);
     }
   };
-  const onPointerUp = () => {
+  const onPointerUp = (e: React.PointerEvent) => {
+    if (gesture.current.pointerId !== e.pointerId) return;
     clearLongPress();
     const wasLP = gesture.current.longPressed;
     const moved = gesture.current.moved;
     const dx = dragXRef.current;
-    dragXRef.current = 0;
-    setDragX(0);
+    gesture.current.pointerId = -1;
+    try { (e.currentTarget as Element).releasePointerCapture?.(e.pointerId); } catch {}
+    resetDrag();
     if (wasLP) return;
     if (moved) {
       // Right swipe = reply. Left swipe = peek timestamp (no commit).
       if (dx > 45) {
-        onReply(m);
+        window.requestAnimationFrame(() => onReply(m));
         if ("vibrate" in navigator) navigator.vibrate?.(20);
       }
       return;
@@ -175,7 +195,11 @@ function ChatBubbleImpl({
       }, 260);
     }
   };
-  const onPointerCancel = () => { clearLongPress(); setDragX(0); };
+  const onPointerCancel = () => {
+    gesture.current.pointerId = -1;
+    clearLongPress();
+    resetDrag();
+  };
   const onContextMenu = (e: React.MouseEvent) => {
     if (isInteractiveTarget(e.target)) return;
     e.preventDefault();
@@ -212,6 +236,7 @@ function ChatBubbleImpl({
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerCancel}
+        onLostPointerCapture={onPointerCancel}
         onContextMenu={onContextMenu}
       >
         {m.pinned && (
