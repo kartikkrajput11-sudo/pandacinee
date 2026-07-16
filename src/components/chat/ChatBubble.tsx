@@ -8,6 +8,8 @@ import { WatchInviteCard } from "./WatchInviteCard";
 import { GameInviteCard } from "./GameInviteCard";
 import { MovieWheelCard } from "./MovieWheelCard";
 import { isPandaStickerContent, pandaStickerUrl } from "@/lib/panda-stickers";
+import pandaKiss from "@/assets/panda-kiss.png";
+
 
 function relTime(iso?: string | null) {
   if (!iso) return "";
