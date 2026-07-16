@@ -1,5 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Lock, Send, Sparkles, Palette, Copy, HeartHandshake, Timer, Check } from "lucide-react";
+import { Lock, Send, Sparkles, Palette, HeartHandshake, Timer, Check } from "lucide-react";
+
+// Normalize for locked-chat matching: lowercase, strip punctuation, collapse whitespace.
+// Capital letters and punctuation are forgiven — only the sequence of words must match.
+function normalizeWords(s: string) {
+  return s
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
 import { toast } from "sonner";
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
@@ -81,13 +91,6 @@ export function PunishmentLockOverlay({
     }
   }
 
-  function copyPrompt() {
-    navigator.clipboard.writeText(lock.prompt).then(
-      () => toast.success("Prompt copied"),
-      () => toast.error("Copy failed"),
-    );
-  }
-
   async function celebrateAndClose() {
     setCelebrate(true);
     await onComplete(lock.id);
@@ -111,8 +114,8 @@ export function PunishmentLockOverlay({
     const val = entry.trim();
     if (!val) return;
     const target = lock.prompt.trim();
-    if (val.toLowerCase() !== target.toLowerCase()) {
-      toast.error(`Type exactly: "${target}"`);
+    if (normalizeWords(val) !== normalizeWords(target)) {
+      toast.error(`Type the words: "${target}"`);
       return;
     }
     setEntry("");
@@ -324,7 +327,12 @@ export function PunishmentLockOverlay({
             >
               &ldquo;
             </span>
-            <p className="font-serif italic text-lg text-candle/95 leading-snug">
+            <p
+              className="font-serif italic text-lg text-candle/95 leading-snug select-none"
+              style={{ WebkitUserSelect: "none", userSelect: "none" }}
+              onCopy={(e) => e.preventDefault()}
+              onContextMenu={(e) => e.preventDefault()}
+            >
               {lock.prompt}
             </p>
             <span
@@ -335,13 +343,6 @@ export function PunishmentLockOverlay({
             </span>
           </div>
 
-          {/* Copy prompt chip */}
-          <button
-            onClick={copyPrompt}
-            className="mt-5 inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.28em] px-3 py-1.5 rounded-full bg-white/[0.03] border border-white/10 text-candle-muted hover:text-petal hover:border-petal/40 transition-colors"
-          >
-            <Copy className="size-3" /> Copy prompt
-          </button>
 
           {/* Fleuron scroll divider */}
           <div className="flex items-center gap-3 mt-6 w-full">
@@ -423,12 +424,13 @@ export function PunishmentLockOverlay({
           <>
             {(lock.type === "write" || lock.type === "compliment" || lock.type === "funny") && (() => {
               const minLen = lock.type === "compliment" ? 5 : lock.type === "funny" ? 10 : 0;
-              const target = lock.prompt.trim().toLowerCase();
+              const target = normalizeWords(lock.prompt);
               const val = entry.trim();
+              const normVal = normalizeWords(val);
               const writeMatch = lock.type === "write" && val.length > 0
-                ? (val.toLowerCase() === target
+                ? (normVal === target
                     ? "match"
-                    : target.startsWith(val.toLowerCase())
+                    : target.startsWith(normVal)
                       ? "progress"
                       : "mismatch")
                 : null;
@@ -438,9 +440,10 @@ export function PunishmentLockOverlay({
                     <textarea
                       value={entry}
                       onChange={(e) => setEntry(e.target.value)}
+                      onPaste={lock.type === "write" ? (e) => { e.preventDefault(); toast.error("Paste is disabled — type it out 💌"); } : undefined}
                       placeholder={
                         lock.type === "write"
-                          ? `Type exactly: "${lock.prompt}"`
+                          ? `Type the words: "${lock.prompt}"`
                           : lock.type === "compliment"
                             ? "A unique compliment…"
                             : "Type your entry…"
