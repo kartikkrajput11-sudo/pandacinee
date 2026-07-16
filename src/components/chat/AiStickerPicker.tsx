@@ -7,7 +7,12 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
 import { signMedia } from "@/lib/chat";
-import { generateAiSticker, AI_STICKER_MOODS, type AiStickerMood } from "@/lib/ai-stickers.functions";
+import {
+  generateAiSticker,
+  AI_STICKER_SOLO_MOODS,
+  AI_STICKER_COUPLE_MOODS,
+  type AiStickerMood,
+} from "@/lib/ai-stickers.functions";
 
 type StickerRow = {
   id: string;
@@ -22,6 +27,12 @@ const MOOD_LABEL: Record<AiStickerMood, string> = {
   wink: "Wink", laugh: "Laugh", cry: "Cry", wow: "Wow", cool: "Cool",
   sleepy: "Sleepy", wave: "Hi!", dance: "Dance", party: "Party",
   "heart-hands": "Heart", angry: "Angry", think: "Think", blush: "Blush",
+  "couple-kiss": "Kiss 💋", "couple-hug": "Hug", "couple-hearts": "Hearts",
+  "couple-holding-hands": "Hands", "couple-forehead-kiss": "Forehead",
+  "couple-dance": "Dance", "couple-piggyback": "Piggyback",
+  "couple-selfie": "Selfie", "couple-cuddle": "Cuddle",
+  "couple-picnic": "Picnic", "couple-umbrella": "Umbrella",
+  "couple-sleepy": "Nap",
 };
 
 type Props = {
@@ -30,6 +41,8 @@ type Props = {
   onPick: (storagePath: string, mood: AiStickerMood) => void;
 };
 
+type Tab = "me" | "partner" | "us";
+
 export function AiStickerPicker({ open, onClose, onPick }: Props) {
   const { data: profileData } = useProfile();
   const me = profileData?.profile;
@@ -37,21 +50,32 @@ export function AiStickerPicker({ open, onClose, onPick }: Props) {
   const qc = useQueryClient();
   const genFn = useServerFn(generateAiSticker);
 
-  const [tab, setTab] = useState<"me" | "partner">("me");
+  const [tab, setTab] = useState<Tab>("me");
   const [busyMood, setBusyMood] = useState<AiStickerMood | null>(null);
 
-  const activeUserId = tab === "me" ? me?.id : partner?.id;
-  const activeAvatar = tab === "me" ? me?.avatar_url : partner?.avatar_url;
-  const activeName = tab === "me" ? "you" : (me?.partner_nickname || partner?.display_name || "them");
+  const isCoupleTab = tab === "us";
+  // Couple stickers are stored under the current user's row so they can regenerate.
+  const activeUserId = tab === "partner" ? partner?.id : me?.id;
+  const activeAvatar = tab === "partner" ? partner?.avatar_url : me?.avatar_url;
+  const partnerName = me?.partner_nickname || partner?.display_name || "them";
+  const activeName = tab === "me" ? "you" : tab === "partner" ? partnerName : "us";
+
+  const moods = isCoupleTab ? AI_STICKER_COUPLE_MOODS : AI_STICKER_SOLO_MOODS;
+  const canRegenerate = tab === "me" || tab === "us";
+  const needsPartnerAvatar = isCoupleTab && !partner?.avatar_url;
 
   const { data: rows } = useQuery({
     enabled: open && !!activeUserId,
-    queryKey: ["ai-stickers", activeUserId],
+    queryKey: ["ai-stickers", activeUserId, isCoupleTab ? "couple" : "solo"],
     queryFn: async () => {
+      const moodList = isCoupleTab
+        ? [...AI_STICKER_COUPLE_MOODS]
+        : [...AI_STICKER_SOLO_MOODS];
       const { data, error } = await supabase
         .from("ai_stickers" as any)
         .select("*")
         .eq("user_id", activeUserId!)
+        .in("mood", moodList)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return (data as unknown as StickerRow[]) ?? [];
@@ -65,8 +89,16 @@ export function AiStickerPicker({ open, onClose, onPick }: Props) {
   }, [rows]);
 
   async function generate(mood: AiStickerMood) {
-    if (tab !== "me") {
-      toast.info(`${activeName} needs to generate their own AI stickers.`);
+    if (tab === "partner") {
+      toast.info(`${partnerName} needs to generate their own AI stickers.`);
+      return;
+    }
+    if (isCoupleTab && !partner) {
+      toast.info("Pair with your partner first to make couple stickers.");
+      return;
+    }
+    if (isCoupleTab && !partner?.avatar_url) {
+      toast.info(`${partnerName} needs to upload a profile photo first.`);
       return;
     }
     setBusyMood(mood);
@@ -81,6 +113,8 @@ export function AiStickerPicker({ open, onClose, onPick }: Props) {
   }
 
   if (!open) return null;
+
+  const tabs: Tab[] = partner ? ["me", "us", "partner"] : ["me"];
 
   return (
     <div
@@ -107,9 +141,9 @@ export function AiStickerPicker({ open, onClose, onPick }: Props) {
           </button>
         </div>
 
-        {partner && (
-          <div className="grid grid-cols-2 gap-1 p-1 rounded-full bg-surface-elevated border border-border mb-3">
-            {(["me", "partner"] as const).map((t) => (
+        {tabs.length > 1 && (
+          <div className={`grid gap-1 p-1 rounded-full bg-surface-elevated border border-border mb-3`} style={{ gridTemplateColumns: `repeat(${tabs.length}, minmax(0, 1fr))` }}>
+            {tabs.map((t) => (
               <button
                 key={t}
                 onClick={() => setTab(t)}
@@ -117,26 +151,32 @@ export function AiStickerPicker({ open, onClose, onPick }: Props) {
                   tab === t ? "bg-petal text-velvet" : "text-candle-muted"
                 }`}
               >
-                {t === "me" ? "You" : (me?.partner_nickname || partner.display_name || "Partner")}
+                {t === "me" ? "You" : t === "us" ? "Us 💕" : partnerName}
               </button>
             ))}
           </div>
         )}
 
-        {!activeAvatar ? (
+        {!activeAvatar || needsPartnerAvatar ? (
           <div className="py-10 text-center px-4">
             <div className="size-16 mx-auto mb-3 rounded-full bg-petal-soft/40 border border-petal/30 flex items-center justify-center">
               <ImagePlus className="size-7 text-petal" />
             </div>
             <p className="font-serif italic text-lg text-candle mb-1">
-              {tab === "me" ? "Add a profile photo first" : `${activeName} needs a profile photo`}
+              {tab === "me" && "Add a profile photo first"}
+              {tab === "partner" && `${partnerName} needs a profile photo`}
+              {isCoupleTab && (!me?.avatar_url
+                ? "Add your profile photo first"
+                : `${partnerName} needs a profile photo`)}
             </p>
             <p className="text-xs text-candle-muted mb-4 max-w-xs mx-auto">
-              {tab === "me"
-                ? "To create AI-generated anime stickers of yourself, upload a profile picture first."
-                : `Ask ${activeName} to upload their profile photo so we can make anime stickers of them.`}
+              {tab === "me" && "To create AI anime stickers of yourself, upload a profile picture first."}
+              {tab === "partner" && `Ask ${partnerName} to upload their profile photo so we can make anime stickers of them.`}
+              {isCoupleTab && (!me?.avatar_url
+                ? "Couple stickers use both of your profile photos — upload yours to get started."
+                : `Couple stickers use both photos — ask ${partnerName} to upload theirs.`)}
             </p>
-            {tab === "me" && (
+            {(tab === "me" || (isCoupleTab && !me?.avatar_url)) && (
               <Link
                 to="/app/me"
                 onClick={onClose}
@@ -149,17 +189,16 @@ export function AiStickerPicker({ open, onClose, onPick }: Props) {
         ) : (
           <>
             <div className="grid grid-cols-3 gap-2 max-h-[55vh] overflow-y-auto pr-1">
-              {AI_STICKER_MOODS.map((mood) => {
+              {moods.map((mood) => {
                 const row = byMood.get(mood);
                 const busy = busyMood === mood;
                 return (
                   <StickerCell
                     key={mood}
-                    mood={mood}
                     label={MOOD_LABEL[mood]}
                     row={row}
                     busy={busy}
-                    canRegenerate={tab === "me"}
+                    canRegenerate={canRegenerate}
                     onPick={() => row && onPick(row.storage_path, mood)}
                     onGenerate={() => generate(mood)}
                   />
@@ -167,9 +206,9 @@ export function AiStickerPicker({ open, onClose, onPick }: Props) {
               })}
             </div>
             <p className="text-[10px] text-candle-muted text-center mt-3">
-              {tab === "me"
-                ? "Tap ✨ to generate, tap a sticker to send."
-                : `Sending ${activeName}'s stickers back to them 💕`}
+              {tab === "me" && "Tap ✨ to generate, tap a sticker to send."}
+              {tab === "us" && "Anime stickers of the two of you together 💕"}
+              {tab === "partner" && `Sending ${partnerName}'s stickers back to them 💕`}
             </p>
           </>
         )}
@@ -179,7 +218,6 @@ export function AiStickerPicker({ open, onClose, onPick }: Props) {
 }
 
 function StickerCell({
-  mood,
   label,
   row,
   busy,
@@ -187,7 +225,6 @@ function StickerCell({
   onPick,
   onGenerate,
 }: {
-  mood: AiStickerMood;
   label: string;
   row: StickerRow | undefined;
   busy: boolean;
@@ -207,7 +244,7 @@ function StickerCell({
     return (
       <button
         onClick={onGenerate}
-        disabled={busy}
+        disabled={busy || !canRegenerate}
         className="aspect-square rounded-2xl bg-surface-elevated border border-dashed border-petal/40 hover:border-petal hover:bg-petal/10 transition-all flex flex-col items-center justify-center gap-1 disabled:opacity-60"
       >
         {busy ? (
@@ -215,7 +252,7 @@ function StickerCell({
         ) : (
           <Sparkles className="size-5 text-petal" />
         )}
-        <span className="text-[10px] text-candle-muted">{busy ? "Creating…" : label}</span>
+        <span className="text-[10px] text-candle-muted px-1 text-center">{busy ? "Creating…" : label}</span>
       </button>
     );
   }
