@@ -627,15 +627,42 @@ function ItemPreview({ item, compact = false }: { item: ShopItem; compact?: bool
   if (item.category === "chess_pieces") {
     const glyphs = meta.glyphs?.w ?? { k: "♔", q: "♕", r: "♖", b: "♗", n: "♘", p: "♙" };
     const isEmoji = meta.emoji === true;
+    const isGlass = meta.style === "glass";
     const pieces: string[] = ["k", "q", "r", "b", "n", "p"].map((t) => glyphs[t] ?? "?");
     return (
       <div className="w-full h-full bg-gradient-to-br from-velvet to-surface flex flex-col items-center justify-center gap-2 p-3 relative">
         <div className="grid grid-cols-3 gap-1.5 w-[80%]">
           {pieces.map((g, i) => (
-            <div key={i} className="aspect-square rounded-lg bg-surface/70 border border-petal/20 flex items-center justify-center">
-              <span className={`text-2xl leading-none ${isEmoji ? "" : "text-candle"}`} style={{ textShadow: "0 1px 2px rgba(0,0,0,0.4)" }}>
-                {g}
-              </span>
+            <div key={i} className="aspect-square rounded-lg bg-surface/70 border border-petal/20 flex items-center justify-center relative overflow-hidden">
+              {isGlass ? (
+                <span
+                  className="flex items-center justify-center rounded-full"
+                  style={{
+                    width: "78%",
+                    height: "78%",
+                    background: "linear-gradient(135deg, rgba(255,255,255,0.55), rgba(220,240,255,0.15))",
+                    backdropFilter: "blur(6px) saturate(160%)",
+                    border: "1px solid rgba(255,255,255,0.7)",
+                    boxShadow: "inset 0 1px 2px rgba(255,255,255,0.9), 0 2px 8px rgba(120,180,255,0.35)",
+                  }}
+                >
+                  <span
+                    className="text-xl leading-none"
+                    style={{
+                      background: "linear-gradient(180deg, #ffffff, #c7ecff 60%, #7fb8ff)",
+                      WebkitBackgroundClip: "text",
+                      backgroundClip: "text",
+                      color: "transparent",
+                    }}
+                  >
+                    {g}
+                  </span>
+                </span>
+              ) : (
+                <span className={`text-2xl leading-none ${isEmoji ? "" : "text-candle"}`} style={{ textShadow: "0 1px 2px rgba(0,0,0,0.4)" }}>
+                  {g}
+                </span>
+              )}
             </div>
           ))}
         </div>
