@@ -35,6 +35,7 @@ function GroupChat() {
   const [replyTo, setReplyTo] = useState<GroupMessage | null>(null);
   const [openBubbleId, setOpenBubbleId] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
+  const [pollOpen, setPollOpen] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLInputElement>(null);
 
