@@ -376,6 +376,7 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
               <StudioTile icon={<Gamepad2 className="size-4" />} label="Game" onClick={() => { setGamePickerOpen(true); setMenuOpen(false); }} accent />
               <StudioTile icon={<Disc3 className="size-4" />} label="Wheel" onClick={() => { setWheelOpen(true); setMenuOpen(false); }} accent />
               <StudioTile icon={<Heart className="size-4 fill-current" />} label="Kiss" onClick={sendKiss} accent glow />
+              <StudioTile icon={<HeartHandshake className="size-4" />} label="Hug" onClick={sendHug} accent glow />
               <StudioTile icon={<Zap className="size-4" />} label="Nudge" onClick={sendNudge} />
             </div>
           </div>
