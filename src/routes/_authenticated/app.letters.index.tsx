@@ -1,11 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Lock, Feather, Plus, Sparkles, X, Clock } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ArrowLeft, Lock, Feather, Plus, Sparkles, X, Clock, Image as ImageIcon, Mic, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
 import { draftLoveLetter } from "@/lib/letters.functions";
 import { PandacineWaxSeal } from "@/components/PandacineWaxSeal";
+import { VoiceRecorder } from "@/components/chat/VoiceRecorder";
+import { uploadChatMedia, signMedia } from "@/lib/chat";
 
 export const Route = createFileRoute("/_authenticated/app/letters/")({
   component: LettersRoute,
