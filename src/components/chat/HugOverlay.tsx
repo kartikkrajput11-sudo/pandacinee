@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
+import pandaHug from "@/assets/panda-hug-sticker.png";
 
 /**
- * Hug overlay — two warm crescents sweep in from opposite sides,
- * meet in the middle, and settle into an embracing ring with a
- * champagne bloom. Neutral, no figures, matches the site palette.
+ * Hug overlay — a warm panda-hug sticker pops in the center with
+ * a soft champagne bloom and floating hearts.
  */
 
 type Burst = { id: number };
@@ -15,7 +15,7 @@ export function HugOverlay({ trigger }: { trigger: number }) {
     if (!trigger) return;
     const id = Date.now();
     setBursts((b) => [...b, { id }]);
-    const t = window.setTimeout(() => setBursts((b) => b.filter((x) => x.id !== id)), 3000);
+    const t = window.setTimeout(() => setBursts((b) => b.filter((x) => x.id !== id)), 2800);
     return () => window.clearTimeout(t);
   }, [trigger]);
 
@@ -35,108 +35,20 @@ export function HugOverlay({ trigger }: { trigger: number }) {
             }}
           />
 
-          {/* Two embracing arcs */}
+          {/* Panda sticker */}
           <div className="absolute inset-0 flex items-center justify-center">
-            <svg viewBox="0 0 240 240" width={260} height={260} aria-hidden>
-              <defs>
-                <linearGradient id="hugArcL" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stopColor="hsl(38 70% 74%)" />
-                  <stop offset="100%" stopColor="hsl(340 65% 60%)" />
-                </linearGradient>
-                <linearGradient id="hugArcR" x1="1" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="hsl(38 70% 74%)" />
-                  <stop offset="100%" stopColor="hsl(340 65% 60%)" />
-                </linearGradient>
-                <filter id="hugGlow" x="-30%" y="-30%" width="160%" height="160%">
-                  <feGaussianBlur stdDeviation="3" />
-                </filter>
-              </defs>
-
-              {/* Soft halo */}
-              <circle cx="120" cy="120" r="80" fill="hsl(38 60% 60% / 0.10)" className="animate-hug-halo" />
-
-              {/* Left arc — sweeps from far left */}
-              <g className="animate-hug-arc-l" style={{ transformOrigin: "120px 120px" }}>
-                <path
-                  d="M120 40
-                     C 60 40, 30 90, 30 120
-                     C 30 150, 60 200, 120 200"
-                  fill="none"
-                  stroke="url(#hugArcL)"
-                  strokeWidth="6"
-                  strokeLinecap="round"
-                  filter="url(#hugGlow)"
-                  opacity="0.65"
-                />
-                <path
-                  d="M120 40
-                     C 60 40, 30 90, 30 120
-                     C 30 150, 60 200, 120 200"
-                  fill="none"
-                  stroke="url(#hugArcL)"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                />
-              </g>
-
-              {/* Right arc */}
-              <g className="animate-hug-arc-r" style={{ transformOrigin: "120px 120px" }}>
-                <path
-                  d="M120 40
-                     C 180 40, 210 90, 210 120
-                     C 210 150, 180 200, 120 200"
-                  fill="none"
-                  stroke="url(#hugArcR)"
-                  strokeWidth="6"
-                  strokeLinecap="round"
-                  filter="url(#hugGlow)"
-                  opacity="0.65"
-                />
-                <path
-                  d="M120 40
-                     C 180 40, 210 90, 210 120
-                     C 210 150, 180 200, 120 200"
-                  fill="none"
-                  stroke="url(#hugArcR)"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                />
-              </g>
-
-              {/* Central warm heart pulse */}
-              <g className="animate-hug-core" style={{ transformOrigin: "120px 120px" }}>
-                <path
-                  d="M120 100
-                     C 108 84, 84 92, 84 112
-                     C 84 132, 108 148, 120 158
-                     C 132 148, 156 132, 156 112
-                     C 156 92, 132 84, 120 100 Z"
-                  fill="hsl(340 62% 55%)"
-                  filter="url(#hugGlow)"
-                  opacity="0.55"
-                />
-                <path
-                  d="M120 100
-                     C 108 84, 84 92, 84 112
-                     C 84 132, 108 148, 120 158
-                     C 132 148, 156 132, 156 112
-                     C 156 92, 132 84, 120 100 Z"
-                  fill="hsl(38 70% 76%)"
-                />
-              </g>
-            </svg>
-          </div>
-
-          {/* Expanding embrace ring */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span
-              className="animate-hug-ring rounded-full"
+            <img
+              src={pandaHug}
+              alt="two pandas hugging"
+              width={260}
+              height={260}
+              className="animate-kiss-imprint select-none"
               style={{
-                width: 180,
-                height: 180,
-                border: "2px solid hsl(38 65% 68% / 0.55)",
-                boxShadow: "0 0 40px hsl(38 60% 60% / 0.4)",
+                width: 260,
+                height: 260,
+                filter: "drop-shadow(0 14px 30px hsl(340 40% 20% / 0.45))",
               }}
+              draggable={false}
             />
           </div>
 
