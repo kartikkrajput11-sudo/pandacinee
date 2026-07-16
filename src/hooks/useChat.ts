@@ -208,6 +208,7 @@ export function useChat(meId: string | null, partnerId: string | null) {
         expires_at,
       };
       setMessages((prev) => mergeMessages(prev, [draft]));
+      sfxSend();
 
       const insertPayload = {
         sender_id: meId,
