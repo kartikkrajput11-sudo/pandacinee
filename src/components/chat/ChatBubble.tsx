@@ -61,6 +61,7 @@ function ChatBubbleImpl({
   onPin,
   onDelete,
   onVanish,
+  partnerName,
 }: {
   m: MessageRow;
   mine: boolean;
@@ -73,6 +74,8 @@ function ChatBubbleImpl({
   onPin: (m: MessageRow) => void;
   onDelete: (m: MessageRow) => void;
   onVanish?: (m: MessageRow, seconds: number | null) => void;
+  partnerName?: string;
+
 }) {
   const [actionsOpen, setActionsOpen] = useState(false);
   const [vanishOpen, setVanishOpen] = useState(false);
@@ -309,56 +312,61 @@ function ChatBubbleImpl({
 
           {isKiss && (() => {
             const time = new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false });
+            const sender = mine ? "You" : (partnerName || "Them");
             return (
               <div className="flex flex-col items-center py-2 w-full">
-                <div className="relative w-[260px] bg-velvet border border-candle/20 p-6 flex flex-col items-center text-center shadow-[0_0_40px_rgba(255,143,166,0.05)]">
+                <div className="relative w-[210px] bg-velvet border border-candle/20 px-4 pt-4 pb-3 flex flex-col items-center text-center shadow-[0_0_40px_rgba(255,143,166,0.05)]">
+                  <span className="absolute top-1.5 left-2 text-[8px] font-semibold tracking-[0.2em] uppercase text-candle/40 max-w-[70%] truncate">from {sender}</span>
                   <img
                     src={pandaKiss}
                     alt="Two pandas kissing"
                     loading="lazy"
-                    className="w-24 h-24 object-contain mb-3 drop-shadow-[0_0_20px_rgba(255,143,166,0.15)]"
+                    className="w-16 h-16 object-contain mb-2 mt-2 drop-shadow-[0_0_20px_rgba(255,143,166,0.15)]"
                   />
-
-                  <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-petal mb-1">Kiss</span>
-                  <p className="font-serif italic text-candle text-xl leading-tight">{mine ? "sent with love" : "for you"}</p>
-                  <div className="mt-4 flex flex-col items-center w-full">
-                    <div className="h-px w-8 bg-candle/20 mb-2" />
-                    <span className="text-[9px] font-bold tracking-[0.2em] uppercase text-candle/30">{time}</span>
+                  <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-petal mb-0.5">Kiss</span>
+                  <p className="font-serif italic text-candle text-base leading-tight">{mine ? "sent with love" : "for you"}</p>
+                  <div className="mt-3 flex flex-col items-center w-full">
+                    <div className="h-px w-6 bg-candle/20 mb-1.5" />
+                    <span className="text-[8px] font-bold tracking-[0.2em] uppercase text-candle/30">{time}</span>
                   </div>
-                  <div className="absolute top-1 left-1 w-2 h-2 border-t border-l border-candle/30" />
-                  <div className="absolute top-1 right-1 w-2 h-2 border-t border-r border-candle/30" />
-                  <div className="absolute bottom-1 left-1 w-2 h-2 border-b border-l border-candle/30" />
-                  <div className="absolute bottom-1 right-1 w-2 h-2 border-b border-r border-candle/30" />
+                  <div className="absolute top-1 left-1 w-1.5 h-1.5 border-t border-l border-candle/30" />
+                  <div className="absolute top-1 right-1 w-1.5 h-1.5 border-t border-r border-candle/30" />
+                  <div className="absolute bottom-1 left-1 w-1.5 h-1.5 border-b border-l border-candle/30" />
+                  <div className="absolute bottom-1 right-1 w-1.5 h-1.5 border-b border-r border-candle/30" />
                 </div>
               </div>
             );
           })()}
+
 
           {isNudge && (() => {
             const time = new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false });
+            const sender = mine ? "You" : (partnerName || "Them");
             return (
               <div className="flex flex-col items-center py-2 w-full">
-                <div className="relative w-[260px] bg-velvet border border-candle/20 p-6 flex flex-col items-center text-center shadow-[0_0_30px_rgba(242,230,220,0.03)]">
-                  <div className="w-12 h-12 rounded-full border border-candle/30 flex items-center justify-center mb-4 bg-velvet ring-4 ring-velvet">
+                <div className="relative w-[210px] bg-velvet border border-candle/20 px-4 pt-4 pb-3 flex flex-col items-center text-center shadow-[0_0_30px_rgba(242,230,220,0.03)]">
+                  <span className="absolute top-1.5 left-2 text-[8px] font-semibold tracking-[0.2em] uppercase text-candle/40 max-w-[70%] truncate">from {sender}</span>
+                  <div className="w-10 h-10 rounded-full border border-candle/30 flex items-center justify-center mb-3 mt-2 bg-velvet ring-4 ring-velvet">
                     <div className="relative">
-                      <div className="w-6 h-6 rounded-full border border-candle/50 animate-pulse" />
-                      <div className="absolute inset-0 w-6 h-6 rounded-full border border-candle/20 scale-150" />
+                      <div className="w-5 h-5 rounded-full border border-candle/50 animate-pulse" />
+                      <div className="absolute inset-0 w-5 h-5 rounded-full border border-candle/20 scale-150" />
                     </div>
                   </div>
-                  <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-candle/60 mb-1">Nudge</span>
-                  <p className="font-serif italic text-candle text-xl leading-tight">{mine ? "a gentle tap" : "thinking of you"}</p>
-                  <div className="mt-4 flex flex-col items-center w-full">
-                    <div className="h-px w-8 bg-candle/20 mb-2" />
-                    <span className="text-[9px] font-bold tracking-[0.2em] uppercase text-candle/30">{time}</span>
+                  <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-candle/60 mb-0.5">Nudge</span>
+                  <p className="font-serif italic text-candle text-base leading-tight">{mine ? "a gentle tap" : "thinking of you"}</p>
+                  <div className="mt-3 flex flex-col items-center w-full">
+                    <div className="h-px w-6 bg-candle/20 mb-1.5" />
+                    <span className="text-[8px] font-bold tracking-[0.2em] uppercase text-candle/30">{time}</span>
                   </div>
-                  <div className="absolute top-1 left-1 w-2 h-2 border-t border-l border-candle/30" />
-                  <div className="absolute top-1 right-1 w-2 h-2 border-t border-r border-candle/30" />
-                  <div className="absolute bottom-1 left-1 w-2 h-2 border-b border-l border-candle/30" />
-                  <div className="absolute bottom-1 right-1 w-2 h-2 border-b border-r border-candle/30" />
+                  <div className="absolute top-1 left-1 w-1.5 h-1.5 border-t border-l border-candle/30" />
+                  <div className="absolute top-1 right-1 w-1.5 h-1.5 border-t border-r border-candle/30" />
+                  <div className="absolute bottom-1 left-1 w-1.5 h-1.5 border-b border-l border-candle/30" />
+                  <div className="absolute bottom-1 right-1 w-1.5 h-1.5 border-b border-r border-candle/30" />
                 </div>
               </div>
             );
           })()}
+
 
 
 
