@@ -55,6 +55,7 @@ type Category =
   | "profile_flair"
   | "ai_sticker_pack"
   | "chess_board"
+  | "chess_pieces"
   | "tag";
 
 const CATS: { key: Category; label: string; icon: any; blurb: string }[] = [
@@ -64,7 +65,8 @@ const CATS: { key: Category; label: string; icon: any; blurb: string }[] = [
   { key: "chat_perk", label: "Perks", icon: Wand2, blurb: "Sticker packs, kisses, and effects" },
   { key: "profile_flair", label: "Flair", icon: Crown, blurb: "Avatar rings & profile highlights" },
   { key: "ai_sticker_pack", label: "AI Packs", icon: Sticker, blurb: "AI-generated sticker sets for chat" },
-  { key: "chess_board", label: "Chess", icon: Grid3x3, blurb: "Themed chess boards to unlock for your matches" },
+  { key: "chess_board", label: "Board", icon: Grid3x3, blurb: "Themed chess boards to unlock for your matches" },
+  { key: "chess_pieces", label: "Pieces", icon: Sparkles, blurb: "Chess piece skins — swap glyphs on your board" },
   { key: "tag", label: "Tags", icon: Award, blurb: "Achievement tags for your profile" },
 ];
 
