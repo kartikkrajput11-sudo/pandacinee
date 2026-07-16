@@ -223,6 +223,37 @@ export function PandacineWaxSeal({
           <polygon points="100,100 40,140 90,180" fill={p.mid} className="pcs-shard s3" />
           <polygon points="100,100 155,150 105,190" fill={p.lo}  className="pcs-shard s4" />
         </g>
+
+        {/* Orbiting stars around the seal */}
+        <g className="pcs-orbit" fill={p.hi}>
+          <g className="pcs-orbit-a">
+            <path d="M100 12 l1.4 3.2 3.4 .3 -2.6 2.3 .8 3.3 -3 -1.8 -3 1.8 .8 -3.3 -2.6 -2.3 3.4 -.3 z" />
+          </g>
+          <g className="pcs-orbit-b">
+            <path d="M188 100 l1.4 3.2 3.4 .3 -2.6 2.3 .8 3.3 -3 -1.8 -3 1.8 .8 -3.3 -2.6 -2.3 3.4 -.3 z" transform="translate(-8 -8) scale(0.7)" />
+          </g>
+          <g className="pcs-orbit-c">
+            <circle cx="12" cy="100" r="1.6" />
+          </g>
+        </g>
+
+        {/* Floating embers — little sparks that drift up when melting */}
+        <g className="pcs-embers" fill={p.hi}>
+          <circle cx="60" cy="110" r="1.4" className="pcs-ember e1" />
+          <circle cx="100" cy="120" r="1.2" className="pcs-ember e2" />
+          <circle cx="140" cy="108" r="1.6" className="pcs-ember e3" />
+          <circle cx="80" cy="130" r="1.1" className="pcs-ember e4" />
+          <circle cx="122" cy="132" r="1.3" className="pcs-ember e5" />
+          <circle cx="94" cy="98"  r="1.0" className="pcs-ember e6" />
+        </g>
+
+        {/* Ribbon banner under the seal */}
+        <g className="pcs-ribbon">
+          <path d="M56 168 L56 188 L74 180 L92 190 L92 168 Z" fill={p.lo} opacity="0.9" />
+          <path d="M144 168 L144 188 L126 180 L108 190 L108 168 Z" fill={p.lo} opacity="0.9" />
+          <path d="M56 168 L144 168 L144 180 L56 180 Z" fill={p.mid} />
+          <path d="M56 168 L144 168" stroke={p.deep} strokeOpacity="0.4" strokeWidth="0.6" />
+        </g>
       </svg>
 
       <style>{`
