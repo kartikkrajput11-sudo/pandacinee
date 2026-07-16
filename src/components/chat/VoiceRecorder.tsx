@@ -167,6 +167,8 @@ export function VoiceRecorder({
     const ms = Math.max(500, Date.now() - startRef.current);
     teardown();
     setRecording(false);
+    onRecordingChange?.(false);
+
     if (!blobRef.current || ms < 500) {
       blobRef.current = null;
       setElapsed(0);
