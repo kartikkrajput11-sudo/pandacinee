@@ -49,7 +49,7 @@ const SOLO_MOOD_PROMPTS: Record<AiStickerSoloMood, string> = {
 };
 
 const COUPLE_MOOD_PROMPTS: Record<AiStickerCoupleMood, string> = {
-  "couple-kiss": "the two characters sharing a sweet kiss on the lips, eyes gently closed, cheeks pink, a big glossy heart floating above them",
+  "couple-kiss": "the two characters sharing a sweet innocent peck, faces close together with eyes gently closed and cheeks softly pink, a big glossy heart floating above their heads — wholesome and cute",
   "couple-hug": "the two characters wrapped in a tight warm hug, one cheek pressed against the other's shoulder, soft blush, tiny sparkles",
   "couple-hearts": "the two characters standing close together, both making heart-hands together forming one big heart in the middle, glowing pink hearts around",
   "couple-holding-hands": "the two characters holding hands and looking at each other with soft smiles, tiny pink hearts floating between them",
