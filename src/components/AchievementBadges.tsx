@@ -29,7 +29,20 @@ export function AchievementBadges({ userId, equippedOnly = true }: { userId: str
     };
   }, [userId, equippedOnly]);
 
-  if (keys.length === 0) return null;
+  if (keys.length === 0) {
+    if (equippedOnly) return null;
+    return (
+      <div className="mt-2 rounded-2xl border border-dashed border-candle/15 bg-velvet/40 px-5 py-6 text-center">
+        <div className="text-2xl mb-2">🌱</div>
+        <p className="font-serif italic text-candle/80 text-sm leading-snug">
+          No honors yet — every legend starts with a first spark ✨
+        </p>
+        <p className="text-[10px] uppercase tracking-[0.25em] text-candle/40 mt-2 font-semibold">
+          Adventures await
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="mt-4 p-4 rounded-2xl border border-petal/20 bg-petal-soft/10">
