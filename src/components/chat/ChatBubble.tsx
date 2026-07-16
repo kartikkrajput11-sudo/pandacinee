@@ -388,13 +388,19 @@ function ChatBubbleImpl({
             const sender = mine ? "You" : (partnerName || "Them");
             return (
               <div className="flex flex-col items-center py-2 w-full">
-                <div className="relative rounded-2xl px-5 py-3 flex items-center gap-3 border border-petal/25 bg-gradient-to-r from-petal-soft/25 via-transparent to-[hsl(38_60%_60%/0.18)] backdrop-blur-sm">
-                  <span className="text-2xl">🫂</span>
-                  <div className="flex flex-col">
-                    <span className="text-[9px] uppercase tracking-[0.28em] text-petal">Hug from {sender}</span>
-                    <span className="font-serif italic text-candle text-base leading-tight">a warm embrace</span>
-                    <span className="text-[8px] tracking-[0.2em] uppercase text-candle/40 mt-1">{time}</span>
+                <div className="relative w-[210px] bg-velvet border border-candle/20 px-4 pt-4 pb-3 flex flex-col items-center text-center shadow-[0_0_40px_rgba(255,143,166,0.05)]">
+                  <span className="absolute top-1.5 left-2 text-[8px] font-semibold tracking-[0.2em] uppercase text-candle/40 max-w-[70%] truncate">from {sender}</span>
+                  <span className="text-5xl mb-2 mt-2 drop-shadow-[0_0_20px_rgba(255,143,166,0.15)]" role="img" aria-label="hug">🫂</span>
+                  <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-petal mb-0.5">Hug</span>
+                  <p className="font-serif italic text-candle text-base leading-tight">{mine ? "a warm embrace" : "wrapped around you"}</p>
+                  <div className="mt-3 flex flex-col items-center w-full">
+                    <div className="h-px w-6 bg-candle/20 mb-1.5" />
+                    <span className="text-[8px] font-bold tracking-[0.2em] uppercase text-candle/30">{time}</span>
                   </div>
+                  <div className="absolute top-1 left-1 w-1.5 h-1.5 border-t border-l border-candle/30" />
+                  <div className="absolute top-1 right-1 w-1.5 h-1.5 border-t border-r border-candle/30" />
+                  <div className="absolute bottom-1 left-1 w-1.5 h-1.5 border-b border-l border-candle/30" />
+                  <div className="absolute bottom-1 right-1 w-1.5 h-1.5 border-b border-r border-candle/30" />
                 </div>
               </div>
             );
