@@ -298,6 +298,48 @@ export type Database = {
         }
         Relationships: []
       }
+      coin_bundles: {
+        Row: {
+          active: boolean
+          bonus_label: string | null
+          bundle_key: string
+          coins: number
+          created_at: string
+          currency: string
+          description: string | null
+          id: string
+          name: string
+          price_paise: number
+          sort_order: number
+        }
+        Insert: {
+          active?: boolean
+          bonus_label?: string | null
+          bundle_key: string
+          coins: number
+          created_at?: string
+          currency?: string
+          description?: string | null
+          id?: string
+          name: string
+          price_paise: number
+          sort_order?: number
+        }
+        Update: {
+          active?: boolean
+          bonus_label?: string | null
+          bundle_key?: string
+          coins?: number
+          created_at?: string
+          currency?: string
+          description?: string | null
+          id?: string
+          name?: string
+          price_paise?: number
+          sort_order?: number
+        }
+        Relationships: []
+      }
       coin_ledger: {
         Row: {
           created_at: string
@@ -324,6 +366,62 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      coin_purchases: {
+        Row: {
+          amount_paise: number
+          bundle_id: string
+          coins: number
+          created_at: string
+          credited_at: string | null
+          currency: string
+          id: string
+          paid_at: string | null
+          razorpay_order_id: string
+          razorpay_payment_id: string | null
+          razorpay_signature: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          amount_paise: number
+          bundle_id: string
+          coins: number
+          created_at?: string
+          credited_at?: string | null
+          currency?: string
+          id?: string
+          paid_at?: string | null
+          razorpay_order_id: string
+          razorpay_payment_id?: string | null
+          razorpay_signature?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          amount_paise?: number
+          bundle_id?: string
+          coins?: number
+          created_at?: string
+          credited_at?: string | null
+          currency?: string
+          id?: string
+          paid_at?: string | null
+          razorpay_order_id?: string
+          razorpay_payment_id?: string | null
+          razorpay_signature?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coin_purchases_bundle_id_fkey"
+            columns: ["bundle_id"]
+            isOneToOne: false
+            referencedRelation: "coin_bundles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       concierge_suggestions: {
         Row: {
@@ -1846,6 +1944,7 @@ export type Database = {
         Args: { _me: string; _partner: string }
         Returns: number
       }
+      credit_coin_purchase: { Args: { _payment_id: string }; Returns: Json }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean

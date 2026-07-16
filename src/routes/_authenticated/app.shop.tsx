@@ -13,7 +13,9 @@ import {
   Crown,
   Sticker,
   Award,
+  Coins as CoinsIcon,
 } from "lucide-react";
+import { createCoinOrder, verifyCoinPayment } from "@/lib/razorpay.functions";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
@@ -24,7 +26,26 @@ export const Route = createFileRoute("/_authenticated/app/shop")({
   component: ShopRoute,
 });
 
+let _rzpPromise: Promise<void> | null = null;
+function loadRazorpayScript(): Promise<void> {
+  if (typeof window === "undefined") return Promise.resolve();
+  if ((window as any).Razorpay) return Promise.resolve();
+  if (_rzpPromise) return _rzpPromise;
+  _rzpPromise = new Promise((resolve, reject) => {
+    const s = document.createElement("script");
+    s.src = "https://checkout.razorpay.com/v1/checkout.js";
+    s.onload = () => resolve();
+    s.onerror = () => {
+      _rzpPromise = null;
+      reject(new Error("Failed to load Razorpay"));
+    };
+    document.body.appendChild(s);
+  });
+  return _rzpPromise;
+}
+
 type Category =
+  | "coins"
   | "chat_theme"
   | "site_theme"
   | "chat_perk"
@@ -33,6 +54,7 @@ type Category =
   | "tag";
 
 const CATS: { key: Category; label: string; icon: any; blurb: string }[] = [
+  { key: "coins", label: "Coins", icon: CoinsIcon, blurb: "Top up Panda Coins with UPI, cards, or netbanking" },
   { key: "chat_theme", label: "Chat", icon: MessageCircle, blurb: "Bubble palettes & chat wallpapers" },
   { key: "site_theme", label: "Site", icon: Palette, blurb: "Global accent skins for the whole app" },
   { key: "chat_perk", label: "Perks", icon: Wand2, blurb: "Sticker packs, kisses, and effects" },
@@ -40,6 +62,18 @@ const CATS: { key: Category; label: string; icon: any; blurb: string }[] = [
   { key: "ai_sticker_pack", label: "AI Packs", icon: Sticker, blurb: "AI-generated sticker sets for chat" },
   { key: "tag", label: "Tags", icon: Award, blurb: "Achievement tags for your profile" },
 ];
+
+type CoinBundle = {
+  id: string;
+  bundle_key: string;
+  name: string;
+  description: string | null;
+  coins: number;
+  price_paise: number;
+  currency: string;
+  bonus_label: string | null;
+  sort_order: number;
+};
 
 type ShopItem = {
   id: string;
@@ -57,21 +91,26 @@ function ShopRoute() {
   const { data, refetch } = useProfile();
   const me = data?.profile as any;
   const [items, setItems] = useState<ShopItem[]>([]);
+  const [bundles, setBundles] = useState<CoinBundle[]>([]);
   const [inventory, setInventory] = useState<Map<string, boolean>>(new Map()); // item_id -> equipped
   const [ownedTags, setOwnedTags] = useState<Set<string>>(new Set());
   const [busy, setBusy] = useState<string | null>(null);
-  const [tab, setTab] = useState<Category>("chat_theme");
+  const [tab, setTab] = useState<Category>("coins");
   const [preview, setPreview] = useState<ShopItem | null>(null);
   const buyTag = useServerFn(purchaseTag);
+  const createOrder = useServerFn(createCoinOrder);
+  const verifyPayment = useServerFn(verifyCoinPayment);
 
   async function load() {
     if (!me?.id) return;
-    const [itemsRes, invRes, tagRes] = await Promise.all([
+    const [itemsRes, invRes, tagRes, bundleRes] = await Promise.all([
       (supabase as any).from("shop_items").select("*").eq("active", true).order("sort_order"),
       (supabase as any).from("user_inventory").select("item_id, equipped").eq("user_id", me.id),
       (supabase as any).from("profile_achievements").select("tag_key").eq("user_id", me.id),
+      (supabase as any).from("coin_bundles").select("*").eq("active", true).order("sort_order"),
     ]);
     setItems((itemsRes.data ?? []) as ShopItem[]);
+    setBundles((bundleRes.data ?? []) as CoinBundle[]);
     const m = new Map<string, boolean>();
     for (const r of (invRes.data ?? []) as any[]) m.set(r.item_id, !!r.equipped);
     setInventory(m);
@@ -138,6 +177,62 @@ function ShopRoute() {
     }
   }
 
+  async function buyBundle(bundle: CoinBundle) {
+    if (!me?.id) return;
+    setBusy(bundle.id);
+    try {
+      await loadRazorpayScript();
+      const order = await createOrder({ data: { bundleId: bundle.id } });
+      await new Promise<void>((resolve, reject) => {
+        const rzp = new (window as any).Razorpay({
+          key: order.keyId,
+          amount: order.amount,
+          currency: order.currency,
+          name: "Pandacine",
+          description: `${order.coins} Panda Coins`,
+          order_id: order.orderId,
+          prefill: {
+            name: me?.display_name ?? me?.username ?? "",
+          },
+          theme: { color: "#e879a5" },
+          modal: {
+            ondismiss: () => reject(new Error("Payment cancelled")),
+          },
+          handler: async (resp: any) => {
+            try {
+              const result = await verifyPayment({
+                data: {
+                  razorpay_order_id: resp.razorpay_order_id,
+                  razorpay_payment_id: resp.razorpay_payment_id,
+                  razorpay_signature: resp.razorpay_signature,
+                },
+              });
+              toast.success(`+${result.coins ?? order.coins} 🐼 Panda Coins`, {
+                description: "Payment successful",
+              });
+              await Promise.all([load(), refetch?.()]);
+              resolve();
+            } catch (e: any) {
+              toast.error(e?.message ?? "Verification failed");
+              reject(e);
+            }
+          },
+        });
+        rzp.on("payment.failed", (e: any) => {
+          toast.error(e?.error?.description ?? "Payment failed");
+          reject(new Error(e?.error?.description ?? "Payment failed"));
+        });
+        rzp.open();
+      });
+    } catch (e: any) {
+      if (e?.message !== "Payment cancelled") {
+        toast.error(e?.message ?? "Couldn't start payment");
+      }
+    } finally {
+      setBusy(null);
+    }
+  }
+
   const activeCat = CATS.find((c) => c.key === tab)!;
 
   return (
@@ -180,8 +275,49 @@ function ShopRoute() {
 
       <p className="text-xs text-candle-muted mb-4 italic">{activeCat.blurb}</p>
 
-      {/* Tag category — legacy achievement tags */}
-      {tab === "tag" ? (
+      {/* Coin bundles — Razorpay checkout */}
+      {tab === "coins" ? (
+        <div className="grid grid-cols-2 gap-3">
+          {bundles.map((b) => {
+            const rupees = (b.price_paise / 100).toFixed(0);
+            const isBusy = busy === b.id;
+            return (
+              <button
+                key={b.id}
+                onClick={() => buyBundle(b)}
+                disabled={isBusy}
+                className="text-left rounded-2xl border border-border bg-surface p-4 active:scale-[0.98] transition relative overflow-hidden disabled:opacity-60"
+              >
+                {b.bonus_label && (
+                  <span className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-petal text-velvet text-[10px] font-bold">
+                    {b.bonus_label}
+                  </span>
+                )}
+                <div className="text-3xl mb-2">🐼</div>
+                <p className="font-serif italic text-base leading-tight">{b.name}</p>
+                <p className="mt-1 inline-flex items-center gap-1 text-petal font-bold text-lg">
+                  <Coins className="size-4" /> {b.coins.toLocaleString()}
+                </p>
+                {b.description && (
+                  <p className="text-[11px] text-candle-muted mt-1">{b.description}</p>
+                )}
+                <div className="mt-3 px-3 py-1.5 rounded-full bg-petal text-velvet text-xs font-bold text-center">
+                  {isBusy ? "…" : `₹${rupees}`}
+                </div>
+              </button>
+            );
+          })}
+          {bundles.length === 0 && (
+            <div className="col-span-2 rounded-2xl border border-dashed border-candle/15 bg-velvet/40 px-5 py-10 text-center">
+              <p className="text-3xl mb-2">🐼</p>
+              <p className="font-serif italic text-candle/80 text-sm">Bundles loading…</p>
+            </div>
+          )}
+          <p className="col-span-2 text-[10px] text-candle-muted/70 text-center mt-2 italic">
+            Secure UPI / cards / netbanking via Razorpay. Coins credit instantly.
+          </p>
+        </div>
+      ) : tab === "tag" ? (
         <div className="space-y-3">
           {ACHIEVEMENT_TAGS.map((t) => {
             const isOwned = ownedTags.has(t.key);
