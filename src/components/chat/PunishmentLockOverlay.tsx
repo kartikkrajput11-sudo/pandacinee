@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Lock, Send, Sparkles, Palette } from "lucide-react";
+import { Lock, Send, Sparkles, Palette, Copy, HeartHandshake, Timer, Check } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,6 +7,13 @@ import { uploadChatMedia } from "@/lib/chat";
 import { VoiceRecorder } from "./VoiceRecorder";
 import { typeMeta, type PunishmentLock } from "@/lib/punishment";
 import { generateLoveQuiz } from "@/lib/games.functions";
+
+const PLEAS = [
+  "Please, my love… have mercy 💌",
+  "I'll be so good — one chance? 🥺",
+  "I miss you already 💔",
+  "One kiss to soften your heart? 💋",
+];
 
 type Props = {
   lock: PunishmentLock;
@@ -44,6 +51,42 @@ export function PunishmentLockOverlay({
     const m = Math.floor(s / 60);
     return m > 0 ? `${m}m ${s % 60}s` : `${s}s`;
   }, [remainingMs]);
+
+  const totalMs = lock.max_duration_seconds ? lock.max_duration_seconds * 1000 : null;
+  const timePct = totalMs && remainingMs != null
+    ? Math.max(0, Math.min(100, (remainingMs / totalMs) * 100))
+    : null;
+
+  const [pleaCooldown, setPleaCooldown] = useState(0);
+  useEffect(() => {
+    if (pleaCooldown <= 0) return;
+    const t = window.setTimeout(() => setPleaCooldown((v) => v - 1), 1000);
+    return () => window.clearTimeout(t);
+  }, [pleaCooldown]);
+
+  async function sendPlea() {
+    if (pleaCooldown > 0) return;
+    const msg = PLEAS[Math.floor(Math.random() * PLEAS.length)];
+    try {
+      await supabase.from("messages").insert({
+        sender_id: meId,
+        receiver_id: partnerId,
+        content: msg,
+        type: "text" as never,
+      });
+      toast.success("Plea sent 💌");
+      setPleaCooldown(30);
+    } catch (err: any) {
+      toast.error(err?.message ?? "Couldn't send");
+    }
+  }
+
+  function copyPrompt() {
+    navigator.clipboard.writeText(lock.prompt).then(
+      () => toast.success("Prompt copied"),
+      () => toast.error("Copy failed"),
+    );
+  }
 
   async function celebrateAndClose() {
     setCelebrate(true);
@@ -215,6 +258,30 @@ export function PunishmentLockOverlay({
                 animation: "spinRing 12s linear infinite",
               }}
             />
+            {/* Countdown ring (only if timed) */}
+            {timePct != null && (
+              <svg
+                className="absolute -inset-2 pointer-events-none"
+                viewBox="0 0 100 100"
+                style={{ transform: "rotate(-90deg)" }}
+              >
+                <circle cx="50" cy="50" r="46" fill="none" stroke="hsl(38 55% 62% / 0.15)" strokeWidth="1.5" />
+                <circle
+                  cx="50" cy="50" r="46" fill="none"
+                  stroke="url(#ringGrad)"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeDasharray={`${(timePct / 100) * 289} 289`}
+                  style={{ transition: "stroke-dasharray 1s linear", filter: "drop-shadow(0 0 4px rgba(236,72,153,0.6))" }}
+                />
+                <defs>
+                  <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stopColor="hsl(38 70% 75%)" />
+                    <stop offset="100%" stopColor="hsl(340 65% 60%)" />
+                  </linearGradient>
+                </defs>
+              </svg>
+            )}
             <div
               className="relative size-20 rounded-full flex items-center justify-center"
               style={{
@@ -268,8 +335,16 @@ export function PunishmentLockOverlay({
             </span>
           </div>
 
+          {/* Copy prompt chip */}
+          <button
+            onClick={copyPrompt}
+            className="mt-5 inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.28em] px-3 py-1.5 rounded-full bg-white/[0.03] border border-white/10 text-candle-muted hover:text-petal hover:border-petal/40 transition-colors"
+          >
+            <Copy className="size-3" /> Copy prompt
+          </button>
+
           {/* Fleuron scroll divider */}
-          <div className="flex items-center gap-3 mt-8 w-full">
+          <div className="flex items-center gap-3 mt-6 w-full">
             <span className="h-px flex-1 bg-gradient-to-r from-transparent via-petal/30 to-petal/40" />
             <span className="text-petal/70 text-sm">❦</span>
             <span className="h-px flex-1 bg-gradient-to-l from-transparent via-petal/30 to-petal/40" />
@@ -277,13 +352,18 @@ export function PunishmentLockOverlay({
         </div>
 
 
+
         {/* Progress rail — champagne */}
-        <div className="mb-6 rounded-2xl border border-white/5 bg-white/[0.02] backdrop-blur-sm px-4 py-3">
+        <div className="mb-4 rounded-2xl border border-white/5 bg-white/[0.02] backdrop-blur-sm px-4 py-3">
           <div className="flex justify-between items-center text-[10px] uppercase tracking-[0.28em] text-candle-muted mb-2">
             <span>Progress</span>
-            <span className="tabular-nums text-candle/85">
+            <span className="tabular-nums text-candle/85 flex items-center gap-1.5">
               {lock.progress} / {lock.required_count}
-              {remainingLabel ? <span className="ml-2 text-petal">· {remainingLabel}</span> : null}
+              {remainingLabel && (
+                <span className="ml-2 text-petal flex items-center gap-1">
+                  <Timer className="size-3" /> {remainingLabel}
+                </span>
+              )}
             </span>
           </div>
           <div className="relative h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
@@ -297,7 +377,40 @@ export function PunishmentLockOverlay({
               }}
             />
           </div>
+          {/* Step dots (only when reasonable) */}
+          {meta.countable && lock.required_count <= 20 && (
+            <div className="flex items-center justify-between gap-1 mt-3">
+              {Array.from({ length: lock.required_count }).map((_, i) => {
+                const done = i < lock.progress;
+                return (
+                  <span
+                    key={i}
+                    className="flex-1 h-1 rounded-full transition-all"
+                    style={{
+                      background: done
+                        ? "linear-gradient(90deg, hsl(38 60% 68%), hsl(340 65% 60%))"
+                        : "rgba(255,255,255,0.06)",
+                      boxShadow: done ? "0 0 6px rgba(236,72,153,0.5)" : undefined,
+                    }}
+                  />
+                );
+              })}
+            </div>
+          )}
         </div>
+
+        {/* Plea row — always available */}
+        <div className="mb-5 flex justify-center">
+          <button
+            onClick={sendPlea}
+            disabled={pleaCooldown > 0}
+            className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.28em] px-4 py-2 rounded-full bg-white/[0.03] border border-white/10 text-candle hover:border-petal/50 hover:text-petal transition-colors disabled:opacity-50"
+          >
+            <HeartHandshake className="size-3.5 text-petal" />
+            {pleaCooldown > 0 ? `Wait ${pleaCooldown}s` : `Beg ${partnerName} for mercy`}
+          </button>
+        </div>
+
 
 
         {celebrate ? (
@@ -308,34 +421,76 @@ export function PunishmentLockOverlay({
           </div>
         ) : (
           <>
-            {(lock.type === "write" || lock.type === "compliment" || lock.type === "funny") && (
-              <div className="space-y-3">
-                <textarea
-                  value={entry}
-                  onChange={(e) => setEntry(e.target.value)}
-                  placeholder={
-                    lock.type === "write"
-                      ? `Type exactly: "${lock.prompt}"`
-                      : lock.type === "compliment"
-                        ? "A unique compliment…"
-                        : "Type your entry…"
-                  }
-                  rows={lock.type === "funny" ? 4 : 2}
-                  className="w-full bg-white/[0.03] border border-white/10 focus:border-petal/50 rounded-2xl px-4 py-3 text-sm text-candle resize-none placeholder:text-candle-muted/60 outline-none transition-colors"
-                />
-                <LuxuryButton
-                  onClick={
-                    lock.type === "write"
-                      ? submitWrite
-                      : lock.type === "compliment"
-                        ? submitCompliment
-                        : submitFunny
-                  }
-                >
-                  <Send className="size-3.5" /> Submit
-                </LuxuryButton>
-              </div>
-            )}
+            {(lock.type === "write" || lock.type === "compliment" || lock.type === "funny") && (() => {
+              const minLen = lock.type === "compliment" ? 5 : lock.type === "funny" ? 10 : 0;
+              const target = lock.prompt.trim().toLowerCase();
+              const val = entry.trim();
+              const writeMatch = lock.type === "write" && val.length > 0
+                ? (val.toLowerCase() === target
+                    ? "match"
+                    : target.startsWith(val.toLowerCase())
+                      ? "progress"
+                      : "mismatch")
+                : null;
+              return (
+                <div className="space-y-3">
+                  <div className="relative">
+                    <textarea
+                      value={entry}
+                      onChange={(e) => setEntry(e.target.value)}
+                      placeholder={
+                        lock.type === "write"
+                          ? `Type exactly: "${lock.prompt}"`
+                          : lock.type === "compliment"
+                            ? "A unique compliment…"
+                            : "Type your entry…"
+                      }
+                      rows={lock.type === "funny" ? 4 : 2}
+                      className={`w-full bg-white/[0.03] border rounded-2xl px-4 py-3 text-sm text-candle resize-none placeholder:text-candle-muted/60 outline-none transition-colors ${
+                        writeMatch === "match"
+                          ? "border-emerald-400/60"
+                          : writeMatch === "mismatch"
+                            ? "border-rose-400/60"
+                            : "border-white/10 focus:border-petal/50"
+                      }`}
+                    />
+                    {/* Feedback chip */}
+                    <div className="absolute right-3 bottom-3 flex items-center gap-2 text-[10px] tracking-wide">
+                      {lock.type === "write" && writeMatch === "match" && (
+                        <span className="flex items-center gap-1 text-emerald-300">
+                          <Check className="size-3" /> Perfect
+                        </span>
+                      )}
+                      {lock.type === "write" && writeMatch === "progress" && (
+                        <span className="text-petal/80 tabular-nums">
+                          {val.length} / {target.length}
+                        </span>
+                      )}
+                      {lock.type === "write" && writeMatch === "mismatch" && (
+                        <span className="text-rose-300">Off script</span>
+                      )}
+                      {lock.type !== "write" && (
+                        <span className={`tabular-nums ${val.length < minLen ? "text-candle-muted" : "text-emerald-300"}`}>
+                          {val.length}{minLen ? ` / ${minLen}+` : ""}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <LuxuryButton
+                    onClick={
+                      lock.type === "write"
+                        ? submitWrite
+                        : lock.type === "compliment"
+                          ? submitCompliment
+                          : submitFunny
+                    }
+                  >
+                    <Send className="size-3.5" /> Submit
+                  </LuxuryButton>
+                </div>
+              );
+            })()}
+
 
             {lock.type === "photo" && (
               <>
