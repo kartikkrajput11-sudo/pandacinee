@@ -65,6 +65,9 @@ function LetterView() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
   const { data } = useProfile();
+  const { ownedPerks } = useEquippedItems();
+  const premiumSeal = ownedPerks.has("wax_seal") ? "wax-seal-premium" : "";
+
   const me = data?.profile;
   const [letter, setLetter] = useState<Letter | null>(null);
   const [now, setNow] = useState(Date.now());
