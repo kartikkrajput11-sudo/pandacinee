@@ -202,7 +202,7 @@ export function ForwardDialog({
                         {d.avatar_url || "💜"}
                       </div>
                     ) : (
-                      <UserAvatar src={d.avatar_url} name={d.name} className="size-10" ringed={d.isPartner} />
+                      <UserAvatar src={d.avatar_url} name={d.name} className="size-10" ringed={d.kind === "dm" && d.isPartner} />
                     )}
                     <div className={`absolute -bottom-0.5 -right-0.5 size-4 rounded-full flex items-center justify-center ${
                       isSelected ? "bg-petal text-velvet" : "bg-surface border border-border text-transparent"
