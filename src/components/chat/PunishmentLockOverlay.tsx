@@ -453,3 +453,74 @@ function Confetti() {
     </div>
   );
 }
+
+function FiligreeCorner({ className = "" }: { className?: string }) {
+  return (
+    <svg
+      className={`pointer-events-none w-16 h-16 opacity-70 ${className}`}
+      viewBox="0 0 64 64"
+      fill="none"
+    >
+      <defs>
+        <linearGradient id="filGold" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="hsl(38 70% 78%)" />
+          <stop offset="100%" stopColor="hsl(340 55% 55%)" />
+        </linearGradient>
+      </defs>
+      <path
+        d="M2 2 L26 2 M2 2 L2 26 M2 2 Q22 6 26 22 M2 2 Q6 22 22 26 M14 4 Q18 10 14 14 Q10 10 14 4 Z"
+        stroke="url(#filGold)"
+        strokeWidth="1"
+        fill="none"
+        strokeLinecap="round"
+      />
+      <circle cx="14" cy="14" r="1.4" fill="url(#filGold)" />
+    </svg>
+  );
+}
+
+function FloatingPetals() {
+  const petals = Array.from({ length: 14 });
+  return (
+    <div className="fixed inset-0 -z-10 pointer-events-none overflow-hidden">
+      {petals.map((_, i) => {
+        const left = (i * 97) % 100;
+        const size = 8 + ((i * 13) % 10);
+        const delay = (i * 0.7) % 6;
+        const duration = 14 + ((i * 3) % 10);
+        const drift = (i % 2 === 0 ? 1 : -1) * (10 + (i % 5) * 4);
+        const hue = i % 3 === 0 ? 38 : 335;
+        const sat = i % 3 === 0 ? 60 : 65;
+        return (
+          <span
+            key={i}
+            className="absolute rounded-full blur-[1px]"
+            style={{
+              left: `${left}%`,
+              top: "-8%",
+              width: size,
+              height: size,
+              background: `radial-gradient(circle at 35% 30%, hsl(${hue} ${sat}% 78% / 0.9), hsl(${hue} ${sat}% 55% / 0.35))`,
+              boxShadow: `0 0 12px hsl(${hue} ${sat}% 60% / 0.35)`,
+              animation: `petalDrift ${duration}s ${delay}s linear infinite`,
+              // @ts-expect-error css var
+              "--drift": `${drift}px`,
+            }}
+          />
+        );
+      })}
+      <style>{`
+        @keyframes petalDrift {
+          0% { transform: translate3d(0, -10vh, 0) rotate(0deg); opacity: 0; }
+          10% { opacity: 0.9; }
+          90% { opacity: 0.9; }
+          100% { transform: translate3d(var(--drift, 0px), 110vh, 0) rotate(360deg); opacity: 0; }
+        }
+        @keyframes spinRing {
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
+    </div>
+  );
+}
+
