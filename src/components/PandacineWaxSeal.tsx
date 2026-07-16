@@ -487,14 +487,7 @@ export function PandacineWaxSeal({
           50%     { opacity: 1; transform: scale(1.2); }
         }
 
-        /* Candle flame */
-        .pcs-flame { transform-origin: 100px 12px; transform-box: fill-box; animation: pcs-flicker 0.9s ease-in-out infinite; filter: drop-shadow(0 0 6px currentColor); }
-        @keyframes pcs-flicker {
-          0%,100% { transform: scale(1,1) translate(0,0); }
-          25%     { transform: scale(0.95,1.05) translate(-0.3px,-0.2px); }
-          50%     { transform: scale(1.05,0.95) translate(0.4px,0.3px); }
-          75%     { transform: scale(0.98,1.02) translate(-0.2px,0.2px); }
-        }
+
 
         /* Falling drops during melt */
         .pcs-fall { opacity: 0; }
