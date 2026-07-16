@@ -202,8 +202,7 @@ export function PandacineWaxSeal({
           transform: translateY(-6px) scale(0.96);
           transition: opacity 700ms ease 120ms, transform 900ms cubic-bezier(.2,.7,.2,1) 120ms;
         }
-        .pcs-phase-melt ~ .pcs-drips,
-        .pcs-wrap:has(.pcs-phase-melt) .pcs-drips {
+        .pcs-wrap.pcs-phase-melt .pcs-drips {
           opacity: 1;
           transform: translateY(0) scale(1);
         }
