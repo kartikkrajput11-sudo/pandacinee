@@ -336,6 +336,40 @@ export function PandacineWaxSeal({
           60% { transform: translate(-2px,2px) rotate(-1deg); }
           80% { transform: translate(2px,-2px) rotate(0.8deg); }
         }
+
+        /* Orbiting stars */
+        .pcs-orbit { transform-origin: 100px 100px; transform-box: fill-box; }
+        .pcs-orbit-a { transform-origin: 100px 100px; transform-box: fill-box; animation: pcs-spin 14s linear infinite; }
+        .pcs-orbit-b { transform-origin: 100px 100px; transform-box: fill-box; animation: pcs-spin 10s linear infinite reverse; }
+        .pcs-orbit-c { transform-origin: 100px 100px; transform-box: fill-box; animation: pcs-spin 18s linear infinite; }
+        .pcs-orbit-a, .pcs-orbit-b, .pcs-orbit-c { filter: drop-shadow(0 0 3px currentColor); }
+        @keyframes pcs-spin { to { transform: rotate(360deg); } }
+
+        /* Ribbon banner */
+        .pcs-ribbon { opacity: 0; transform: translateY(-6px); transition: opacity 700ms ease 200ms, transform 700ms cubic-bezier(.2,.7,.2,1) 200ms; }
+        .pcs-wrap.pcs-phase-melt .pcs-ribbon { opacity: 1; transform: translateY(0); }
+
+        /* Embers */
+        .pcs-embers { opacity: 0; }
+        .pcs-wrap.pcs-phase-melt .pcs-embers { opacity: 1; }
+        .pcs-ember { animation: pcs-ember-rise 1.4s ease-out forwards; opacity: 0; }
+        .pcs-wrap.pcs-phase-melt .pcs-ember.e1 { animation-delay: 40ms; }
+        .pcs-wrap.pcs-phase-melt .pcs-ember.e2 { animation-delay: 160ms; }
+        .pcs-wrap.pcs-phase-melt .pcs-ember.e3 { animation-delay: 260ms; }
+        .pcs-wrap.pcs-phase-melt .pcs-ember.e4 { animation-delay: 380ms; }
+        .pcs-wrap.pcs-phase-melt .pcs-ember.e5 { animation-delay: 460ms; }
+        .pcs-wrap.pcs-phase-melt .pcs-ember.e6 { animation-delay: 560ms; }
+        @keyframes pcs-ember-rise {
+          0%   { opacity: 0; transform: translate(0,0) scale(0.6); }
+          25%  { opacity: 1; }
+          100% { opacity: 0; transform: translate(var(--dx,4px), -60px) scale(1.2); }
+        }
+        .pcs-ember.e1 { --dx: -8px; }
+        .pcs-ember.e2 { --dx: 4px; }
+        .pcs-ember.e3 { --dx: 10px; }
+        .pcs-ember.e4 { --dx: -12px; }
+        .pcs-ember.e5 { --dx: 6px; }
+        .pcs-ember.e6 { --dx: -4px; }
       `}</style>
     </Tag>
   );
