@@ -62,6 +62,7 @@ function ChatPeer() {
   const [showPinned, setShowPinned] = useState(false);
   const [highlightId, setHighlightId] = useState<string | null>(null);
   const [lockDialogOpen, setLockDialogOpen] = useState(false);
+  const [clearConfirmOpen, setClearConfirmOpen] = useState(false);
   const [verifyOpen, setVerifyOpen] = useState(false);
   const [forwardMsg, setForwardMsg] = useState<MessageRow | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
