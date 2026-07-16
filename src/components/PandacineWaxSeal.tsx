@@ -415,10 +415,10 @@ export function PandacineWaxSeal({
         }
 
         /* Orbiting stars */
-        .pcs-orbit { transform-origin: 100px 100px; transform-box: fill-box; }
-        .pcs-orbit-a { transform-origin: 100px 100px; transform-box: fill-box; animation: pcs-spin 14s linear infinite; }
-        .pcs-orbit-b { transform-origin: 100px 100px; transform-box: fill-box; animation: pcs-spin 10s linear infinite reverse; }
-        .pcs-orbit-c { transform-origin: 100px 100px; transform-box: fill-box; animation: pcs-spin 18s linear infinite; }
+        .pcs-orbit { transform-box: view-box; transform-origin: 100px 100px; }
+        .pcs-orbit-a { transform-box: view-box; transform-origin: 100px 100px; animation: pcs-spin 14s linear infinite; }
+        .pcs-orbit-b { transform-box: view-box; transform-origin: 100px 100px; animation: pcs-spin 10s linear infinite reverse; }
+        .pcs-orbit-c { transform-box: view-box; transform-origin: 100px 100px; animation: pcs-spin 18s linear infinite; }
         .pcs-orbit-a, .pcs-orbit-b, .pcs-orbit-c { filter: drop-shadow(0 0 3px currentColor); }
         @keyframes pcs-spin { to { transform: rotate(360deg); } }
 
