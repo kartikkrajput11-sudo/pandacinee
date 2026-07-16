@@ -47,7 +47,7 @@ function useSharedTick(enabled: boolean) {
 
 const QUICK_REACTIONS = ["❤️", "😂", "🥺", "🔥", "🐼", "👍"];
 
-export function ChatBubble({
+function ChatBubbleImpl({
   m,
   mine,
   replyTo,
