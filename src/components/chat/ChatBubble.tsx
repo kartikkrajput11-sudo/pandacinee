@@ -293,6 +293,12 @@ function ChatBubbleImpl({
             </div>
           )}
 
+          {(m.media_meta as any)?.forwarded_from && !bare && (
+            <div className={`mb-1 flex items-center gap-1 text-[10px] italic ${mine ? "text-velvet/70" : "text-candle-muted"}`}>
+              <Forward className="size-3" /> Forwarded
+            </div>
+          )}
+
           {m.type === "text" && <p className="whitespace-pre-wrap break-words">{m.content}</p>}
           {m.type === "sticker" && (
             isAiSticker ? (
