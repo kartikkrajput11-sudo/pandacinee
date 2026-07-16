@@ -195,7 +195,7 @@ function GroupChat() {
                     mine
                       ? "bg-petal text-velvet rounded-br-sm"
                       : fromPartner
-                        ? "bg-petal-soft border border-petal/50 rounded-bl-sm shadow-[0_0_0_1px_hsl(var(--petal)/0.25)]"
+                        ? "bg-petal-soft border border-petal rounded-bl-sm shadow-[0_0_18px_2px_hsl(var(--petal)/0.55),0_0_38px_6px_hsl(var(--petal)/0.28)] animate-partner-glow"
                         : "bg-surface border border-border rounded-bl-sm"
                   } ${m.pinned_at ? "ring-1 ring-petal/40" : ""}`}
                 >
