@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { chatChannelKey, expirySeconds, type MessageRow } from "@/lib/chat";
 import { sfxSend, sfxReceive, sfxReaction } from "@/lib/sfx";
+import { grantPandaCoins, todayKey } from "@/lib/coins";
 
 type TypingState = { isTyping: boolean; at: number };
 
