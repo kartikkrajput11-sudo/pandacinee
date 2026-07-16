@@ -153,8 +153,17 @@ function ChatPeer() {
   const [kissEmoji, setKissEmoji] = useState("💜");
   const [hugTick, setHugTick] = useState(0);
   const [shake, setShake] = useState(false);
+  const [confettiTick, setConfettiTick] = useState(0);
+  const [petalTick, setPetalTick] = useState(0);
   const lastFxIdRef = useRef<string | null>(null);
   const playedFxRef = useRef<Set<string>>(new Set());
+
+  const { ownedPerks } = useEquippedItems();
+  const hasKissGold = ownedPerks.has("kiss_gold");
+  const hasHugWarm = ownedPerks.has("hug_warm");
+  const hasConfetti = ownedPerks.has("confetti");
+  const hasPetalRain = ownedPerks.has("petal_rain");
+
 
   const jumpTo = useCallback((id: string) => {
     const el = bubbleRefs.current[id];
