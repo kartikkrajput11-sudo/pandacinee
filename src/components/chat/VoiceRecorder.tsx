@@ -8,10 +8,13 @@ const BAR_COUNT = 28;
 export function VoiceRecorder({
   userId,
   onSend,
+  onRecordingChange,
 }: {
   userId: string;
   onSend: (path: string, durationMs: number) => Promise<void> | void;
+  onRecordingChange?: (active: boolean) => void;
 }) {
+
   const [recording, setRecording] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [busy, setBusy] = useState(false);
@@ -99,7 +102,9 @@ export function VoiceRecorder({
       recRef.current = rec;
       startRef.current = Date.now();
       setRecording(true);
+      onRecordingChange?.(true);
       setElapsed(0);
+
       timerRef.current = window.setInterval(() => {
         setElapsed(Math.floor((Date.now() - startRef.current) / 1000));
       }, 250);
@@ -144,9 +149,11 @@ export function VoiceRecorder({
     teardown();
     blobRef.current = null;
     setRecording(false);
+    onRecordingChange?.(false);
     setElapsed(0);
     setLevels(Array(BAR_COUNT).fill(4));
   }
+
 
   async function stopAndSend() {
     const rec = recRef.current;
@@ -160,6 +167,8 @@ export function VoiceRecorder({
     const ms = Math.max(500, Date.now() - startRef.current);
     teardown();
     setRecording(false);
+    onRecordingChange?.(false);
+
     if (!blobRef.current || ms < 500) {
       blobRef.current = null;
       setElapsed(0);
