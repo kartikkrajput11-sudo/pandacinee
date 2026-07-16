@@ -26,7 +26,7 @@ export function useUpdateGroup() {
       avatar_url?: string | null;
       theme?: GroupTheme;
     }) => {
-      const patch: Record<string, unknown> = {};
+      const patch: { name?: string; avatar_url?: string | null; theme?: string } = {};
       if (input.name !== undefined) patch.name = input.name.trim();
       if (input.avatar_url !== undefined) patch.avatar_url = input.avatar_url;
       if (input.theme !== undefined) patch.theme = input.theme;
