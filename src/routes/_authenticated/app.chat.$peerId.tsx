@@ -19,6 +19,7 @@ import { PunishmentVerificationChat } from "@/components/chat/PunishmentVerifica
 import { usePunishmentVerification } from "@/hooks/usePunishmentVerification";
 import { UnlockCelebration } from "@/components/chat/UnlockCelebration";
 import { typeMeta } from "@/lib/punishment";
+import { UserAvatar } from "@/components/UserAvatar";
 
 
 
