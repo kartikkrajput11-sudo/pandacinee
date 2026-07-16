@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useRef, useState, useEffect } from "react";
 import { ArrowLeft, Heart, Users, Settings, Phone, Video } from "lucide-react";
-import { toast } from "sonner";
+
 import { useProfile } from "@/hooks/useProfile";
 import { useGroup } from "@/hooks/useGroups";
 import { useGroupChat } from "@/hooks/useGroupChat";
