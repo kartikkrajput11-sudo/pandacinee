@@ -480,18 +480,3 @@ function flairRing(ring?: string) {
       return "none";
   }
 }
-
-function packEmojis(pack?: string): string[] {
-  switch (pack) {
-    case "cute_pandas":
-      return ["🐼", "🎋", "💕", "🌸"];
-    case "romantic_moods":
-      return ["😘", "🥰", "💘", "😌"];
-    case "daily_life":
-      return ["☕", "🍜", "😴", "📚"];
-    case "seasonal":
-      return ["🌸", "🏖️", "🍂", "☃️"];
-    default:
-      return ["✨", "💫", "🌟", "⭐"];
-  }
-}
