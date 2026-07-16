@@ -1,4 +1,25 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+
+function relTime(iso?: string | null) {
+  if (!iso) return "";
+  const s = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 1000));
+  if (s < 45) return "just now";
+  const m = Math.floor(s / 60);
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  const d = Math.floor(h / 24);
+  if (d < 7) return `${d}d ago`;
+  return new Date(iso).toLocaleDateString();
+}
+
+function useTick(ms = 30000) {
+  const [, set] = useState(0);
+  useEffect(() => {
+    const i = window.setInterval(() => set((n) => n + 1), ms);
+    return () => window.clearInterval(i);
+  }, [ms]);
+}
 import { Heart, Pin, Trash2, Reply, Check, CheckCheck, Download, Zap, Phone, Video as VideoIcon, PhoneMissed, Clock } from "lucide-react";
 import { signMedia, type MessageRow } from "@/lib/chat";
 import { VoicePlayer } from "./VoicePlayer";
@@ -59,6 +80,7 @@ export function ChatBubble({
   const isWhisper = m.type === "whisper";
   const isCall = m.type === "call";
   const [whisperRevealed, setWhisperRevealed] = useState(false);
+  useTick(30000);
 
   const bare = isSticker || isWatchInvite || isGameInvite || isMovieWheel || isKiss || isNudge || isCall;
 
@@ -339,10 +361,18 @@ export function ChatBubble({
           </div>
         )}
 
-        {mine && isLast && (
-          <div className="flex items-center gap-1 mt-0.5 justify-end text-[10px] text-candle-muted">
-            {m.read_at ? <CheckCheck className="size-3 text-petal" /> : <Check className="size-3" />}
-            <span>{m.read_at ? "Seen" : "Sent"}</span>
+        {mine ? (
+          isLast && (
+            <div className="flex items-center gap-1 mt-0.5 justify-end text-[10px] text-candle-muted">
+              {m.read_at ? <CheckCheck className="size-3 text-petal" /> : <Check className="size-3" />}
+              <span>
+                {m.read_at ? `Seen ${relTime(m.read_at)}` : `Sent ${relTime(m.created_at)}`}
+              </span>
+            </div>
+          )
+        ) : (
+          <div className="mt-0.5 text-[10px] text-candle-muted">
+            {relTime(m.created_at)}
           </div>
         )}
 
