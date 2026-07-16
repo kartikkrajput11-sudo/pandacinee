@@ -114,8 +114,8 @@ export function PunishmentLockOverlay({
     const val = entry.trim();
     if (!val) return;
     const target = lock.prompt.trim();
-    if (val.toLowerCase() !== target.toLowerCase()) {
-      toast.error(`Type exactly: "${target}"`);
+    if (normalizeWords(val) !== normalizeWords(target)) {
+      toast.error(`Type the words: "${target}"`);
       return;
     }
     setEntry("");
