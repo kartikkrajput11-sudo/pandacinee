@@ -136,25 +136,63 @@ export function ChessBoard({ chess, orientation, canMoveColor, lastMove, onMove 
                   </span>
                 )}
                 {piece && (
-                  <span
-                    draggable={canMove(piece)}
-                    onDragStart={(e) => onDragStart(e, sq)}
-                    className={`text-[clamp(1.8rem,7vw,3.2rem)] leading-none drop-shadow-md ${
-                      emojiPieces
-                        ? piece.color === "w" ? "grayscale-0" : "grayscale contrast-125"
-                        : piece.color === "w" ? "text-white" : "text-black"
-                    }`}
-                    style={{
-                      textShadow: emojiPieces
-                        ? "0 1px 2px rgba(0,0,0,0.5)"
-                        : piece.color === "w"
-                          ? "0 1px 2px rgba(0,0,0,0.6)"
-                          : "0 1px 2px rgba(255,255,255,0.35)",
-                      filter: emojiPieces && piece.color === "b" ? "drop-shadow(0 0 1px rgba(0,0,0,0.9))" : undefined,
-                    }}
-                  >
-                    {pieceGlyph(piece.color as Color, piece.type as PieceSymbol)}
-                  </span>
+                  glassPieces ? (
+                    <span
+                      draggable={canMove(piece)}
+                      onDragStart={(e) => onDragStart(e, sq)}
+                      className="relative flex items-center justify-center rounded-full"
+                      style={{
+                        width: "78%",
+                        height: "78%",
+                        background: piece.color === "w"
+                          ? "linear-gradient(135deg, rgba(255,255,255,0.55), rgba(220,240,255,0.15))"
+                          : "linear-gradient(135deg, rgba(40,20,60,0.85), rgba(10,10,25,0.55))",
+                        backdropFilter: "blur(6px) saturate(160%)",
+                        border: piece.color === "w"
+                          ? "1px solid rgba(255,255,255,0.7)"
+                          : "1px solid rgba(180,140,220,0.5)",
+                        boxShadow: piece.color === "w"
+                          ? "inset 0 1px 2px rgba(255,255,255,0.9), 0 2px 8px rgba(120,180,255,0.35)"
+                          : "inset 0 1px 2px rgba(200,150,255,0.35), 0 2px 8px rgba(0,0,0,0.5)",
+                      }}
+                    >
+                      <span
+                        className="text-[clamp(1.4rem,5.6vw,2.6rem)] leading-none"
+                        style={{
+                          background: piece.color === "w"
+                            ? "linear-gradient(180deg, #ffffff, #c7ecff 60%, #7fb8ff)"
+                            : "linear-gradient(180deg, #f4d5ff, #b58bff 55%, #4a2a7a)",
+                          WebkitBackgroundClip: "text",
+                          backgroundClip: "text",
+                          color: "transparent",
+                          textShadow: "0 1px 1px rgba(0,0,0,0.2)",
+                          filter: "drop-shadow(0 0 3px rgba(255,255,255,0.4))",
+                        }}
+                      >
+                        {pieceGlyph(piece.color as Color, piece.type as PieceSymbol)}
+                      </span>
+                    </span>
+                  ) : (
+                    <span
+                      draggable={canMove(piece)}
+                      onDragStart={(e) => onDragStart(e, sq)}
+                      className={`text-[clamp(1.8rem,7vw,3.2rem)] leading-none drop-shadow-md ${
+                        emojiPieces
+                          ? piece.color === "w" ? "grayscale-0" : "grayscale contrast-125"
+                          : piece.color === "w" ? "text-white" : "text-black"
+                      }`}
+                      style={{
+                        textShadow: emojiPieces
+                          ? "0 1px 2px rgba(0,0,0,0.5)"
+                          : piece.color === "w"
+                            ? "0 1px 2px rgba(0,0,0,0.6)"
+                            : "0 1px 2px rgba(255,255,255,0.35)",
+                        filter: emojiPieces && piece.color === "b" ? "drop-shadow(0 0 1px rgba(0,0,0,0.9))" : undefined,
+                      }}
+                    >
+                      {pieceGlyph(piece.color as Color, piece.type as PieceSymbol)}
+                    </span>
+                  )
                 )}
                 {isTarget && !piece && (
                   <span className="absolute w-3 h-3 rounded-full" style={{ background: accent, boxShadow: `0 0 12px ${accent}` }} />
