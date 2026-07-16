@@ -1,107 +1,85 @@
 import { useEffect, useState } from "react";
-
-type KissBurst = { id: number };
+import { Heart } from "lucide-react";
 
 /**
- * Lipstick imprint on velvet — a hand-drawn kiss mark in petal ink,
- * with a soft bloom and slow, sensual timing. Matches the site's
- * velvet/petal/champagne palette.
+ * Neutral, luxurious "kiss" overlay — a wax-seal insignia stamps down
+ * with an ink bloom and drifting hearts. Matches the site's velvet /
+ * champagne / petal palette. No lipstick, no emoji spam.
  */
-function LipMark({ size = 160, opacity = 1 }: { size?: number; opacity?: number }) {
+
+type Burst = { id: number };
+
+function WaxSeal({ size = 180 }: { size?: number }) {
   return (
-    <svg
-      viewBox="0 0 100 80"
-      width={size}
-      height={size * 0.8}
-      style={{ opacity }}
-      aria-hidden
-    >
+    <svg viewBox="0 0 100 100" width={size} height={size} aria-hidden>
       <defs>
-        <radialGradient id="lipInk" cx="50%" cy="45%" r="60%">
-          <stop offset="0%" stopColor="hsl(340 78% 62%)" />
-          <stop offset="55%" stopColor="hsl(340 65% 48%)" />
-          <stop offset="100%" stopColor="hsl(340 55% 32%)" />
+        <radialGradient id="sealFill" cx="35%" cy="30%" r="80%">
+          <stop offset="0%" stopColor="hsl(340 78% 68%)" />
+          <stop offset="45%" stopColor="hsl(340 62% 48%)" />
+          <stop offset="100%" stopColor="hsl(340 55% 26%)" />
         </radialGradient>
-        <filter id="lipBleed" x="-20%" y="-20%" width="140%" height="140%">
-          <feGaussianBlur stdDeviation="0.6" />
-        </filter>
-        <filter id="lipGlow" x="-40%" y="-40%" width="180%" height="180%">
-          <feGaussianBlur stdDeviation="4" />
+        <radialGradient id="sealRim" cx="50%" cy="50%" r="50%">
+          <stop offset="85%" stopColor="hsl(38 65% 68%)" stopOpacity="0" />
+          <stop offset="95%" stopColor="hsl(38 65% 72%)" stopOpacity="0.9" />
+          <stop offset="100%" stopColor="hsl(38 45% 55%)" stopOpacity="0.4" />
+        </radialGradient>
+        <filter id="sealBleed" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="0.5" />
         </filter>
       </defs>
 
-      {/* Soft outer bloom */}
-      <g filter="url(#lipGlow)" opacity="0.55">
+      {/* Wax body with soft splash edge */}
+      <g filter="url(#sealBleed)">
         <path
-          d="M50 22 C 40 6, 18 8, 14 26 C 12 38, 28 52, 50 60 C 72 52, 88 38, 86 26 C 82 8, 60 6, 50 22 Z"
-          fill="hsl(340 70% 55%)"
+          d="M50 6
+             C 62 8, 74 4, 82 14
+             C 92 22, 92 38, 90 50
+             C 96 60, 92 76, 80 84
+             C 70 94, 56 90, 50 94
+             C 44 92, 30 96, 20 86
+             C 8 78, 6 62, 12 52
+             C 6 40, 10 22, 20 14
+             C 30 6, 40 10, 50 6 Z"
+          fill="url(#sealFill)"
         />
       </g>
 
-      {/* Upper lip */}
-      <path
-        d="M50 24
-           C 46 14, 36 10, 28 14
-           C 20 18, 16 26, 18 30
-           C 22 26, 30 24, 36 28
-           C 42 30, 46 30, 50 26
-           C 54 30, 58 30, 64 28
-           C 70 24, 78 26, 82 30
-           C 84 26, 80 18, 72 14
-           C 64 10, 54 14, 50 24 Z"
-        fill="url(#lipInk)"
-        filter="url(#lipBleed)"
-      />
+      {/* Champagne rim */}
+      <circle cx="50" cy="50" r="38" fill="url(#sealRim)" />
 
-      {/* Lower lip */}
-      <path
-        d="M18 32
-           C 22 46, 34 58, 50 62
-           C 66 58, 78 46, 82 32
-           C 74 34, 64 32, 58 30
-           C 54 32, 46 32, 42 30
-           C 36 32, 26 34, 18 32 Z"
-        fill="url(#lipInk)"
-        filter="url(#lipBleed)"
-      />
-
-      {/* Cupid's bow highlight */}
-      <path
-        d="M46 22 C 48 20, 52 20, 54 22"
-        stroke="hsl(340 90% 82%)"
-        strokeWidth="0.6"
-        strokeLinecap="round"
-        fill="none"
-        opacity="0.7"
-      />
-
-      {/* Micro creases on lower lip */}
-      {[28, 36, 44, 52, 60, 68].map((x) => (
+      {/* Inner emblem: heart in filigree */}
+      <g transform="translate(50 50)">
+        <circle r="30" fill="none" stroke="hsl(38 65% 72% / 0.55)" strokeWidth="0.6" />
+        <circle r="26" fill="none" stroke="hsl(38 65% 72% / 0.35)" strokeWidth="0.4" strokeDasharray="1 2" />
         <path
-          key={x}
-          d={`M${x} 36 Q ${x + 1} ${44 + (x % 3)} ${x + 2} 50`}
-          stroke="hsl(340 40% 22%)"
-          strokeWidth="0.35"
-          fill="none"
-          opacity="0.35"
+          d="M0 -10
+             C -8 -20, -22 -14, -22 -2
+             C -22 10, -8 18, 0 24
+             C 8 18, 22 10, 22 -2
+             C 22 -14, 8 -20, 0 -10 Z"
+          fill="hsl(38 70% 78%)"
+          opacity="0.95"
         />
-      ))}
+        {/* Fleuron dots */}
+        {[0, 90, 180, 270].map((deg) => (
+          <g key={deg} transform={`rotate(${deg})`}>
+            <circle cx="0" cy="-30" r="1.2" fill="hsl(38 65% 72%)" />
+          </g>
+        ))}
+      </g>
     </svg>
   );
 }
 
-export function KissOverlay({ trigger, emoji }: { trigger: number; emoji: string }) {
-  const [bursts, setBursts] = useState<KissBurst[]>([]);
+export function KissOverlay({ trigger }: { trigger: number; emoji?: string }) {
+  const [bursts, setBursts] = useState<Burst[]>([]);
 
   useEffect(() => {
     if (!trigger) return;
     const id = Date.now();
     setBursts((b) => [...b, { id }]);
-    const t = window.setTimeout(() => {
-      setBursts((b) => b.filter((x) => x.id !== id));
-    }, 3200);
+    const t = window.setTimeout(() => setBursts((b) => b.filter((x) => x.id !== id)), 2800);
     return () => window.clearTimeout(t);
-    // emoji intentionally unused — the lip mark carries the meaning
   }, [trigger]);
 
   if (bursts.length === 0) return null;
@@ -110,7 +88,7 @@ export function KissOverlay({ trigger, emoji }: { trigger: number; emoji: string
     <div className="pointer-events-none fixed inset-0 z-40 overflow-hidden">
       {bursts.map((burst) => (
         <div key={burst.id} className="absolute inset-0">
-          {/* Vignette bloom in petal ink */}
+          {/* Ink bloom */}
           <div
             className="absolute inset-0 animate-kiss-vignette"
             style={{
@@ -119,31 +97,29 @@ export function KissOverlay({ trigger, emoji }: { trigger: number; emoji: string
               mixBlendMode: "screen",
             }}
           />
-
-          {/* Champagne sheen sweep */}
+          {/* Champagne sheen */}
           <div
             className="absolute inset-0 animate-kiss-sheen"
             style={{
               background:
-                "linear-gradient(115deg, transparent 40%, hsl(38 65% 72% / 0.14) 50%, transparent 60%)",
+                "linear-gradient(115deg, transparent 40%, hsl(38 65% 72% / 0.16) 50%, transparent 60%)",
             }}
           />
 
-          {/* The imprint — center */}
+          {/* Stamp */}
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="animate-kiss-imprint origin-center">
-              <div
-                style={{
-                  filter:
-                    "drop-shadow(0 8px 24px hsl(340 70% 40% / 0.55)) drop-shadow(0 2px 6px hsl(340 60% 20% / 0.6))",
-                }}
-              >
-                <LipMark size={200} />
-              </div>
+            <div
+              className="animate-kiss-imprint origin-center"
+              style={{
+                filter:
+                  "drop-shadow(0 10px 26px hsl(340 70% 30% / 0.55)) drop-shadow(0 3px 8px hsl(340 60% 20% / 0.6))",
+              }}
+            >
+              <WaxSeal size={200} />
             </div>
           </div>
 
-          {/* Faint filigree caption */}
+          {/* Caption */}
           <div className="absolute inset-x-0 top-[calc(50%+130px)] flex flex-col items-center gap-2 animate-kiss-caption">
             <div className="flex items-center gap-3 text-petal/80">
               <span className="h-px w-10 bg-gradient-to-r from-transparent to-petal/60" />
@@ -155,13 +131,13 @@ export function KissOverlay({ trigger, emoji }: { trigger: number; emoji: string
             </p>
           </div>
 
-          {/* Small trailing imprints drifting up — restrained, no emoji spam */}
+          {/* Drifting hearts — restrained */}
           <div className="absolute inset-0 flex items-end justify-center pb-24">
-            {Array.from({ length: 5 }).map((_, i) => {
-              const kx = (i - 2) * 60 + (Math.random() - 0.5) * 30;
+            {Array.from({ length: 6 }).map((_, i) => {
+              const kx = (i - 2.5) * 55 + (Math.random() - 0.5) * 30;
               const kr = (Math.random() - 0.5) * 40;
-              const delay = 400 + i * 180;
-              const size = 34 + Math.random() * 22;
+              const delay = 300 + i * 160;
+              const size = 22 + Math.random() * 20;
               return (
                 <span
                   key={i}
@@ -172,7 +148,14 @@ export function KissOverlay({ trigger, emoji }: { trigger: number; emoji: string
                     animationDelay: `${delay}ms`,
                   }}
                 >
-                  <LipMark size={size} opacity={0.55} />
+                  <Heart
+                    className="fill-petal text-petal"
+                    style={{
+                      width: size,
+                      height: size,
+                      filter: "drop-shadow(0 3px 8px hsl(340 70% 30% / 0.55))",
+                    }}
+                  />
                 </span>
               );
             })}
