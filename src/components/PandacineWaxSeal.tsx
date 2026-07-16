@@ -313,12 +313,8 @@ export function PandacineWaxSeal({
           <path d="M56 168 L144 168" stroke={p.deep} strokeOpacity="0.4" strokeWidth="0.6" />
         </g>
 
-        {/* Candle flame at the top */}
-        <g className="pcs-flame">
-          <ellipse cx="100" cy="4" rx="4" ry="8" fill={p.hi} opacity="0.9" />
-          <ellipse cx="100" cy="6" rx="2.2" ry="5" fill="#fff" opacity="0.9" />
-          <line x1="100" y1="12" x2="100" y2="18" stroke={p.deep} strokeWidth="0.8" />
-        </g>
+
+
 
         {/* Falling wax droplets */}
         <g className="pcs-fall" fill={p.mid}>
