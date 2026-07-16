@@ -12,6 +12,7 @@ import { formatLastSeen } from "@/hooks/usePresenceHeartbeat";
 import { ChatSearch } from "@/components/chat/ChatSearch";
 
 import { KissOverlay } from "@/components/chat/KissOverlay";
+import { HugOverlay } from "@/components/chat/HugOverlay";
 import { PunishmentLockDialog } from "@/components/chat/PunishmentLockDialog";
 import { PunishmentLockOverlay } from "@/components/chat/PunishmentLockOverlay";
 import { PunishmentLockBanner } from "@/components/chat/PunishmentLockBanner";
