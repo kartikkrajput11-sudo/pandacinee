@@ -35,6 +35,7 @@ export type ChessBoardMeta = {
 export type ChessPiecesMeta = {
   label?: string;
   emoji?: boolean;
+  style?: "glass" | string;
   glyphs?: {
     w?: Record<string, string>;
     b?: Record<string, string>;
