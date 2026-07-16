@@ -247,6 +247,20 @@ export function PandacineWaxSeal({
             {/* tiny heart above */}
             <path d="M0 -30 c -3 -4 -9 -1 -9 3 c 0 4 6 8 9 11 c 3 -3 9 -7 9 -11 c 0 -4 -6 -7 -9 -3 z"
                   fill={p.deep} opacity="0.55"/>
+            {/* crown above the panda */}
+            <g className="pcs-crown" opacity="0.85">
+              <path d="M-16 -34 L-10 -42 L-4 -36 L0 -46 L4 -36 L10 -42 L16 -34 Z" fill={p.hi} stroke={p.deep} strokeWidth="0.6" strokeOpacity="0.5"/>
+              <circle cx="-10" cy="-42" r="1.4" fill={p.deep}/>
+              <circle cx="0" cy="-46" r="1.6" fill={p.deep}/>
+              <circle cx="10" cy="-42" r="1.4" fill={p.deep}/>
+              <rect x="-16" y="-34" width="32" height="2" fill={p.deep} opacity="0.7"/>
+            </g>
+            {/* gemstone locket on chest */}
+            <g className="pcs-gem" transform="translate(0 22)">
+              <polygon points="0,-5 4,-1 3,4 -3,4 -4,-1" fill={p.hi} opacity="0.95"/>
+              <polygon points="0,-5 4,-1 0,0" fill={p.deep} opacity="0.35"/>
+              <polygon points="0,-5 -4,-1 0,0" fill={p.deep} opacity="0.2"/>
+            </g>
           </g>
         </g>
 
