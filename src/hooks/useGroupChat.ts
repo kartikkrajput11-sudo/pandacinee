@@ -81,6 +81,7 @@ export function useGroupChat(groupId: string | null, meId: string | null) {
         (payload) => {
           const row = payload.new as GroupMessage;
           if (row.deleted_at) return;
+          if (meId && row.sender_id !== meId) sfxReceive();
           setMessages((prev) => (prev.some((m) => m.id === row.id) ? prev : [...prev, row]));
         },
       )
