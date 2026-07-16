@@ -21,6 +21,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
 import { ACHIEVEMENT_TAGS } from "@/lib/achievements";
 import { purchaseTag } from "@/lib/achievements.functions";
+import { invalidateEquippedItems } from "@/hooks/useEquippedItems";
+
 
 export const Route = createFileRoute("/_authenticated/app/shop")({
   component: ShopRoute,
