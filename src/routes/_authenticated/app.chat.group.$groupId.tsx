@@ -357,6 +357,19 @@ function GroupChat() {
           <Send className="size-4" />
         </button>
       </div>
+
+      <PollComposer
+        open={pollOpen}
+        onClose={() => setPollOpen(false)}
+        meId={meId}
+        onCreate={async (meta: PollMeta) => {
+          await chat.send({
+            content: meta.question,
+            type: "poll",
+            media_meta: meta as unknown as Record<string, unknown>,
+          });
+        }}
+      />
     </div>
   );
 }
