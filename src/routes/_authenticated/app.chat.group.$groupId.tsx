@@ -382,6 +382,12 @@ function GroupChat() {
           });
         }}
       />
+
+      <ForwardDialog
+        message={forwardMsg}
+        open={!!forwardMsg}
+        onClose={() => setForwardMsg(null)}
+      />
     </div>
   );
 }
