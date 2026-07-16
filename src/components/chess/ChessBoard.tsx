@@ -109,11 +109,14 @@ export function ChessBoard({ chess, orientation, canMoveColor, lastMove, onMove 
                 onDrop={(e) => onDrop(e, sq)}
                 className={[
                   "relative flex items-center justify-center select-none transition-colors",
-                  light ? "bg-[oklch(0.82_0.04_320)]" : "bg-[oklch(0.42_0.09_310)]",
                   isLast ? "ring-2 ring-inset ring-amber-300/70" : "",
-                  isSelected ? "ring-2 ring-inset ring-petal" : "",
-                  isCheck ? "bg-red-500/60" : "",
+                  isSelected ? "ring-2 ring-inset" : "",
+                  isCheck ? "!bg-red-500/60" : "",
                 ].join(" ")}
+                style={{
+                  background: light ? lightSq : darkSq,
+                  ...(isSelected ? { boxShadow: `inset 0 0 0 2px ${accent}` } : {}),
+                }}
                 aria-label={sq}
               >
                 {showRank && (
@@ -139,10 +142,10 @@ export function ChessBoard({ chess, orientation, canMoveColor, lastMove, onMove 
                   </span>
                 )}
                 {isTarget && !piece && (
-                  <span className="absolute w-3 h-3 rounded-full bg-petal/70 shadow-[0_0_12px_var(--petal)]" />
+                  <span className="absolute w-3 h-3 rounded-full" style={{ background: accent, boxShadow: `0 0 12px ${accent}` }} />
                 )}
                 {isTarget && isCapture && (
-                  <span className="absolute inset-1 rounded-full border-4 border-petal/70 shadow-[0_0_16px_var(--petal)]" />
+                  <span className="absolute inset-1 rounded-full border-4" style={{ borderColor: accent, boxShadow: `0 0 16px ${accent}` }} />
                 )}
               </button>
             );
