@@ -61,6 +61,7 @@ function ChatBubbleImpl({
   onPin,
   onDelete,
   onVanish,
+  onForward,
   partnerName,
 }: {
   m: MessageRow;
@@ -74,6 +75,7 @@ function ChatBubbleImpl({
   onPin: (m: MessageRow) => void;
   onDelete: (m: MessageRow) => void;
   onVanish?: (m: MessageRow, seconds: number | null) => void;
+  onForward?: (m: MessageRow) => void;
   partnerName?: string;
 
 }) {
