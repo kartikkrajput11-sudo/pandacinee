@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import type { Chess, Square, Color, PieceSymbol } from "chess.js";
 import { FILES, RANKS, PIECE_GLYPH, legalTargets, squareOf } from "@/lib/chess";
+import { useEquippedItems } from "@/hooks/useEquippedItems";
 
 type Props = {
   chess: Chess;
