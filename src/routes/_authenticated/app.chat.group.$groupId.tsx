@@ -23,6 +23,7 @@ function GroupChat() {
   const navigate = useNavigate();
   const { data: profileData } = useProfile();
   const meId = profileData?.profile?.id ?? null;
+  const partnerId = profileData?.partner?.id ?? null;
   const { data: groupData } = useGroup(groupId);
   const chat = useGroupChat(groupId, meId);
 
