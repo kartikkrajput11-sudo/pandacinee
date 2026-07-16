@@ -172,10 +172,8 @@ function LetterView() {
 
         {stillLocked && !mine ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
-            <div className={`relative size-40 rounded-full ${style.seal} flex items-center justify-center ${style.ring} mb-8`}>
-              <div className="absolute inset-2 rounded-full border-2 border-black/20" />
-              <Lock className="size-10 text-velvet/90" strokeWidth={2} />
-              <div className="absolute -bottom-1 -right-2 text-3xl select-none">🕊</div>
+            <div className="mb-8">
+              <PandacineWaxSeal tone={letter.theme} interactive={false} size={176} />
             </div>
             <p className={`font-serif italic text-3xl ${style.text} mb-2`}>Sealed for you.</p>
             <p className={`${style.text} opacity-70 text-sm mb-6`}>
@@ -196,21 +194,40 @@ function LetterView() {
                 ))}
               </div>
             )}
+            <button
+              onClick={() => {
+                setBreaking(true);
+                setTimeout(() => setBreaking(false), 1400);
+              }}
+              className={`mt-8 inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/15 ${style.text} opacity-80 hover:opacity-100 text-[11px] uppercase tracking-[0.25em]`}
+            >
+              <Sparkles className="size-3" /> Preview animation
+            </button>
+            {breaking && (
+              <div className="mt-6">
+                <PandacineWaxSeal tone={letter.theme} interactive={false} breaking size={176} />
+              </div>
+            )}
           </div>
         ) : canOpen ? (
           <div className="flex flex-col items-center justify-center py-8 text-center">
-            <button
+            <PandacineWaxSeal
+              tone={letter.theme}
+              breaking={breaking}
               onClick={open}
-              className={`relative size-44 rounded-full ${style.seal} flex items-center justify-center ${style.ring} transition-all ${breaking ? "scale-125 rotate-12 opacity-0" : "hover:scale-105 active:scale-95"}`}
-              aria-label="Break seal"
-              style={{ transitionDuration: breaking ? "1000ms" : "300ms" }}
-            >
-              <div className="absolute inset-2 rounded-full border-2 border-black/20" />
-              <div className="absolute inset-6 rounded-full border border-black/15" />
-              <span className="font-serif italic text-4xl text-velvet/90 select-none">P</span>
-            </button>
-            <p className={`font-serif italic text-2xl ${style.text} mt-6`}>Break the seal.</p>
+              size={192}
+            />
+            <p className={`font-serif italic text-2xl ${style.text} mt-8`}>Break the seal.</p>
             <p className={`${style.text} opacity-70 text-sm mt-1`}>Tap to open.</p>
+            <button
+              onClick={() => {
+                setBreaking(true);
+                setTimeout(() => setBreaking(false), 1400);
+              }}
+              className={`mt-6 inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/15 ${style.text} opacity-80 hover:opacity-100 text-[11px] uppercase tracking-[0.25em]`}
+            >
+              <Sparkles className="size-3" /> Preview animation
+            </button>
           </div>
         ) : (
           <article className={`animate-fade-in ${breaking ? "" : ""}`}>
