@@ -306,21 +306,25 @@ function ChatBubbleImpl({
           {isMovieWheel && <MovieWheelCard m={m} mine={mine} />}
 
           {isKiss && (
-            <div className={`px-4 py-3 rounded-2xl border ${mine ? "border-velvet/30 bg-velvet/10 text-velvet" : "border-petal/40 bg-petal-soft/30 text-candle"} flex items-center gap-3`}>
-              <span className="text-4xl animate-pulse-soft">{m.content || "💋"}</span>
-              <div>
-                <p className="text-[10px] uppercase tracking-[0.25em] text-petal">Kiss</p>
-                <p className="text-xs">{mine ? "You sent a kiss" : "You got a kiss"}</p>
+            <div className="px-4 py-3 rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-sm flex items-center gap-3">
+              <span className="text-3xl">{m.content || "💋"}</span>
+              <div className="flex flex-col gap-0.5">
+                <span className="text-[9px] uppercase tracking-[0.3em] text-petal/80 font-semibold">Kiss</span>
+                <span className="text-xs italic font-serif text-candle/85">{mine ? "sent with love" : "for you"}</span>
               </div>
             </div>
           )}
 
           {isNudge && (
-            <div className={`px-4 py-2.5 rounded-2xl border flex items-center gap-2 ${mine ? "border-velvet/30 bg-velvet/10 text-velvet" : "border-petal/40 bg-petal-soft/30 text-candle"}`}>
-              <Zap className="size-4 text-petal" />
-              <span className="text-xs font-medium">{mine ? "You sent a nudge 👋" : "Nudged you! 👋"}</span>
+            <div className="px-4 py-2.5 rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-sm flex items-center gap-3">
+              <Zap className="size-3.5 text-petal" strokeWidth={1.5} />
+              <div className="flex flex-col gap-0.5">
+                <span className="text-[9px] uppercase tracking-[0.3em] text-petal/80 font-semibold">Nudge</span>
+                <span className="text-xs italic font-serif text-candle/85">{mine ? "a gentle tap" : "thinking of you"}</span>
+              </div>
             </div>
           )}
+
 
           {isCall && (() => {
             const meta = (m.media_meta ?? {}) as { mode?: "video" | "audio"; outcome?: "missed" | "completed"; duration_sec?: number };
