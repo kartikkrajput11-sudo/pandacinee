@@ -472,7 +472,7 @@ function StudioTile({
     <button
       type="button"
       onClick={onClick}
-      className={`group relative flex flex-col items-center justify-center gap-1.5 py-3 rounded-2xl border transition-all duration-200 active:scale-95 ${
+      className={`group relative flex flex-col items-center justify-center gap-1 py-2 rounded-xl border transition-all duration-200 active:scale-95 ${
         accent
           ? "bg-gradient-to-b from-petal/20 to-petal/[0.04] border-petal/30 hover:border-petal/60 hover:from-petal/30"
           : "bg-white/[0.02] border-white/[0.06] hover:bg-white/[0.05] hover:border-white/15"
