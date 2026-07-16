@@ -91,6 +91,7 @@ function ChatBubbleImpl({
   const isSticker = m.type === "sticker";
   const pandaUrl = isSticker ? pandaStickerUrl(m.content ?? "") : null;
   const isPandaSticker = !!pandaUrl;
+  const isAiSticker = isSticker && !!m.media_url && (m.media_meta as any)?.kind === "ai_sticker";
   const isWatchInvite = m.type === "watch_invite";
   const isGameInvite = m.type === "game_invite";
   const isMovieWheel = m.type === "movie_wheel";
