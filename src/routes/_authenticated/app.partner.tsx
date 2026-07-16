@@ -6,6 +6,7 @@ import { ArrowLeft, Heart, Calendar, MessageCircle, Film, HeartCrack } from "luc
 import { toast } from "sonner";
 import { useProfile } from "@/hooks/useProfile";
 import { unpairPartner } from "@/lib/partner.functions";
+import { AvatarImg } from "@/components/AvatarImg";
 
 export const Route = createFileRoute("/_authenticated/app/partner")({
   component: PartnerProfile,
@@ -75,7 +76,7 @@ function PartnerProfile() {
       <div className="rounded-3xl border border-petal/30 bg-petal-soft/10 p-6 text-center mb-4 ring-petal">
         <div className="size-24 mx-auto mb-3 rounded-full bg-petal-soft border border-petal/30 flex items-center justify-center overflow-hidden">
           {partner.avatar_url ? (
-            <img src={partner.avatar_url} alt="" className="size-full object-cover" />
+            <AvatarImg src={partner.avatar_url} alt="" className="size-full object-cover" />
           ) : (
             <span className="font-serif italic text-4xl text-petal">{partnerName[0]?.toUpperCase()}</span>
           )}

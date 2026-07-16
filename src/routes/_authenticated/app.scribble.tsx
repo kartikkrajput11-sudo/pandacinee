@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { gameSfx } from "@/lib/game-sfx";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
+import { AvatarImg } from "@/components/AvatarImg";
 
 export const Route = createFileRoute("/_authenticated/app/scribble")({
   component: Scribble,
@@ -1072,7 +1073,7 @@ function Leaderboard({
               </div>
               <div className="size-8 rounded-full bg-petal-soft overflow-hidden flex items-center justify-center shrink-0">
                 {row.profile.avatar_url ? (
-                  <img src={row.profile.avatar_url} alt={name} className="w-full h-full object-cover" />
+                  <AvatarImg src={row.profile.avatar_url} alt={name} className="w-full h-full object-cover" />
                 ) : (
                   <span className="text-sm">🐼</span>
                 )}

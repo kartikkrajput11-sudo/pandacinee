@@ -18,6 +18,7 @@ import {
 import { tmdbSearch, tmdbMovie, tmdbTvDetail, tmdbTvSeason, type TmdbMovie } from "@/lib/tmdb.functions";
 
 import { getAdminStats, getRecentActivity, getAdminUsers, deleteAdminUser, adminSendCoins, type ActivityItem, type AdminUserRow } from "@/lib/admin-stats.functions";
+import { AvatarImg } from "@/components/AvatarImg";
 
 export const Route = createFileRoute("/_authenticated/app/tamanna")({
   component: AdminPage,
@@ -519,7 +520,7 @@ function UserRow({ user: u }: { user: AdminUserRow }) {
       >
         <div className="relative shrink-0">
           {u.avatar_url ? (
-            <img src={u.avatar_url} alt="" className="size-10 rounded-full object-cover border border-border" />
+            <AvatarImg src={u.avatar_url} alt="" className="size-10 rounded-full object-cover border border-border" />
           ) : (
             <div className="size-10 rounded-full bg-petal/20 border border-border flex items-center justify-center text-petal font-serif italic">
               {(u.display_name ?? "?")[0]}

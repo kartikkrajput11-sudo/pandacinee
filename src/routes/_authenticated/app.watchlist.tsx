@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
 import { useServerFn } from "@tanstack/react-start";
 import { tmdbMulti } from "@/lib/tmdb.functions";
+import { AvatarImg } from "@/components/AvatarImg";
 
 export const Route = createFileRoute("/_authenticated/app/watchlist")({
   component: WatchlistPage,
@@ -187,7 +188,7 @@ function WatchlistPage() {
 
           {partner?.avatar_url && (
             <div className="size-12 rounded-full overflow-hidden border border-[#c9a84c]/40 shrink-0 shadow-[0_6px_20px_-6px_rgba(201,168,76,0.5)]">
-              <img src={partner.avatar_url} alt="" className="w-full h-full object-cover" />
+              <AvatarImg src={partner.avatar_url} alt="" className="w-full h-full object-cover" />
             </div>
           )}
         </div>
