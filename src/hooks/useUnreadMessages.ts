@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { getGroupLastRead } from "@/lib/groupRead";
 
 export function useUnreadMessages() {
   const [count, setCount] = useState(0);
@@ -28,7 +29,7 @@ export function useUnreadMessages() {
         .is("deleted_at", null);
       const dmSenders = new Set((dmRows ?? []).map((r) => r.sender_id));
 
-      // Groups with at least one unread message from someone else
+      // Groups with at least one message newer than my last-read timestamp
       const { data: myGroups } = await supabase
         .from("chat_group_members")
         .select("group_id")
@@ -38,12 +39,17 @@ export function useUnreadMessages() {
       if (groupIds.length > 0) {
         const { data: gRows } = await supabase
           .from("messages")
-          .select("group_id")
+          .select("group_id,created_at")
           .in("group_id", groupIds)
           .neq("sender_id", userId)
-          .is("read_at", null)
           .is("deleted_at", null);
-        for (const r of gRows ?? []) if (r.group_id) unreadGroups.add(r.group_id);
+        for (const r of gRows ?? []) {
+          if (!r.group_id) continue;
+          const lastRead = getGroupLastRead(userId, r.group_id);
+          if (!lastRead || r.created_at > lastRead) {
+            unreadGroups.add(r.group_id);
+          }
+        }
       }
       setCount(dmSenders.size + unreadGroups.size);
     };
@@ -57,10 +63,22 @@ export function useUnreadMessages() {
         { event: "*", schema: "public", table: "messages", filter: `receiver_id=eq.${userId}` },
         () => fetchCount(),
       )
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "messages" },
+        (payload) => {
+          const row = payload.new as { group_id: string | null; sender_id: string };
+          if (row.group_id && row.sender_id !== userId) fetchCount();
+        },
+      )
       .subscribe();
+
+    const onRead = () => fetchCount();
+    window.addEventListener("group-read-updated", onRead);
 
     return () => {
       supabase.removeChannel(channel);
+      window.removeEventListener("group-read-updated", onRead);
     };
   }, [userId]);
 
