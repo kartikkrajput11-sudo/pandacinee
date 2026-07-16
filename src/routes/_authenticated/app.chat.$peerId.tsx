@@ -473,18 +473,25 @@ function ChatPeer() {
         </button>
       )}
 
-      <div className="px-3 pt-2 pb-1 flex gap-2 overflow-x-auto no-scrollbar border-t border-border/40 bg-velvet">
-        {["Miss you 💜", "Call?", "Omw!", "Hahaha", "Goodnight 🌙"].map((q) => (
-          <button
-            key={q}
-            type="button"
-            onClick={() => { void send({ content: q, type: "text" }); }}
-            className="shrink-0 px-3 py-1.5 rounded-full bg-surface border border-border text-[11px] font-medium text-candle hover:border-petal/40 hover:text-petal transition-colors"
-          >
-            {q}
-          </button>
-        ))}
+      <div className="px-5 pt-3 pb-2 border-t border-white/5 bg-velvet/80">
+        <div className="mb-2 flex items-center gap-2">
+          <span className="text-[9px] uppercase tracking-[0.3em] text-candle/35 font-semibold">Suggestions</span>
+          <span className="flex-1 h-px bg-white/5" />
+        </div>
+        <div className="flex gap-2 overflow-x-auto no-scrollbar">
+          {["Miss you", "Call?", "Omw!", "Hahaha", "Goodnight"].map((q) => (
+            <button
+              key={q}
+              type="button"
+              onClick={() => { void send({ content: q, type: "text" }); }}
+              className="shrink-0 px-4 py-1.5 rounded-full bg-white/[0.04] border border-white/10 text-[10px] uppercase tracking-[0.15em] font-medium text-candle/70 hover:border-petal/40 hover:text-petal transition-colors"
+            >
+              {q}
+            </button>
+          ))}
+        </div>
       </div>
+
 
 
       <ChatComposer
