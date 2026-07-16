@@ -1,7 +1,19 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { ArrowLeft, Coins, Check, Lock, Sparkles } from "lucide-react";
+import {
+  ArrowLeft,
+  Coins,
+  Check,
+  Lock,
+  Sparkles,
+  MessageCircle,
+  Palette,
+  Wand2,
+  Crown,
+  Sticker,
+  Award,
+} from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
@@ -12,32 +24,82 @@ export const Route = createFileRoute("/_authenticated/app/shop")({
   component: ShopRoute,
 });
 
+type Category =
+  | "chat_theme"
+  | "site_theme"
+  | "chat_perk"
+  | "profile_flair"
+  | "ai_sticker_pack"
+  | "tag";
+
+const CATS: { key: Category; label: string; icon: any; blurb: string }[] = [
+  { key: "chat_theme", label: "Chat", icon: MessageCircle, blurb: "Bubble palettes & chat wallpapers" },
+  { key: "site_theme", label: "Site", icon: Palette, blurb: "Global accent skins for the whole app" },
+  { key: "chat_perk", label: "Perks", icon: Wand2, blurb: "Sticker packs, kisses, and effects" },
+  { key: "profile_flair", label: "Flair", icon: Crown, blurb: "Avatar rings & profile highlights" },
+  { key: "ai_sticker_pack", label: "AI Packs", icon: Sticker, blurb: "AI-generated sticker sets for chat" },
+  { key: "tag", label: "Tags", icon: Award, blurb: "Achievement tags for your profile" },
+];
+
+type ShopItem = {
+  id: string;
+  item_key: string;
+  category: string;
+  name: string;
+  description: string | null;
+  price: number;
+  preview_url: string | null;
+  metadata: any;
+  sort_order: number;
+};
+
 function ShopRoute() {
   const { data, refetch } = useProfile();
   const me = data?.profile as any;
-  const [owned, setOwned] = useState<Set<string>>(new Set());
+  const [items, setItems] = useState<ShopItem[]>([]);
+  const [inventory, setInventory] = useState<Map<string, boolean>>(new Map()); // item_id -> equipped
+  const [ownedTags, setOwnedTags] = useState<Set<string>>(new Set());
   const [busy, setBusy] = useState<string | null>(null);
-  const buy = useServerFn(purchaseTag);
+  const [tab, setTab] = useState<Category>("chat_theme");
+  const [preview, setPreview] = useState<ShopItem | null>(null);
+  const buyTag = useServerFn(purchaseTag);
 
-  async function loadOwned() {
+  async function load() {
     if (!me?.id) return;
-    const { data: rows } = await (supabase as any)
-      .from("profile_achievements")
-      .select("tag_key")
-      .eq("user_id", me.id);
-    setOwned(new Set(((rows ?? []) as any[]).map((r) => r.tag_key)));
+    const [itemsRes, invRes, tagRes] = await Promise.all([
+      (supabase as any).from("shop_items").select("*").eq("active", true).order("sort_order"),
+      (supabase as any).from("user_inventory").select("item_id, equipped").eq("user_id", me.id),
+      (supabase as any).from("profile_achievements").select("tag_key").eq("user_id", me.id),
+    ]);
+    setItems((itemsRes.data ?? []) as ShopItem[]);
+    const m = new Map<string, boolean>();
+    for (const r of (invRes.data ?? []) as any[]) m.set(r.item_id, !!r.equipped);
+    setInventory(m);
+    setOwnedTags(new Set(((tagRes.data ?? []) as any[]).map((r) => r.tag_key)));
   }
+
   useEffect(() => {
-    loadOwned();
+    load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [me?.id]);
 
-  async function purchase(key: string) {
-    setBusy(key);
+  const coins = me?.panda_coins ?? 0;
+  const legacyCoins = me?.coins ?? 0;
+
+  const filtered = useMemo(() => items.filter((i) => i.category === tab), [items, tab]);
+
+  async function purchase(item: ShopItem) {
+    if (coins < item.price) {
+      toast.error("Not enough Panda Coins");
+      return;
+    }
+    setBusy(item.id);
     try {
-      await buy({ data: { tagKey: key } });
-      toast.success("Tag unlocked ✨");
-      await Promise.all([loadOwned(), refetch?.()]);
+      const { error } = await (supabase as any).rpc("purchase_shop_item", { _item_id: item.id });
+      if (error) throw error;
+      toast.success(`${item.name} unlocked ✨`);
+      await Promise.all([load(), refetch?.()]);
+      setPreview(null);
     } catch (e: any) {
       toast.error(e?.message ?? "Couldn't purchase");
     } finally {
@@ -45,7 +107,38 @@ function ShopRoute() {
     }
   }
 
-  const coins = me?.coins ?? 0;
+  async function toggleEquip(item: ShopItem) {
+    setBusy(item.id);
+    try {
+      const currentlyEquipped = inventory.get(item.id) === true;
+      const { error } = await (supabase as any).rpc("toggle_equip_item", {
+        _item_id: item.id,
+        _equip: !currentlyEquipped,
+      });
+      if (error) throw error;
+      toast.success(currentlyEquipped ? "Unequipped" : "Equipped ✨");
+      await load();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Couldn't equip");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function purchaseTagLegacy(key: string) {
+    setBusy(key);
+    try {
+      await buyTag({ data: { tagKey: key } });
+      toast.success("Tag unlocked ✨");
+      await Promise.all([load(), refetch?.()]);
+    } catch (e: any) {
+      toast.error(e?.message ?? "Couldn't purchase");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  const activeCat = CATS.find((c) => c.key === tab)!;
 
   return (
     <div className="pt-10 px-5 pb-24 max-w-md mx-auto">
@@ -54,8 +147,8 @@ function ShopRoute() {
           <ArrowLeft className="size-5" />
         </Link>
         <div className="flex-1">
-          <p className="text-[10px] uppercase tracking-[0.25em] text-petal">Achievements</p>
-          <h1 className="font-serif text-2xl italic">Tag Shop</h1>
+          <p className="text-[10px] uppercase tracking-[0.25em] text-petal">Panda Bazaar</p>
+          <h1 className="font-serif text-2xl italic">Coin Shop</h1>
         </div>
         <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-petal-soft border border-petal/30">
           <Coins className="size-4 text-petal" />
@@ -63,54 +156,320 @@ function ShopRoute() {
         </div>
       </header>
 
-      <p className="text-sm text-candle-muted mb-5">
-        Complete rituals with your partner to earn coins. Spend them on tags that appear as achievements on your profile.
-      </p>
-
-      <div className="space-y-3">
-        {ACHIEVEMENT_TAGS.map((t) => {
-          const isOwned = owned.has(t.key);
-          const canAfford = coins >= t.cost;
+      {/* Category tabs */}
+      <div className="flex gap-2 overflow-x-auto pb-2 mb-4 -mx-1 px-1 scrollbar-none">
+        {CATS.map((c) => {
+          const Icon = c.icon;
+          const active = tab === c.key;
           return (
-            <div
-              key={t.key}
-              className="p-4 rounded-2xl border border-border bg-surface flex items-center gap-4"
-              style={{ boxShadow: isOwned ? `0 0 24px -8px ${t.hue}` : undefined }}
+            <button
+              key={c.key}
+              onClick={() => setTab(c.key)}
+              className={`shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-semibold transition ${
+                active
+                  ? "bg-petal text-velvet border-petal"
+                  : "bg-surface border-border text-candle-muted"
+              }`}
             >
-              <div
-                className="size-14 rounded-2xl flex items-center justify-center text-3xl shrink-0"
-                style={{
-                  background: `radial-gradient(circle, ${t.hue}33, transparent 70%)`,
-                  border: `1px solid ${t.hue}55`,
-                }}
-              >
-                {t.emoji}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-serif italic text-lg leading-tight">{t.name}</p>
-                <p className="text-xs text-candle-muted mt-0.5">{t.blurb}</p>
-                <p className="text-[11px] mt-1 flex items-center gap-1 text-petal">
-                  <Coins className="size-3" /> {t.cost}
-                </p>
-              </div>
-              {isOwned ? (
-                <div className="text-xs text-petal font-semibold inline-flex items-center gap-1">
-                  <Check className="size-4" /> Owned
-                </div>
-              ) : (
-                <button
-                  onClick={() => purchase(t.key)}
-                  disabled={!canAfford || busy === t.key}
-                  className="px-3 py-2 rounded-xl bg-petal text-velvet text-xs font-semibold disabled:opacity-50 inline-flex items-center gap-1"
-                >
-                  {!canAfford ? <Lock className="size-3" /> : <Sparkles className="size-3" />}
-                  {busy === t.key ? "…" : canAfford ? "Buy" : "Locked"}
-                </button>
-              )}
-            </div>
+              <Icon className="size-3.5" />
+              {c.label}
+            </button>
           );
         })}
       </div>
+
+      <p className="text-xs text-candle-muted mb-4 italic">{activeCat.blurb}</p>
+
+      {/* Tag category — legacy achievement tags */}
+      {tab === "tag" ? (
+        <div className="space-y-3">
+          {ACHIEVEMENT_TAGS.map((t) => {
+            const isOwned = ownedTags.has(t.key);
+            const canAfford = legacyCoins >= t.cost;
+            return (
+              <div
+                key={t.key}
+                className="p-4 rounded-2xl border border-border bg-surface flex items-center gap-4"
+                style={{ boxShadow: isOwned ? `0 0 24px -8px ${t.hue}` : undefined }}
+              >
+                <div
+                  className="size-14 rounded-2xl flex items-center justify-center text-3xl shrink-0"
+                  style={{
+                    background: `radial-gradient(circle, ${t.hue}33, transparent 70%)`,
+                    border: `1px solid ${t.hue}55`,
+                  }}
+                >
+                  {t.emoji}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-serif italic text-lg leading-tight">{t.name}</p>
+                  <p className="text-xs text-candle-muted mt-0.5">{t.blurb}</p>
+                  <p className="text-[11px] mt-1 flex items-center gap-1 text-petal">
+                    <Coins className="size-3" /> {t.cost} <span className="text-candle-muted/60">legacy</span>
+                  </p>
+                </div>
+                {isOwned ? (
+                  <div className="text-xs text-petal font-semibold inline-flex items-center gap-1">
+                    <Check className="size-4" /> Owned
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => purchaseTagLegacy(t.key)}
+                    disabled={!canAfford || busy === t.key}
+                    className="px-3 py-2 rounded-xl bg-petal text-velvet text-xs font-semibold disabled:opacity-50 inline-flex items-center gap-1"
+                  >
+                    {!canAfford ? <Lock className="size-3" /> : <Sparkles className="size-3" />}
+                    {busy === t.key ? "…" : canAfford ? "Buy" : "Locked"}
+                  </button>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-3">
+          {filtered.map((item) => {
+            const owned = inventory.has(item.id);
+            const equipped = inventory.get(item.id) === true;
+            return (
+              <ShopCard
+                key={item.id}
+                item={item}
+                owned={owned}
+                equipped={equipped}
+                canAfford={coins >= item.price}
+                busy={busy === item.id}
+                onPreview={() => setPreview(item)}
+              />
+            );
+          })}
+          {filtered.length === 0 && (
+            <div className="col-span-2 rounded-2xl border border-dashed border-candle/15 bg-velvet/40 px-5 py-10 text-center">
+              <p className="text-3xl mb-2">🎁</p>
+              <p className="font-serif italic text-candle/80 text-sm">More treasures coming soon</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Preview modal */}
+      {preview && (
+        <div
+          className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-4"
+          onClick={() => setPreview(null)}
+        >
+          <div
+            className="w-full max-w-sm bg-surface border border-border rounded-3xl p-5 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <ItemPreview item={preview} />
+            <div className="mt-4">
+              <p className="font-serif italic text-xl">{preview.name}</p>
+              <p className="text-sm text-candle-muted mt-1">{preview.description}</p>
+              <p className="mt-2 inline-flex items-center gap-1 text-petal font-semibold">
+                <Coins className="size-4" /> {preview.price}
+              </p>
+            </div>
+            <div className="mt-4 flex gap-2">
+              {inventory.has(preview.id) ? (
+                <button
+                  onClick={() => toggleEquip(preview)}
+                  disabled={busy === preview.id}
+                  className="flex-1 px-4 py-3 rounded-2xl bg-petal text-velvet font-semibold text-sm disabled:opacity-50"
+                >
+                  {busy === preview.id
+                    ? "…"
+                    : inventory.get(preview.id)
+                      ? "Unequip"
+                      : "Equip"}
+                </button>
+              ) : (
+                <button
+                  onClick={() => purchase(preview)}
+                  disabled={busy === preview.id || coins < preview.price}
+                  className="flex-1 px-4 py-3 rounded-2xl bg-petal text-velvet font-semibold text-sm disabled:opacity-50 inline-flex items-center justify-center gap-1.5"
+                >
+                  {coins < preview.price ? <Lock className="size-4" /> : <Sparkles className="size-4" />}
+                  {busy === preview.id ? "…" : coins < preview.price ? "Not enough" : "Unlock"}
+                </button>
+              )}
+              <button
+                onClick={() => setPreview(null)}
+                className="px-4 py-3 rounded-2xl bg-velvet border border-border text-candle-muted text-sm"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
+}
+
+function ShopCard({
+  item,
+  owned,
+  equipped,
+  canAfford,
+  busy,
+  onPreview,
+}: {
+  item: ShopItem;
+  owned: boolean;
+  equipped: boolean;
+  canAfford: boolean;
+  busy: boolean;
+  onPreview: () => void;
+}) {
+  return (
+    <button
+      onClick={onPreview}
+      disabled={busy}
+      className="text-left rounded-2xl border border-border bg-surface overflow-hidden active:scale-[0.98] transition"
+    >
+      <div className="aspect-square relative">
+        <ItemPreview item={item} compact />
+        {equipped && (
+          <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-petal text-velvet text-[10px] font-bold inline-flex items-center gap-1">
+            <Check className="size-3" /> Equipped
+          </div>
+        )}
+        {owned && !equipped && (
+          <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-velvet/80 text-candle text-[10px] font-semibold border border-border">
+            Owned
+          </div>
+        )}
+      </div>
+      <div className="p-3">
+        <p className="font-serif italic text-sm leading-tight truncate">{item.name}</p>
+        <div className="mt-1.5 flex items-center justify-between">
+          <span className="inline-flex items-center gap-1 text-[11px] text-petal font-semibold">
+            <Coins className="size-3" /> {item.price === 0 ? "Free" : item.price}
+          </span>
+          {!owned && !canAfford && <Lock className="size-3 text-candle-muted" />}
+        </div>
+      </div>
+    </button>
+  );
+}
+
+function ItemPreview({ item, compact = false }: { item: ShopItem; compact?: boolean }) {
+  const meta = item.metadata ?? {};
+  if (item.category === "chat_theme") {
+    return (
+      <div className="w-full h-full flex flex-col justify-end gap-1.5 p-3" style={{ background: chatWallpaper(meta.wallpaper) }}>
+        <div className="self-start max-w-[70%] px-2.5 py-1.5 rounded-2xl rounded-bl-sm text-[10px] text-candle" style={{ background: meta.bubble_them ?? "#2b1e2e" }}>
+          hi love ✨
+        </div>
+        <div className="self-end max-w-[70%] px-2.5 py-1.5 rounded-2xl rounded-br-sm text-[10px] text-velvet font-medium" style={{ background: meta.bubble_me ?? "#e879a5" }}>
+          missing you
+        </div>
+      </div>
+    );
+  }
+  if (item.category === "site_theme") {
+    return (
+      <div className="w-full h-full relative" style={{ background: meta.bg ?? "#1a0f1c" }}>
+        <div className="absolute inset-0 opacity-40" style={{ background: `radial-gradient(circle at 30% 20%, ${meta.accent}66, transparent 60%)` }} />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="size-12 rounded-full" style={{ background: meta.accent, boxShadow: `0 0 30px ${meta.accent}` }} />
+        </div>
+      </div>
+    );
+  }
+  if (item.category === "chat_perk") {
+    return (
+      <div className="w-full h-full bg-gradient-to-br from-velvet to-surface flex items-center justify-center text-5xl">
+        {perkEmoji(meta.effect)}
+      </div>
+    );
+  }
+  if (item.category === "profile_flair") {
+    return (
+      <div className="w-full h-full bg-gradient-to-br from-velvet to-surface flex items-center justify-center">
+        <div
+          className="size-16 rounded-full bg-petal/40 flex items-center justify-center text-2xl"
+          style={{
+            boxShadow: flairRing(meta.ring),
+            outline: meta.badge === "supporter" ? "2px solid gold" : undefined,
+          }}
+        >
+          🐼
+        </div>
+      </div>
+    );
+  }
+  if (item.category === "ai_sticker_pack") {
+    return (
+      <div className="w-full h-full bg-gradient-to-br from-petal/20 to-velvet flex items-center justify-center">
+        <div className="grid grid-cols-2 gap-1 text-2xl">
+          {packEmojis(meta.pack).slice(0, compact ? 4 : 4).map((e, i) => (
+            <span key={i}>{e}</span>
+          ))}
+        </div>
+      </div>
+    );
+  }
+  return <div className="w-full h-full bg-velvet" />;
+}
+
+function chatWallpaper(w?: string) {
+  switch (w) {
+    case "bamboo":
+      return "linear-gradient(135deg, #1e2b25, #0f1a13)";
+    case "sakura":
+      return "linear-gradient(135deg, #3d2a35, #2a1e28)";
+    case "neon":
+      return "linear-gradient(135deg, #1a1030, #10061c)";
+    case "sunset":
+      return "linear-gradient(135deg, #3a1f1a, #1f0f0d)";
+    case "arctic":
+      return "linear-gradient(135deg, #1e2a3a, #0f1620)";
+    default:
+      return "linear-gradient(135deg, #2b1e2e, #1a0f1c)";
+  }
+}
+
+function perkEmoji(effect?: string) {
+  switch (effect) {
+    case "kiss_gold":
+      return "💋";
+    case "hug_warm":
+      return "🤗";
+    case "confetti":
+      return "🎉";
+    case "petal_rain":
+      return "🌸";
+    case "wax_seal":
+      return "💌";
+    default:
+      return "✨";
+  }
+}
+
+function flairRing(ring?: string) {
+  switch (ring) {
+    case "aurora":
+      return "0 0 0 3px #7dd3fc, 0 0 20px #c084fc";
+    case "gold":
+      return "0 0 0 3px gold, 0 0 20px #facc15";
+    default:
+      return "none";
+  }
+}
+
+function packEmojis(pack?: string): string[] {
+  switch (pack) {
+    case "cute_pandas":
+      return ["🐼", "🎋", "💕", "🌸"];
+    case "romantic_moods":
+      return ["😘", "🥰", "💘", "😌"];
+    case "daily_life":
+      return ["☕", "🍜", "😴", "📚"];
+    case "seasonal":
+      return ["🌸", "🏖️", "🍂", "☃️"];
+    default:
+      return ["✨", "💫", "🌟", "⭐"];
+  }
 }
