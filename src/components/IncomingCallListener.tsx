@@ -48,6 +48,7 @@ export function IncomingCallListener() {
       if (!c) return;
       const call = c as unknown as CallRow;
       if (call.status !== "ringing") return;
+      if (call.scope === "group") return;
       // Ignore stale (>50s old)
       if (Date.now() - new Date(call.started_at).getTime() > 50_000) return;
       const { data: p } = await supabase
@@ -150,19 +151,11 @@ export function IncomingCallListener() {
     } catch (e) {
       console.warn("answer failed", e);
     }
-    if (incoming.scope === "group" && incoming.groupId) {
-      navigate({
-        to: "/app/call/group/$groupId",
-        params: { groupId: incoming.groupId },
-        search: { callId: incoming.callId, role: "callee" },
-      });
-    } else {
-      navigate({
-        to: "/app/call/$peerId",
-        params: { peerId: incoming.fromId },
-        search: { callId: incoming.callId, role: "callee", mode: incoming.kind },
-      });
-    }
+    navigate({
+      to: "/app/call/$peerId",
+      params: { peerId: incoming.fromId },
+      search: { callId: incoming.callId, role: "callee", mode: incoming.kind },
+    });
     setIncoming(null);
   }
 
