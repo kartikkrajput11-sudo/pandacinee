@@ -201,9 +201,6 @@ export function SignedVideo({ path }: { path: string }) {
           >
             {isFullscreen ? <Minimize2 className="size-3.5" /> : <Maximize2 className="size-3.5" />}
           </button>
-          >
-            <Maximize2 className="size-3.5" />
-          </button>
         </div>
       </div>
     </div>
