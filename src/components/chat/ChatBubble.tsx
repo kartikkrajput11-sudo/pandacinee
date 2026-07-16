@@ -465,3 +465,20 @@ function ChatBubbleImpl({
     </div>
   );
 }
+
+export const ChatBubble = memo(ChatBubbleImpl, (prev, next) => {
+  // Re-render only when something visible to this bubble actually changed.
+  if (prev.m !== next.m) return false;
+  if (prev.replyTo !== next.replyTo) return false;
+  if (prev.mine !== next.mine) return false;
+  if (prev.isLast !== next.isLast) return false;
+  if (prev.showAvatar !== next.showAvatar) return false;
+  if (prev.isPartner !== next.isPartner) return false;
+  // Callbacks from useChat are useCallback-stable, so identity equality is fine.
+  if (prev.onReact !== next.onReact) return false;
+  if (prev.onReply !== next.onReply) return false;
+  if (prev.onPin !== next.onPin) return false;
+  if (prev.onDelete !== next.onDelete) return false;
+  if (prev.onVanish !== next.onVanish) return false;
+  return true;
+});
