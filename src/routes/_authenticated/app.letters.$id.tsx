@@ -22,6 +22,7 @@ type Letter = {
   unlock_at: string;
   opened_at: string | null;
   created_at: string;
+  seal_motto: string | null;
 };
 
 const THEME_STYLE: Record<Letter["theme"], { seal: string; page: string; text: string; ring: string }> = {
@@ -173,7 +174,7 @@ function LetterView() {
         {stillLocked && !mine ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <div className="mb-8">
-              <PandacineWaxSeal tone={letter.theme} interactive={false} size={176} />
+              <PandacineWaxSeal tone={letter.theme} interactive={false} size={176} motto={letter.seal_motto ?? undefined} />
             </div>
             <p className={`font-serif italic text-3xl ${style.text} mb-2`}>Sealed for you.</p>
             <p className={`${style.text} opacity-70 text-sm mb-6`}>
@@ -205,7 +206,7 @@ function LetterView() {
             </button>
             {breaking && (
               <div className="mt-6">
-                <PandacineWaxSeal tone={letter.theme} interactive={false} breaking size={176} />
+                <PandacineWaxSeal tone={letter.theme} interactive={false} breaking size={176} motto={letter.seal_motto ?? undefined} />
               </div>
             )}
           </div>
@@ -216,6 +217,7 @@ function LetterView() {
               breaking={breaking}
               onClick={open}
               size={192}
+              motto={letter.seal_motto ?? undefined}
             />
             <p className={`font-serif italic text-2xl ${style.text} mt-8`}>Break the seal.</p>
             <p className={`${style.text} opacity-70 text-sm mt-1`}>Tap to open.</p>

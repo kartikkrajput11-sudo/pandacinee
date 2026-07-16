@@ -705,6 +705,7 @@ export type Database = {
           id: string
           opened_at: string | null
           recipient_id: string
+          seal_motto: string | null
           sender_id: string
           theme: string
           title: string
@@ -718,6 +719,7 @@ export type Database = {
           id?: string
           opened_at?: string | null
           recipient_id: string
+          seal_motto?: string | null
           sender_id: string
           theme?: string
           title?: string
@@ -731,6 +733,7 @@ export type Database = {
           id?: string
           opened_at?: string | null
           recipient_id?: string
+          seal_motto?: string | null
           sender_id?: string
           theme?: string
           title?: string
@@ -1613,6 +1616,7 @@ export type Database = {
           id: string
           opened_at: string | null
           recipient_id: string
+          seal_motto: string | null
           sender_id: string
           theme: string
           title: string

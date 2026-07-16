@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
 import { draftLoveLetter } from "@/lib/letters.functions";
+import { PandacineWaxSeal } from "@/components/PandacineWaxSeal";
 
 export const Route = createFileRoute("/_authenticated/app/letters/")({
   component: LettersRoute,
@@ -214,6 +215,8 @@ function Composer({
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [theme, setTheme] = useState<Letter["theme"]>("gold");
+  const [motto, setMotto] = useState("");
+  const [previewBreaking, setPreviewBreaking] = useState(false);
   const [tone, setTone] = useState<"tender" | "playful" | "poetic" | "vulnerable">("tender");
   const [hints, setHints] = useState("");
   const [unlockChoice, setUnlockChoice] = useState<"now" | "tomorrow" | "week" | "custom">("tomorrow");
@@ -224,6 +227,11 @@ function Composer({
   });
   const [aiLoading, setAiLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  function testAnimation() {
+    setPreviewBreaking(true);
+    setTimeout(() => setPreviewBreaking(false), 1500);
+  }
 
   const unlockAt = useMemo(() => {
     const d = new Date();
@@ -268,6 +276,7 @@ function Composer({
       title: title.trim() || "Untitled",
       body: body.trim(),
       theme,
+      seal_motto: motto.trim() || null,
       unlock_at: unlockAt.toISOString(),
     });
     setSaving(false);
@@ -360,6 +369,37 @@ function Composer({
                   className={`size-10 rounded-full ${t.swatch} transition-all ${theme === t.id ? `ring-2 ring-offset-2 ring-offset-surface-elevated ${t.ring}` : "opacity-70"}`}
                 />
               ))}
+            </div>
+          </div>
+
+          <div>
+            <div className="flex items-baseline justify-between mb-2">
+              <p className="text-[10px] uppercase tracking-[0.25em] text-candle-muted">Seal wording</p>
+              <span className="text-[10px] text-candle-muted">{motto.length}/40</span>
+            </div>
+            <input
+              value={motto}
+              onChange={(e) => setMotto(e.target.value.slice(0, 40))}
+              placeholder="Pandacine · Sealed with love"
+              className="w-full bg-surface rounded-xl px-3 py-2 text-sm text-candle placeholder:text-candle-muted focus:outline-none focus:ring-1 focus:ring-petal"
+            />
+            <p className="text-[10px] text-candle-muted mt-1.5">Curved text pressed around the wax ring.</p>
+
+            <div className="mt-4 flex flex-col items-center rounded-2xl bg-velvet/60 border border-border p-5">
+              <PandacineWaxSeal
+                tone={theme}
+                motto={motto}
+                breaking={previewBreaking}
+                interactive={false}
+                size={160}
+              />
+              <button
+                type="button"
+                onClick={testAnimation}
+                className="mt-5 inline-flex items-center gap-2 px-4 py-2 rounded-full border border-petal/40 bg-petal-soft text-candle text-[11px] uppercase tracking-[0.22em]"
+              >
+                <Sparkles className="size-3" /> Test animation
+              </button>
             </div>
           </div>
 
