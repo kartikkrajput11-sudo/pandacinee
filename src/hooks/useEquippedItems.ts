@@ -73,6 +73,7 @@ export function useEquippedItems(): EquippedItems {
   const [flairNameGradient, setFlairNameGradient] = useState<FlairMeta | null>(null);
   const [flairBadge, setFlairBadge] = useState<FlairMeta | null>(null);
   const [chessBoard, setChessBoard] = useState<ChessBoardMeta | null>(null);
+  const [chessPieces, setChessPieces] = useState<ChessPiecesMeta | null>(null);
   const [ownedPerks, setOwnedPerks] = useState<Set<string>>(new Set());
   const [ownedPackMoods, setOwnedPackMoods] = useState<Set<string>>(new Set());
   const [loaded, setLoaded] = useState(false);
