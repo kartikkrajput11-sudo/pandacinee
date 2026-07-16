@@ -160,6 +160,8 @@ function ShopRoute() {
       if (error) throw error;
       toast.success(currentlyEquipped ? "Unequipped" : "Equipped ✨");
       await load();
+      invalidateEquippedItems();
+
     } catch (e: any) {
       toast.error(e?.message ?? "Couldn't equip");
     } finally {
