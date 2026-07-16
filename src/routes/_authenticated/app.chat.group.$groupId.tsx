@@ -175,15 +175,12 @@ function GroupChat() {
           return (
             <div key={m.id} className={`flex gap-2 ${mine ? "flex-row-reverse" : ""}`}>
               {!mine && (
-                <div className={`size-8 rounded-full flex items-center justify-center text-sm shrink-0 overflow-hidden ${fromPartner ? "bg-petal-soft ring-2 ring-petal" : "bg-petal-soft"}`}>
-                  {sender?.avatar_url ? (
-                    <img src={sender.avatar_url} alt="" className="size-full object-cover" />
-                  ) : (
-                    <span className="font-serif italic text-petal">
-                      {sender?.display_name?.[0]?.toUpperCase() ?? "?"}
-                    </span>
-                  )}
-                </div>
+                <UserAvatar
+                  src={sender?.avatar_url}
+                  name={sender?.display_name}
+                  className="size-8"
+                  ringed={!!fromPartner}
+                />
               )}
               <div className={`max-w-[75%] ${mine ? "items-end" : "items-start"} flex flex-col`}>
                 {!mine && (
