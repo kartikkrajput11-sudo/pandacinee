@@ -327,7 +327,12 @@ export function PunishmentLockOverlay({
             >
               &ldquo;
             </span>
-            <p className="font-serif italic text-lg text-candle/95 leading-snug">
+            <p
+              className="font-serif italic text-lg text-candle/95 leading-snug select-none"
+              style={{ WebkitUserSelect: "none", userSelect: "none" }}
+              onCopy={(e) => e.preventDefault()}
+              onContextMenu={(e) => e.preventDefault()}
+            >
               {lock.prompt}
             </p>
             <span
