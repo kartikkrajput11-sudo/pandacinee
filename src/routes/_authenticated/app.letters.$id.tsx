@@ -60,6 +60,8 @@ function LetterView() {
   const [letter, setLetter] = useState<Letter | null>(null);
   const [now, setNow] = useState(Date.now());
   const [breaking, setBreaking] = useState(false);
+  // "idle" → seal shown | "breaking" → wax animation playing | "unfolding" → paper opening | "done"
+  const [reveal, setReveal] = useState<"idle" | "breaking" | "unfolding" | "done">("idle");
 
   async function load() {
     if (!me) return;
@@ -120,14 +122,19 @@ function LetterView() {
   async function open() {
     if (!canOpen) return;
     setBreaking(true);
+    setReveal("breaking");
     try {
       const res = await openLoveLetter({ data: { id } });
       if (res) setLetter(res as Letter);
     } catch (err: any) {
       toast.error(err.message ?? "Could not open");
     }
-    // Let the seal-break animation play before we drop it.
-    setTimeout(() => setBreaking(false), 1200);
+    // Wax crack → shards fly → melt drips (~1200ms), then unfold the paper.
+    setTimeout(() => setReveal("unfolding"), 1300);
+    setTimeout(() => {
+      setBreaking(false);
+      setReveal("done");
+    }, 2600);
   }
 
   async function unseal() {
@@ -232,26 +239,75 @@ function LetterView() {
             </button>
           </div>
         ) : (
-          <article className={`animate-fade-in ${breaking ? "" : ""}`}>
-            {letter.title && (
-              <h1 className={`font-serif italic text-4xl leading-tight mb-6 ${style.text}`}>
-                {letter.title}
-              </h1>
+          <div className="relative">
+            {/* Seal continues its break animation while the paper unfolds beneath */}
+            {reveal === "breaking" && (
+              <div className="absolute inset-x-0 top-0 flex justify-center pt-4 z-10 pointer-events-none">
+                <PandacineWaxSeal
+                  tone={letter.theme}
+                  breaking
+                  interactive={false}
+                  size={192}
+                  motto={letter.seal_motto ?? undefined}
+                />
+              </div>
             )}
-            <div
-              className={`${style.text} whitespace-pre-wrap leading-relaxed text-lg`}
-              style={{ fontFamily: "'Cormorant Garamond', 'Playfair Display', Georgia, serif" }}
+
+            <article
+              className={
+                reveal === "unfolding"
+                  ? "letter-unfold"
+                  : reveal === "breaking"
+                    ? "opacity-0"
+                    : "animate-fade-in"
+              }
+              style={{ transformOrigin: "top center", perspective: "1400px" }}
             >
-              {letter.body}
-            </div>
-            <footer className={`mt-10 pt-6 border-t border-white/10 ${style.text} opacity-60 text-xs flex items-center gap-2`}>
-              <Clock className="size-3" />
-              Sealed {new Date(letter.created_at).toLocaleDateString([], { dateStyle: "long" })}
-              {letter.opened_at && (
-                <>· Opened {new Date(letter.opened_at).toLocaleDateString([], { dateStyle: "long" })}</>
-              )}
-            </footer>
-          </article>
+              <div className={`relative rounded-3xl px-6 py-8 border border-white/10 ${style.text}`}
+                   style={{
+                     background: "linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.015) 100%)",
+                     boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06), 0 30px 60px -20px rgba(0,0,0,0.5)",
+                   }}
+              >
+                {/* Horizontal fold creases */}
+                <div className="pointer-events-none absolute inset-x-6 top-1/3 h-px bg-white/8" />
+                <div className="pointer-events-none absolute inset-x-6 top-2/3 h-px bg-white/8" />
+
+                {letter.title && (
+                  <h1 className={`font-serif italic text-4xl leading-tight mb-6 ${style.text}`}>
+                    {letter.title}
+                  </h1>
+                )}
+                <div
+                  className={`${style.text} whitespace-pre-wrap leading-relaxed text-lg`}
+                  style={{ fontFamily: "'Cormorant Garamond', 'Playfair Display', Georgia, serif" }}
+                >
+                  {letter.body}
+                </div>
+                <footer className={`mt-10 pt-6 border-t border-white/10 ${style.text} opacity-60 text-xs flex items-center gap-2`}>
+                  <Clock className="size-3" />
+                  Sealed {new Date(letter.created_at).toLocaleDateString([], { dateStyle: "long" })}
+                  {letter.opened_at && (
+                    <>· Opened {new Date(letter.opened_at).toLocaleDateString([], { dateStyle: "long" })}</>
+                  )}
+                </footer>
+              </div>
+            </article>
+
+            <style>{`
+              @keyframes letter-unfold {
+                0%   { opacity: 0; transform: perspective(1400px) rotateX(-92deg) scaleY(0.15) translateY(-20px); filter: brightness(0.6); }
+                25%  { opacity: 1; transform: perspective(1400px) rotateX(-70deg) scaleY(0.35) translateY(-8px); filter: brightness(0.75); }
+                55%  { transform: perspective(1400px) rotateX(-35deg) scaleY(0.7) translateY(0); filter: brightness(0.9); }
+                80%  { transform: perspective(1400px) rotateX(-8deg)  scaleY(0.97) translateY(0); filter: brightness(1); }
+                100% { opacity: 1; transform: perspective(1400px) rotateX(0)    scaleY(1)    translateY(0); filter: brightness(1); }
+              }
+              .letter-unfold {
+                animation: letter-unfold 1400ms cubic-bezier(.22,.9,.32,1) both;
+                transform-origin: top center;
+              }
+            `}</style>
+          </div>
         )}
 
         {mine && stillLocked && (
