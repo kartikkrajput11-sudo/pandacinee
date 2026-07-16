@@ -48,6 +48,8 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
   const [wheelOpen, setWheelOpen] = useState(false);
   const [pandaOpen, setPandaOpen] = useState(false);
   const [whisper, setWhisper] = useState(false);
+  const [recording, setRecording] = useState(false);
+
   const fileRef = useRef<HTMLInputElement>(null);
   const imgRef = useRef<HTMLInputElement>(null);
   const vidRef = useRef<HTMLInputElement>(null);
