@@ -11,6 +11,7 @@ import {
   useUpdateGroup, useSetMemberRole, useRemoveMember, useAddMembers,
   isGroupMuted, setGroupMuted, GROUP_THEMES, type GroupTheme,
 } from "@/hooks/useGroupAdmin";
+import { UserAvatar } from "@/components/UserAvatar";
 
 const AVATAR_EMOJIS = ["💜", "🐼", "🌸", "🌙", "🍿", "🎬", "🦋", "🍓", "🌈", "🪐"];
 
@@ -258,13 +259,8 @@ function GroupInfo() {
               const isMe = m.user_id === me?.id;
               return (
                 <div key={m.user_id} className="flex items-center gap-3 p-2.5 rounded-2xl bg-surface/40">
-                  <div className="size-10 rounded-full bg-petal-soft flex items-center justify-center overflow-hidden shrink-0">
-                    {p?.avatar_url ? (
-                      <img src={p.avatar_url} alt="" className="size-full object-cover" />
-                    ) : (
-                      <span className="font-serif italic text-petal">{p?.display_name?.[0]?.toUpperCase() ?? "?"}</span>
-                    )}
-                  </div>
+                  <UserAvatar src={p?.avatar_url} name={p?.display_name} className="size-10" />
+
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1.5">
                       <p className="font-serif italic text-sm truncate">
@@ -337,9 +333,8 @@ function GroupInfo() {
                     }
                     className={`w-full flex items-center gap-3 p-2.5 rounded-2xl border ${on ? "bg-petal-soft border-petal/40" : "bg-surface/40 border-transparent"}`}
                   >
-                    <div className="size-10 rounded-full bg-petal-soft flex items-center justify-center overflow-hidden">
-                      {p.avatar_url ? <img src={p.avatar_url} alt="" className="size-full object-cover" /> : <span className="font-serif italic text-petal">{p.display_name?.[0]?.toUpperCase()}</span>}
-                    </div>
+                    <UserAvatar src={p.avatar_url} name={p.display_name} className="size-10" />
+
                     <div className="flex-1 text-left min-w-0">
                       <p className="font-serif italic text-sm truncate">{p.display_name}</p>
                       <p className="text-[10px] text-candle-muted truncate">@{p.username}</p>
