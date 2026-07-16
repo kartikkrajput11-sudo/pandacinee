@@ -502,6 +502,9 @@ function ChatBubbleImpl({
             ))}
             <div className="w-px bg-border mx-1" />
             <button onClick={() => { onReply(m); setActionsOpen(false); }} className="p-1.5 rounded-lg text-candle hover:bg-petal/20"><Reply className="size-4" /></button>
+            {onForward && (
+              <button onClick={() => { onForward(m); setActionsOpen(false); }} className="p-1.5 rounded-lg text-candle hover:bg-petal/20" title="Forward"><Forward className="size-4" /></button>
+            )}
             <button onClick={() => { onPin(m); setActionsOpen(false); }} className="p-1.5 rounded-lg text-candle hover:bg-petal/20"><Pin className="size-4" /></button>
             {mine && onVanish && (
               <button
