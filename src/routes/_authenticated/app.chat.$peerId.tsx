@@ -494,7 +494,7 @@ function ChatPeer() {
 
 
       />
-      <KissOverlay trigger={kissTick} emoji={kissEmoji} />
+      <KissOverlay trigger={kissTick} />
       <HugOverlay trigger={hugTick} />
       <UnlockCelebration trigger={unlockTick || null} />
 
