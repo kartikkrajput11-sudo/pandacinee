@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Search, X, Film, Sparkles, Plus, Trash2, Disc3 } from "lucide-react";
+import { Search, X, Film, Sparkles, Plus, Disc3 } from "lucide-react";
 import { toast } from "sonner";
 import { tmdbSearch, type TmdbMovie } from "@/lib/tmdb.functions";
-import { wheelAiSuggest, wheelTrending } from "@/lib/wheel.functions";
+import { wheelAiSuggest } from "@/lib/wheel.functions";
 import { poster } from "@/routes/_authenticated/app.movies";
 
 export type WheelEntry = {
@@ -24,14 +24,12 @@ type Props = {
 export function MovieWheelPicker({ open, onClose, onSend }: Props) {
   const runSearch = useServerFn(tmdbSearch);
   const runAi = useServerFn(wheelAiSuggest);
-  const runTrending = useServerFn(wheelTrending);
 
   const [entries, setEntries] = useState<WheelEntry[]>([]);
   const [q, setQ] = useState("");
   const [results, setResults] = useState<TmdbMovie[]>([]);
   const [searching, setSearching] = useState(false);
   const [aiBusy, setAiBusy] = useState(false);
-  const [vibe, setVibe] = useState("");
   const [sending, setSending] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -40,7 +38,6 @@ export function MovieWheelPicker({ open, onClose, onSend }: Props) {
       setEntries([]);
       setQ("");
       setResults([]);
-      setVibe("");
     } else {
       setTimeout(() => inputRef.current?.focus(), 80);
     }
@@ -88,7 +85,7 @@ export function MovieWheelPicker({ open, onClose, onSend }: Props) {
     setAiBusy(true);
     try {
       const remaining = Math.max(4, 6 - entries.length);
-      const picks = await runAi({ data: { vibe, count: remaining } });
+      const picks = await runAi({ data: { vibe: "", count: remaining } });
       const merged: WheelEntry[] = [...entries];
       const seen = new Set(merged.map((e) => e.tmdb_id).filter(Boolean));
       for (const m of picks) {
@@ -112,34 +109,6 @@ export function MovieWheelPicker({ open, onClose, onSend }: Props) {
     }
   }
 
-  async function fillTrending() {
-    setAiBusy(true);
-    try {
-      const remaining = Math.max(4, 6 - entries.length);
-      const picks = await runTrending({ data: { count: remaining } });
-      const merged: WheelEntry[] = [...entries];
-      const seen = new Set(merged.map((e) => e.tmdb_id).filter(Boolean));
-      for (const m of picks) {
-        if (merged.length >= 8) break;
-        if (seen.has(m.id)) continue;
-        seen.add(m.id);
-        merged.push({
-          tmdb_id: m.id,
-          title: m.title,
-          poster_path: m.poster_path,
-          release_date: m.release_date,
-          vote_average: m.vote_average,
-          overview: m.overview,
-        });
-      }
-      setEntries(merged);
-    } catch {
-      toast.error("Couldn't load trending");
-    } finally {
-      setAiBusy(false);
-    }
-  }
-
   async function send() {
     if (entries.length < 2) {
       toast.error("Add at least 2 movies");
@@ -156,108 +125,113 @@ export function MovieWheelPicker({ open, onClose, onSend }: Props) {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-velvet/80 backdrop-blur-sm flex items-end sm:items-center justify-center" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 bg-velvet/85 backdrop-blur-md flex items-end sm:items-center justify-center animate-fade-in"
+      onClick={onClose}
+    >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="w-full sm:max-w-md bg-surface-elevated border border-border sm:rounded-3xl rounded-t-3xl flex flex-col max-h-[92vh] overflow-hidden"
+        className="relative w-full sm:max-w-sm bg-[linear-gradient(180deg,rgba(30,20,35,0.96)_0%,rgba(18,12,22,0.98)_100%)] backdrop-blur-2xl sm:rounded-3xl rounded-t-3xl flex flex-col max-h-[86vh] overflow-hidden shadow-[0_-20px_60px_-20px_rgba(0,0,0,0.7)]"
       >
-        <header className="flex items-center gap-3 p-4 border-b border-border">
-          <div className="size-9 rounded-full bg-petal-soft flex items-center justify-center">
-            <Disc3 className="size-4 text-petal" />
-          </div>
-          <div className="flex-1">
-            <p className="text-[10px] uppercase tracking-widest text-petal">Movie wheel</p>
-            <h2 className="font-serif italic text-lg leading-tight">Spin for tonight's pick</h2>
-          </div>
-          <button onClick={onClose} className="size-9 rounded-full bg-surface border border-border flex items-center justify-center text-candle-muted">
-            <X className="size-4" />
-          </button>
-        </header>
+        {/* Champagne hairline */}
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-petal/50 to-transparent" />
+        {/* Ambient glow */}
+        <div className="pointer-events-none absolute -top-16 left-1/2 -translate-x-1/2 w-64 h-32 rounded-full bg-petal/10 blur-3xl" />
 
-        {/* Selected entries */}
-        <div className="px-4 pt-3">
-          <div className="flex items-center justify-between mb-1.5">
-            <p className="text-[10px] uppercase tracking-widest text-candle-muted">On the wheel · {entries.length}/8</p>
+        {/* Handle + Header */}
+        <div className="relative pt-2.5 pb-3">
+          <div className="mx-auto h-[3px] w-9 rounded-full bg-candle/25 sm:hidden" />
+          <div className="mt-2 flex flex-col items-center px-6">
+            <div className="flex items-center gap-2 text-petal">
+              <Disc3 className="size-3.5" />
+              <p className="text-[9px] uppercase tracking-[0.32em] font-medium">Movie Wheel</p>
+            </div>
+            <h2 className="mt-1 font-serif italic text-lg text-candle">Tonight's pick</h2>
+          </div>
+          <button
+            onClick={onClose}
+            aria-label="Close"
+            className="absolute top-3 right-3 size-8 rounded-full bg-velvet/60 border border-white/[0.06] flex items-center justify-center text-candle-muted hover:text-candle transition-colors"
+          >
+            <X className="size-3.5" />
+          </button>
+        </div>
+
+        {/* Selection chips */}
+        <div className="px-4">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-[9px] uppercase tracking-[0.28em] text-candle-muted/70">
+              On the wheel · {entries.length}/8
+            </p>
             {entries.length > 0 && (
-              <button onClick={() => setEntries([])} className="text-[11px] text-candle-muted hover:text-petal">
+              <button
+                onClick={() => setEntries([])}
+                className="text-[10px] uppercase tracking-widest text-candle-muted/70 hover:text-petal transition-colors"
+              >
                 Clear
               </button>
             )}
           </div>
           {entries.length === 0 ? (
-            <div className="text-[11px] text-candle-muted italic border border-dashed border-border rounded-xl p-3 text-center">
-              Add movies below or let AI spin one up ✨
+            <div className="text-[11px] text-candle-muted/70 italic text-center py-3">
+              Add a few titles, or let the AI pick.
             </div>
           ) : (
-            <ul className="space-y-1">
-              {entries.map((e, i) => {
-                const p = poster(e.poster_path ?? null, "w185");
-                return (
-                  <li key={`${e.tmdb_id ?? e.title}-${i}`} className="flex items-center gap-2 p-1.5 rounded-xl bg-surface border border-border">
-                    <div className="w-8 h-11 rounded-md overflow-hidden bg-velvet/40 shrink-0 flex items-center justify-center">
-                      {p ? <img src={p} alt="" className="w-full h-full object-cover" /> : <Film className="size-3 text-candle-muted" />}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-serif italic truncate text-candle">{e.title}</p>
-                      {e.release_date && <p className="text-[10px] text-candle-muted">{e.release_date.slice(0, 4)}</p>}
-                    </div>
-                    <button onClick={() => removeAt(i)} className="size-7 rounded-full bg-surface-elevated border border-border flex items-center justify-center text-candle-muted hover:text-petal">
-                      <Trash2 className="size-3.5" />
-                    </button>
-                  </li>
-                );
-              })}
+            <ul className="flex flex-wrap gap-1.5 mb-1">
+              {entries.map((e, i) => (
+                <li
+                  key={`${e.tmdb_id ?? e.title}-${i}`}
+                  className="group flex items-center gap-1.5 pl-2 pr-1 py-1 rounded-full bg-white/[0.04] border border-white/[0.08] text-[11px] text-candle max-w-[160px]"
+                >
+                  <span className="truncate font-serif italic">{e.title}</span>
+                  <button
+                    onClick={() => removeAt(i)}
+                    aria-label="Remove"
+                    className="size-4 rounded-full flex items-center justify-center text-candle-muted hover:text-petal hover:bg-white/[0.06]"
+                  >
+                    <X className="size-3" />
+                  </button>
+                </li>
+              ))}
             </ul>
           )}
         </div>
 
-        {/* AI + trending */}
-        <div className="px-4 pt-3 space-y-2">
-          <input
-            value={vibe}
-            onChange={(e) => setVibe(e.target.value)}
-            placeholder="Vibe? e.g. rom-com date night, 90s classics…"
-            className="w-full px-3 py-2 bg-surface border border-border rounded-full text-xs text-candle placeholder:text-candle-muted focus:outline-none focus:border-petal/60"
-          />
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              disabled={aiBusy || entries.length >= 8}
-              onClick={fillAi}
-              className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-full bg-gradient-to-br from-petal/30 to-petal-soft/40 border border-petal/40 text-xs font-medium text-candle disabled:opacity-50"
-            >
-              <Sparkles className="size-3.5 text-petal" />
-              {aiBusy ? "Picking…" : "AI suggest"}
-            </button>
-            <button
-              disabled={aiBusy || entries.length >= 8}
-              onClick={fillTrending}
-              className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-full bg-surface border border-border text-xs text-candle disabled:opacity-50"
-            >
-              🔥 Trending
-            </button>
-          </div>
+        {/* AI single luxury action */}
+        <div className="px-4 pt-3">
+          <button
+            disabled={aiBusy || entries.length >= 8}
+            onClick={fillAi}
+            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-full bg-gradient-to-r from-petal/25 via-petal/15 to-petal/25 border border-petal/40 text-xs tracking-[0.16em] uppercase text-candle disabled:opacity-40 hover:from-petal/40 hover:to-petal/40 transition-all shadow-[0_4px_16px_-8px_rgba(236,72,153,0.5)]"
+          >
+            <Sparkles className="size-3.5 text-petal" />
+            {aiBusy ? "Curating…" : "AI curate"}
+          </button>
         </div>
 
-        {/* Manual add */}
-        <div className="px-4 pt-3 pb-2">
+        {/* Search */}
+        <div className="px-4 pt-3">
           <div className="relative">
-            <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-candle-muted" />
+            <Search className="size-3.5 absolute left-3.5 top-1/2 -translate-y-1/2 text-candle-muted/70" />
             <input
               ref={inputRef}
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="Search a movie to add…"
-              className="w-full pl-9 pr-3 py-2.5 bg-surface border border-border rounded-full text-sm text-candle placeholder:text-candle-muted focus:outline-none focus:border-petal/60"
+              placeholder="Search a title…"
+              className="w-full pl-9 pr-3 h-9 bg-velvet/70 border border-white/[0.06] rounded-full text-[13px] text-candle placeholder:text-candle-muted/60 focus:outline-none focus:border-petal/40 focus:bg-velvet/90 transition-all"
             />
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-2">
-          {searching && <div className="text-center py-4 text-xs text-candle-muted">Searching…</div>}
-          {!searching && q.trim() && results.length === 0 && (
-            <div className="text-center py-4 text-xs text-candle-muted">No matches.</div>
+        {/* Results */}
+        <div className="flex-1 overflow-y-auto px-2 pt-2 pb-1 no-scrollbar min-h-0">
+          {searching && (
+            <div className="text-center py-6 text-[11px] text-candle-muted/70 tracking-wide">Searching…</div>
           )}
-          <ul className="space-y-1">
+          {!searching && q.trim() && results.length === 0 && (
+            <div className="text-center py-6 text-[11px] text-candle-muted/70 tracking-wide">No matches.</div>
+          )}
+          <ul>
             {results.map((m) => {
               const year = m.release_date ? m.release_date.slice(0, 4) : "";
               const p = poster(m.poster_path, "w185");
@@ -276,14 +250,14 @@ export function MovieWheelPicker({ open, onClose, onSend }: Props) {
                         overview: m.overview,
                       })
                     }
-                    className="w-full flex items-center gap-3 p-2 rounded-2xl hover:bg-surface text-left disabled:opacity-40"
+                    className="w-full flex items-center gap-3 p-2 rounded-xl hover:bg-white/[0.04] text-left disabled:opacity-40 transition-colors"
                   >
-                    <div className="w-10 h-14 rounded-lg overflow-hidden bg-surface border border-border shrink-0 flex items-center justify-center">
-                      {p ? <img src={p} alt="" className="w-full h-full object-cover" /> : <Film className="size-4 text-candle-muted" />}
+                    <div className="w-9 h-12 rounded-md overflow-hidden bg-velvet/60 border border-white/[0.06] shrink-0 flex items-center justify-center">
+                      {p ? <img src={p} alt="" className="w-full h-full object-cover" /> : <Film className="size-3.5 text-candle-muted" />}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-serif italic text-sm truncate">{m.title}</p>
-                      <p className="text-[11px] text-candle-muted">
+                      <p className="font-serif italic text-sm truncate text-candle">{m.title}</p>
+                      <p className="text-[10px] text-candle-muted/80 tracking-wide">
                         {year}
                         {m.vote_average > 0 && <span className="ml-2 text-petal">★ {m.vote_average.toFixed(1)}</span>}
                       </p>
@@ -296,13 +270,15 @@ export function MovieWheelPicker({ open, onClose, onSend }: Props) {
           </ul>
         </div>
 
-        <div className="p-3 border-t border-border">
+        {/* Send */}
+        <div className="relative px-4 pt-2 pb-3">
+          <div className="absolute inset-x-4 top-0 h-px bg-gradient-to-r from-transparent via-white/[0.08] to-transparent" />
           <button
             onClick={send}
             disabled={entries.length < 2 || sending}
-            className="w-full py-3 rounded-full bg-petal text-velvet font-medium text-sm petal-glow disabled:opacity-40"
+            className="w-full py-3 rounded-full bg-petal text-velvet font-medium text-xs uppercase tracking-[0.2em] petal-glow disabled:opacity-40 transition-opacity"
           >
-            {sending ? "Sending…" : `Spin & send · ${entries.length} movie${entries.length === 1 ? "" : "s"}`}
+            {sending ? "Sending…" : `Spin · ${entries.length} title${entries.length === 1 ? "" : "s"}`}
           </button>
         </div>
       </div>
