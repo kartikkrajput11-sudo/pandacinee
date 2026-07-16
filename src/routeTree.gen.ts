@@ -54,6 +54,7 @@ import { Route as AuthenticatedAppChatPeerIdRouteImport } from './routes/_authen
 import { Route as AuthenticatedAppCallPeerIdRouteImport } from './routes/_authenticated/app.call.$peerId'
 import { Route as AuthenticatedAppMoviesIdWatchRouteImport } from './routes/_authenticated/app.movies.$id.watch'
 import { Route as AuthenticatedAppChatGroupGroupIdRouteImport } from './routes/_authenticated/app.chat.group.$groupId'
+import { Route as AuthenticatedAppCallGroupGroupIdRouteImport } from './routes/_authenticated/app.call.group.$groupId'
 import { Route as AuthenticatedAppChatGroupGroupIdInfoRouteImport } from './routes/_authenticated/app.chat.group.$groupId.info'
 import { Route as AuthenticatedAppMoviesIdEpisodeSeasonEpisodeRouteImport } from './routes/_authenticated/app.movies.$id.episode.$season.$episode'
 
@@ -304,6 +305,12 @@ const AuthenticatedAppChatGroupGroupIdRoute =
     path: '/chat/group/$groupId',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppCallGroupGroupIdRoute =
+  AuthenticatedAppCallGroupGroupIdRouteImport.update({
+    id: '/call/group/$groupId',
+    path: '/call/group/$groupId',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppChatGroupGroupIdInfoRoute =
   AuthenticatedAppChatGroupGroupIdInfoRouteImport.update({
     id: '/info',
@@ -360,6 +367,7 @@ export interface FileRoutesByFullPath {
   '/app/chat/': typeof AuthenticatedAppChatIndexRoute
   '/app/letters/': typeof AuthenticatedAppLettersIndexRoute
   '/app/movies/': typeof AuthenticatedAppMoviesIndexRoute
+  '/app/call/group/$groupId': typeof AuthenticatedAppCallGroupGroupIdRoute
   '/app/chat/group/$groupId': typeof AuthenticatedAppChatGroupGroupIdRouteWithChildren
   '/app/movies/$id/watch': typeof AuthenticatedAppMoviesIdWatchRoute
   '/app/chat/group/$groupId/info': typeof AuthenticatedAppChatGroupGroupIdInfoRoute
@@ -406,6 +414,7 @@ export interface FileRoutesByTo {
   '/app/chat': typeof AuthenticatedAppChatIndexRoute
   '/app/letters': typeof AuthenticatedAppLettersIndexRoute
   '/app/movies': typeof AuthenticatedAppMoviesIndexRoute
+  '/app/call/group/$groupId': typeof AuthenticatedAppCallGroupGroupIdRoute
   '/app/chat/group/$groupId': typeof AuthenticatedAppChatGroupGroupIdRouteWithChildren
   '/app/movies/$id/watch': typeof AuthenticatedAppMoviesIdWatchRoute
   '/app/chat/group/$groupId/info': typeof AuthenticatedAppChatGroupGroupIdInfoRoute
@@ -456,6 +465,7 @@ export interface FileRoutesById {
   '/_authenticated/app/chat/': typeof AuthenticatedAppChatIndexRoute
   '/_authenticated/app/letters/': typeof AuthenticatedAppLettersIndexRoute
   '/_authenticated/app/movies/': typeof AuthenticatedAppMoviesIndexRoute
+  '/_authenticated/app/call/group/$groupId': typeof AuthenticatedAppCallGroupGroupIdRoute
   '/_authenticated/app/chat/group/$groupId': typeof AuthenticatedAppChatGroupGroupIdRouteWithChildren
   '/_authenticated/app/movies/$id/watch': typeof AuthenticatedAppMoviesIdWatchRoute
   '/_authenticated/app/chat/group/$groupId/info': typeof AuthenticatedAppChatGroupGroupIdInfoRoute
@@ -506,6 +516,7 @@ export interface FileRouteTypes {
     | '/app/chat/'
     | '/app/letters/'
     | '/app/movies/'
+    | '/app/call/group/$groupId'
     | '/app/chat/group/$groupId'
     | '/app/movies/$id/watch'
     | '/app/chat/group/$groupId/info'
@@ -552,6 +563,7 @@ export interface FileRouteTypes {
     | '/app/chat'
     | '/app/letters'
     | '/app/movies'
+    | '/app/call/group/$groupId'
     | '/app/chat/group/$groupId'
     | '/app/movies/$id/watch'
     | '/app/chat/group/$groupId/info'
@@ -601,6 +613,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/chat/'
     | '/_authenticated/app/letters/'
     | '/_authenticated/app/movies/'
+    | '/_authenticated/app/call/group/$groupId'
     | '/_authenticated/app/chat/group/$groupId'
     | '/_authenticated/app/movies/$id/watch'
     | '/_authenticated/app/chat/group/$groupId/info'
@@ -932,6 +945,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppChatGroupGroupIdRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/call/group/$groupId': {
+      id: '/_authenticated/app/call/group/$groupId'
+      path: '/call/group/$groupId'
+      fullPath: '/app/call/group/$groupId'
+      preLoaderRoute: typeof AuthenticatedAppCallGroupGroupIdRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/chat/group/$groupId/info': {
       id: '/_authenticated/app/chat/group/$groupId/info'
       path: '/info'
@@ -1033,6 +1053,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppUserUserIdRoute: typeof AuthenticatedAppUserUserIdRoute
   AuthenticatedAppChatIndexRoute: typeof AuthenticatedAppChatIndexRoute
   AuthenticatedAppLettersIndexRoute: typeof AuthenticatedAppLettersIndexRoute
+  AuthenticatedAppCallGroupGroupIdRoute: typeof AuthenticatedAppCallGroupGroupIdRoute
   AuthenticatedAppChatGroupGroupIdRoute: typeof AuthenticatedAppChatGroupGroupIdRouteWithChildren
 }
 
@@ -1072,6 +1093,7 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppUserUserIdRoute: AuthenticatedAppUserUserIdRoute,
   AuthenticatedAppChatIndexRoute: AuthenticatedAppChatIndexRoute,
   AuthenticatedAppLettersIndexRoute: AuthenticatedAppLettersIndexRoute,
+  AuthenticatedAppCallGroupGroupIdRoute: AuthenticatedAppCallGroupGroupIdRoute,
   AuthenticatedAppChatGroupGroupIdRoute:
     AuthenticatedAppChatGroupGroupIdRouteWithChildren,
 }
