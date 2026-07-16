@@ -94,7 +94,7 @@ function ChatBubbleImpl({
   const isWhisper = m.type === "whisper";
   const isCall = m.type === "call";
   const [whisperRevealed, setWhisperRevealed] = useState(false);
-  useTick(30000);
+  useSharedTick(isLast);
 
   const bare = isSticker || isWatchInvite || isGameInvite || isMovieWheel || isKiss || isNudge || isCall;
 
