@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Circle, Clock } from "lucide-react";
 import type { Profile } from "@/hooks/useProfile";
+import { UserAvatar } from "@/components/UserAvatar";
 
 export function PartnerPresenceCard({
   partner,
@@ -42,13 +43,11 @@ export function PartnerPresenceCard({
       />
       <div className="relative flex items-center gap-4">
         <div className="relative">
-          <div className="size-14 rounded-2xl overflow-hidden bg-velvet flex items-center justify-center border border-border">
-            {partner.avatar_url ? (
-              <img src={partner.avatar_url} alt="" className="w-full h-full object-cover" />
-            ) : (
-              <span className="text-sm font-semibold text-candle">{initials ?? "🐼"}</span>
-            )}
-          </div>
+          <UserAvatar
+            src={partner.avatar_url}
+            name={partner.display_name ?? initials ?? "🐼"}
+            className="size-14 !rounded-2xl border border-border"
+          />
           <span
             className={`absolute -bottom-1 -right-1 size-4 rounded-full border-2 border-surface-elevated ${
               online ? "bg-emerald-400 animate-pulse-soft" : "bg-candle-muted/50"

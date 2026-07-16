@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useFriendships, useFriendActions, FriendProfile } from "@/hooks/useFriends";
 import { useProfile } from "@/hooks/useProfile";
+import { AvatarImg } from "@/components/AvatarImg";
 
 export const Route = createFileRoute("/_authenticated/app/friends")({
   component: Friends,
@@ -267,7 +268,7 @@ function Row({ profile, children }: { profile: FriendProfile; children: React.Re
     <div className="flex items-center gap-3 p-3 bg-surface border border-border rounded-2xl">
       <div className="size-10 rounded-full bg-petal-soft border border-petal/20 flex items-center justify-center overflow-hidden">
         {profile.avatar_url ? (
-          <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
+          <AvatarImg src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
         ) : (
           <span className="font-serif italic text-petal">{profile.display_name?.[0]?.toUpperCase()}</span>
         )}

@@ -39,6 +39,7 @@ import { WatchTogetherPanel } from "@/components/watch/WatchTogetherPanel";
 import { useWatchSync, fmtTime } from "@/hooks/useWatchSync";
 import { CustomMoviePlayer, type CustomPlayerHandle } from "@/components/CustomMoviePlayer";
 import { useFriendships } from "@/hooks/useFriends";
+import { AvatarImg } from "@/components/AvatarImg";
 
 type Source = { id: string; label: string; url: (tmdb: number, startAt?: number, mediaType?: "movie" | "tv", season?: number, episode?: number) => string; hint: string };
 
@@ -796,7 +797,7 @@ function CatalogWatch({ id }: { id: string }) {
           >
             <div className="flex -space-x-2">
               {me?.avatar_url ? (
-                <img src={me.avatar_url} alt="You" className="size-6 rounded-full object-cover border-2 border-velvet" />
+                <AvatarImg src={me.avatar_url} alt="You" className="size-6 rounded-full object-cover border-2 border-velvet" />
               ) : (
                 <div className="size-6 rounded-full bg-petal/30 border-2 border-velvet flex items-center justify-center text-[10px] text-petal font-semibold">
                   {(me?.display_name ?? "Y")[0]}
@@ -804,7 +805,7 @@ function CatalogWatch({ id }: { id: string }) {
               )}
               {partner && (
                 partner.avatar_url ? (
-                  <img src={partner.avatar_url} alt={partner.display_name} className="size-6 rounded-full object-cover border-2 border-velvet" />
+                  <AvatarImg src={partner.avatar_url} alt={partner.display_name} className="size-6 rounded-full object-cover border-2 border-velvet" />
                 ) : (
                   <div className="size-6 rounded-full bg-petal/20 border-2 border-velvet flex items-center justify-center text-[10px] text-petal font-semibold">
                     {partnerFirst[0]}
@@ -826,7 +827,7 @@ function CatalogWatch({ id }: { id: string }) {
                 <div className="px-3 py-2.5 flex items-center gap-2.5">
                   <div className="relative shrink-0">
                     {me?.avatar_url ? (
-                      <img src={me.avatar_url} alt="You" className="size-9 rounded-full object-cover border border-border" />
+                      <AvatarImg src={me.avatar_url} alt="You" className="size-9 rounded-full object-cover border border-border" />
                     ) : (
                       <div className="size-9 rounded-full bg-petal/20 border border-border flex items-center justify-center text-petal font-serif italic">
                         {(me?.display_name ?? "Y")[0]}
@@ -851,7 +852,7 @@ function CatalogWatch({ id }: { id: string }) {
                   <div className="px-3 py-2.5 flex items-center gap-2.5 border-t border-border/60">
                     <div className="relative shrink-0">
                       {partner.avatar_url ? (
-                        <img src={partner.avatar_url} alt={partner.display_name} className="size-9 rounded-full object-cover border border-border" />
+                        <AvatarImg src={partner.avatar_url} alt={partner.display_name} className="size-9 rounded-full object-cover border border-border" />
                       ) : (
                         <div className="size-9 rounded-full bg-petal/20 border border-border flex items-center justify-center text-petal font-serif italic">
                           {partnerFirst[0]}
@@ -894,7 +895,7 @@ function CatalogWatch({ id }: { id: string }) {
           <div className="mb-3 rounded-2xl border border-border bg-surface/60 backdrop-blur px-3 py-2.5 flex items-center gap-3">
             <div className="relative shrink-0">
               {partner.avatar_url ? (
-                <img src={partner.avatar_url} alt={partner.display_name} className="size-10 rounded-full object-cover border border-border" />
+                <AvatarImg src={partner.avatar_url} alt={partner.display_name} className="size-10 rounded-full object-cover border border-border" />
               ) : (
                 <div className="size-10 rounded-full bg-petal/20 border border-border flex items-center justify-center text-petal font-serif italic">
                   {partnerFirst[0]}
@@ -1608,7 +1609,7 @@ function CatalogWatch({ id }: { id: string }) {
                           className="w-full flex items-center gap-3 p-2.5 rounded-2xl hover:bg-surface transition text-left"
                         >
                           {f.avatar_url ? (
-                            <img src={f.avatar_url} alt="" className="size-10 rounded-full object-cover" />
+                            <AvatarImg src={f.avatar_url} alt="" className="size-10 rounded-full object-cover" />
                           ) : (
                             <div className="size-10 rounded-full bg-petal/20 text-petal flex items-center justify-center font-serif text-sm">
                               {(f.display_name || f.username || "?").slice(0, 1).toUpperCase()}

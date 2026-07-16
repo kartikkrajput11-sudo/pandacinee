@@ -8,6 +8,7 @@ import { PartnerPresenceCard } from "@/components/PartnerPresenceCard";
 
 import { MemoryOfTheDayCard } from "@/components/MemoryOfTheDayCard";
 import { Heart, ArrowRight, Users, LineChart, Clapperboard, BookHeart, Gift, Feather, Sparkles, Stars, Milestone, ListChecks } from "lucide-react";
+import { AvatarImg } from "@/components/AvatarImg";
 
 export const Route = createFileRoute("/_authenticated/app/")({
   component: Home,
@@ -208,7 +209,7 @@ function Avatar({ profile }: { profile?: { avatar_url: string | null; display_na
       className="size-11 rounded-full glass flex items-center justify-center overflow-hidden active:scale-95 transition-transform"
     >
       {profile?.avatar_url ? (
-        <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
+        <AvatarImg src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
       ) : (
         <span className="text-xs font-semibold text-candle">{initials ?? "🐼"}</span>
       )}

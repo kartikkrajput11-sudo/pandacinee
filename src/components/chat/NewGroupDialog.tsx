@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { useFriendships, type FriendProfile } from "@/hooks/useFriends";
 import { useCreateGroup } from "@/hooks/useGroups";
 import { useProfile } from "@/hooks/useProfile";
+import { AvatarImg } from "@/components/AvatarImg";
 
 const AVATAR_EMOJIS = ["💜", "🐼", "🌸", "🌙", "🍿", "🎬", "🦋", "🍓", "🌈", "🪐"];
 
@@ -130,7 +131,7 @@ export function NewGroupDialog({ open, onClose, onCreated }: { open: boolean; on
               >
                 <div className={`relative size-10 rounded-full bg-petal-soft flex items-center justify-center overflow-hidden ${p.isPartner ? "ring-2 ring-petal petal-glow" : ""}`}>
                   {p.avatar_url ? (
-                    <img src={p.avatar_url} alt="" className="size-full object-cover" />
+                    <AvatarImg src={p.avatar_url} alt="" className="size-full object-cover" />
                   ) : (
                     <span className="font-serif italic text-petal">{p.display_name?.[0]?.toUpperCase()}</span>
                   )}
