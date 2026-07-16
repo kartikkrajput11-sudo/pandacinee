@@ -393,17 +393,22 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
 
 
 
-      <form onSubmit={sendText} className="px-3 py-3 flex items-center gap-2 relative overflow-hidden">
+      <form
+        onSubmit={sendText}
+        className="px-3 py-3 grid items-center gap-2"
+        style={{
+          gridTemplateColumns: recording ? "0fr 1fr" : "1fr auto",
+          transition: "grid-template-columns 320ms cubic-bezier(0.22, 1, 0.36, 1)",
+        }}
+      >
         <input ref={imgRef} type="file" accept="image/*" className="hidden" onChange={handleImage} />
         <input ref={vidRef} type="file" accept="video/*" className="hidden" onChange={handleVideo} />
         <input ref={fileRef} type="file" className="hidden" onChange={handleFile} />
 
-        {/* Text side — slides out left and sinks when recording starts */}
+        {/* Text side — collapses to 0fr and fades left when recording */}
         <div
-          className={`flex items-center gap-2 flex-1 min-w-0 transition-all duration-300 ease-out ${
-            recording
-              ? "opacity-0 -translate-x-6 blur-sm pointer-events-none max-w-0 mr-0"
-              : "opacity-100 translate-x-0 blur-0 max-w-full"
+          className={`min-w-0 overflow-hidden flex items-center gap-2 origin-left transition-[opacity,transform] duration-300 ease-out ${
+            recording ? "opacity-0 -translate-x-3 pointer-events-none" : "opacity-100 translate-x-0"
           }`}
           aria-hidden={recording}
         >
@@ -451,22 +456,18 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
           </div>
         </div>
 
-        {/* Recorder side — slides in from right and expands to fill */}
-        <div
-          className={`flex items-center transition-all duration-300 ease-out ${
-            recording ? "flex-1 translate-x-0 opacity-100" : "flex-none translate-x-0 opacity-100"
-          }`}
-        >
+        {/* Trailing: send button OR voice recorder (single instance, morphs) */}
+        <div className="min-w-0 flex items-center justify-end">
           {text.trim() && !recording ? (
             <button
               type="submit"
               disabled={sending}
-              className="size-11 rounded-full bg-petal text-velvet flex items-center justify-center petal-glow disabled:opacity-40 animate-scale-in"
+              className="size-11 rounded-full bg-petal text-velvet flex items-center justify-center petal-glow disabled:opacity-40 shrink-0"
             >
               <Send className="size-4" />
             </button>
           ) : (
-            <div className={`${recording ? "w-full animate-fade-in" : "w-auto"} transition-all duration-300`}>
+            <div className={recording ? "w-full" : "w-auto"}>
               <VoiceRecorder userId={meId} onSend={handleVoiceSend} onRecordingChange={setRecording} />
             </div>
           )}
@@ -474,5 +475,7 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
       </form>
     </div>
   );
+
+
 
 }
