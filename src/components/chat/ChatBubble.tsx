@@ -1,4 +1,13 @@
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
+import { Heart, Pin, Trash2, Reply, Check, CheckCheck, Download, Zap, Phone, Video as VideoIcon, PhoneMissed, Clock } from "lucide-react";
+import { signMedia, type MessageRow } from "@/lib/chat";
+import { VoicePlayer } from "./VoicePlayer";
+import { SignedImage } from "./SignedImage";
+import { SignedVideo } from "./SignedVideo";
+import { WatchInviteCard } from "./WatchInviteCard";
+import { GameInviteCard } from "./GameInviteCard";
+import { MovieWheelCard } from "./MovieWheelCard";
+import { isPandaStickerContent, pandaStickerUrl } from "@/lib/panda-stickers";
 
 function relTime(iso?: string | null) {
   if (!iso) return "";
@@ -13,23 +22,28 @@ function relTime(iso?: string | null) {
   return new Date(iso).toLocaleDateString();
 }
 
-function useTick(ms = 30000) {
+// Shared 30s tick — one interval for all subscribers, only started when at
+// least one bubble needs it (isLast). Keeps long chats cheap.
+const tickListeners = new Set<() => void>();
+let tickTimer: number | null = null;
+function useSharedTick(enabled: boolean) {
   const [, set] = useState(0);
   useEffect(() => {
-    const i = window.setInterval(() => set((n) => n + 1), ms);
-    return () => window.clearInterval(i);
-  }, [ms]);
+    if (!enabled) return;
+    const l = () => set((n) => n + 1);
+    tickListeners.add(l);
+    if (tickTimer == null) {
+      tickTimer = window.setInterval(() => tickListeners.forEach((fn) => fn()), 30000);
+    }
+    return () => {
+      tickListeners.delete(l);
+      if (tickListeners.size === 0 && tickTimer != null) {
+        window.clearInterval(tickTimer);
+        tickTimer = null;
+      }
+    };
+  }, [enabled]);
 }
-import { Heart, Pin, Trash2, Reply, Check, CheckCheck, Download, Zap, Phone, Video as VideoIcon, PhoneMissed, Clock } from "lucide-react";
-import { signMedia, type MessageRow } from "@/lib/chat";
-import { VoicePlayer } from "./VoicePlayer";
-import { SignedImage } from "./SignedImage";
-import { SignedVideo } from "./SignedVideo";
-import { WatchInviteCard } from "./WatchInviteCard";
-import { GameInviteCard } from "./GameInviteCard";
-import { MovieWheelCard } from "./MovieWheelCard";
-import { isPandaStickerContent, pandaStickerUrl } from "@/lib/panda-stickers";
-
 
 const QUICK_REACTIONS = ["❤️", "😂", "🥺", "🔥", "🐼", "👍"];
 
