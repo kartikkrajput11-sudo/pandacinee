@@ -373,6 +373,37 @@ function Composer({
           </div>
 
           <div>
+            <div className="flex items-baseline justify-between mb-2">
+              <p className="text-[10px] uppercase tracking-[0.25em] text-candle-muted">Seal wording</p>
+              <span className="text-[10px] text-candle-muted">{motto.length}/40</span>
+            </div>
+            <input
+              value={motto}
+              onChange={(e) => setMotto(e.target.value.slice(0, 40))}
+              placeholder="Pandacine · Sealed with love"
+              className="w-full bg-surface rounded-xl px-3 py-2 text-sm text-candle placeholder:text-candle-muted focus:outline-none focus:ring-1 focus:ring-petal"
+            />
+            <p className="text-[10px] text-candle-muted mt-1.5">Curved text pressed around the wax ring.</p>
+
+            <div className="mt-4 flex flex-col items-center rounded-2xl bg-velvet/60 border border-border p-5">
+              <PandacineWaxSeal
+                tone={theme}
+                motto={motto}
+                breaking={previewBreaking}
+                interactive={false}
+                size={160}
+              />
+              <button
+                type="button"
+                onClick={testAnimation}
+                className="mt-5 inline-flex items-center gap-2 px-4 py-2 rounded-full border border-petal/40 bg-petal-soft text-candle text-[11px] uppercase tracking-[0.22em]"
+              >
+                <Sparkles className="size-3" /> Test animation
+              </button>
+            </div>
+          </div>
+
+          <div>
             <p className="text-[10px] uppercase tracking-[0.25em] text-candle-muted mb-2">Open when</p>
             <div className="grid grid-cols-4 gap-2">
               {(
