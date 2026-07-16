@@ -148,6 +148,7 @@ export function useEquippedItems(): EquippedItems {
     flairRing,
     flairNameGradient,
     flairBadge,
+    chessBoard,
     ownedPerks,
     ownedPackMoods,
     loaded,
