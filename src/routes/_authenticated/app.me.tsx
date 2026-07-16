@@ -244,6 +244,8 @@ function Me() {
           </button>
 
           <ThemeSection />
+          <SoundToggle />
+
 
           <PunishmentLockToggle me={me} onSaved={() => queryClient.invalidateQueries({ queryKey: ["profile"] })} />
 
