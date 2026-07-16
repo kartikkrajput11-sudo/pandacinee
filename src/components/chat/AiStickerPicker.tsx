@@ -253,6 +253,7 @@ function StickerCell({
   label,
   row,
   busy,
+  locked = false,
   canRegenerate,
   onPick,
   onGenerate,
@@ -260,6 +261,7 @@ function StickerCell({
   label: string;
   row: StickerRow | undefined;
   busy: boolean;
+  locked?: boolean;
   canRegenerate: boolean;
   onPick: () => void;
   onGenerate: () => void;
@@ -273,6 +275,19 @@ function StickerCell({
   }, [row?.storage_path]);
 
   if (!row) {
+    if (locked) {
+      return (
+        <Link
+          to="/app/shop"
+          className="aspect-square rounded-2xl bg-surface-elevated/60 border border-dashed border-candle/15 flex flex-col items-center justify-center gap-1 hover:border-petal/50 transition"
+          title="Unlock in shop"
+        >
+          <Lock className="size-4 text-candle-muted" />
+          <span className="text-[9px] text-candle-muted px-1 text-center">{label}</span>
+          <span className="text-[8px] uppercase tracking-widest text-petal/80">Shop</span>
+        </Link>
+      );
+    }
     return (
       <button
         onClick={onGenerate}
@@ -288,6 +303,7 @@ function StickerCell({
       </button>
     );
   }
+
 
   return (
     <div className="relative group">
