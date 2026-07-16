@@ -88,7 +88,10 @@ export function useChat(meId: string | null, partnerId: string | null) {
 
     ch.on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, (payload) => {
       const m = payload.new as MessageRow;
-      if (isDirectMessageFor(m, meId, partnerId)) setMessages((prev) => mergeMessages(prev, [m]));
+      if (isDirectMessageFor(m, meId, partnerId)) {
+        if (m.sender_id === partnerId) sfxReceive();
+        setMessages((prev) => mergeMessages(prev, [m]));
+      }
     });
     ch.on("postgres_changes", { event: "UPDATE", schema: "public", table: "messages" }, (payload) => {
       const m = payload.new as MessageRow;
