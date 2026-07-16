@@ -272,17 +272,27 @@ function ShopRoute() {
             </div>
             <div className="mt-4 flex gap-2">
               {inventory.has(preview.id) ? (
-                <button
-                  onClick={() => toggleEquip(preview)}
-                  disabled={busy === preview.id}
-                  className="flex-1 px-4 py-3 rounded-2xl bg-petal text-velvet font-semibold text-sm disabled:opacity-50"
-                >
-                  {busy === preview.id
-                    ? "…"
-                    : inventory.get(preview.id)
-                      ? "Unequip"
-                      : "Equip"}
-                </button>
+                preview.category === "ai_sticker_pack" ? (
+                  <Link
+                    to="/app/chat"
+                    onClick={() => setPreview(null)}
+                    className="flex-1 px-4 py-3 rounded-2xl bg-petal text-velvet font-semibold text-sm inline-flex items-center justify-center gap-1.5"
+                  >
+                    <Sparkles className="size-4" /> Generate in chat
+                  </Link>
+                ) : (
+                  <button
+                    onClick={() => toggleEquip(preview)}
+                    disabled={busy === preview.id}
+                    className="flex-1 px-4 py-3 rounded-2xl bg-petal text-velvet font-semibold text-sm disabled:opacity-50"
+                  >
+                    {busy === preview.id
+                      ? "…"
+                      : inventory.get(preview.id)
+                        ? "Unequip"
+                        : "Equip"}
+                  </button>
+                )
               ) : (
                 <button
                   onClick={() => purchase(preview)}
@@ -401,12 +411,24 @@ function ItemPreview({ item, compact = false }: { item: ShopItem; compact?: bool
     );
   }
   if (item.category === "ai_sticker_pack") {
+    const moods: string[] = Array.isArray(meta.moods) ? meta.moods : [];
     return (
-      <div className="w-full h-full bg-gradient-to-br from-petal/20 to-velvet flex items-center justify-center">
-        <div className="grid grid-cols-2 gap-1 text-2xl">
-          {packEmojis(meta.pack).slice(0, compact ? 4 : 4).map((e, i) => (
-            <span key={i}>{e}</span>
-          ))}
+      <div className="w-full h-full bg-gradient-to-br from-petal/20 to-velvet flex flex-col items-center justify-center gap-1 p-2 relative">
+        <div className="text-3xl">{meta.kind === "couple" ? "💞" : "🐼"}</div>
+        <div className="text-[8px] uppercase tracking-[0.2em] text-petal font-bold">
+          {meta.kind === "couple" ? "Couple AI" : "Solo AI"}
+        </div>
+        {!compact && (
+          <div className="flex flex-wrap gap-1 justify-center mt-1 px-2">
+            {moods.slice(0, 6).map((m) => (
+              <span key={m} className="text-[9px] px-1.5 py-0.5 rounded-full bg-velvet/70 border border-petal/30 text-candle/80">
+                {String(m).replace("couple-", "").replace("-", " ")}
+              </span>
+            ))}
+          </div>
+        )}
+        <div className="absolute bottom-1 right-1 text-[8px] text-candle-muted font-semibold inline-flex items-center gap-0.5">
+          <Sparkles className="size-2.5" /> AI
         </div>
       </div>
     );
@@ -456,20 +478,5 @@ function flairRing(ring?: string) {
       return "0 0 0 3px gold, 0 0 20px #facc15";
     default:
       return "none";
-  }
-}
-
-function packEmojis(pack?: string): string[] {
-  switch (pack) {
-    case "cute_pandas":
-      return ["🐼", "🎋", "💕", "🌸"];
-    case "romantic_moods":
-      return ["😘", "🥰", "💘", "😌"];
-    case "daily_life":
-      return ["☕", "🍜", "😴", "📚"];
-    case "seasonal":
-      return ["🌸", "🏖️", "🍂", "☃️"];
-    default:
-      return ["✨", "💫", "🌟", "⭐"];
   }
 }
