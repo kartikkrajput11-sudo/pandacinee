@@ -23,6 +23,7 @@ function GroupChat() {
   const navigate = useNavigate();
   const { data: profileData } = useProfile();
   const meId = profileData?.profile?.id ?? null;
+  const partnerId = profileData?.partner?.id ?? null;
   const { data: groupData } = useGroup(groupId);
   const chat = useGroupChat(groupId, meId);
 
@@ -164,6 +165,7 @@ function GroupChat() {
         )}
         {chat.messages.map((m) => {
           const mine = m.sender_id === meId;
+          const fromPartner = !mine && partnerId && m.sender_id === partnerId;
           const sender = memberById.get(m.sender_id);
           const replyMsg = m.reply_to_id ? chat.messages.find((x) => x.id === m.reply_to_id) : null;
           const rx = reactionsByMsg.get(m.id) ?? {};
@@ -172,7 +174,7 @@ function GroupChat() {
           return (
             <div key={m.id} className={`flex gap-2 ${mine ? "flex-row-reverse" : ""}`}>
               {!mine && (
-                <div className="size-8 rounded-full bg-petal-soft flex items-center justify-center text-sm shrink-0 overflow-hidden">
+                <div className={`size-8 rounded-full flex items-center justify-center text-sm shrink-0 overflow-hidden ${fromPartner ? "bg-petal-soft ring-2 ring-petal" : "bg-petal-soft"}`}>
                   {sender?.avatar_url ? (
                     <img src={sender.avatar_url} alt="" className="size-full object-cover" />
                   ) : (
@@ -184,14 +186,19 @@ function GroupChat() {
               )}
               <div className={`max-w-[75%] ${mine ? "items-end" : "items-start"} flex flex-col`}>
                 {!mine && (
-                  <p className="text-[10px] text-petal/80 mb-0.5 px-1">{sender?.display_name ?? "…"}</p>
+                  <p className={`text-[10px] mb-0.5 px-1 flex items-center gap-1 ${fromPartner ? "text-petal font-semibold" : "text-petal/80"}`}>
+                    {sender?.display_name ?? "…"}
+                    {fromPartner && <span className="text-[9px]">💜</span>}
+                  </p>
                 )}
                 <div
                   onClick={() => setOpenBubbleId(openBubbleId === m.id ? null : m.id)}
                   className={`px-3 py-2 rounded-2xl text-sm cursor-pointer break-words ${
                     mine
                       ? "bg-petal text-velvet rounded-br-sm"
-                      : "bg-surface border border-border rounded-bl-sm"
+                      : fromPartner
+                        ? "bg-petal-soft border border-petal/50 rounded-bl-sm shadow-[0_0_0_1px_hsl(var(--petal)/0.25)]"
+                        : "bg-surface border border-border rounded-bl-sm"
                   } ${m.pinned_at ? "ring-1 ring-petal/40" : ""}`}
                 >
                   {replyMsg && (
