@@ -102,7 +102,9 @@ export function VoiceRecorder({
       recRef.current = rec;
       startRef.current = Date.now();
       setRecording(true);
+      onRecordingChange?.(true);
       setElapsed(0);
+
       timerRef.current = window.setInterval(() => {
         setElapsed(Math.floor((Date.now() - startRef.current) / 1000));
       }, 250);
