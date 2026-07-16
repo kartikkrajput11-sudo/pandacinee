@@ -259,13 +259,8 @@ function GroupInfo() {
               const isMe = m.user_id === me?.id;
               return (
                 <div key={m.user_id} className="flex items-center gap-3 p-2.5 rounded-2xl bg-surface/40">
-                  <div className="size-10 rounded-full bg-petal-soft flex items-center justify-center overflow-hidden shrink-0">
-                    {p?.avatar_url ? (
-                      <img src={p.avatar_url} alt="" className="size-full object-cover" />
-                    ) : (
-                      <span className="font-serif italic text-petal">{p?.display_name?.[0]?.toUpperCase() ?? "?"}</span>
-                    )}
-                  </div>
+                  <UserAvatar src={p?.avatar_url} name={p?.display_name} className="size-10" />
+
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1.5">
                       <p className="font-serif italic text-sm truncate">
