@@ -5,7 +5,6 @@ import { z } from "zod";
 import { useProfile } from "@/hooks/useProfile";
 import { useGroup } from "@/hooks/useGroups";
 import { useLiveKitCall } from "@/hooks/useLiveKitCall";
-import { leaveCall } from "@/lib/callActions";
 
 const searchSchema = z.object({
   role: z.enum(["caller", "callee"]).default("caller"),
