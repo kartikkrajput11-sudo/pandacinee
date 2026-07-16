@@ -311,6 +311,40 @@ function ChatPeer() {
 
       <MoodBar me={me} partner={peer} />
 
+      {isPartner && (sharedMedia.length > 0 || daysTogether > 0) && (
+        <div className="px-3 py-2 flex items-center gap-2 border-b border-border bg-petal/5">
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar flex-1 min-w-0">
+            {sharedMedia.map((m) => (
+              <button
+                key={m.id}
+                type="button"
+                onClick={() => jumpTo(m.id)}
+                className="size-9 shrink-0 rounded-lg bg-surface border border-petal/20 overflow-hidden hover:border-petal/50 transition-colors"
+                title="Jump to media"
+              >
+                {m.media_url && m.type === "image" ? (
+                  <img src={m.media_url} alt="" className="size-full object-cover" />
+                ) : (
+                  <div className="size-full flex items-center justify-center text-[13px]">🎬</div>
+                )}
+              </button>
+            ))}
+            {sharedMedia.length === 0 && (
+              <span className="text-[10px] text-candle-muted italic px-1">No shared photos yet — send one 💫</span>
+            )}
+          </div>
+          {daysTogether > 0 && (
+            <div className="pl-2.5 ml-1 border-l border-petal/15 flex flex-col items-end shrink-0">
+              <span className="text-[9px] text-candle-muted uppercase font-bold tracking-wider flex items-center gap-1">
+                <HeartIcon className="size-2.5 text-petal" /> Together
+              </span>
+              <span className="text-[11px] font-semibold text-petal">{daysTogether}d</span>
+            </div>
+          )}
+        </div>
+      )}
+
+
       {activeLock && iAmLocker && (
         <PunishmentLockBanner
           lock={activeLock}
