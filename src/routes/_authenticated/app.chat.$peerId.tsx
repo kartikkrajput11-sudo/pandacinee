@@ -332,8 +332,44 @@ function ChatPeer() {
               <Lock className="size-[18px]" strokeWidth={1.5} />
             </button>
           )}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="hover:text-petal transition-colors" aria-label="Chat options">
+                <MoreVertical className="size-[18px]" strokeWidth={1.5} />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="bg-velvet border-candle/20">
+              <DropdownMenuItem
+                onSelect={(e) => { e.preventDefault(); setClearConfirmOpen(true); }}
+                className="text-petal focus:text-petal focus:bg-petal/10 gap-2"
+              >
+                <Trash2 className="size-4" /> Clear chat
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </header>
+
+      <AlertDialog open={clearConfirmOpen} onOpenChange={setClearConfirmOpen}>
+        <AlertDialogContent className="bg-velvet border-candle/20">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-serif italic text-candle">Clear this chat?</AlertDialogTitle>
+            <AlertDialogDescription className="text-candle/60">
+              All messages between you and {peerDisplay} will be permanently deleted. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => { await clearChat(); setClearConfirmOpen(false); }}
+              className="bg-petal text-velvet hover:bg-petal/90"
+            >
+              Clear
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
 
       {isPartner && daysTogether > 0 && (
         <div className="px-6 py-2.5 border-b border-white/5 bg-petal/[0.04] flex items-center justify-center gap-5">
