@@ -11,6 +11,7 @@ import {
   useUpdateGroup, useSetMemberRole, useRemoveMember, useAddMembers,
   isGroupMuted, setGroupMuted, GROUP_THEMES, type GroupTheme,
 } from "@/hooks/useGroupAdmin";
+import { UserAvatar } from "@/components/UserAvatar";
 
 const AVATAR_EMOJIS = ["💜", "🐼", "🌸", "🌙", "🍿", "🎬", "🦋", "🍓", "🌈", "🪐"];
 
