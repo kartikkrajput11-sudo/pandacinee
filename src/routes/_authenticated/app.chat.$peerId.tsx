@@ -52,7 +52,7 @@ function ChatPeer() {
   });
   const peer = peerQ.data ?? null;
 
-  const { messages, loading, loadingOlder, hasMore, loadOlder, partnerTyping, partnerOnline, send, react, togglePin, remove, setVanish, sendTyping } =
+  const { messages, loading, loadingOlder, hasMore, loadOlder, partnerTyping, partnerOnline, send, react, togglePin, remove, setVanish, sendTyping, clearChat } =
     useChat(me?.id ?? null, peer?.id ?? null);
   const { activeLock, iAmLocked, iAmLocker, createLock, incrementProgress, completeLock, cancelLock } =
     usePunishmentLock(me?.id ?? null, peer?.id ?? null);
