@@ -78,6 +78,7 @@ export function ChatBubble({
   const isKiss = m.type === "kiss";
   const isNudge = m.type === "nudge";
   const isWhisper = m.type === "whisper";
+  const isCall = m.type === "call";
   const [whisperRevealed, setWhisperRevealed] = useState(false);
   useTick(30000);
 
