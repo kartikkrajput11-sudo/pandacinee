@@ -125,6 +125,56 @@ export function PandacineWaxSeal({
           <circle cx="100" cy="100" r="74" fill="none" stroke={p.hi} strokeOpacity="0.35" strokeWidth="0.8" />
           <circle cx="100" cy="100" r="58" fill="none" stroke={p.deep} strokeOpacity="0.4" strokeWidth="0.9" strokeDasharray="1 3" />
 
+          {/* Guilloché filigree — 24 tiny spokes on the inner rim */}
+          <g stroke={p.deep} strokeOpacity="0.35" strokeWidth="0.6">
+            {Array.from({ length: 24 }).map((_, i) => {
+              const a = (i / 24) * Math.PI * 2;
+              const x1 = 100 + Math.cos(a) * 62;
+              const y1 = 100 + Math.sin(a) * 62;
+              const x2 = 100 + Math.cos(a) * 70;
+              const y2 = 100 + Math.sin(a) * 70;
+              return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} />;
+            })}
+          </g>
+
+          {/* Dot studs on outer ring */}
+          <g fill={p.deep} opacity="0.55">
+            {Array.from({ length: 12 }).map((_, i) => {
+              const a = (i / 12) * Math.PI * 2 + Math.PI / 12;
+              return <circle key={i} cx={100 + Math.cos(a) * 84} cy={100 + Math.sin(a) * 84} r="1.2" />;
+            })}
+          </g>
+
+          {/* Compass rose points N/E/S/W */}
+          <g fill={p.hi} opacity="0.7">
+            <polygon points="100,18 103,28 100,34 97,28" />
+            <polygon points="182,100 172,103 166,100 172,97" />
+            <polygon points="100,182 97,172 100,166 103,172" />
+            <polygon points="18,100 28,97 34,100 28,103" />
+          </g>
+
+          {/* Laurel sprigs framing the panda */}
+          <g stroke={p.deep} strokeOpacity="0.55" strokeWidth="1" fill={p.deep} fillOpacity="0.45">
+            {/* left sprig */}
+            <path d="M56 140 Q68 128 76 118" fill="none" strokeLinecap="round"/>
+            <ellipse cx="60" cy="134" rx="3.2" ry="1.4" transform="rotate(-40 60 134)"/>
+            <ellipse cx="65" cy="128" rx="3.2" ry="1.4" transform="rotate(-40 65 128)"/>
+            <ellipse cx="70" cy="122" rx="3.2" ry="1.4" transform="rotate(-40 70 122)"/>
+            <ellipse cx="74" cy="116" rx="3" ry="1.3" transform="rotate(-40 74 116)"/>
+            {/* right sprig */}
+            <path d="M144 140 Q132 128 124 118" fill="none" strokeLinecap="round"/>
+            <ellipse cx="140" cy="134" rx="3.2" ry="1.4" transform="rotate(40 140 134)"/>
+            <ellipse cx="135" cy="128" rx="3.2" ry="1.4" transform="rotate(40 135 128)"/>
+            <ellipse cx="130" cy="122" rx="3.2" ry="1.4" transform="rotate(40 130 122)"/>
+            <ellipse cx="126" cy="116" rx="3" ry="1.3" transform="rotate(40 126 116)"/>
+          </g>
+
+          {/* Fleuron corner ornaments */}
+          <g fill={p.deep} opacity="0.55">
+            <path d="M100 44 c -2 -3 -6 -3 -6 0 c 0 3 3 5 6 6 c 3 -1 6 -3 6 -6 c 0 -3 -4 -3 -6 0 z" />
+            <path d="M100 156 c -2 3 -6 3 -6 0 c 0 -3 3 -5 6 -6 c 3 1 6 3 6 6 c 0 3 -4 3 -6 0 z" />
+          </g>
+
           {/* Curved ring text */}
           <text fill={p.deep} fillOpacity="0.72" fontSize="10.5" letterSpacing="4"
                 fontFamily="'Cormorant Garamond','Playfair Display',Georgia,serif" fontStyle="italic" fontWeight="600">
