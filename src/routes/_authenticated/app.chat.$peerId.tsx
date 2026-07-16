@@ -444,6 +444,8 @@ function ChatPeer() {
                   onPin={togglePin}
                   onDelete={remove}
                   onVanish={setVanish}
+                  partnerName={peerDisplay}
+
                 />
               </div>
             </div>
