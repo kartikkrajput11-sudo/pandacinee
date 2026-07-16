@@ -52,6 +52,42 @@ export function PunishmentLockOverlay({
     return m > 0 ? `${m}m ${s % 60}s` : `${s}s`;
   }, [remainingMs]);
 
+  const totalMs = lock.max_duration_seconds ? lock.max_duration_seconds * 1000 : null;
+  const timePct = totalMs && remainingMs != null
+    ? Math.max(0, Math.min(100, (remainingMs / totalMs) * 100))
+    : null;
+
+  const [pleaCooldown, setPleaCooldown] = useState(0);
+  useEffect(() => {
+    if (pleaCooldown <= 0) return;
+    const t = window.setTimeout(() => setPleaCooldown((v) => v - 1), 1000);
+    return () => window.clearTimeout(t);
+  }, [pleaCooldown]);
+
+  async function sendPlea() {
+    if (pleaCooldown > 0) return;
+    const msg = PLEAS[Math.floor(Math.random() * PLEAS.length)];
+    try {
+      await supabase.from("messages").insert({
+        sender_id: meId,
+        receiver_id: partnerId,
+        content: msg,
+        type: "text" as never,
+      });
+      toast.success("Plea sent 💌");
+      setPleaCooldown(30);
+    } catch (err: any) {
+      toast.error(err?.message ?? "Couldn't send");
+    }
+  }
+
+  function copyPrompt() {
+    navigator.clipboard.writeText(lock.prompt).then(
+      () => toast.success("Prompt copied"),
+      () => toast.error("Copy failed"),
+    );
+  }
+
   async function celebrateAndClose() {
     setCelebrate(true);
     await onComplete(lock.id);
