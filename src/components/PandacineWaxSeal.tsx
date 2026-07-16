@@ -69,6 +69,50 @@ export function PandacineWaxSeal({
         }}
       />
 
+      {/* Rotating radial rays behind the disc */}
+      <svg className="pcs-rays" viewBox="0 0 200 200" aria-hidden>
+        <defs>
+          <radialGradient id={`ray-${tone}`} cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor={p.hi} stopOpacity="0.5" />
+            <stop offset="100%" stopColor={p.hi} stopOpacity="0" />
+          </radialGradient>
+        </defs>
+        {Array.from({ length: 12 }).map((_, i) => (
+          <polygon
+            key={i}
+            points="100,100 96,4 104,4"
+            fill={`url(#ray-${tone})`}
+            transform={`rotate(${i * 30} 100 100)`}
+          />
+        ))}
+      </svg>
+
+      {/* Pulsing outer glow ring */}
+      <span
+        className="pcs-pulse-ring"
+        style={{ boxShadow: `0 0 0 2px ${p.mid}55, 0 0 40px 8px ${p.glow}` }}
+      />
+
+      {/* Twinkling star specks around the seal */}
+      <div className="pcs-twinkle-field" aria-hidden>
+        {[
+          { top: "6%", left: "18%", d: "0s" },
+          { top: "12%", left: "82%", d: "0.4s" },
+          { top: "44%", left: "94%", d: "0.9s" },
+          { top: "78%", left: "88%", d: "0.2s" },
+          { top: "92%", left: "50%", d: "1.1s" },
+          { top: "80%", left: "10%", d: "0.6s" },
+          { top: "40%", left: "4%", d: "1.3s" },
+          { top: "22%", left: "6%", d: "0.8s" },
+        ].map((s, i) => (
+          <span
+            key={i}
+            className="pcs-tw"
+            style={{ top: s.top, left: s.left, animationDelay: s.d, color: p.hi }}
+          />
+        ))}
+      </div>
+
       {/* Wax drips underneath (revealed by melt) */}
       <svg className="pcs-drips" viewBox="0 0 200 200" aria-hidden>
         <defs>
@@ -203,6 +247,20 @@ export function PandacineWaxSeal({
             {/* tiny heart above */}
             <path d="M0 -30 c -3 -4 -9 -1 -9 3 c 0 4 6 8 9 11 c 3 -3 9 -7 9 -11 c 0 -4 -6 -7 -9 -3 z"
                   fill={p.deep} opacity="0.55"/>
+            {/* crown above the panda */}
+            <g className="pcs-crown" opacity="0.85">
+              <path d="M-16 -34 L-10 -42 L-4 -36 L0 -46 L4 -36 L10 -42 L16 -34 Z" fill={p.hi} stroke={p.deep} strokeWidth="0.6" strokeOpacity="0.5"/>
+              <circle cx="-10" cy="-42" r="1.4" fill={p.deep}/>
+              <circle cx="0" cy="-46" r="1.6" fill={p.deep}/>
+              <circle cx="10" cy="-42" r="1.4" fill={p.deep}/>
+              <rect x="-16" y="-34" width="32" height="2" fill={p.deep} opacity="0.7"/>
+            </g>
+            {/* gemstone locket on chest */}
+            <g className="pcs-gem" transform="translate(0 22)">
+              <polygon points="0,-5 4,-1 3,4 -3,4 -4,-1" fill={p.hi} opacity="0.95"/>
+              <polygon points="0,-5 4,-1 0,0" fill={p.deep} opacity="0.35"/>
+              <polygon points="0,-5 -4,-1 0,0" fill={p.deep} opacity="0.2"/>
+            </g>
           </g>
         </g>
 
@@ -253,6 +311,29 @@ export function PandacineWaxSeal({
           <path d="M144 168 L144 188 L126 180 L108 190 L108 168 Z" fill={p.lo} opacity="0.9" />
           <path d="M56 168 L144 168 L144 180 L56 180 Z" fill={p.mid} />
           <path d="M56 168 L144 168" stroke={p.deep} strokeOpacity="0.4" strokeWidth="0.6" />
+        </g>
+
+        {/* Candle flame at the top */}
+        <g className="pcs-flame">
+          <ellipse cx="100" cy="4" rx="4" ry="8" fill={p.hi} opacity="0.9" />
+          <ellipse cx="100" cy="6" rx="2.2" ry="5" fill="#fff" opacity="0.9" />
+          <line x1="100" y1="12" x2="100" y2="18" stroke={p.deep} strokeWidth="0.8" />
+        </g>
+
+        {/* Falling wax droplets */}
+        <g className="pcs-fall" fill={p.mid}>
+          <ellipse className="pcs-drop d1" cx="40" cy="120" rx="1.6" ry="2.4"/>
+          <ellipse className="pcs-drop d2" cx="100" cy="150" rx="1.8" ry="2.6"/>
+          <ellipse className="pcs-drop d3" cx="160" cy="128" rx="1.5" ry="2.2"/>
+          <ellipse className="pcs-drop d4" cx="70" cy="140" rx="1.3" ry="2.0"/>
+          <ellipse className="pcs-drop d5" cx="130" cy="145" rx="1.5" ry="2.2"/>
+        </g>
+
+        {/* Tiny floating hearts */}
+        <g className="pcs-hearts" fill={p.hi}>
+          <path className="pcs-heart h1" d="M0 0 c-2 -3 -6 -1 -6 2 c 0 3 4 5 6 7 c 2 -2 6 -4 6 -7 c 0 -3 -4 -5 -6 -2z" transform="translate(50 60)"/>
+          <path className="pcs-heart h2" d="M0 0 c-2 -3 -6 -1 -6 2 c 0 3 4 5 6 7 c 2 -2 6 -4 6 -7 c 0 -3 -4 -5 -6 -2z" transform="translate(150 70)"/>
+          <path className="pcs-heart h3" d="M0 0 c-2 -3 -6 -1 -6 2 c 0 3 4 5 6 7 c 2 -2 6 -4 6 -7 c 0 -3 -4 -5 -6 -2z" transform="translate(100 40)"/>
         </g>
       </svg>
 
@@ -370,6 +451,87 @@ export function PandacineWaxSeal({
         .pcs-ember.e4 { --dx: -12px; }
         .pcs-ember.e5 { --dx: 6px; }
         .pcs-ember.e6 { --dx: -4px; }
+
+        /* Rotating rays behind the disc */
+        .pcs-rays {
+          position: absolute; inset: -10%;
+          width: 120%; height: 120%;
+          opacity: 0.55;
+          mix-blend-mode: screen;
+          animation: pcs-spin-slow 26s linear infinite;
+          pointer-events: none;
+        }
+        @keyframes pcs-spin-slow { to { transform: rotate(360deg); } }
+
+        /* Pulsing outer ring */
+        .pcs-pulse-ring {
+          position: absolute; inset: 4%;
+          border-radius: 9999px;
+          pointer-events: none;
+          animation: pcs-pulse 2.6s ease-in-out infinite;
+        }
+        @keyframes pcs-pulse {
+          0%,100% { transform: scale(1); opacity: 0.55; }
+          50%     { transform: scale(1.05); opacity: 1; }
+        }
+
+        /* Twinkling stars */
+        .pcs-twinkle-field { position: absolute; inset: -14%; pointer-events: none; }
+        .pcs-tw {
+          position: absolute;
+          width: 4px; height: 4px;
+          background: currentColor;
+          border-radius: 9999px;
+          box-shadow: 0 0 6px currentColor, 0 0 12px currentColor;
+          opacity: 0;
+          animation: pcs-twinkle 2.8s ease-in-out infinite;
+        }
+        @keyframes pcs-twinkle {
+          0%,100% { opacity: 0; transform: scale(0.6); }
+          50%     { opacity: 1; transform: scale(1.2); }
+        }
+
+        /* Candle flame */
+        .pcs-flame { transform-origin: 100px 12px; transform-box: fill-box; animation: pcs-flicker 0.9s ease-in-out infinite; filter: drop-shadow(0 0 6px currentColor); }
+        @keyframes pcs-flicker {
+          0%,100% { transform: scale(1,1) translate(0,0); }
+          25%     { transform: scale(0.95,1.05) translate(-0.3px,-0.2px); }
+          50%     { transform: scale(1.05,0.95) translate(0.4px,0.3px); }
+          75%     { transform: scale(0.98,1.02) translate(-0.2px,0.2px); }
+        }
+
+        /* Falling drops during melt */
+        .pcs-fall { opacity: 0; }
+        .pcs-wrap.pcs-phase-melt .pcs-fall { opacity: 1; }
+        .pcs-drop { animation: pcs-drop-fall 1.6s ease-in forwards; opacity: 0; }
+        .pcs-wrap.pcs-phase-melt .pcs-drop.d1 { animation-delay: 60ms; }
+        .pcs-wrap.pcs-phase-melt .pcs-drop.d2 { animation-delay: 180ms; }
+        .pcs-wrap.pcs-phase-melt .pcs-drop.d3 { animation-delay: 300ms; }
+        .pcs-wrap.pcs-phase-melt .pcs-drop.d4 { animation-delay: 440ms; }
+        .pcs-wrap.pcs-phase-melt .pcs-drop.d5 { animation-delay: 560ms; }
+        @keyframes pcs-drop-fall {
+          0%   { opacity: 0; transform: translateY(0) scale(0.6); }
+          20%  { opacity: 1; }
+          100% { opacity: 0; transform: translateY(70px) scale(1.1); }
+        }
+
+        /* Floating hearts (always on) */
+        .pcs-heart { transform-origin: center; animation: pcs-heart-drift 5s ease-in-out infinite; filter: drop-shadow(0 0 3px currentColor); opacity: 0.7; }
+        .pcs-heart.h1 { animation-delay: 0s; }
+        .pcs-heart.h2 { animation-delay: 1.4s; }
+        .pcs-heart.h3 { animation-delay: 2.8s; }
+        @keyframes pcs-heart-drift {
+          0%,100% { transform: translate(0,0) scale(0.9); opacity: 0.3; }
+          50%     { transform: translate(0,-8px) scale(1.1); opacity: 0.9; }
+        }
+
+        /* Gentle pulse for gem & crown */
+        .pcs-gem { transform-origin: center; animation: pcs-pulse-mini 2.2s ease-in-out infinite; }
+        .pcs-crown { transform-origin: center; animation: pcs-pulse-mini 3s ease-in-out infinite; }
+        @keyframes pcs-pulse-mini {
+          0%,100% { opacity: 0.7; transform: scale(1); }
+          50%     { opacity: 1;   transform: scale(1.06); }
+        }
       `}</style>
     </Tag>
   );
