@@ -5,6 +5,7 @@ import { useChatThreads } from "@/hooks/useChatThreads";
 import { useProfile } from "@/hooks/useProfile";
 import { useGroups } from "@/hooks/useGroups";
 import { NewGroupDialog } from "@/components/chat/NewGroupDialog";
+import { UserAvatar } from "@/components/UserAvatar";
 
 export const Route = createFileRoute("/_authenticated/app/chat/")({
   component: ChatList,
