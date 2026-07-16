@@ -344,6 +344,32 @@ html.theme-anim * {
 }
 
 .animate-chat-shake { animation: chat-shake 0.7s cubic-bezier(.36,.07,.19,.97); }
-.animate-kiss { animation: kiss-float 2.2s ease-out forwards; }
+.animate-kiss { animation: kiss-float 2.4s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
 .animate-partner-glow { animation: partner-glow 2.6s ease-in-out infinite; }
 .font-partner { font-family: var(--font-serif); font-style: italic; letter-spacing: 0.01em; }
+
+@keyframes kiss-smooch {
+  0%   { transform: scale(0.2) rotate(-12deg); opacity: 0; filter: blur(6px); }
+  25%  { transform: scale(1.35) rotate(4deg); opacity: 1; filter: blur(0); }
+  55%  { transform: scale(1.05) rotate(-2deg); opacity: 1; }
+  100% { transform: scale(1.8) rotate(0deg); opacity: 0; }
+}
+@keyframes kiss-ring {
+  0%   { transform: scale(0.2); opacity: 0.9; }
+  70%  { opacity: 0.4; }
+  100% { transform: scale(2.4); opacity: 0; }
+}
+@keyframes kiss-flash {
+  0%, 100% { opacity: 0; }
+  20% { opacity: 1; }
+  60% { opacity: 0.4; }
+}
+@keyframes kiss-sway {
+  0%, 100% { transform: translateX(-6px) rotate(-6deg); }
+  50%      { transform: translateX(6px) rotate(6deg); }
+}
+.animate-kiss-smooch { animation: kiss-smooch 1.6s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+.animate-kiss-ring   { animation: kiss-ring 1.4s ease-out forwards; }
+.animate-kiss-flash  { animation: kiss-flash 1.2s ease-out forwards; }
+.animate-kiss-sway   { animation: kiss-sway 1.8s ease-in-out infinite; }
+
