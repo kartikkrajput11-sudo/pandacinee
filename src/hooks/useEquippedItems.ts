@@ -24,14 +24,23 @@ export type FlairMeta = {
   badge?: "supporter" | string;
 };
 
+export type ChessBoardMeta = {
+  light?: string;
+  dark?: string;
+  accent?: string;
+  label?: string;
+  premium?: boolean;
+};
+
 export type EquippedItems = {
   chatTheme: ChatThemeMeta | null;
   siteTheme: SiteThemeMeta | null;
   flairRing: FlairMeta | null;
   flairNameGradient: FlairMeta | null;
   flairBadge: FlairMeta | null;
-  ownedPerks: Set<string>; // e.g. "kiss_gold", "hug_warm", "confetti", "petal_rain", "wax_seal"
-  ownedPackMoods: Set<string>; // moods unlocked via ai_sticker_pack purchases
+  chessBoard: ChessBoardMeta | null;
+  ownedPerks: Set<string>;
+  ownedPackMoods: Set<string>;
   loaded: boolean;
   refresh: () => Promise<void>;
 };
