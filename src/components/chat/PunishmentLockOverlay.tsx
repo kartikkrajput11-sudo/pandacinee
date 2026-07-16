@@ -279,7 +279,7 @@ export function PunishmentLockOverlay({
         ) : (
           <>
             {(lock.type === "write" || lock.type === "compliment" || lock.type === "funny") && (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <textarea
                   value={entry}
                   onChange={(e) => setEntry(e.target.value)}
@@ -291,9 +291,9 @@ export function PunishmentLockOverlay({
                         : "Type your entry…"
                   }
                   rows={lock.type === "funny" ? 4 : 2}
-                  className="w-full bg-surface border border-border rounded-2xl px-4 py-3 text-sm text-candle resize-none"
+                  className="w-full bg-white/[0.03] border border-white/10 focus:border-petal/50 rounded-2xl px-4 py-3 text-sm text-candle resize-none placeholder:text-candle-muted/60 outline-none transition-colors"
                 />
-                <button
+                <LuxuryButton
                   onClick={
                     lock.type === "write"
                       ? submitWrite
@@ -301,22 +301,16 @@ export function PunishmentLockOverlay({
                         ? submitCompliment
                         : submitFunny
                   }
-                  className="w-full py-3 rounded-full bg-petal text-velvet text-sm font-semibold flex items-center justify-center gap-2"
                 >
-                  <Send className="size-4" /> Submit
-                </button>
+                  <Send className="size-3.5" /> Submit
+                </LuxuryButton>
               </div>
             )}
 
             {lock.type === "photo" && (
               <>
                 <input ref={fileRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handlePhoto} />
-                <button
-                  onClick={() => fileRef.current?.click()}
-                  className="w-full py-4 rounded-2xl bg-petal text-velvet text-sm font-semibold"
-                >
-                  📸 Send photo
-                </button>
+                <LuxuryButton onClick={() => fileRef.current?.click()}>📸 Send photo</LuxuryButton>
               </>
             )}
 
@@ -330,16 +324,11 @@ export function PunishmentLockOverlay({
               <div className="space-y-2">
                 <Link
                   to="/app/paint"
-                  className="w-full py-3 rounded-2xl bg-surface border border-border text-sm text-candle flex items-center justify-center gap-2"
+                  className="w-full py-3 rounded-full bg-white/[0.03] border border-white/10 hover:border-petal/40 text-sm text-candle flex items-center justify-center gap-2 transition-colors"
                 >
                   <Palette className="size-4 text-petal" /> Open Paint Together
                 </Link>
-                <button
-                  onClick={celebrateAndClose}
-                  className="w-full py-3 rounded-full bg-petal text-velvet text-sm font-semibold"
-                >
-                  I finished my drawing ✨
-                </button>
+                <LuxuryButton onClick={celebrateAndClose}>I finished my drawing ✨</LuxuryButton>
               </div>
             )}
 
