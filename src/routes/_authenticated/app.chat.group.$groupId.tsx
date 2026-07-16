@@ -108,7 +108,7 @@ function GroupChat() {
 
 
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col h-screen" data-group-theme={(group as { theme?: string }).theme ?? "aurora"}>
       <header className="px-4 pt-6 pb-3 border-b border-border bg-velvet sticky top-0 z-10">
         <div className="flex items-center gap-2">
           <Link to="/app/chat" className="text-candle-muted"><ArrowLeft className="size-5" /></Link>
