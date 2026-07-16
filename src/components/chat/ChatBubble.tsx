@@ -381,9 +381,11 @@ export function ChatBubble({
             </div>
           )
         ) : (
-          <div className="mt-0.5 text-[10px] text-candle-muted">
-            {relTime(m.created_at)}
-          </div>
+          isLast && (
+            <div className="mt-0.5 text-[10px] text-candle-muted">
+              {relTime(m.created_at)}
+            </div>
+          )
         )}
 
         {m.expires_at && (
