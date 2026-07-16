@@ -35,7 +35,7 @@ export function EmojiPicker({ open, onPick, onClose }: Props) {
   if (!open) return null;
 
   return (
-    <div className="border-t border-border/60 bg-gradient-to-b from-surface/95 to-velvet/90 backdrop-blur-xl rounded-t-3xl shadow-[0_-8px_32px_-8px_rgba(0,0,0,0.4)] overflow-hidden animate-slide-in-bottom">
+    <div className="border-t border-border/60 bg-gradient-to-b from-surface/95 to-velvet/90 backdrop-blur-xl rounded-t-3xl shadow-[0_-8px_32px_-8px_rgba(0,0,0,0.4)] overflow-hidden animate-fade-in">
       {/* Drag handle */}
       <div className="pt-2 pb-1 flex justify-center">
         <div className="h-1 w-10 rounded-full bg-candle-muted/30" />
