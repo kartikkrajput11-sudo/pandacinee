@@ -73,21 +73,26 @@ function ShopRoute() {
   const { data, refetch } = useProfile();
   const me = data?.profile as any;
   const [items, setItems] = useState<ShopItem[]>([]);
+  const [bundles, setBundles] = useState<CoinBundle[]>([]);
   const [inventory, setInventory] = useState<Map<string, boolean>>(new Map()); // item_id -> equipped
   const [ownedTags, setOwnedTags] = useState<Set<string>>(new Set());
   const [busy, setBusy] = useState<string | null>(null);
-  const [tab, setTab] = useState<Category>("chat_theme");
+  const [tab, setTab] = useState<Category>("coins");
   const [preview, setPreview] = useState<ShopItem | null>(null);
   const buyTag = useServerFn(purchaseTag);
+  const createOrder = useServerFn(createCoinOrder);
+  const verifyPayment = useServerFn(verifyCoinPayment);
 
   async function load() {
     if (!me?.id) return;
-    const [itemsRes, invRes, tagRes] = await Promise.all([
+    const [itemsRes, invRes, tagRes, bundleRes] = await Promise.all([
       (supabase as any).from("shop_items").select("*").eq("active", true).order("sort_order"),
       (supabase as any).from("user_inventory").select("item_id, equipped").eq("user_id", me.id),
       (supabase as any).from("profile_achievements").select("tag_key").eq("user_id", me.id),
+      (supabase as any).from("coin_bundles").select("*").eq("active", true).order("sort_order"),
     ]);
     setItems((itemsRes.data ?? []) as ShopItem[]);
+    setBundles((bundleRes.data ?? []) as CoinBundle[]);
     const m = new Map<string, boolean>();
     for (const r of (invRes.data ?? []) as any[]) m.set(r.item_id, !!r.equipped);
     setInventory(m);
