@@ -312,30 +312,32 @@ function ChatBubbleImpl({
 
           {isKiss && (() => {
             const time = new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false });
+            const sender = mine ? "You" : (partnerName || "Them");
             return (
               <div className="flex flex-col items-center py-2 w-full">
-                <div className="relative w-[260px] bg-velvet border border-candle/20 p-6 flex flex-col items-center text-center shadow-[0_0_40px_rgba(255,143,166,0.05)]">
+                <div className="relative w-[210px] bg-velvet border border-candle/20 px-4 pt-4 pb-3 flex flex-col items-center text-center shadow-[0_0_40px_rgba(255,143,166,0.05)]">
+                  <span className="absolute top-1.5 left-2 text-[8px] font-semibold tracking-[0.2em] uppercase text-candle/40 max-w-[70%] truncate">from {sender}</span>
                   <img
                     src={pandaKiss}
                     alt="Two pandas kissing"
                     loading="lazy"
-                    className="w-24 h-24 object-contain mb-3 drop-shadow-[0_0_20px_rgba(255,143,166,0.15)]"
+                    className="w-16 h-16 object-contain mb-2 mt-2 drop-shadow-[0_0_20px_rgba(255,143,166,0.15)]"
                   />
-
-                  <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-petal mb-1">Kiss</span>
-                  <p className="font-serif italic text-candle text-xl leading-tight">{mine ? "sent with love" : "for you"}</p>
-                  <div className="mt-4 flex flex-col items-center w-full">
-                    <div className="h-px w-8 bg-candle/20 mb-2" />
-                    <span className="text-[9px] font-bold tracking-[0.2em] uppercase text-candle/30">{time}</span>
+                  <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-petal mb-0.5">Kiss</span>
+                  <p className="font-serif italic text-candle text-base leading-tight">{mine ? "sent with love" : "for you"}</p>
+                  <div className="mt-3 flex flex-col items-center w-full">
+                    <div className="h-px w-6 bg-candle/20 mb-1.5" />
+                    <span className="text-[8px] font-bold tracking-[0.2em] uppercase text-candle/30">{time}</span>
                   </div>
-                  <div className="absolute top-1 left-1 w-2 h-2 border-t border-l border-candle/30" />
-                  <div className="absolute top-1 right-1 w-2 h-2 border-t border-r border-candle/30" />
-                  <div className="absolute bottom-1 left-1 w-2 h-2 border-b border-l border-candle/30" />
-                  <div className="absolute bottom-1 right-1 w-2 h-2 border-b border-r border-candle/30" />
+                  <div className="absolute top-1 left-1 w-1.5 h-1.5 border-t border-l border-candle/30" />
+                  <div className="absolute top-1 right-1 w-1.5 h-1.5 border-t border-r border-candle/30" />
+                  <div className="absolute bottom-1 left-1 w-1.5 h-1.5 border-b border-l border-candle/30" />
+                  <div className="absolute bottom-1 right-1 w-1.5 h-1.5 border-b border-r border-candle/30" />
                 </div>
               </div>
             );
           })()}
+
 
           {isNudge && (() => {
             const time = new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false });
