@@ -68,8 +68,13 @@ export function useGroupChat(groupId: string | null, meId: string | null) {
 
   useEffect(() => {
     if (initialLoaded.current) void loadReactions();
+    // Mark latest message timestamp as read for this user/group
+    if (meId && groupId && messages.length > 0) {
+      const latest = messages[messages.length - 1]?.created_at;
+      if (latest) setGroupLastRead(meId, groupId, latest);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [messages.length, groupId]);
+  }, [messages.length, groupId, meId]);
 
   // Realtime
   useEffect(() => {
