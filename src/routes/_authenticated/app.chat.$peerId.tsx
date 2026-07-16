@@ -407,24 +407,39 @@ function ChatPeer() {
           const prev = messages[i - 1];
           const showAvatar = !prev || prev.sender_id !== m.sender_id;
           const isLastMine = m.id === lastMineId;
+          const curDay = new Date(m.created_at).toDateString();
+          const prevDay = prev ? new Date(prev.created_at).toDateString() : null;
+          const showDivider = curDay !== prevDay;
+          const today = new Date().toDateString();
+          const yesterday = new Date(Date.now() - 86400000).toDateString();
+          const label = curDay === today ? "Today" : curDay === yesterday ? "Yesterday" :
+            new Date(m.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" });
           return (
-            <div
-              key={m.id}
-              ref={(el) => { bubbleRefs.current[m.id] = el; }}
-              className={`transition-colors rounded-2xl ${highlightId === m.id ? "bg-petal/15 ring-1 ring-petal/40" : ""}`}
-            >
-              <ChatBubble
-                m={m}
-                mine={m.sender_id === me.id}
-                replyTo={m.reply_to_id ? messagesById[m.reply_to_id] ?? null : null}
-                showAvatar={showAvatar}
-                isLast={isLastMine}
-                onReact={react}
-                onReply={setReplyTo}
-                onPin={togglePin}
-                onDelete={remove}
-                onVanish={setVanish}
-              />
+            <div key={m.id}>
+              {showDivider && (
+                <div className="flex justify-center my-3">
+                  <span className="px-3 py-1 rounded-full bg-surface/60 border border-border text-[10px] text-candle-muted tracking-widest uppercase font-bold">
+                    {label}
+                  </span>
+                </div>
+              )}
+              <div
+                ref={(el) => { bubbleRefs.current[m.id] = el; }}
+                className={`transition-colors rounded-2xl ${highlightId === m.id ? "bg-petal/15 ring-1 ring-petal/40" : ""}`}
+              >
+                <ChatBubble
+                  m={m}
+                  mine={m.sender_id === me.id}
+                  replyTo={m.reply_to_id ? messagesById[m.reply_to_id] ?? null : null}
+                  showAvatar={showAvatar}
+                  isLast={isLastMine}
+                  onReact={react}
+                  onReply={setReplyTo}
+                  onPin={togglePin}
+                  onDelete={remove}
+                  onVanish={setVanish}
+                />
+              </div>
             </div>
           );
         })}
@@ -440,6 +455,31 @@ function ChatPeer() {
           </div>
         )}
       </div>
+
+      {showScrollFab && (
+        <button
+          type="button"
+          onClick={scrollToBottom}
+          aria-label="Scroll to latest"
+          className="absolute right-4 bottom-40 size-10 rounded-full bg-surface-elevated/90 backdrop-blur-md border border-petal/30 flex items-center justify-center text-petal shadow-lg animate-fade-in z-20"
+        >
+          <ArrowDownIcon className="size-4" />
+        </button>
+      )}
+
+      <div className="px-3 pt-2 pb-1 flex gap-2 overflow-x-auto no-scrollbar border-t border-border/40 bg-velvet">
+        {["Miss you 💜", "Call?", "Omw!", "Hahaha", "Goodnight 🌙"].map((q) => (
+          <button
+            key={q}
+            type="button"
+            onClick={() => { void send({ content: q, type: "text" }); }}
+            className="shrink-0 px-3 py-1.5 rounded-full bg-surface border border-border text-[11px] font-medium text-candle hover:border-petal/40 hover:text-petal transition-colors"
+          >
+            {q}
+          </button>
+        ))}
+      </div>
+
 
       <ChatComposer
         meId={me.id}
