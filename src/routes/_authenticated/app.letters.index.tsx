@@ -326,6 +326,9 @@ function Composer({
       theme,
       seal_motto: motto.trim() || null,
       unlock_at: unlockAt.toISOString(),
+      photo_url: photoPath,
+      voice_url: voicePath,
+      unlock_on_anniversary: unlockChoice === "anniversary",
     });
     setSaving(false);
     if (error) {
