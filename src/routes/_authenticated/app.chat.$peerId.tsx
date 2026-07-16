@@ -177,7 +177,8 @@ function ChatPeer() {
     prevScrollHeightRef.current = el.scrollHeight;
   }, [messages, partnerTyping]);
 
-  // Auto-load older when user scrolls near the top (swipe up)
+  // Auto-load older when user scrolls near the top, and track scroll-to-bottom FAB visibility.
+  const [showScrollFab, setShowScrollFab] = useState(false);
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
@@ -186,10 +187,19 @@ function ChatPeer() {
         prevScrollHeightRef.current = el.scrollHeight;
         loadOlder();
       }
+      const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+      setShowScrollFab(distanceFromBottom > 240);
     };
     el.addEventListener("scroll", onScroll, { passive: true });
     return () => el.removeEventListener("scroll", onScroll);
   }, [hasMore, loadingOlder, loading, loadOlder]);
+
+  const scrollToBottom = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
+  }, []);
+
 
   // Trigger kiss / nudge FX for partner messages. Plays for anything that is
   // (a) freshly arrived (< 15s old) OR (b) still unread — so if the partner
