@@ -179,13 +179,7 @@ function FriendCard({ thread, meId }: { thread: NonNullable<ReturnType<typeof us
       params={{ peerId: thread.peer.id }}
       className="flex items-center gap-3 p-3 rounded-2xl bg-surface/40 border border-transparent hover:bg-surface transition-colors"
     >
-      <div className="size-12 rounded-full bg-petal-soft flex items-center justify-center overflow-hidden shrink-0">
-        {thread.peer.avatar_url ? (
-          <img src={thread.peer.avatar_url} alt="" className="size-full object-cover" />
-        ) : (
-          <span className="text-xl">🐼</span>
-        )}
-      </div>
+      <UserAvatar src={thread.peer.avatar_url} name={thread.peer.display_name} className="size-12" />
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <p className="font-serif italic text-base truncate">{thread.peer.display_name}</p>
