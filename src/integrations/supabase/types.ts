@@ -1051,6 +1051,38 @@ export type Database = {
         }
         Relationships: []
       }
+      poll_votes: {
+        Row: {
+          created_at: string
+          id: string
+          message_id: string
+          option_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message_id: string
+          option_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message_id?: string
+          option_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "poll_votes_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profile_achievements: {
         Row: {
           acquired_at: string
