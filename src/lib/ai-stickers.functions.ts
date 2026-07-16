@@ -49,13 +49,22 @@ export const generateAiSticker = createServerFn({ method: "POST" })
       .eq("id", context.userId)
       .maybeSingle();
 
-    const avatarUrl = profile?.avatar_url as string | null | undefined;
-    if (!avatarUrl) {
+    const rawAvatar = profile?.avatar_url as string | null | undefined;
+    if (!rawAvatar) {
       throw new Error("Add a profile photo first to generate AI stickers of yourself.");
     }
 
+    let fetchUrl = rawAvatar;
+    if (!/^https?:\/\//i.test(rawAvatar)) {
+      const { data: signed } = await context.supabase.storage
+        .from("avatars")
+        .createSignedUrl(rawAvatar, 300);
+      if (!signed?.signedUrl) throw new Error("Couldn't access your profile photo.");
+      fetchUrl = signed.signedUrl;
+    }
+
     // Fetch avatar bytes and inline as base64 for the model.
-    const imgRes = await fetch(avatarUrl);
+    const imgRes = await fetch(fetchUrl);
     if (!imgRes.ok) throw new Error("Couldn't load your profile photo.");
     const mime = imgRes.headers.get("content-type")?.split(";")[0].trim() || "image/jpeg";
     const bytes = new Uint8Array(await imgRes.arrayBuffer());
