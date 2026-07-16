@@ -91,13 +91,6 @@ export function PunishmentLockOverlay({
     }
   }
 
-  function copyPrompt() {
-    navigator.clipboard.writeText(lock.prompt).then(
-      () => toast.success("Prompt copied"),
-      () => toast.error("Copy failed"),
-    );
-  }
-
   async function celebrateAndClose() {
     setCelebrate(true);
     await onComplete(lock.id);
