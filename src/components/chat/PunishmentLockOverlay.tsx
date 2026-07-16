@@ -335,13 +335,22 @@ export function PunishmentLockOverlay({
             </span>
           </div>
 
+          {/* Copy prompt chip */}
+          <button
+            onClick={copyPrompt}
+            className="mt-5 inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.28em] px-3 py-1.5 rounded-full bg-white/[0.03] border border-white/10 text-candle-muted hover:text-petal hover:border-petal/40 transition-colors"
+          >
+            <Copy className="size-3" /> Copy prompt
+          </button>
+
           {/* Fleuron scroll divider */}
-          <div className="flex items-center gap-3 mt-8 w-full">
+          <div className="flex items-center gap-3 mt-6 w-full">
             <span className="h-px flex-1 bg-gradient-to-r from-transparent via-petal/30 to-petal/40" />
             <span className="text-petal/70 text-sm">❦</span>
             <span className="h-px flex-1 bg-gradient-to-l from-transparent via-petal/30 to-petal/40" />
           </div>
         </div>
+
 
 
         {/* Progress rail — champagne */}
