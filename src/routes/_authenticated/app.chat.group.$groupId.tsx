@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft, Settings, Phone, Video as VideoIcon, Send, Image as ImageIcon,
-  Smile, Pin, Trash2, Reply, X, MoreVertical, PinOff,
+  Smile, Pin, Trash2, Reply, X, MoreVertical, PinOff, BarChart3,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useProfile } from "@/hooks/useProfile";
@@ -12,6 +12,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { uploadChatMedia, signMedia } from "@/lib/chat";
 import { startGroupCall } from "@/lib/callActions";
 import { UserAvatar } from "@/components/UserAvatar";
+import { PollComposer } from "@/components/chat/PollComposer";
+import { PollMessage } from "@/components/chat/PollMessage";
+import type { PollMeta } from "@/lib/poll";
 
 const QUICK_REACTIONS = ["❤️", "😂", "🥺", "🔥", "🐼", "👍"];
 
@@ -32,6 +35,7 @@ function GroupChat() {
   const [replyTo, setReplyTo] = useState<GroupMessage | null>(null);
   const [openBubbleId, setOpenBubbleId] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
+  const [pollOpen, setPollOpen] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLInputElement>(null);
 
@@ -206,6 +210,13 @@ function GroupChat() {
                   )}
                   {m.type === "image" && m.media_url ? (
                     <GroupImage path={m.media_url} />
+                  ) : m.type === "poll" ? (
+                    <PollMessage
+                      messageId={m.id}
+                      meta={m.media_meta}
+                      meId={meId}
+                      memberById={memberById}
+                    />
                   ) : (
                     <span>{m.content}</span>
                   )}
@@ -306,6 +317,13 @@ function GroupChat() {
         >
           <ImageIcon className="size-4" />
         </button>
+        <button
+          onClick={() => setPollOpen(true)}
+          className="size-10 rounded-full bg-surface border border-border flex items-center justify-center text-petal shrink-0"
+          aria-label="Create poll"
+        >
+          <BarChart3 className="size-4" />
+        </button>
         <input
           ref={imgRef}
           type="file"
@@ -339,6 +357,19 @@ function GroupChat() {
           <Send className="size-4" />
         </button>
       </div>
+
+      <PollComposer
+        open={pollOpen}
+        onClose={() => setPollOpen(false)}
+        meId={meId}
+        onCreate={async (meta: PollMeta) => {
+          await chat.send({
+            content: meta.question,
+            type: "poll",
+            media_meta: meta as unknown as Record<string, unknown>,
+          });
+        }}
+      />
     </div>
   );
 }

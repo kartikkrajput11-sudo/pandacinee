@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { MessageRow } from "@/lib/chat";
+import { sfxSend, sfxReceive, sfxReaction } from "@/lib/sfx";
 
 export type GroupMessage = MessageRow & {
   deleted_at: string | null;
@@ -80,6 +81,7 @@ export function useGroupChat(groupId: string | null, meId: string | null) {
         (payload) => {
           const row = payload.new as GroupMessage;
           if (row.deleted_at) return;
+          if (meId && row.sender_id !== meId) sfxReceive();
           setMessages((prev) => (prev.some((m) => m.id === row.id) ? prev : [...prev, row]));
         },
       )
@@ -103,7 +105,7 @@ export function useGroupChat(groupId: string | null, meId: string | null) {
     return () => {
       supabase.removeChannel(ch);
     };
-  }, [groupId, loadReactions]);
+  }, [groupId, meId, loadReactions]);
 
   const send = useCallback(
     async (input: {
@@ -125,6 +127,7 @@ export function useGroupChat(groupId: string | null, meId: string | null) {
         reply_to_id: input.reply_to_id ?? null,
       });
       if (error) throw error;
+      sfxSend();
     },
     [meId, groupId],
   );
@@ -143,6 +146,7 @@ export function useGroupChat(groupId: string | null, meId: string | null) {
           user_id: meId,
           emoji,
         });
+        sfxReaction();
       }
       void loadReactions();
     },

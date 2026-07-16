@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { chatChannelKey, expirySeconds, type MessageRow } from "@/lib/chat";
+import { sfxSend, sfxReceive, sfxReaction } from "@/lib/sfx";
 
 type TypingState = { isTyping: boolean; at: number };
 
@@ -87,7 +88,10 @@ export function useChat(meId: string | null, partnerId: string | null) {
 
     ch.on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, (payload) => {
       const m = payload.new as MessageRow;
-      if (isDirectMessageFor(m, meId, partnerId)) setMessages((prev) => mergeMessages(prev, [m]));
+      if (isDirectMessageFor(m, meId, partnerId)) {
+        if (m.sender_id === partnerId) sfxReceive();
+        setMessages((prev) => mergeMessages(prev, [m]));
+      }
     });
     ch.on("postgres_changes", { event: "UPDATE", schema: "public", table: "messages" }, (payload) => {
       const m = payload.new as MessageRow;
@@ -204,6 +208,7 @@ export function useChat(meId: string | null, partnerId: string | null) {
         expires_at,
       };
       setMessages((prev) => mergeMessages(prev, [draft]));
+      sfxSend();
 
       const insertPayload = {
         sender_id: meId,
@@ -232,8 +237,10 @@ export function useChat(meId: string | null, partnerId: string | null) {
       if (!meId) return;
       const reactions = { ...(m.reactions ?? {}) } as Record<string, string[]>;
       const list = reactions[emoji] ?? [];
-      reactions[emoji] = list.includes(meId) ? list.filter((x) => x !== meId) : [...list, meId];
+      const adding = !list.includes(meId);
+      reactions[emoji] = adding ? [...list, meId] : list.filter((x) => x !== meId);
       if (reactions[emoji].length === 0) delete reactions[emoji];
+      if (adding) sfxReaction();
       await supabase.from("messages").update({ reactions }).eq("id", m.id);
     },
     [meId],
