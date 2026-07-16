@@ -276,6 +276,7 @@ function Composer({
       title: title.trim() || "Untitled",
       body: body.trim(),
       theme,
+      seal_motto: motto.trim() || null,
       unlock_at: unlockAt.toISOString(),
     });
     setSaving(false);
