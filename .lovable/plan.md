@@ -1,69 +1,55 @@
-## Group Chat Feature Upgrade
+# Rebuild Group Chat
 
-Adding four feature tiers to group chats. Existing tables: `chat_groups`, `chat_group_members` (role admin/member), `messages`.
+The backend tables (`chat_groups`, `chat_group_members`, `message_reactions`, `messages` with `reply_to_id`/`pinned_at`/`deleted_at`) and RLS/helpers (`is_group_member`, `is_group_admin`, `chat_group_messages`, `call_start_group`) all still exist from before. This rebuild is frontend-only.
 
-### 1. Basic essentials (Group Info screen)
-New route `src/routes/_authenticated/app.chat.group.$groupId.info.tsx`:
-- Rename group (admin only)
-- Change group avatar — upload to `chat-media` bucket (admin only)
-- Members list with role badges
-- Add members (from friends + partner)
-- Remove member (admin only)
-- Promote / demote admin (admin only) — **admin switch**
-- Leave group (existing `useLeaveGroup`)
-- Mute notifications (local per-device via `localStorage`, keyed by group id)
+## What ships
 
-Header of `app.chat.group.$groupId.tsx` links to the info screen.
+### 1. Group list (in Chats)
+- Groups section on `/app/chat` above Friends
+- "+" menu → New group / Add friend
+- `NewGroupDialog`: name, emoji avatar, pick friends/partner
+- Unread count + last-message preview per group
 
-### 2. Message tools (extend existing chat UI)
-Reuse for both direct + group chats where feasible:
-- **Reply/quote**: add `reply_to_id` column on `messages`; long-press/hover shows Reply; composer displays quoted preview; bubble renders quoted snippet that scrolls to source
-- **Reactions**: new `message_reactions` table (`message_id`, `user_id`, `emoji`); tap emoji on bubble; grouped counts under bubble
-- **Pin messages**: add `pinned_at`, `pinned_by` on `messages`; pinned banner at top of group thread; admin-only pin/unpin
-- **Search within group**: reuse `ChatSearch` component, wired to group message list
-- **Delete for everyone**: admin OR original sender; sets `deleted_at` and renders "message deleted"
+### 2. Group chat screen `/app/chat/group/$groupId`
+- Header: avatar, name, member count, call button, settings (gear) link
+- Message list reusing `ChatBubble`
+- Composer reusing `ChatComposer` (text, image, voice, sticker)
+- Realtime via `chat_group_messages` RPC + realtime channel
+- Reply/quote, react (emoji), pin (admin), delete-for-everyone (admin/sender)
+- Pinned banner at top
 
-### 3. Media & sharing (Media tab in Group Info)
-- Tabs: Media (images/video), Files, Links
-- Query `messages` filtered by group + type in ('image','video','file') sorted desc
-- Link previews: extract first URL, store `link_preview` jsonb (title, description, image) fetched by a server function using existing infra pattern; render inline in bubbles
+### 3. Group info / settings `/app/chat/group/$groupId/info`
+- Rename group (admin)
+- Change avatar emoji (admin)
+- **Theme picker** — aurora / sunset / midnight / sakura / forest / mono, applied via `data-group-theme` on chat screen
+- Members list with role badges, promote/demote (admin), remove (admin)
+- Add members from friends
+- Leave group
+- Mute notifications (device-local)
 
-### 4. Step 3 — Theme selection + Admin switch
-- **Theme selection**: add `theme` text column on `chat_groups` (default `'aurora'`). Options: `aurora`, `sunset`, `midnight`, `sakura`, `forest`, `mono`. Admin picks from Info screen. Chat background + accent tokens driven by `data-group-theme` attribute mapped in `styles.css`.
-- **Admin switch**: Promote/demote handled in Members list. Enforced by RLS via existing `is_group_admin()` function. At least one admin must remain (checked in mutation).
+### 4. Group calls
+- Voice/video group call from header button → `/app/call/group/$groupId`
+- Reuses `call_start_group` RPC + existing LiveKit call panel
+- `IncomingCallListener` re-enables `scope=group` routing
 
-### Data changes (single migration)
-```sql
-alter table public.messages
-  add column reply_to_id uuid references public.messages(id) on delete set null,
-  add column pinned_at timestamptz,
-  add column pinned_by uuid references auth.users(id),
-  add column deleted_at timestamptz,
-  add column link_preview jsonb;
+## Files
 
-alter table public.chat_groups add column theme text not null default 'aurora';
+Recreate:
+- `src/hooks/useGroups.ts` — list + `useGroup(id)` + `useCreateGroup` + `useLeaveGroup`
+- `src/hooks/useGroupChat.ts` — messages + send + realtime
+- `src/hooks/useGroupAdmin.ts` — rename/avatar/theme, member roles, add/remove, mute
+- `src/components/chat/NewGroupDialog.tsx`
+- `src/routes/_authenticated/app.chat.group.$groupId.tsx`
+- `src/routes/_authenticated/app.chat.group.$groupId.info.tsx`
+- `src/routes/_authenticated/app.call.group.$groupId.tsx`
 
-create table public.message_reactions (
-  id uuid primary key default gen_random_uuid(),
-  message_id uuid not null references public.messages(id) on delete cascade,
-  user_id uuid not null references auth.users(id) on delete cascade,
-  emoji text not null,
-  created_at timestamptz not null default now(),
-  unique(message_id, user_id, emoji)
-);
--- GRANTs + RLS: users can react to messages they can read; delete own reactions.
-```
+Edit:
+- `src/routes/_authenticated/app.chat.index.tsx` — add groups section + "+" menu back
+- `src/components/IncomingCallListener.tsx` — restore group-call navigation
+- `src/hooks/useUnreadMessages.ts` — include group unreads
+- `src/styles.css` — `[data-group-theme]` token overrides for the 6 themes
 
-New RLS on new columns/table + policies for admin pin/unpin, admin/sender delete, admin theme/rename/avatar/role changes.
-
-### Files touched (est.)
-- 1 migration
-- New: `app.chat.group.$groupId.info.tsx`, `GroupInfo/` components (Members, MediaTab, ThemePicker), `useMessageReactions.ts`, `useGroupMedia.ts`
-- Edited: `app.chat.group.$groupId.tsx`, `ChatBubble.tsx`, `ChatComposer.tsx`, `useGroupChat.ts`, `useGroups.ts`, `styles.css`, `types.ts` (auto-regen after migration)
-
-### Notes
-- Message tools (reply/reactions/pin/delete) will also appear in direct chats since they share `ChatBubble`/`ChatComposer` — acceptable and expected.
-- Link preview fetching runs via server function; failures degrade to plain link.
-- Notification mute is device-local (no push infra yet).
-
-Confirm to proceed and I'll ship it in order: migration → basics + admin switch → message tools → media tab → themes.
+## Notes
+- No DB migration — schema is already in place.
+- Reactions/reply/pin surface in group chat only for now (not direct chats) to keep the diff contained.
+- After you approve, I ship it in one pass.
