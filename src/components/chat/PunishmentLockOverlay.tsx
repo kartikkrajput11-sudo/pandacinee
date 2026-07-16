@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Lock, Send, Sparkles, Palette } from "lucide-react";
+import { Lock, Send, Sparkles, Palette, Copy, HeartHandshake, Timer, Check } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,6 +7,13 @@ import { uploadChatMedia } from "@/lib/chat";
 import { VoiceRecorder } from "./VoiceRecorder";
 import { typeMeta, type PunishmentLock } from "@/lib/punishment";
 import { generateLoveQuiz } from "@/lib/games.functions";
+
+const PLEAS = [
+  "Please, my love… have mercy 💌",
+  "I'll be so good — one chance? 🥺",
+  "I miss you already 💔",
+  "One kiss to soften your heart? 💋",
+];
 
 type Props = {
   lock: PunishmentLock;
