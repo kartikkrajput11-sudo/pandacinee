@@ -159,6 +159,62 @@ function ShopRoute() {
     }
   }
 
+  async function buyBundle(bundle: CoinBundle) {
+    if (!me?.id) return;
+    setBusy(bundle.id);
+    try {
+      await loadRazorpayScript();
+      const order = await createOrder({ data: { bundleId: bundle.id } });
+      await new Promise<void>((resolve, reject) => {
+        const rzp = new (window as any).Razorpay({
+          key: order.keyId,
+          amount: order.amount,
+          currency: order.currency,
+          name: "Pandacine",
+          description: `${order.coins} Panda Coins`,
+          order_id: order.orderId,
+          prefill: {
+            name: me?.display_name ?? me?.username ?? "",
+          },
+          theme: { color: "#e879a5" },
+          modal: {
+            ondismiss: () => reject(new Error("Payment cancelled")),
+          },
+          handler: async (resp: any) => {
+            try {
+              const result = await verifyPayment({
+                data: {
+                  razorpay_order_id: resp.razorpay_order_id,
+                  razorpay_payment_id: resp.razorpay_payment_id,
+                  razorpay_signature: resp.razorpay_signature,
+                },
+              });
+              toast.success(`+${result.coins ?? order.coins} 🐼 Panda Coins`, {
+                description: "Payment successful",
+              });
+              await Promise.all([load(), refetch?.()]);
+              resolve();
+            } catch (e: any) {
+              toast.error(e?.message ?? "Verification failed");
+              reject(e);
+            }
+          },
+        });
+        rzp.on("payment.failed", (e: any) => {
+          toast.error(e?.error?.description ?? "Payment failed");
+          reject(new Error(e?.error?.description ?? "Payment failed"));
+        });
+        rzp.open();
+      });
+    } catch (e: any) {
+      if (e?.message !== "Payment cancelled") {
+        toast.error(e?.message ?? "Couldn't start payment");
+      }
+    } finally {
+      setBusy(null);
+    }
+  }
+
   const activeCat = CATS.find((c) => c.key === tab)!;
 
   return (
