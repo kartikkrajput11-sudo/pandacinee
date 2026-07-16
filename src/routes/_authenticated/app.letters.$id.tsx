@@ -185,9 +185,10 @@ function LetterView() {
 
         {stillLocked && !mine ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
-            <div className="mb-8">
+            <div className={`mb-8 ${premiumSeal}`}>
               <PandacineWaxSeal tone={letter.theme} interactive={false} size={176} motto={letter.seal_motto ?? undefined} />
             </div>
+
             <p className={`font-serif italic text-3xl ${style.text} mb-2`}>Sealed for you.</p>
             <p className={`${style.text} opacity-70 text-sm mb-6`}>
               Opens {new Date(letter.unlock_at).toLocaleString([], { dateStyle: "long", timeStyle: "short" })}
