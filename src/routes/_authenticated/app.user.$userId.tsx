@@ -106,15 +106,7 @@ function UserProfilePage() {
       </header>
 
       <div className="rounded-3xl border border-petal/30 bg-petal-soft/10 p-6 text-center mb-4">
-        <div className="size-28 mx-auto mb-4 rounded-full bg-petal-soft border border-petal/30 flex items-center justify-center overflow-hidden">
-          {user.avatar_url ? (
-            <img src={user.avatar_url} alt="" className="size-full object-cover" />
-          ) : (
-            <span className="font-serif italic text-5xl text-petal">
-              {displayName[0]?.toUpperCase()}
-            </span>
-          )}
-        </div>
+        <UserAvatar src={user.avatar_url} name={displayName} className="size-28 mx-auto mb-4" />
         <h2 className="font-serif italic text-2xl text-candle">{displayName}</h2>
         {isPartner && (
           <p className="text-xs text-petal mt-1 flex items-center justify-center gap-1">
