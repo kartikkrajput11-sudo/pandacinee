@@ -178,7 +178,7 @@ function UserProfilePage() {
         </div>
       </section>
 
-      {/* Achievements */}
+      {/* Equipped honors */}
       <section className="px-5 mt-6">
         <div className="flex items-center gap-3 mb-3">
           <span className="h-px flex-1 bg-candle/10" />
@@ -187,6 +187,17 @@ function UserProfilePage() {
         </div>
         <AchievementBadges userId={user.id} />
       </section>
+
+      {/* Full collection of earned tags */}
+      <section className="px-5 mt-6">
+        <div className="flex items-center gap-3 mb-3">
+          <span className="h-px flex-1 bg-candle/10" />
+          <span className="text-[9px] uppercase tracking-[0.3em] text-candle/45 font-semibold">Collection</span>
+          <span className="h-px flex-1 bg-candle/10" />
+        </div>
+        <AchievementBadges userId={user.id} equippedOnly={false} />
+      </section>
+
 
       {/* Actions */}
       {!isMe && (
