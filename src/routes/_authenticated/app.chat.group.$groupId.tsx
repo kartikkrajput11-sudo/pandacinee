@@ -14,7 +14,9 @@ import { startGroupCall } from "@/lib/callActions";
 import { UserAvatar } from "@/components/UserAvatar";
 import { PollComposer } from "@/components/chat/PollComposer";
 import { PollMessage } from "@/components/chat/PollMessage";
+import { ForwardDialog } from "@/components/chat/ForwardDialog";
 import type { PollMeta } from "@/lib/poll";
+import type { MessageRow } from "@/lib/chat";
 
 const QUICK_REACTIONS = ["❤️", "😂", "🥺", "🔥", "🐼", "👍"];
 
