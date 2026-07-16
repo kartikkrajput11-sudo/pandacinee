@@ -60,6 +60,7 @@ function ChatPeer() {
   const [highlightId, setHighlightId] = useState<string | null>(null);
   const [lockDialogOpen, setLockDialogOpen] = useState(false);
   const [verifyOpen, setVerifyOpen] = useState(false);
+  const [forwardMsg, setForwardMsg] = useState<MessageRow | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const bubbleRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
