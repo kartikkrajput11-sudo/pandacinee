@@ -155,7 +155,7 @@ export const generateAiSticker = createServerFn({ method: "POST" })
     if (!isUploadedProfilePhoto(userId, myAvatar)) {
       throw new Error("Upload your profile photo first so AI stickers can match your face accurately.");
     }
-    const myAvatarPath = myAvatar.trim();
+    const myAvatarPath = typeof myAvatar === "string" ? myAvatar.trim() : "";
 
     const content: Array<
       | { type: "text"; text: string }
@@ -175,7 +175,7 @@ export const generateAiSticker = createServerFn({ method: "POST" })
       if (!isUploadedProfilePhoto(me.partner_id, partnerAvatar)) {
         throw new Error("Your partner needs to upload a real profile photo first so couple stickers can match their face accurately.");
       }
-      const partnerAvatarPath = partnerAvatar.trim();
+      const partnerAvatarPath = typeof partnerAvatar === "string" ? partnerAvatar.trim() : "";
       const [aUrl, bUrl] = await Promise.all([
         fetchAvatarDataUrl(context.supabase, userId, myAvatarPath),
         fetchAvatarDataUrl(context.supabase, me.partner_id, partnerAvatarPath),
