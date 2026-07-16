@@ -72,7 +72,7 @@ function GroupInfo() {
               { id: "members", label: "Members", icon: <Crown className="size-3.5" /> },
               { id: "media", label: "Media", icon: <ImageIcon className="size-3.5" /> },
               { id: "theme", label: "Theme", icon: <Palette className="size-3.5" /> },
-            ] as { id: Tab; label: string; icon: JSX.Element }[]
+            ] as { id: Tab; label: string; icon: ReactNode }[]
           ).map((t) => (
             <button
               key={t.id}
