@@ -13,10 +13,15 @@ type Props = {
 
 export function ChessBoard({ chess, orientation, canMoveColor, lastMove, onMove }: Props) {
   const [selected, setSelected] = useState<Square | null>(null);
-  const { chessBoard } = useEquippedItems();
+  const { chessBoard, chessPieces } = useEquippedItems();
   const lightSq = chessBoard?.light ?? "oklch(0.82 0.04 320)";
   const darkSq = chessBoard?.dark ?? "oklch(0.42 0.09 310)";
   const accent = chessBoard?.accent ?? "var(--petal)";
+  const pieceGlyph = (color: Color, type: PieceSymbol): string => {
+    const g = chessPieces?.glyphs?.[color]?.[type];
+    return g ?? PIECE_GLYPH[color][type];
+  };
+  const emojiPieces = chessPieces?.emoji === true;
 
   const targets = useMemo(() => {
     if (!selected) return new Map<Square, boolean>();
