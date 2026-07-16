@@ -139,7 +139,7 @@ function Me() {
           <div className="flex items-center gap-4 mb-6">
             <button
               onClick={() => fileRef.current?.click()}
-              className="relative size-20 rounded-full bg-petal-soft border border-petal/20 flex items-center justify-center overflow-hidden group"
+              className={`relative size-20 rounded-full bg-petal-soft border border-petal/20 flex items-center justify-center overflow-hidden group ${ringClass}`}
             >
               {avatarUrl ? (
                 <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
@@ -152,11 +152,7 @@ function Me() {
                 <Camera className="size-5 text-candle" />
               </span>
             </button>
-            <input
-              ref={fileRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
+
               onChange={(e) => {
                 const f = e.target.files?.[0];
                 if (f) uploadAvatar(f);
