@@ -144,6 +144,7 @@ function ChatPeer() {
 
   const [kissTick, setKissTick] = useState(0);
   const [kissEmoji, setKissEmoji] = useState("💜");
+  const [hugTick, setHugTick] = useState(0);
   const [shake, setShake] = useState(false);
   const lastFxIdRef = useRef<string | null>(null);
   const playedFxRef = useRef<Set<string>>(new Set());
