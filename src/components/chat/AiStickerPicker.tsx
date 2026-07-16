@@ -59,9 +59,14 @@ export function AiStickerPicker({ open, onClose, onPick }: Props) {
   const partner = profileData?.partner;
   const qc = useQueryClient();
   const genFn = useServerFn(generateAiSticker);
+  const { ownedPackMoods } = useEquippedItems();
 
   const [tab, setTab] = useState<Tab>("me");
   const [busyMood, setBusyMood] = useState<AiStickerMood | null>(null);
+
+  const isMoodUnlocked = (m: AiStickerMood) =>
+    FREE_MOODS.has(m) || ownedPackMoods.has(m);
+
 
   const isCoupleTab = tab === "us";
   // Couple stickers are stored under the current user's row so they can regenerate.
