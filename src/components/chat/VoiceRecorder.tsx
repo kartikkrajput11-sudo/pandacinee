@@ -8,10 +8,13 @@ const BAR_COUNT = 28;
 export function VoiceRecorder({
   userId,
   onSend,
+  onRecordingChange,
 }: {
   userId: string;
   onSend: (path: string, durationMs: number) => Promise<void> | void;
+  onRecordingChange?: (active: boolean) => void;
 }) {
+
   const [recording, setRecording] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [busy, setBusy] = useState(false);
