@@ -54,7 +54,7 @@ function GroupInfo() {
   const { group } = groupData;
 
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col h-screen" data-group-theme={(group as { theme?: string }).theme ?? "aurora"}>
       <header className="sticky top-0 z-10 bg-velvet border-b border-border px-4 pt-6 pb-3">
         <div className="flex items-center gap-3">
           <Link to="/app/chat/group/$groupId" params={{ groupId }} className="text-candle-muted">
