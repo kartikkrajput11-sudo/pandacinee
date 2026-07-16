@@ -572,5 +572,6 @@ export const ChatBubble = memo(ChatBubbleImpl, (prev, next) => {
   if (prev.onPin !== next.onPin) return false;
   if (prev.onDelete !== next.onDelete) return false;
   if (prev.onVanish !== next.onVanish) return false;
+  if (prev.onForward !== next.onForward) return false;
   return true;
 });
