@@ -274,7 +274,15 @@ function ChatPeer() {
             {peer.avatar_url ? <img src={peer.avatar_url} alt="" className="size-full object-cover" /> : <span className="text-lg">🐼</span>}
           </div>
           <div className="flex-1 min-w-0">
-            <h1 className="font-serif italic text-lg leading-tight truncate">{peerDisplay}</h1>
+            <div className="flex items-center gap-1.5 min-w-0">
+              <h1 className="font-serif italic text-lg leading-tight truncate">{peerDisplay}</h1>
+              {isPartner && streakDays > 0 && (
+                <span className="shrink-0 flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-petal/15 text-[10px] text-petal font-bold border border-petal/25">
+                  <Flame className="size-2.5" />
+                  {streakDays}
+                </span>
+              )}
+            </div>
             <p className="text-[10px] text-petal flex items-center gap-1">
               <span className={`size-1.5 rounded-full ${partnerOnline ? "bg-green-400" : "bg-candle-muted"}`} />
               {partnerTyping ? "typing…" : formatLastSeen(peer.last_seen_at, partnerOnline)}
