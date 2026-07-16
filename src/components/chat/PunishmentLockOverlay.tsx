@@ -258,6 +258,30 @@ export function PunishmentLockOverlay({
                 animation: "spinRing 12s linear infinite",
               }}
             />
+            {/* Countdown ring (only if timed) */}
+            {timePct != null && (
+              <svg
+                className="absolute -inset-2 pointer-events-none"
+                viewBox="0 0 100 100"
+                style={{ transform: "rotate(-90deg)" }}
+              >
+                <circle cx="50" cy="50" r="46" fill="none" stroke="hsl(38 55% 62% / 0.15)" strokeWidth="1.5" />
+                <circle
+                  cx="50" cy="50" r="46" fill="none"
+                  stroke="url(#ringGrad)"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeDasharray={`${(timePct / 100) * 289} 289`}
+                  style={{ transition: "stroke-dasharray 1s linear", filter: "drop-shadow(0 0 4px rgba(236,72,153,0.6))" }}
+                />
+                <defs>
+                  <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stopColor="hsl(38 70% 75%)" />
+                    <stop offset="100%" stopColor="hsl(340 65% 60%)" />
+                  </linearGradient>
+                </defs>
+              </svg>
+            )}
             <div
               className="relative size-20 rounded-full flex items-center justify-center"
               style={{
