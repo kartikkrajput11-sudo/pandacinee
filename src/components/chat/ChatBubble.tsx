@@ -98,13 +98,14 @@ function ChatBubbleImpl({
   const isGameInvite = m.type === "game_invite";
   const isMovieWheel = m.type === "movie_wheel";
   const isKiss = m.type === "kiss";
+  const isHug = m.type === "hug";
   const isNudge = m.type === "nudge";
   const isWhisper = m.type === "whisper";
   const isCall = m.type === "call";
   const [whisperRevealed, setWhisperRevealed] = useState(false);
   useSharedTick(isLast);
 
-  const bare = isSticker || isWatchInvite || isGameInvite || isMovieWheel || isKiss || isNudge || isCall;
+  const bare = isSticker || isWatchInvite || isGameInvite || isMovieWheel || isKiss || isHug || isNudge || isCall;
 
   // ---- Gestures: long-press for actions, swipe for reply, double-tap for heart ----
   const [dragX, setDragX] = useState(0);
@@ -215,7 +216,7 @@ function ChatBubbleImpl({
   };
 
   return (
-    <div className={`group flex ${isKiss || isNudge ? "justify-center" : mine ? "justify-end" : "justify-start"} mt-1.5 px-1 relative`}>
+    <div className={`group flex ${isKiss || isHug || isNudge ? "justify-center" : mine ? "justify-end" : "justify-start"} mt-1.5 px-1 relative`}>
       {dragX > 0 && (
         <div
           className="absolute top-1/2 -translate-y-1/2 left-3 size-8 rounded-full bg-petal/20 border border-petal/40 flex items-center justify-center text-petal pointer-events-none"
@@ -285,7 +286,8 @@ function ChatBubbleImpl({
                  replyTo.type === "file" ? `📎 ${replyTo.content}` :
                  replyTo.type === "game_invite" ? `🎮 ${replyTo.content}` :
                  replyTo.type === "movie_wheel" ? "🎡 Movie wheel" :
-                 replyTo.type === "kiss" ? "💋 kiss" :
+                 replyTo.type === "kiss" ? "💜 kiss" :
+                 replyTo.type === "hug" ? "🫂 hug" :
                  replyTo.type === "whisper" ? "🤫 whisper" :
                  replyTo.type === "sticker" && isPandaStickerContent(replyTo.content) ? "🐼 Sticker" :
                  replyTo.content}
@@ -380,6 +382,25 @@ function ChatBubbleImpl({
               </div>
             );
           })()}
+
+          {isHug && (() => {
+            const time = new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false });
+            const sender = mine ? "You" : (partnerName || "Them");
+            return (
+              <div className="flex flex-col items-center py-2 w-full">
+                <div className="relative rounded-2xl px-5 py-3 flex items-center gap-3 border border-petal/25 bg-gradient-to-r from-petal-soft/25 via-transparent to-[hsl(38_60%_60%/0.18)] backdrop-blur-sm">
+                  <span className="text-2xl">🫂</span>
+                  <div className="flex flex-col">
+                    <span className="text-[9px] uppercase tracking-[0.28em] text-petal">Hug from {sender}</span>
+                    <span className="font-serif italic text-candle text-base leading-tight">a warm embrace</span>
+                    <span className="text-[8px] tracking-[0.2em] uppercase text-candle/40 mt-1">{time}</span>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+
+
 
 
 

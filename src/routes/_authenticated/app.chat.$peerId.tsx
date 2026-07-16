@@ -12,6 +12,7 @@ import { formatLastSeen } from "@/hooks/usePresenceHeartbeat";
 import { ChatSearch } from "@/components/chat/ChatSearch";
 
 import { KissOverlay } from "@/components/chat/KissOverlay";
+import { HugOverlay } from "@/components/chat/HugOverlay";
 import { PunishmentLockDialog } from "@/components/chat/PunishmentLockDialog";
 import { PunishmentLockOverlay } from "@/components/chat/PunishmentLockOverlay";
 import { PunishmentLockBanner } from "@/components/chat/PunishmentLockBanner";
@@ -143,6 +144,7 @@ function ChatPeer() {
 
   const [kissTick, setKissTick] = useState(0);
   const [kissEmoji, setKissEmoji] = useState("💜");
+  const [hugTick, setHugTick] = useState(0);
   const [shake, setShake] = useState(false);
   const lastFxIdRef = useRef<string | null>(null);
   const playedFxRef = useRef<Set<string>>(new Set());
@@ -213,7 +215,7 @@ function ChatPeer() {
     const now = Date.now();
     const candidates = messages.filter((m) => {
       if (m.sender_id === me.id) return false;
-      if (m.type !== "kiss" && m.type !== "nudge") return false;
+      if (m.type !== "kiss" && m.type !== "nudge" && m.type !== "hug") return false;
       if (playedFxRef.current.has(m.id)) return false;
       const fresh = now - new Date(m.created_at).getTime() <= 15000;
       const unseen = !m.read_at;
@@ -235,6 +237,12 @@ function ChatPeer() {
           if ("vibrate" in navigator) navigator.vibrate?.(60);
         }, delay);
         delay += 450;
+      } else if (m.type === "hug") {
+        window.setTimeout(() => {
+          setHugTick((t) => t + 1);
+          if ("vibrate" in navigator) navigator.vibrate?.([40, 30, 40, 30, 40]);
+        }, delay);
+        delay += 500;
       } else if (m.type === "nudge" && !nudgePlayed) {
         nudgePlayed = true;
         window.setTimeout(() => {
@@ -487,6 +495,7 @@ function ChatPeer() {
 
       />
       <KissOverlay trigger={kissTick} emoji={kissEmoji} />
+      <HugOverlay trigger={hugTick} />
       <UnlockCelebration trigger={unlockTick || null} />
 
       {activeLock && iAmLocked && !isVerifyMode && (

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import {
   Plus, X, Image as ImageIcon, Paperclip, Smile, Send, Film,
-  Video as VideoIcon, Gamepad2, Heart, Zap, EyeOff, Eye, Disc3, Sparkles,
+  Video as VideoIcon, Gamepad2, Heart, HeartHandshake, Zap, EyeOff, Eye, Disc3, Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
 import { uploadChatMedia, type MessageRow } from "@/lib/chat";
@@ -30,7 +30,7 @@ type Props = {
 
   onSend: (input: {
     content?: string;
-    type?: "text" | "voice" | "image" | "video" | "file" | "sticker" | "watch_invite" | "game_invite" | "kiss" | "nudge" | "whisper" | "movie_wheel";
+    type?: "text" | "voice" | "image" | "video" | "file" | "sticker" | "watch_invite" | "game_invite" | "kiss" | "hug" | "nudge" | "whisper" | "movie_wheel";
     media_url?: string | null;
     media_meta?: Record<string, unknown> | null;
     reply_to_id?: string | null;
@@ -92,6 +92,16 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
       toast.success(`You nudged ${partnerName} 👋`);
     } catch (err: any) {
       toast.error(err?.message ?? "Couldn't nudge");
+    }
+  }
+
+  async function sendHug() {
+    setMenuOpen(false);
+    try {
+      await onSend({ type: "hug", content: `🫂 A warm hug for ${partnerName}`, disappear_seconds: disappearSecs });
+      toast.success(`You hugged ${partnerName} 🫂`);
+    } catch (err: any) {
+      toast.error(err?.message ?? "Couldn't send");
     }
   }
 
@@ -366,6 +376,7 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
               <StudioTile icon={<Gamepad2 className="size-4" />} label="Game" onClick={() => { setGamePickerOpen(true); setMenuOpen(false); }} accent />
               <StudioTile icon={<Disc3 className="size-4" />} label="Wheel" onClick={() => { setWheelOpen(true); setMenuOpen(false); }} accent />
               <StudioTile icon={<Heart className="size-4 fill-current" />} label="Kiss" onClick={sendKiss} accent glow />
+              <StudioTile icon={<HeartHandshake className="size-4" />} label="Hug" onClick={sendHug} accent glow />
               <StudioTile icon={<Zap className="size-4" />} label="Nudge" onClick={sendNudge} />
             </div>
           </div>
