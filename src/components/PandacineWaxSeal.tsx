@@ -312,6 +312,29 @@ export function PandacineWaxSeal({
           <path d="M56 168 L144 168 L144 180 L56 180 Z" fill={p.mid} />
           <path d="M56 168 L144 168" stroke={p.deep} strokeOpacity="0.4" strokeWidth="0.6" />
         </g>
+
+        {/* Candle flame at the top */}
+        <g className="pcs-flame">
+          <ellipse cx="100" cy="4" rx="4" ry="8" fill={p.hi} opacity="0.9" />
+          <ellipse cx="100" cy="6" rx="2.2" ry="5" fill="#fff" opacity="0.9" />
+          <line x1="100" y1="12" x2="100" y2="18" stroke={p.deep} strokeWidth="0.8" />
+        </g>
+
+        {/* Falling wax droplets */}
+        <g className="pcs-fall" fill={p.mid}>
+          <ellipse className="pcs-drop d1" cx="40" cy="120" rx="1.6" ry="2.4"/>
+          <ellipse className="pcs-drop d2" cx="100" cy="150" rx="1.8" ry="2.6"/>
+          <ellipse className="pcs-drop d3" cx="160" cy="128" rx="1.5" ry="2.2"/>
+          <ellipse className="pcs-drop d4" cx="70" cy="140" rx="1.3" ry="2.0"/>
+          <ellipse className="pcs-drop d5" cx="130" cy="145" rx="1.5" ry="2.2"/>
+        </g>
+
+        {/* Tiny floating hearts */}
+        <g className="pcs-hearts" fill={p.hi}>
+          <path className="pcs-heart h1" d="M0 0 c-2 -3 -6 -1 -6 2 c 0 3 4 5 6 7 c 2 -2 6 -4 6 -7 c 0 -3 -4 -5 -6 -2z" transform="translate(50 60)"/>
+          <path className="pcs-heart h2" d="M0 0 c-2 -3 -6 -1 -6 2 c 0 3 4 5 6 7 c 2 -2 6 -4 6 -7 c 0 -3 -4 -5 -6 -2z" transform="translate(150 70)"/>
+          <path className="pcs-heart h3" d="M0 0 c-2 -3 -6 -1 -6 2 c 0 3 4 5 6 7 c 2 -2 6 -4 6 -7 c 0 -3 -4 -5 -6 -2z" transform="translate(100 40)"/>
+        </g>
       </svg>
 
       <style>{`
