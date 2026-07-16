@@ -354,12 +354,16 @@ export function PunishmentLockOverlay({
 
 
         {/* Progress rail — champagne */}
-        <div className="mb-6 rounded-2xl border border-white/5 bg-white/[0.02] backdrop-blur-sm px-4 py-3">
+        <div className="mb-4 rounded-2xl border border-white/5 bg-white/[0.02] backdrop-blur-sm px-4 py-3">
           <div className="flex justify-between items-center text-[10px] uppercase tracking-[0.28em] text-candle-muted mb-2">
             <span>Progress</span>
-            <span className="tabular-nums text-candle/85">
+            <span className="tabular-nums text-candle/85 flex items-center gap-1.5">
               {lock.progress} / {lock.required_count}
-              {remainingLabel ? <span className="ml-2 text-petal">· {remainingLabel}</span> : null}
+              {remainingLabel && (
+                <span className="ml-2 text-petal flex items-center gap-1">
+                  <Timer className="size-3" /> {remainingLabel}
+                </span>
+              )}
             </span>
           </div>
           <div className="relative h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
@@ -373,7 +377,40 @@ export function PunishmentLockOverlay({
               }}
             />
           </div>
+          {/* Step dots (only when reasonable) */}
+          {meta.countable && lock.required_count <= 20 && (
+            <div className="flex items-center justify-between gap-1 mt-3">
+              {Array.from({ length: lock.required_count }).map((_, i) => {
+                const done = i < lock.progress;
+                return (
+                  <span
+                    key={i}
+                    className="flex-1 h-1 rounded-full transition-all"
+                    style={{
+                      background: done
+                        ? "linear-gradient(90deg, hsl(38 60% 68%), hsl(340 65% 60%))"
+                        : "rgba(255,255,255,0.06)",
+                      boxShadow: done ? "0 0 6px rgba(236,72,153,0.5)" : undefined,
+                    }}
+                  />
+                );
+              })}
+            </div>
+          )}
         </div>
+
+        {/* Plea row — always available */}
+        <div className="mb-5 flex justify-center">
+          <button
+            onClick={sendPlea}
+            disabled={pleaCooldown > 0}
+            className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.28em] px-4 py-2 rounded-full bg-white/[0.03] border border-white/10 text-candle hover:border-petal/50 hover:text-petal transition-colors disabled:opacity-50"
+          >
+            <HeartHandshake className="size-3.5 text-petal" />
+            {pleaCooldown > 0 ? `Wait ${pleaCooldown}s` : `Beg ${partnerName} for mercy`}
+          </button>
+        </div>
+
 
 
         {celebrate ? (
