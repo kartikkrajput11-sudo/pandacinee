@@ -208,11 +208,13 @@ function Composer({
   me,
   partnerId,
   partnerName,
+  anniversaryDate,
   onClose,
 }: {
   me: string;
   partnerId: string;
   partnerName: string;
+  anniversaryDate: string | null;
   onClose: () => void;
 }) {
   const [title, setTitle] = useState("");
@@ -222,7 +224,7 @@ function Composer({
   const [previewBreaking, setPreviewBreaking] = useState(false);
   const [tone, setTone] = useState<"tender" | "playful" | "poetic" | "vulnerable">("tender");
   const [hints, setHints] = useState("");
-  const [unlockChoice, setUnlockChoice] = useState<"now" | "tomorrow" | "week" | "custom">("tomorrow");
+  const [unlockChoice, setUnlockChoice] = useState<"now" | "tomorrow" | "week" | "anniversary" | "custom">("tomorrow");
   const [customDate, setCustomDate] = useState<string>(() => {
     const d = new Date();
     d.setDate(d.getDate() + 1);
@@ -230,10 +232,43 @@ function Composer({
   });
   const [aiLoading, setAiLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [photoPath, setPhotoPath] = useState<string | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [photoUploading, setPhotoUploading] = useState(false);
+  const [voicePath, setVoicePath] = useState<string | null>(null);
+  const [voiceMs, setVoiceMs] = useState<number>(0);
+  const [showRecorder, setShowRecorder] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   function testAnimation() {
     setPreviewBreaking(true);
     setTimeout(() => setPreviewBreaking(false), 1500);
+  }
+
+  async function onPickPhoto(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Pick an image.");
+      return;
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      toast.error("That photo is a bit large — under 8 MB please.");
+      return;
+    }
+    setPhotoUploading(true);
+    try {
+      const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+      const path = await uploadChatMedia(file, me, "image", ext);
+      const url = await signMedia(path);
+      setPhotoPath(path);
+      setPhotoPreview(url);
+    } catch (err: any) {
+      toast.error(err.message ?? "Couldn't upload that photo.");
+    } finally {
+      setPhotoUploading(false);
+    }
   }
 
   const unlockAt = useMemo(() => {
