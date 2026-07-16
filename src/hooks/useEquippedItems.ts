@@ -92,6 +92,7 @@ export function useEquippedItems(): EquippedItems {
     let fName: FlairMeta | null = null;
     let fBadge: FlairMeta | null = null;
     let cb: ChessBoardMeta | null = null;
+    let cp: ChessPiecesMeta | null = null;
     const perks = new Set<string>();
     const moods = new Set<string>();
 
