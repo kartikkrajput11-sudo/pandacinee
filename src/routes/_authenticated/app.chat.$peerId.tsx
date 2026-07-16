@@ -237,6 +237,12 @@ function ChatPeer() {
           if ("vibrate" in navigator) navigator.vibrate?.(60);
         }, delay);
         delay += 450;
+      } else if (m.type === "hug") {
+        window.setTimeout(() => {
+          setHugTick((t) => t + 1);
+          if ("vibrate" in navigator) navigator.vibrate?.([40, 30, 40, 30, 40]);
+        }, delay);
+        delay += 500;
       } else if (m.type === "nudge" && !nudgePlayed) {
         nudgePlayed = true;
         window.setTimeout(() => {
