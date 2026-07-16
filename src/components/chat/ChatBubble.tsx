@@ -1,4 +1,25 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+
+function relTime(iso?: string | null) {
+  if (!iso) return "";
+  const s = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 1000));
+  if (s < 45) return "just now";
+  const m = Math.floor(s / 60);
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  const d = Math.floor(h / 24);
+  if (d < 7) return `${d}d ago`;
+  return new Date(iso).toLocaleDateString();
+}
+
+function useTick(ms = 30000) {
+  const [, set] = useState(0);
+  useEffect(() => {
+    const i = window.setInterval(() => set((n) => n + 1), ms);
+    return () => window.clearInterval(i);
+  }, [ms]);
+}
 import { Heart, Pin, Trash2, Reply, Check, CheckCheck, Download, Zap, Phone, Video as VideoIcon, PhoneMissed, Clock } from "lucide-react";
 import { signMedia, type MessageRow } from "@/lib/chat";
 import { VoicePlayer } from "./VoicePlayer";
