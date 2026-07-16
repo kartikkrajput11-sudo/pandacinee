@@ -125,6 +125,56 @@ export function PandacineWaxSeal({
           <circle cx="100" cy="100" r="74" fill="none" stroke={p.hi} strokeOpacity="0.35" strokeWidth="0.8" />
           <circle cx="100" cy="100" r="58" fill="none" stroke={p.deep} strokeOpacity="0.4" strokeWidth="0.9" strokeDasharray="1 3" />
 
+          {/* Guilloché filigree — 24 tiny spokes on the inner rim */}
+          <g stroke={p.deep} strokeOpacity="0.35" strokeWidth="0.6">
+            {Array.from({ length: 24 }).map((_, i) => {
+              const a = (i / 24) * Math.PI * 2;
+              const x1 = 100 + Math.cos(a) * 62;
+              const y1 = 100 + Math.sin(a) * 62;
+              const x2 = 100 + Math.cos(a) * 70;
+              const y2 = 100 + Math.sin(a) * 70;
+              return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} />;
+            })}
+          </g>
+
+          {/* Dot studs on outer ring */}
+          <g fill={p.deep} opacity="0.55">
+            {Array.from({ length: 12 }).map((_, i) => {
+              const a = (i / 12) * Math.PI * 2 + Math.PI / 12;
+              return <circle key={i} cx={100 + Math.cos(a) * 84} cy={100 + Math.sin(a) * 84} r="1.2" />;
+            })}
+          </g>
+
+          {/* Compass rose points N/E/S/W */}
+          <g fill={p.hi} opacity="0.7">
+            <polygon points="100,18 103,28 100,34 97,28" />
+            <polygon points="182,100 172,103 166,100 172,97" />
+            <polygon points="100,182 97,172 100,166 103,172" />
+            <polygon points="18,100 28,97 34,100 28,103" />
+          </g>
+
+          {/* Laurel sprigs framing the panda */}
+          <g stroke={p.deep} strokeOpacity="0.55" strokeWidth="1" fill={p.deep} fillOpacity="0.45">
+            {/* left sprig */}
+            <path d="M56 140 Q68 128 76 118" fill="none" strokeLinecap="round"/>
+            <ellipse cx="60" cy="134" rx="3.2" ry="1.4" transform="rotate(-40 60 134)"/>
+            <ellipse cx="65" cy="128" rx="3.2" ry="1.4" transform="rotate(-40 65 128)"/>
+            <ellipse cx="70" cy="122" rx="3.2" ry="1.4" transform="rotate(-40 70 122)"/>
+            <ellipse cx="74" cy="116" rx="3" ry="1.3" transform="rotate(-40 74 116)"/>
+            {/* right sprig */}
+            <path d="M144 140 Q132 128 124 118" fill="none" strokeLinecap="round"/>
+            <ellipse cx="140" cy="134" rx="3.2" ry="1.4" transform="rotate(40 140 134)"/>
+            <ellipse cx="135" cy="128" rx="3.2" ry="1.4" transform="rotate(40 135 128)"/>
+            <ellipse cx="130" cy="122" rx="3.2" ry="1.4" transform="rotate(40 130 122)"/>
+            <ellipse cx="126" cy="116" rx="3" ry="1.3" transform="rotate(40 126 116)"/>
+          </g>
+
+          {/* Fleuron corner ornaments */}
+          <g fill={p.deep} opacity="0.55">
+            <path d="M100 44 c -2 -3 -6 -3 -6 0 c 0 3 3 5 6 6 c 3 -1 6 -3 6 -6 c 0 -3 -4 -3 -6 0 z" />
+            <path d="M100 156 c -2 3 -6 3 -6 0 c 0 -3 3 -5 6 -6 c 3 1 6 3 6 6 c 0 3 -4 3 -6 0 z" />
+          </g>
+
           {/* Curved ring text */}
           <text fill={p.deep} fillOpacity="0.72" fontSize="10.5" letterSpacing="4"
                 fontFamily="'Cormorant Garamond','Playfair Display',Georgia,serif" fontStyle="italic" fontWeight="600">
@@ -172,6 +222,37 @@ export function PandacineWaxSeal({
           <polygon points="100,100 170,60 155,140" fill={p.lo}  className="pcs-shard s2" />
           <polygon points="100,100 40,140 90,180" fill={p.mid} className="pcs-shard s3" />
           <polygon points="100,100 155,150 105,190" fill={p.lo}  className="pcs-shard s4" />
+        </g>
+
+        {/* Orbiting stars around the seal */}
+        <g className="pcs-orbit" fill={p.hi}>
+          <g className="pcs-orbit-a">
+            <path d="M100 12 l1.4 3.2 3.4 .3 -2.6 2.3 .8 3.3 -3 -1.8 -3 1.8 .8 -3.3 -2.6 -2.3 3.4 -.3 z" />
+          </g>
+          <g className="pcs-orbit-b">
+            <path d="M188 100 l1.4 3.2 3.4 .3 -2.6 2.3 .8 3.3 -3 -1.8 -3 1.8 .8 -3.3 -2.6 -2.3 3.4 -.3 z" transform="translate(-8 -8) scale(0.7)" />
+          </g>
+          <g className="pcs-orbit-c">
+            <circle cx="12" cy="100" r="1.6" />
+          </g>
+        </g>
+
+        {/* Floating embers — little sparks that drift up when melting */}
+        <g className="pcs-embers" fill={p.hi}>
+          <circle cx="60" cy="110" r="1.4" className="pcs-ember e1" />
+          <circle cx="100" cy="120" r="1.2" className="pcs-ember e2" />
+          <circle cx="140" cy="108" r="1.6" className="pcs-ember e3" />
+          <circle cx="80" cy="130" r="1.1" className="pcs-ember e4" />
+          <circle cx="122" cy="132" r="1.3" className="pcs-ember e5" />
+          <circle cx="94" cy="98"  r="1.0" className="pcs-ember e6" />
+        </g>
+
+        {/* Ribbon banner under the seal */}
+        <g className="pcs-ribbon">
+          <path d="M56 168 L56 188 L74 180 L92 190 L92 168 Z" fill={p.lo} opacity="0.9" />
+          <path d="M144 168 L144 188 L126 180 L108 190 L108 168 Z" fill={p.lo} opacity="0.9" />
+          <path d="M56 168 L144 168 L144 180 L56 180 Z" fill={p.mid} />
+          <path d="M56 168 L144 168" stroke={p.deep} strokeOpacity="0.4" strokeWidth="0.6" />
         </g>
       </svg>
 
@@ -255,6 +336,40 @@ export function PandacineWaxSeal({
           60% { transform: translate(-2px,2px) rotate(-1deg); }
           80% { transform: translate(2px,-2px) rotate(0.8deg); }
         }
+
+        /* Orbiting stars */
+        .pcs-orbit { transform-origin: 100px 100px; transform-box: fill-box; }
+        .pcs-orbit-a { transform-origin: 100px 100px; transform-box: fill-box; animation: pcs-spin 14s linear infinite; }
+        .pcs-orbit-b { transform-origin: 100px 100px; transform-box: fill-box; animation: pcs-spin 10s linear infinite reverse; }
+        .pcs-orbit-c { transform-origin: 100px 100px; transform-box: fill-box; animation: pcs-spin 18s linear infinite; }
+        .pcs-orbit-a, .pcs-orbit-b, .pcs-orbit-c { filter: drop-shadow(0 0 3px currentColor); }
+        @keyframes pcs-spin { to { transform: rotate(360deg); } }
+
+        /* Ribbon banner */
+        .pcs-ribbon { opacity: 0; transform: translateY(-6px); transition: opacity 700ms ease 200ms, transform 700ms cubic-bezier(.2,.7,.2,1) 200ms; }
+        .pcs-wrap.pcs-phase-melt .pcs-ribbon { opacity: 1; transform: translateY(0); }
+
+        /* Embers */
+        .pcs-embers { opacity: 0; }
+        .pcs-wrap.pcs-phase-melt .pcs-embers { opacity: 1; }
+        .pcs-ember { animation: pcs-ember-rise 1.4s ease-out forwards; opacity: 0; }
+        .pcs-wrap.pcs-phase-melt .pcs-ember.e1 { animation-delay: 40ms; }
+        .pcs-wrap.pcs-phase-melt .pcs-ember.e2 { animation-delay: 160ms; }
+        .pcs-wrap.pcs-phase-melt .pcs-ember.e3 { animation-delay: 260ms; }
+        .pcs-wrap.pcs-phase-melt .pcs-ember.e4 { animation-delay: 380ms; }
+        .pcs-wrap.pcs-phase-melt .pcs-ember.e5 { animation-delay: 460ms; }
+        .pcs-wrap.pcs-phase-melt .pcs-ember.e6 { animation-delay: 560ms; }
+        @keyframes pcs-ember-rise {
+          0%   { opacity: 0; transform: translate(0,0) scale(0.6); }
+          25%  { opacity: 1; }
+          100% { opacity: 0; transform: translate(var(--dx,4px), -60px) scale(1.2); }
+        }
+        .pcs-ember.e1 { --dx: -8px; }
+        .pcs-ember.e2 { --dx: 4px; }
+        .pcs-ember.e3 { --dx: 10px; }
+        .pcs-ember.e4 { --dx: -12px; }
+        .pcs-ember.e5 { --dx: 6px; }
+        .pcs-ember.e6 { --dx: -4px; }
       `}</style>
     </Tag>
   );
