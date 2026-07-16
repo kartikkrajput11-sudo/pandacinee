@@ -19,7 +19,24 @@ export function SignedVideo({ path }: { path: string }) {
   const [duration, setDuration] = useState(0);
   const [ready, setReady] = useState(false);
   const [showControls, setShowControls] = useState(true);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const hideTimer = useRef<number | null>(null);
+
+  useEffect(() => {
+    function onFsChange() {
+      const fsEl =
+        document.fullscreenElement ||
+        (document as any).webkitFullscreenElement ||
+        (document as any).webkitCurrentFullScreenElement;
+      setIsFullscreen(!!fsEl);
+    }
+    document.addEventListener("fullscreenchange", onFsChange);
+    document.addEventListener("webkitfullscreenchange", onFsChange as any);
+    return () => {
+      document.removeEventListener("fullscreenchange", onFsChange);
+      document.removeEventListener("webkitfullscreenchange", onFsChange as any);
+    };
+  }, []);
 
   useEffect(() => {
     let m = true;
