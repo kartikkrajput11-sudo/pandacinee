@@ -22,6 +22,7 @@ type Letter = {
   unlock_at: string;
   opened_at: string | null;
   created_at: string;
+  seal_motto: string | null;
 };
 
 const THEME_STYLE: Record<Letter["theme"], { seal: string; page: string; text: string; ring: string }> = {
