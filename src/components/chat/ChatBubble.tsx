@@ -207,7 +207,7 @@ function ChatBubbleImpl({
   };
 
   return (
-    <div className={`group flex ${mine ? "justify-end" : "justify-start"} mt-1.5 px-1 relative`}>
+    <div className={`group flex ${isKiss || isNudge ? "justify-center" : mine ? "justify-end" : "justify-start"} mt-1.5 px-1 relative`}>
       {dragX > 0 && (
         <div
           className="absolute top-1/2 -translate-y-1/2 left-3 size-8 rounded-full bg-petal/20 border border-petal/40 flex items-center justify-center text-petal pointer-events-none"
@@ -305,25 +305,55 @@ function ChatBubbleImpl({
           {isGameInvite && <GameInviteCard m={m} mine={mine} />}
           {isMovieWheel && <MovieWheelCard m={m} mine={mine} />}
 
-          {isKiss && (
-            <div className="px-4 py-3 rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-sm flex items-center gap-3">
-              <span className="text-3xl">{m.content || "💋"}</span>
-              <div className="flex flex-col gap-0.5">
-                <span className="text-[9px] uppercase tracking-[0.3em] text-petal/80 font-semibold">Kiss</span>
-                <span className="text-xs italic font-serif text-candle/85">{mine ? "sent with love" : "for you"}</span>
+          {isKiss && (() => {
+            const time = new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false });
+            return (
+              <div className="flex flex-col items-center py-2 w-full">
+                <div className="relative w-[260px] bg-velvet border border-candle/20 p-6 flex flex-col items-center text-center shadow-[0_0_40px_rgba(255,143,166,0.05)]">
+                  <div className="w-12 h-12 rounded-full border border-petal/30 flex items-center justify-center mb-4 bg-velvet ring-4 ring-velvet">
+                    <span className="text-2xl leading-none">{m.content || "💋"}</span>
+                  </div>
+                  <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-petal mb-1">Kiss</span>
+                  <p className="font-serif italic text-candle text-xl leading-tight">{mine ? "sent with love" : "for you"}</p>
+                  <div className="mt-4 flex flex-col items-center w-full">
+                    <div className="h-px w-8 bg-candle/20 mb-2" />
+                    <span className="text-[9px] font-bold tracking-[0.2em] uppercase text-candle/30">{time}</span>
+                  </div>
+                  <div className="absolute top-1 left-1 w-2 h-2 border-t border-l border-candle/30" />
+                  <div className="absolute top-1 right-1 w-2 h-2 border-t border-r border-candle/30" />
+                  <div className="absolute bottom-1 left-1 w-2 h-2 border-b border-l border-candle/30" />
+                  <div className="absolute bottom-1 right-1 w-2 h-2 border-b border-r border-candle/30" />
+                </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
 
-          {isNudge && (
-            <div className="px-4 py-2.5 rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-sm flex items-center gap-3">
-              <Zap className="size-3.5 text-petal" strokeWidth={1.5} />
-              <div className="flex flex-col gap-0.5">
-                <span className="text-[9px] uppercase tracking-[0.3em] text-petal/80 font-semibold">Nudge</span>
-                <span className="text-xs italic font-serif text-candle/85">{mine ? "a gentle tap" : "thinking of you"}</span>
+          {isNudge && (() => {
+            const time = new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false });
+            return (
+              <div className="flex flex-col items-center py-2 w-full">
+                <div className="relative w-[260px] bg-velvet border border-candle/20 p-6 flex flex-col items-center text-center shadow-[0_0_30px_rgba(242,230,220,0.03)]">
+                  <div className="w-12 h-12 rounded-full border border-candle/30 flex items-center justify-center mb-4 bg-velvet ring-4 ring-velvet">
+                    <div className="relative">
+                      <div className="w-6 h-6 rounded-full border border-candle/50 animate-pulse" />
+                      <div className="absolute inset-0 w-6 h-6 rounded-full border border-candle/20 scale-150" />
+                    </div>
+                  </div>
+                  <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-candle/60 mb-1">Nudge</span>
+                  <p className="font-serif italic text-candle text-xl leading-tight">{mine ? "a gentle tap" : "thinking of you"}</p>
+                  <div className="mt-4 flex flex-col items-center w-full">
+                    <div className="h-px w-8 bg-candle/20 mb-2" />
+                    <span className="text-[9px] font-bold tracking-[0.2em] uppercase text-candle/30">{time}</span>
+                  </div>
+                  <div className="absolute top-1 left-1 w-2 h-2 border-t border-l border-candle/30" />
+                  <div className="absolute top-1 right-1 w-2 h-2 border-t border-r border-candle/30" />
+                  <div className="absolute bottom-1 left-1 w-2 h-2 border-b border-l border-candle/30" />
+                  <div className="absolute bottom-1 right-1 w-2 h-2 border-b border-r border-candle/30" />
+                </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
+
 
 
           {isCall && (() => {
