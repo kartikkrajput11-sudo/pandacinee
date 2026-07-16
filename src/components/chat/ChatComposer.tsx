@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import {
   Plus, X, Image as ImageIcon, Paperclip, Smile, Send, Film,
-  Video as VideoIcon, Gamepad2, Heart, Zap, EyeOff, Eye, Disc3,
+  Video as VideoIcon, Gamepad2, Heart, Zap, EyeOff, Eye, Disc3, Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
 import { uploadChatMedia, type MessageRow } from "@/lib/chat";
@@ -11,7 +11,9 @@ import { EmojiPicker } from "./EmojiPicker";
 import { GameInvitePicker, type GamePick } from "./GameInvitePicker";
 import { MovieWheelPicker, type WheelEntry } from "./MovieWheelPicker";
 import { PandaStickerPicker } from "./PandaStickerPicker";
+import { AiStickerPicker } from "./AiStickerPicker";
 import { pandaStickerContent, type PandaStickerId } from "@/lib/panda-stickers";
+import type { AiStickerMood } from "@/lib/ai-stickers.functions";
 import type { TmdbMovie } from "@/lib/tmdb.functions";
 
 const KISS_EMOJIS = ["💋", "💜", "🌸", "🫧", "💫", "🐼", "🌷", "🫶"];
@@ -47,6 +49,7 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
   const [gamePickerOpen, setGamePickerOpen] = useState(false);
   const [wheelOpen, setWheelOpen] = useState(false);
   const [pandaOpen, setPandaOpen] = useState(false);
+  const [aiOpen, setAiOpen] = useState(false);
   const [whisper, setWhisper] = useState(false);
   const [recording, setRecording] = useState(false);
 
@@ -187,6 +190,23 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
       await onSend({
         content: pandaStickerContent(id),
         type: "sticker",
+        reply_to_id: replyTo?.id ?? null,
+        disappear_seconds: disappearSecs,
+      });
+      onClearReply();
+    } catch (err: any) {
+      toast.error(err?.message ?? "Failed");
+    }
+  }
+
+  async function sendAiSticker(storagePath: string, mood: AiStickerMood) {
+    setAiOpen(false);
+    try {
+      await onSend({
+        content: `ai:${mood}`,
+        type: "sticker",
+        media_url: storagePath,
+        media_meta: { kind: "ai_sticker", mood },
         reply_to_id: replyTo?.id ?? null,
         disappear_seconds: disappearSecs,
       });
@@ -341,6 +361,7 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
               <StudioTile icon={<VideoIcon className="size-4" />} label="Video" onClick={() => vidRef.current?.click()} />
               <StudioTile icon={<Paperclip className="size-4" />} label="File" onClick={() => fileRef.current?.click()} />
               <StudioTile icon={<span className="text-base leading-none">🐼</span>} label="Panda" onClick={() => { setPandaOpen(true); setMenuOpen(false); }} accent />
+              <StudioTile icon={<Sparkles className="size-4" />} label="AI ✨" onClick={() => { setAiOpen(true); setMenuOpen(false); }} accent glow />
               <StudioTile icon={<Film className="size-4" />} label="Watch" onClick={() => { setWatchPickerOpen(true); setMenuOpen(false); }} accent />
               <StudioTile icon={<Gamepad2 className="size-4" />} label="Game" onClick={() => { setGamePickerOpen(true); setMenuOpen(false); }} accent />
               <StudioTile icon={<Disc3 className="size-4" />} label="Wheel" onClick={() => { setWheelOpen(true); setMenuOpen(false); }} accent />
@@ -355,6 +376,7 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
       <GameInvitePicker open={gamePickerOpen} onClose={() => setGamePickerOpen(false)} onPick={sendGameInvite} />
       <MovieWheelPicker open={wheelOpen} onClose={() => setWheelOpen(false)} onSend={sendMovieWheel} />
       <PandaStickerPicker open={pandaOpen} onClose={() => setPandaOpen(false)} onPick={sendPandaSticker} />
+      <AiStickerPicker open={aiOpen} onClose={() => setAiOpen(false)} onPick={sendAiSticker} />
 
 
 

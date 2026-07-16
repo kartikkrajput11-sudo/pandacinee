@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_stickers: {
+        Row: {
+          created_at: string
+          id: string
+          mood: string
+          storage_path: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          mood: string
+          storage_path: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          mood?: string
+          storage_path?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       call_participants: {
         Row: {
           call_id: string
