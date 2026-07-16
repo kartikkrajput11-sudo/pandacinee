@@ -32,6 +32,15 @@ export type ChessBoardMeta = {
   premium?: boolean;
 };
 
+export type ChessPiecesMeta = {
+  label?: string;
+  emoji?: boolean;
+  glyphs?: {
+    w?: Record<string, string>;
+    b?: Record<string, string>;
+  };
+};
+
 export type EquippedItems = {
   chatTheme: ChatThemeMeta | null;
   siteTheme: SiteThemeMeta | null;
