@@ -293,7 +293,12 @@ function ChatBubbleImpl({
 
           {m.type === "text" && <p className="whitespace-pre-wrap break-words">{m.content}</p>}
           {m.type === "sticker" && (
-            isPandaSticker ? (
+            isAiSticker ? (
+              <SignedImage
+                path={m.media_url!}
+                className="w-40 h-40 sm:w-48 sm:h-48 object-contain drop-shadow-[0_6px_16px_rgba(0,0,0,0.35)] select-none rounded-2xl"
+              />
+            ) : isPandaSticker ? (
               <img
                 src={pandaUrl!}
                 alt="Panda sticker"
