@@ -8,6 +8,8 @@ import { openLoveLetter } from "@/lib/letters.functions";
 import { PandacineWaxSeal } from "@/components/PandacineWaxSeal";
 import { VoicePlayer } from "@/components/chat/VoicePlayer";
 import { signMedia } from "@/lib/chat";
+import { useEquippedItems } from "@/hooks/useEquippedItems";
+
 
 export const Route = createFileRoute("/_authenticated/app/letters/$id")({
   component: LetterView,
