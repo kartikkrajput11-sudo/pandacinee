@@ -459,3 +459,47 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
 
 
 }
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="text-[9px] uppercase tracking-[0.28em] text-candle-muted/70 mb-2 flex items-center gap-1.5">
+      <span className="h-px flex-1 max-w-4 bg-gradient-to-r from-transparent to-white/10" />
+      {children}
+      <span className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent" />
+    </p>
+  );
+}
+
+function StudioTile({
+  icon,
+  label,
+  onClick,
+  accent,
+  glow,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  onClick: () => void;
+  accent?: boolean;
+  glow?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`group relative flex flex-col items-center justify-center gap-1.5 py-3 rounded-2xl border transition-all duration-200 active:scale-95 ${
+        accent
+          ? "bg-gradient-to-b from-petal/20 to-petal/[0.04] border-petal/30 hover:border-petal/60 hover:from-petal/30"
+          : "bg-white/[0.02] border-white/[0.06] hover:bg-white/[0.05] hover:border-white/15"
+      } ${glow ? "shadow-[0_4px_16px_-6px_rgba(236,72,153,0.4)]" : ""}`}
+    >
+      <span className="absolute inset-x-3 top-0 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent opacity-60" />
+      <span className={`flex items-center justify-center transition-transform duration-200 group-hover:-translate-y-0.5 ${accent ? "text-petal" : "text-candle/80 group-hover:text-petal"}`}>
+        {icon}
+      </span>
+      <span className="text-[10px] tracking-[0.08em] text-candle/90 uppercase font-medium">
+        {label}
+      </span>
+    </button>
+  );
+}
