@@ -140,6 +140,7 @@ function ShopRoute() {
       if (error) throw error;
       toast.success(`${item.name} unlocked ✨`);
       await Promise.all([load(), refetch?.()]);
+      invalidateEquippedItems();
       setPreview(null);
     } catch (e: any) {
       toast.error(e?.message ?? "Couldn't purchase");
@@ -172,6 +173,7 @@ function ShopRoute() {
       await buyTag({ data: { tagKey: key } });
       toast.success("Tag unlocked ✨");
       await Promise.all([load(), refetch?.()]);
+      invalidateEquippedItems();
     } catch (e: any) {
       toast.error(e?.message ?? "Couldn't purchase");
     } finally {
@@ -213,6 +215,7 @@ function ShopRoute() {
                 description: "Payment successful",
               });
               await Promise.all([load(), refetch?.()]);
+      invalidateEquippedItems();
               resolve();
             } catch (e: any) {
               toast.error(e?.message ?? "Verification failed");
