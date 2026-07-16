@@ -13,7 +13,9 @@ import {
   Crown,
   Sticker,
   Award,
+  Coins as CoinsIcon,
 } from "lucide-react";
+import { createCoinOrder, verifyCoinPayment } from "@/lib/razorpay.functions";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
