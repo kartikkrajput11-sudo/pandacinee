@@ -259,5 +259,16 @@ export function useChat(meId: string | null, partnerId: string | null) {
     await supabase.from("messages").update({ expires_at }).eq("id", m.id);
   }, []);
 
-  return { messages, loading, loadingOlder, hasMore, loadOlder, partnerTyping, partnerOnline, send, react, togglePin, remove, setVanish, sendTyping };
+  const clearChat = useCallback(async () => {
+    if (!meId || !partnerId) return;
+    await supabase
+      .from("messages")
+      .delete()
+      .or(
+        `and(sender_id.eq.${meId},receiver_id.eq.${partnerId}),and(sender_id.eq.${partnerId},receiver_id.eq.${meId})`,
+      );
+    setMessages([]);
+  }, [meId, partnerId]);
+
+  return { messages, loading, loadingOlder, hasMore, loadOlder, partnerTyping, partnerOnline, send, react, togglePin, remove, setVanish, sendTyping, clearChat };
 }
