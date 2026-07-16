@@ -243,12 +243,27 @@ function LetterView() {
                 {letter.title}
               </h1>
             )}
+
+            {letter.photo_url && (
+              <LetterPhoto path={letter.photo_url} />
+            )}
+
             <div
               className={`${style.text} whitespace-pre-wrap leading-relaxed text-lg`}
               style={{ fontFamily: "'Cormorant Garamond', 'Playfair Display', Georgia, serif" }}
             >
               {letter.body}
             </div>
+
+            {letter.voice_url && (
+              <div className="mt-6 rounded-2xl border border-white/10 p-3">
+                <p className={`text-[10px] uppercase tracking-[0.25em] ${style.text} opacity-70 mb-2 flex items-center gap-1.5`}>
+                  <Mic className="size-3" /> Voice note
+                </p>
+                <VoicePlayer path={letter.voice_url} />
+              </div>
+            )}
+
             <footer className={`mt-10 pt-6 border-t border-white/10 ${style.text} opacity-60 text-xs flex items-center gap-2`}>
               <Clock className="size-3" />
               Sealed {new Date(letter.created_at).toLocaleDateString([], { dateStyle: "long" })}
@@ -256,6 +271,8 @@ function LetterView() {
                 <>· Opened {new Date(letter.opened_at).toLocaleDateString([], { dateStyle: "long" })}</>
               )}
             </footer>
+
+            <ReplyPanel letter={letter} isRecipient={!!isRecipient} style={style} onUpdate={setLetter} />
           </article>
         )}
 
