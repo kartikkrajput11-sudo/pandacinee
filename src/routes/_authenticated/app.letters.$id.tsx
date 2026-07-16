@@ -60,6 +60,8 @@ function LetterView() {
   const [letter, setLetter] = useState<Letter | null>(null);
   const [now, setNow] = useState(Date.now());
   const [breaking, setBreaking] = useState(false);
+  // "idle" → seal shown | "breaking" → wax animation playing | "unfolding" → paper opening | "done"
+  const [reveal, setReveal] = useState<"idle" | "breaking" | "unfolding" | "done">("idle");
 
   async function load() {
     if (!me) return;
