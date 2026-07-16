@@ -108,16 +108,6 @@ function GroupChat() {
     .map((uid) => memberById[uid]?.display_name?.split(" ")[0])
     .filter(Boolean);
 
-  async function handleLeave() {
-    if (!confirm("Leave this group?")) return;
-    try {
-      await leave.mutateAsync(group.id);
-      toast.success("Left group");
-      navigate({ to: "/app/chat" });
-    } catch (e: any) {
-      toast.error(e.message ?? "Could not leave");
-    }
-  }
 
   return (
     <div className="flex flex-col h-screen">
