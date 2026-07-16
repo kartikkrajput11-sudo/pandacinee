@@ -48,7 +48,7 @@ export function PandacineWaxSeal({
     <Tag
       onClick={onClick}
       aria-label={interactive ? ariaLabel : undefined}
-      className="pcs-wrap"
+      className={`pcs-wrap pcs-phase-${phase}`}
       style={{ width: size, height: size }}
     >
       {/* Molten aura */}
