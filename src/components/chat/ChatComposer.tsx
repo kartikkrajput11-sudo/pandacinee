@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import {
   Plus, X, Image as ImageIcon, Paperclip, Smile, Send, Film,
-  Video as VideoIcon, Gamepad2, Heart, Zap, EyeOff, Eye, Disc3,
+  Video as VideoIcon, Gamepad2, Heart, Zap, EyeOff, Eye, Disc3, Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
 import { uploadChatMedia, type MessageRow } from "@/lib/chat";
