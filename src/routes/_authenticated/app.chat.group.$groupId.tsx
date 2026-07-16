@@ -124,19 +124,25 @@ function GroupChat() {
       <header className="px-4 pt-6 pb-3 border-b border-border bg-velvet sticky top-0 z-10">
         <div className="flex items-center gap-2">
           <Link to="/app/chat" className="text-candle-muted"><ArrowLeft className="size-5" /></Link>
-          <div className="size-10 rounded-full bg-petal-soft border border-petal/30 flex items-center justify-center text-xl">
-            {group.avatar_url || "💜"}
-          </div>
-          <div className="flex-1 min-w-0">
-            <h1 className="font-serif italic text-lg leading-tight truncate">{group.name}</h1>
-            <p className="text-[10px] text-candle-muted flex items-center gap-1">
-              <Users className="size-3" />
-              {members.length} members
-              {onlineIds.length > 1 && (
-                <span className="text-petal">· {onlineIds.length} online</span>
-              )}
-            </p>
-          </div>
+          <Link
+            to="/app/chat/group/$groupId/info"
+            params={{ groupId: group.id }}
+            className="flex items-center gap-2 flex-1 min-w-0"
+          >
+            <div className="size-10 rounded-full bg-petal-soft border border-petal/30 flex items-center justify-center text-xl">
+              {group.avatar_url || "💜"}
+            </div>
+            <div className="flex-1 min-w-0">
+              <h1 className="font-serif italic text-lg leading-tight truncate">{group.name}</h1>
+              <p className="text-[10px] text-candle-muted flex items-center gap-1">
+                <Users className="size-3" />
+                {members.length} members
+                {onlineIds.length > 1 && (
+                  <span className="text-petal">· {onlineIds.length} online</span>
+                )}
+              </p>
+            </div>
+          </Link>
           <Link
             to="/app/call/group/$groupId"
             params={{ groupId: group.id }}
@@ -155,13 +161,14 @@ function GroupChat() {
           >
             <Video className="size-4" />
           </Link>
-          <button
-            onClick={handleLeave}
+          <Link
+            to="/app/chat/group/$groupId/info"
+            params={{ groupId: group.id }}
             className="size-10 rounded-full bg-surface border border-border flex items-center justify-center text-candle-muted"
-            aria-label="Leave group"
+            aria-label="Group settings"
           >
-            <LogOut className="size-4" />
-          </button>
+            <Settings className="size-4" />
+          </Link>
         </div>
 
         <div className="flex gap-1.5 mt-3 overflow-x-auto pb-1">
