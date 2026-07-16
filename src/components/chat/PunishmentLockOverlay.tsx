@@ -424,12 +424,13 @@ export function PunishmentLockOverlay({
           <>
             {(lock.type === "write" || lock.type === "compliment" || lock.type === "funny") && (() => {
               const minLen = lock.type === "compliment" ? 5 : lock.type === "funny" ? 10 : 0;
-              const target = lock.prompt.trim().toLowerCase();
+              const target = normalizeWords(lock.prompt);
               const val = entry.trim();
+              const normVal = normalizeWords(val);
               const writeMatch = lock.type === "write" && val.length > 0
-                ? (val.toLowerCase() === target
+                ? (normVal === target
                     ? "match"
-                    : target.startsWith(val.toLowerCase())
+                    : target.startsWith(normVal)
                       ? "progress"
                       : "mismatch")
                 : null;
@@ -439,9 +440,10 @@ export function PunishmentLockOverlay({
                     <textarea
                       value={entry}
                       onChange={(e) => setEntry(e.target.value)}
+                      onPaste={lock.type === "write" ? (e) => { e.preventDefault(); toast.error("Paste is disabled — type it out 💌"); } : undefined}
                       placeholder={
                         lock.type === "write"
-                          ? `Type exactly: "${lock.prompt}"`
+                          ? `Type the words: "${lock.prompt}"`
                           : lock.type === "compliment"
                             ? "A unique compliment…"
                             : "Type your entry…"
