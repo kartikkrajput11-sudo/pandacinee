@@ -55,6 +55,7 @@ type Category =
   | "profile_flair"
   | "ai_sticker_pack"
   | "chess_board"
+  | "chess_pieces"
   | "tag";
 
 const CATS: { key: Category; label: string; icon: any; blurb: string }[] = [
@@ -64,7 +65,8 @@ const CATS: { key: Category; label: string; icon: any; blurb: string }[] = [
   { key: "chat_perk", label: "Perks", icon: Wand2, blurb: "Sticker packs, kisses, and effects" },
   { key: "profile_flair", label: "Flair", icon: Crown, blurb: "Avatar rings & profile highlights" },
   { key: "ai_sticker_pack", label: "AI Packs", icon: Sticker, blurb: "AI-generated sticker sets for chat" },
-  { key: "chess_board", label: "Chess", icon: Grid3x3, blurb: "Themed chess boards to unlock for your matches" },
+  { key: "chess_board", label: "Board", icon: Grid3x3, blurb: "Themed chess boards to unlock for your matches" },
+  { key: "chess_pieces", label: "Pieces", icon: Sparkles, blurb: "Chess piece skins — swap glyphs on your board" },
   { key: "tag", label: "Tags", icon: Award, blurb: "Achievement tags for your profile" },
 ];
 
@@ -616,6 +618,29 @@ function ItemPreview({ item, compact = false }: { item: ShopItem; compact?: bool
         </div>
         {meta.label && (
           <div className="absolute bottom-1 right-2 text-[9px] uppercase tracking-[0.2em] font-bold" style={{ color: accent }}>
+            {meta.label}
+          </div>
+        )}
+      </div>
+    );
+  }
+  if (item.category === "chess_pieces") {
+    const glyphs = meta.glyphs?.w ?? { k: "♔", q: "♕", r: "♖", b: "♗", n: "♘", p: "♙" };
+    const isEmoji = meta.emoji === true;
+    const pieces: string[] = ["k", "q", "r", "b", "n", "p"].map((t) => glyphs[t] ?? "?");
+    return (
+      <div className="w-full h-full bg-gradient-to-br from-velvet to-surface flex flex-col items-center justify-center gap-2 p-3 relative">
+        <div className="grid grid-cols-3 gap-1.5 w-[80%]">
+          {pieces.map((g, i) => (
+            <div key={i} className="aspect-square rounded-lg bg-surface/70 border border-petal/20 flex items-center justify-center">
+              <span className={`text-2xl leading-none ${isEmoji ? "" : "text-candle"}`} style={{ textShadow: "0 1px 2px rgba(0,0,0,0.4)" }}>
+                {g}
+              </span>
+            </div>
+          ))}
+        </div>
+        {meta.label && (
+          <div className="absolute bottom-1 right-2 text-[9px] uppercase tracking-[0.2em] font-bold text-petal">
             {meta.label}
           </div>
         )}
