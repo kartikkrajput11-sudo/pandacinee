@@ -75,21 +75,97 @@ export function PunishmentLockDialog({ open, onClose, targetName, mePrefs, peerP
     }
   }
 
+  const steps = [1, 2, 3] as const;
+
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-velvet/70 backdrop-blur-sm animate-fade-in">
-      <div className="w-full sm:max-w-md bg-surface border border-border sm:rounded-3xl rounded-t-3xl p-5 max-h-[85vh] overflow-y-auto">
-        <header className="flex items-center gap-2 mb-4">
-          <Lock className="size-4 text-petal" />
-          <h2 className="font-serif italic text-lg flex-1">
-            Lock {targetName}'s chat
-          </h2>
-          <button onClick={() => { reset(); onClose(); }} className="text-candle-muted">
-            <X className="size-5" />
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center animate-fade-in">
+      {/* Backdrop */}
+      <div className="absolute inset-0 bg-velvet/80 backdrop-blur-md" onClick={() => { reset(); onClose(); }} />
+      <div
+        className="absolute inset-0 pointer-events-none opacity-70"
+        style={{
+          background:
+            "radial-gradient(50% 40% at 50% 0%, rgba(236,72,153,0.18), transparent 70%), radial-gradient(45% 45% at 100% 100%, rgba(217,164,102,0.12), transparent 70%)",
+        }}
+      />
+
+      {/* Sheet */}
+      <div
+        className="relative w-full sm:max-w-md sm:rounded-3xl rounded-t-3xl p-5 max-h-[88vh] overflow-y-auto border shadow-[0_30px_80px_-30px_rgba(236,72,153,0.55)]"
+        style={{
+          background:
+            "linear-gradient(180deg, hsl(280 35% 12% / 0.98), hsl(280 30% 8% / 0.98))",
+          borderColor: "hsl(38 55% 62% / 0.25)",
+        }}
+      >
+        {/* Champagne hairline */}
+        <div
+          className="absolute inset-x-0 top-0 h-px"
+          style={{ background: "linear-gradient(90deg, transparent, hsl(38 60% 68% / 0.7), transparent)" }}
+        />
+
+        <header className="flex items-center gap-3 mb-5">
+          {/* Mini wax seal */}
+          <div
+            className="relative size-9 rounded-full flex items-center justify-center shrink-0"
+            style={{
+              background:
+                "conic-gradient(from 210deg, hsl(38 55% 62%), hsl(340 55% 45%), hsl(285 45% 32%), hsl(38 55% 62%))",
+              boxShadow:
+                "0 8px 20px -10px rgba(236,72,153,0.6), inset 0 1px 0 rgba(255,255,255,0.25)",
+            }}
+          >
+            <div className="size-[30px] rounded-full bg-velvet/85 flex items-center justify-center">
+              <Lock className="size-3.5 text-petal" strokeWidth={1.7} />
+            </div>
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-[9px] uppercase tracking-[0.38em] text-petal">Chambre Privée</p>
+            <h2 className="font-serif italic text-lg text-candle truncate">
+              A ritual for {targetName}
+            </h2>
+          </div>
+          <button
+            onClick={() => { reset(); onClose(); }}
+            className="size-8 rounded-full bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-candle-muted flex items-center justify-center transition-colors"
+          >
+            <X className="size-4" />
           </button>
         </header>
 
+        {/* Stepper */}
+        <div className="flex items-center gap-2 mb-5">
+          {steps.map((n, i) => (
+            <div key={n} className="flex items-center gap-2 flex-1">
+              <div
+                className={`h-6 flex-1 rounded-full flex items-center justify-center text-[9px] uppercase tracking-[0.28em] font-medium border transition-all ${
+                  step === n
+                    ? "text-velvet border-transparent"
+                    : step > n
+                      ? "text-petal border-petal/40 bg-petal/10"
+                      : "text-candle-muted border-white/10 bg-white/[0.02]"
+                }`}
+                style={
+                  step === n
+                    ? {
+                        background:
+                          "linear-gradient(135deg, hsl(38 62% 68%), hsl(340 65% 60%))",
+                        boxShadow: "0 6px 16px -8px rgba(236,72,153,0.6)",
+                      }
+                    : undefined
+                }
+              >
+                {n === 1 ? "Ritual" : n === 2 ? "Prompt" : "Terms"}
+              </div>
+              {i < steps.length - 1 && (
+                <span className="size-1 rotate-45 bg-petal/40" />
+              )}
+            </div>
+          ))}
+        </div>
+
         {step === 1 && (
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-2.5">
             {PUNISHMENT_TYPES.filter((p) => {
               if (!p.optInKey) return true;
               const meOK = mePrefs?.[p.optInKey] !== false;
@@ -99,59 +175,82 @@ export function PunishmentLockDialog({ open, onClose, targetName, mePrefs, peerP
               <button
                 key={p.id}
                 onClick={() => pickType(p.id)}
-                className="rounded-2xl border border-border bg-velvet hover:border-petal/50 p-3 text-left transition-colors"
+                className="group relative rounded-2xl border border-white/10 hover:border-petal/50 bg-gradient-to-b from-white/[0.03] to-white/[0.01] p-3 text-left transition-all hover:-translate-y-0.5 hover:shadow-[0_12px_24px_-16px_rgba(236,72,153,0.6)]"
               >
                 <div className="text-2xl mb-1">{p.emoji}</div>
-                <p className="text-sm font-medium text-candle">{p.label}</p>
-                <p className="text-[10px] text-candle-muted mt-0.5">{p.hint}</p>
+                <p className="font-serif italic text-sm text-candle">{p.label}</p>
+                <p className="text-[10px] text-candle-muted mt-0.5 leading-snug">{p.hint}</p>
                 {p.mode === "verify" && (
-                  <p className="text-[9px] text-petal mt-1 uppercase tracking-widest">Verified</p>
+                  <p className="text-[9px] text-petal mt-1.5 uppercase tracking-[0.28em]">Verified</p>
                 )}
+                <span
+                  className="absolute top-2 right-2 size-1 rotate-45 bg-petal/50 opacity-0 group-hover:opacity-100 transition-opacity"
+                />
               </button>
             ))}
           </div>
         )}
 
         {step === 2 && (
-          <div className="space-y-3">
-            <p className="text-[10px] uppercase tracking-widest text-petal">
-              {meta.emoji} {meta.label}
-            </p>
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <span className="h-px flex-1 bg-gradient-to-r from-transparent to-petal/40" />
+              <p className="text-[9px] uppercase tracking-[0.38em] text-petal">
+                {meta.emoji} {meta.label}
+              </p>
+              <span className="h-px flex-1 bg-gradient-to-l from-transparent to-petal/40" />
+            </div>
+
             <div>
-              <label className="block text-xs text-candle-muted mb-1.5">Presets</label>
+              <label className="block text-[10px] uppercase tracking-[0.28em] text-candle-muted mb-2">Presets</label>
               <div className="flex gap-2 flex-wrap">
-                {meta.presets.map((pr) => (
-                  <button
-                    key={pr.prompt}
-                    onClick={() => {
-                      setPrompt(pr.prompt);
-                      if (pr.count) setCount(pr.count);
-                    }}
-                    className={`text-xs px-3 py-1.5 rounded-full border ${
-                      prompt === pr.prompt
-                        ? "border-petal bg-petal-soft text-candle"
-                        : "border-border bg-velvet text-candle-muted"
-                    }`}
-                  >
-                    {pr.prompt}
-                    {pr.count ? ` · ${pr.count}` : ""}
-                  </button>
-                ))}
+                {meta.presets.map((pr) => {
+                  const active = prompt === pr.prompt;
+                  return (
+                    <button
+                      key={pr.prompt}
+                      onClick={() => {
+                        setPrompt(pr.prompt);
+                        if (pr.count) setCount(pr.count);
+                      }}
+                      className={`text-xs px-3 py-1.5 rounded-full border transition-all ${
+                        active
+                          ? "border-transparent text-velvet"
+                          : "border-white/10 bg-white/[0.03] text-candle-muted hover:border-petal/40 hover:text-candle"
+                      }`}
+                      style={
+                        active
+                          ? {
+                              background:
+                                "linear-gradient(135deg, hsl(38 62% 68%), hsl(340 65% 60%))",
+                              boxShadow: "0 6px 16px -8px rgba(236,72,153,0.55)",
+                            }
+                          : undefined
+                      }
+                    >
+                      {pr.prompt}
+                      {pr.count ? ` · ${pr.count}` : ""}
+                    </button>
+                  );
+                })}
               </div>
             </div>
+
             <div>
-              <label className="block text-xs text-candle-muted mb-1.5">Prompt</label>
+              <label className="block text-[10px] uppercase tracking-[0.28em] text-candle-muted mb-2">Prompt</label>
               <input
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
                 maxLength={140}
-                className="w-full bg-velvet border border-border rounded-2xl px-4 py-2.5 text-sm text-candle"
+                className="w-full bg-white/[0.03] border border-white/10 focus:border-petal/50 rounded-2xl px-4 py-3 text-sm text-candle placeholder:text-candle-muted/60 outline-none transition-colors"
               />
             </div>
+
             {meta.countable && (
               <div>
-                <label className="block text-xs text-candle-muted mb-1.5">
-                  Required count: <span className="text-candle">{count}</span>
+                <label className="flex justify-between items-baseline text-[10px] uppercase tracking-[0.28em] text-candle-muted mb-2">
+                  <span>Required count</span>
+                  <span className="text-candle font-serif italic text-base normal-case tracking-normal">{count}</span>
                 </label>
                 <input
                   type="range"
@@ -163,65 +262,139 @@ export function PunishmentLockDialog({ open, onClose, targetName, mePrefs, peerP
                 />
               </div>
             )}
-            <div className="flex gap-2 pt-2">
-              <button
-                onClick={() => setStep(1)}
-                className="flex-1 py-2.5 rounded-full bg-velvet border border-border text-sm text-candle"
-              >
-                Back
-              </button>
-              <button
-                onClick={() => setStep(3)}
-                className="flex-1 py-2.5 rounded-full bg-petal text-velvet text-sm font-semibold"
-              >
-                Next
-              </button>
+
+            <div className="flex gap-2 pt-1">
+              <GhostButton onClick={() => setStep(1)}>Back</GhostButton>
+              <GoldButton onClick={() => setStep(3)}>Next</GoldButton>
             </div>
           </div>
         )}
 
         {step === 3 && (
-          <div className="space-y-3">
-            <p className="text-[10px] uppercase tracking-widest text-petal">Max duration</p>
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <span className="h-px flex-1 bg-gradient-to-r from-transparent to-petal/40" />
+              <p className="text-[9px] uppercase tracking-[0.38em] text-petal">Terms of the seal</p>
+              <span className="h-px flex-1 bg-gradient-to-l from-transparent to-petal/40" />
+            </div>
+
             <div className="grid grid-cols-2 gap-2">
-              {DURATION_OPTIONS.map((d) => (
-                <button
-                  key={d.label}
-                  onClick={() => setDuration(d.seconds)}
-                  className={`py-2.5 rounded-2xl border text-sm ${
-                    duration === d.seconds
-                      ? "border-petal bg-petal-soft text-candle"
-                      : "border-border bg-velvet text-candle-muted"
-                  }`}
-                >
-                  {d.label}
-                </button>
-              ))}
+              {DURATION_OPTIONS.map((d) => {
+                const active = duration === d.seconds;
+                return (
+                  <button
+                    key={d.label}
+                    onClick={() => setDuration(d.seconds)}
+                    className={`py-2.5 rounded-2xl border text-sm transition-all ${
+                      active
+                        ? "border-transparent text-velvet"
+                        : "border-white/10 bg-white/[0.03] text-candle-muted hover:border-petal/40 hover:text-candle"
+                    }`}
+                    style={
+                      active
+                        ? {
+                            background:
+                              "linear-gradient(135deg, hsl(38 62% 68%), hsl(340 65% 60%))",
+                            boxShadow: "0 6px 16px -8px rgba(236,72,153,0.55)",
+                          }
+                        : undefined
+                    }
+                  >
+                    {d.label}
+                  </button>
+                );
+              })}
             </div>
-            <div className="rounded-2xl bg-velvet border border-border p-3 text-xs text-candle-muted">
-              <p className="text-candle mb-1">{meta.emoji} {meta.label}</p>
-              <p>"{prompt}"{meta.countable ? ` · ${count} times` : ""}</p>
-              <p className="mt-1 text-[10px]">Playful & consensual only.</p>
+
+            {/* Decree card */}
+            <div
+              className="relative rounded-2xl p-4 border overflow-hidden"
+              style={{
+                background:
+                  "linear-gradient(180deg, hsl(280 30% 10%), hsl(280 25% 7%))",
+                borderColor: "hsl(38 55% 62% / 0.3)",
+              }}
+            >
+              <div
+                className="absolute inset-x-0 top-0 h-px"
+                style={{ background: "linear-gradient(90deg, transparent, hsl(38 60% 68% / 0.7), transparent)" }}
+              />
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-lg">{meta.emoji}</span>
+                <p className="font-serif italic text-candle">{meta.label}</p>
+              </div>
+              <p className="font-serif italic text-candle/90 text-sm leading-snug">
+                <span className="text-petal">&ldquo;</span>
+                {prompt}
+                <span className="text-petal">&rdquo;</span>
+                {meta.countable ? (
+                  <span className="text-candle-muted"> · {count} times</span>
+                ) : null}
+              </p>
+              <div className="flex items-center gap-2 mt-3">
+                <span className="h-px flex-1 bg-petal/20" />
+                <span className="text-petal/70 text-sm">❦</span>
+                <span className="h-px flex-1 bg-petal/20" />
+              </div>
+              <p className="text-[10px] text-candle-muted text-center mt-2 tracking-wide">
+                Playful & consensual only.
+              </p>
             </div>
-            <div className="flex gap-2 pt-2">
-              <button
-                onClick={() => setStep(2)}
-                disabled={busy}
-                className="flex-1 py-2.5 rounded-full bg-velvet border border-border text-sm text-candle"
-              >
-                Back
-              </button>
-              <button
-                onClick={submit}
-                disabled={busy}
-                className="flex-1 py-2.5 rounded-full bg-petal text-velvet text-sm font-semibold disabled:opacity-60"
-              >
-                {busy ? "Locking…" : "🔒 Lock chat"}
-              </button>
+
+            <div className="flex gap-2 pt-1">
+              <GhostButton onClick={() => setStep(2)} disabled={busy}>Back</GhostButton>
+              <GoldButton onClick={submit} disabled={busy}>
+                {busy ? "Sealing…" : "Seal the chat"}
+              </GoldButton>
             </div>
           </div>
         )}
       </div>
     </div>
+  );
+}
+
+function GoldButton({
+  children,
+  onClick,
+  disabled,
+}: {
+  children: React.ReactNode;
+  onClick?: () => void;
+  disabled?: boolean;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className="flex-1 py-3 rounded-full text-[11px] uppercase tracking-[0.28em] font-medium text-velvet disabled:opacity-60 active:scale-[0.99] transition-transform"
+      style={{
+        background: "linear-gradient(135deg, hsl(38 62% 68%) 0%, hsl(340 65% 60%) 55%, hsl(38 62% 68%) 100%)",
+        boxShadow:
+          "0 12px 26px -12px rgba(236,72,153,0.6), inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -2px 0 rgba(0,0,0,0.15)",
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+function GhostButton({
+  children,
+  onClick,
+  disabled,
+}: {
+  children: React.ReactNode;
+  onClick?: () => void;
+  disabled?: boolean;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className="flex-1 py-3 rounded-full text-[11px] uppercase tracking-[0.28em] font-medium text-candle bg-white/[0.03] border border-white/10 hover:border-petal/40 hover:text-petal disabled:opacity-60 transition-colors"
+    >
+      {children}
+    </button>
   );
 }
