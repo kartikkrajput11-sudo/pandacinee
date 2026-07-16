@@ -562,7 +562,7 @@ function ChatPeer() {
           type="button"
           onClick={scrollToBottom}
           aria-label="Scroll to latest"
-          className="absolute right-4 bottom-40 size-10 rounded-full bg-surface-elevated/90 backdrop-blur-md border border-petal/30 flex items-center justify-center text-petal shadow-lg animate-fade-in z-20"
+          className="!absolute right-4 bottom-28 size-11 rounded-full bg-surface-elevated/95 backdrop-blur-md border border-petal/40 flex items-center justify-center text-petal shadow-xl animate-fade-in z-30"
         >
           <ArrowDown className="size-4" />
         </button>
