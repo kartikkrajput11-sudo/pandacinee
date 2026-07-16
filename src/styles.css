@@ -176,7 +176,8 @@
 .light .text-candle-muted { font-weight: 500; }
 
 /* Hide scrollbar entirely (still scrollable) */
-html { scrollbar-width: none; -ms-overflow-style: none; }
+html { scrollbar-width: none; -ms-overflow-style: none; touch-action: pan-x pan-y; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body { touch-action: pan-x pan-y; }
 ::-webkit-scrollbar { width: 0; height: 0; display: none; }
 
 
