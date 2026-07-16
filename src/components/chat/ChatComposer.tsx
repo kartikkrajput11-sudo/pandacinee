@@ -328,61 +328,41 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
       />
 
       {menuOpen && (
-        <div className="px-4 py-3 grid grid-cols-4 gap-2 border-b border-border/60 bg-surface/40 animate-fade-in">
-          <button onClick={() => imgRef.current?.click()} className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-surface border border-border text-candle hover:border-petal/50 transition-colors">
-            <ImageIcon className="size-5 text-petal" />
-            <span className="text-[11px]">Photo</span>
-          </button>
-          <button onClick={() => vidRef.current?.click()} className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-surface border border-border text-candle hover:border-petal/50 transition-colors">
-            <VideoIcon className="size-5 text-petal" />
-            <span className="text-[11px]">Video</span>
-          </button>
-          <button onClick={() => fileRef.current?.click()} className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-surface border border-border text-candle hover:border-petal/50 transition-colors">
-            <Paperclip className="size-5 text-petal" />
-            <span className="text-[11px]">File</span>
-          </button>
-          <button
-            onClick={() => { setWatchPickerOpen(true); setMenuOpen(false); }}
-            className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-petal-soft/40 border border-petal/40 text-candle"
-          >
-            <Film className="size-5 text-petal" />
-            <span className="text-[11px]">Watch</span>
-          </button>
-          <button
-            onClick={() => { setGamePickerOpen(true); setMenuOpen(false); }}
-            className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-petal-soft/40 border border-petal/40 text-candle"
-          >
-            <Gamepad2 className="size-5 text-petal" />
-            <span className="text-[11px]">Game</span>
-          </button>
-          <button
-            onClick={() => { setPandaOpen(true); setMenuOpen(false); }}
-            className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-gradient-to-br from-petal/25 to-petal-soft/50 border border-petal/40 text-candle hover:from-petal/40 transition-colors"
-          >
-            <span className="text-2xl leading-none">🐼</span>
-            <span className="text-[11px]">Panda</span>
-          </button>
-          <button
-            onClick={() => { setWheelOpen(true); setMenuOpen(false); }}
-            className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-gradient-to-br from-petal/30 to-petal-soft/40 border border-petal/40 text-candle hover:from-petal/50 transition-colors"
-          >
-            <Disc3 className="size-5 text-petal" />
-            <span className="text-[11px]">Wheel</span>
-          </button>
-          <button
-            onClick={sendKiss}
-            className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-gradient-to-br from-petal/25 to-petal-soft/40 border border-petal/40 text-candle hover:from-petal/40 transition-colors"
-          >
-            <Heart className="size-5 text-petal fill-petal" />
-            <span className="text-[11px]">Kiss</span>
-          </button>
-          <button
-            onClick={sendNudge}
-            className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-surface border border-border text-candle hover:border-petal/50 transition-colors"
-          >
-            <Zap className="size-5 text-petal" />
-            <span className="text-[11px]">Nudge</span>
-          </button>
+        <div className="relative bg-[linear-gradient(180deg,rgba(30,20,35,0.92)_0%,rgba(18,12,22,0.96)_100%)] backdrop-blur-2xl overflow-hidden animate-fade-in">
+          {/* Champagne hairline */}
+          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-petal/50 to-transparent" />
+          {/* Ambient glow */}
+          <div className="pointer-events-none absolute -top-16 left-1/2 -translate-x-1/2 w-72 h-32 rounded-full bg-petal/10 blur-3xl" />
+
+          <div className="relative px-5 pt-3 pb-4">
+            <p className="text-[9px] uppercase tracking-[0.32em] text-candle-muted/80 font-medium text-center mb-3">
+              Studio
+            </p>
+
+            {/* Section: Media */}
+            <SectionLabel>Share</SectionLabel>
+            <div className="grid grid-cols-4 gap-2 mb-3">
+              <StudioTile icon={<ImageIcon className="size-5" />} label="Photo" onClick={() => imgRef.current?.click()} />
+              <StudioTile icon={<VideoIcon className="size-5" />} label="Video" onClick={() => vidRef.current?.click()} />
+              <StudioTile icon={<Paperclip className="size-5" />} label="File" onClick={() => fileRef.current?.click()} />
+              <StudioTile icon={<span className="text-xl leading-none">🐼</span>} label="Panda" onClick={() => { setPandaOpen(true); setMenuOpen(false); }} accent />
+            </div>
+
+            {/* Section: Together */}
+            <SectionLabel>Together</SectionLabel>
+            <div className="grid grid-cols-4 gap-2 mb-3">
+              <StudioTile icon={<Film className="size-5" />} label="Watch" onClick={() => { setWatchPickerOpen(true); setMenuOpen(false); }} accent />
+              <StudioTile icon={<Gamepad2 className="size-5" />} label="Game" onClick={() => { setGamePickerOpen(true); setMenuOpen(false); }} accent />
+              <StudioTile icon={<Disc3 className="size-5" />} label="Wheel" onClick={() => { setWheelOpen(true); setMenuOpen(false); }} accent />
+              <StudioTile icon={<Zap className="size-5" />} label="Nudge" onClick={sendNudge} />
+            </div>
+
+            {/* Section: Affection */}
+            <SectionLabel>Affection</SectionLabel>
+            <div className="grid grid-cols-4 gap-2">
+              <StudioTile icon={<Heart className="size-5 fill-current" />} label="Kiss" onClick={sendKiss} accent glow />
+            </div>
+          </div>
         </div>
       )}
 
