@@ -48,6 +48,7 @@ export type EquippedItems = {
   flairNameGradient: FlairMeta | null;
   flairBadge: FlairMeta | null;
   chessBoard: ChessBoardMeta | null;
+  chessPieces: ChessPiecesMeta | null;
   ownedPerks: Set<string>;
   ownedPackMoods: Set<string>;
   loaded: boolean;
