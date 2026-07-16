@@ -1,5 +1,5 @@
 import { memo, useEffect, useRef, useState } from "react";
-import { Heart, Pin, Trash2, Reply, Check, CheckCheck, Download, Zap, Phone, Video as VideoIcon, PhoneMissed, Clock } from "lucide-react";
+import { Heart, Pin, Trash2, Reply, Check, CheckCheck, Download, Zap, Phone, Video as VideoIcon, PhoneMissed, Clock, X } from "lucide-react";
 import { signMedia, type MessageRow } from "@/lib/chat";
 import { VoicePlayer } from "./VoicePlayer";
 import { SignedImage } from "./SignedImage";
@@ -454,6 +454,8 @@ function ChatBubbleImpl({
               <button onClick={() => { onDelete(m); setActionsOpen(false); }} className="p-1.5 rounded-lg text-destructive hover:bg-destructive/10"><Trash2 className="size-4" /></button>
             )}
             <button onClick={() => { onReact(m, "❤️"); setActionsOpen(false); }} className="p-1.5 rounded-lg text-petal hover:bg-petal/20"><Heart className="size-4" /></button>
+            <div className="w-px bg-border mx-1" />
+            <button onClick={() => { setActionsOpen(false); setVanishOpen(false); }} aria-label="Close" className="p-1.5 rounded-lg text-candle hover:bg-petal/20"><X className="size-4" /></button>
           </div>
         )}
 
