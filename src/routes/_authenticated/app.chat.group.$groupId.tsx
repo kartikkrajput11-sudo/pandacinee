@@ -317,6 +317,13 @@ function GroupChat() {
         >
           <ImageIcon className="size-4" />
         </button>
+        <button
+          onClick={() => setPollOpen(true)}
+          className="size-10 rounded-full bg-surface border border-border flex items-center justify-center text-petal shrink-0"
+          aria-label="Create poll"
+        >
+          <BarChart3 className="size-4" />
+        </button>
         <input
           ref={imgRef}
           type="file"
