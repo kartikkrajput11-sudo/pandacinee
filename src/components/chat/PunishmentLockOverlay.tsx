@@ -364,11 +364,31 @@ export function PunishmentLockOverlay({
           </>
         )}
 
-        <p className="text-[10px] text-candle-muted text-center mt-6">
+        <p className="text-[10px] text-candle-muted text-center mt-6 tracking-wide">
           🕊️ Playful & consensual only. Either partner can disable this in Settings.
         </p>
       </div>
     </div>
+  );
+}
+
+function LuxuryButton({ children, onClick }: { children: React.ReactNode; onClick?: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className="group relative w-full py-3 rounded-full text-[11px] uppercase tracking-[0.28em] font-medium text-velvet overflow-hidden active:scale-[0.99] transition-transform"
+      style={{
+        background: "linear-gradient(135deg, hsl(38 62% 68%) 0%, hsl(340 65% 60%) 55%, hsl(38 62% 68%) 100%)",
+        boxShadow:
+          "0 12px 30px -12px rgba(236,72,153,0.6), inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -2px 0 rgba(0,0,0,0.15)",
+      }}
+    >
+      <span className="relative z-10 flex items-center justify-center gap-2">{children}</span>
+      <span
+        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity"
+        style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.15), transparent 60%)" }}
+      />
+    </button>
   );
 }
 
