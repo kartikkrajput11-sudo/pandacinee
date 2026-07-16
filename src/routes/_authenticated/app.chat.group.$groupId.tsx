@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft, Settings, Phone, Video as VideoIcon, Send, Image as ImageIcon,
-  Smile, Pin, Trash2, Reply, X, MoreVertical, PinOff, BarChart3,
+  Smile, Pin, Trash2, Reply, X, MoreVertical, PinOff, BarChart3, Forward,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useProfile } from "@/hooks/useProfile";
@@ -14,7 +14,9 @@ import { startGroupCall } from "@/lib/callActions";
 import { UserAvatar } from "@/components/UserAvatar";
 import { PollComposer } from "@/components/chat/PollComposer";
 import { PollMessage } from "@/components/chat/PollMessage";
+import { ForwardDialog } from "@/components/chat/ForwardDialog";
 import type { PollMeta } from "@/lib/poll";
+import type { MessageRow } from "@/lib/chat";
 
 const QUICK_REACTIONS = ["❤️", "😂", "🥺", "🔥", "🐼", "👍"];
 
@@ -36,6 +38,7 @@ function GroupChat() {
   const [openBubbleId, setOpenBubbleId] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
   const [pollOpen, setPollOpen] = useState(false);
+  const [forwardMsg, setForwardMsg] = useState<MessageRow | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLInputElement>(null);
 
@@ -262,6 +265,15 @@ function GroupChat() {
                     >
                       <Reply className="size-3.5" />
                     </button>
+                    {["text","image","video","voice","file","sticker"].includes(m.type) && (
+                      <button
+                        onClick={(ev) => { ev.stopPropagation(); setForwardMsg(m as unknown as MessageRow); setOpenBubbleId(null); }}
+                        className="size-7 rounded-full bg-surface border border-border flex items-center justify-center text-candle-muted"
+                        aria-label="Forward"
+                      >
+                        <Forward className="size-3.5" />
+                      </button>
+                    )}
                     {canPin && (
                       <button
                         onClick={(ev) => { ev.stopPropagation(); chat.pin(m.id, !m.pinned_at); setOpenBubbleId(null); }}
@@ -369,6 +381,12 @@ function GroupChat() {
             media_meta: meta as unknown as Record<string, unknown>,
           });
         }}
+      />
+
+      <ForwardDialog
+        message={forwardMsg}
+        open={!!forwardMsg}
+        onClose={() => setForwardMsg(null)}
       />
     </div>
   );

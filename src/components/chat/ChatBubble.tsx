@@ -1,5 +1,5 @@
 import { memo, useEffect, useRef, useState } from "react";
-import { Heart, Pin, Trash2, Reply, Check, CheckCheck, Download, Zap, Phone, Video as VideoIcon, PhoneMissed, Clock, X } from "lucide-react";
+import { Heart, Pin, Trash2, Reply, Check, CheckCheck, Download, Zap, Phone, Video as VideoIcon, PhoneMissed, Clock, X, Forward } from "lucide-react";
 import { signMedia, type MessageRow } from "@/lib/chat";
 import { VoicePlayer } from "./VoicePlayer";
 import { SignedImage } from "./SignedImage";
@@ -61,6 +61,7 @@ function ChatBubbleImpl({
   onPin,
   onDelete,
   onVanish,
+  onForward,
   partnerName,
 }: {
   m: MessageRow;
@@ -74,6 +75,7 @@ function ChatBubbleImpl({
   onPin: (m: MessageRow) => void;
   onDelete: (m: MessageRow) => void;
   onVanish?: (m: MessageRow, seconds: number | null) => void;
+  onForward?: (m: MessageRow) => void;
   partnerName?: string;
 
 }) {
@@ -291,6 +293,12 @@ function ChatBubbleImpl({
             </div>
           )}
 
+          {(m.media_meta as any)?.forwarded_from && !bare && (
+            <div className={`mb-1 flex items-center gap-1 text-[10px] italic ${mine ? "text-velvet/70" : "text-candle-muted"}`}>
+              <Forward className="size-3" /> Forwarded
+            </div>
+          )}
+
           {m.type === "text" && <p className="whitespace-pre-wrap break-words">{m.content}</p>}
           {m.type === "sticker" && (
             isAiSticker ? (
@@ -494,6 +502,9 @@ function ChatBubbleImpl({
             ))}
             <div className="w-px bg-border mx-1" />
             <button onClick={() => { onReply(m); setActionsOpen(false); }} className="p-1.5 rounded-lg text-candle hover:bg-petal/20"><Reply className="size-4" /></button>
+            {onForward && (
+              <button onClick={() => { onForward(m); setActionsOpen(false); }} className="p-1.5 rounded-lg text-candle hover:bg-petal/20" title="Forward"><Forward className="size-4" /></button>
+            )}
             <button onClick={() => { onPin(m); setActionsOpen(false); }} className="p-1.5 rounded-lg text-candle hover:bg-petal/20"><Pin className="size-4" /></button>
             {mine && onVanish && (
               <button
@@ -561,5 +572,6 @@ export const ChatBubble = memo(ChatBubbleImpl, (prev, next) => {
   if (prev.onPin !== next.onPin) return false;
   if (prev.onDelete !== next.onDelete) return false;
   if (prev.onVanish !== next.onVanish) return false;
+  if (prev.onForward !== next.onForward) return false;
   return true;
 });

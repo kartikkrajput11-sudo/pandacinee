@@ -20,6 +20,7 @@ import { usePunishmentVerification } from "@/hooks/usePunishmentVerification";
 import { UnlockCelebration } from "@/components/chat/UnlockCelebration";
 import { typeMeta } from "@/lib/punishment";
 import { UserAvatar } from "@/components/UserAvatar";
+import { ForwardDialog, canForward } from "@/components/chat/ForwardDialog";
 
 
 
@@ -59,6 +60,7 @@ function ChatPeer() {
   const [highlightId, setHighlightId] = useState<string | null>(null);
   const [lockDialogOpen, setLockDialogOpen] = useState(false);
   const [verifyOpen, setVerifyOpen] = useState(false);
+  const [forwardMsg, setForwardMsg] = useState<MessageRow | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const bubbleRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
@@ -437,6 +439,7 @@ function ChatPeer() {
                   onPin={togglePin}
                   onDelete={remove}
                   onVanish={setVanish}
+                  onForward={canForward(m) ? setForwardMsg : undefined}
                   partnerName={peerDisplay}
 
                 />
@@ -516,6 +519,12 @@ function ChatPeer() {
         mePrefs={me as unknown as Record<string, boolean>}
         peerPrefs={peer as unknown as Record<string, boolean>}
         onCreate={createLock}
+      />
+
+      <ForwardDialog
+        message={forwardMsg}
+        open={!!forwardMsg}
+        onClose={() => setForwardMsg(null)}
       />
     </div>
   );
