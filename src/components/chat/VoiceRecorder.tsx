@@ -149,9 +149,11 @@ export function VoiceRecorder({
     teardown();
     blobRef.current = null;
     setRecording(false);
+    onRecordingChange?.(false);
     setElapsed(0);
     setLevels(Array(BAR_COUNT).fill(4));
   }
+
 
   async function stopAndSend() {
     const rec = recRef.current;
