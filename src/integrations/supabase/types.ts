@@ -1393,6 +1393,57 @@ export type Database = {
         }
         Relationships: []
       }
+      watchlist_items: {
+        Row: {
+          added_by: string
+          created_at: string
+          id: string
+          media_type: string
+          note: string | null
+          overview: string | null
+          owner_id: string
+          partner_id: string | null
+          poster_url: string | null
+          title: string
+          tmdb_id: number | null
+          updated_at: string
+          watched: boolean
+          watched_at: string | null
+        }
+        Insert: {
+          added_by: string
+          created_at?: string
+          id?: string
+          media_type?: string
+          note?: string | null
+          overview?: string | null
+          owner_id: string
+          partner_id?: string | null
+          poster_url?: string | null
+          title: string
+          tmdb_id?: number | null
+          updated_at?: string
+          watched?: boolean
+          watched_at?: string | null
+        }
+        Update: {
+          added_by?: string
+          created_at?: string
+          id?: string
+          media_type?: string
+          note?: string | null
+          overview?: string | null
+          owner_id?: string
+          partner_id?: string | null
+          poster_url?: string | null
+          title?: string
+          tmdb_id?: number | null
+          updated_at?: string
+          watched?: boolean
+          watched_at?: string | null
+        }
+        Relationships: []
+      }
       wishlist_items: {
         Row: {
           claimed_by: string | null
