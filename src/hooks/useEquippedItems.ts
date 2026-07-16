@@ -80,6 +80,7 @@ export function useEquippedItems(): EquippedItems {
     let fRing: FlairMeta | null = null;
     let fName: FlairMeta | null = null;
     let fBadge: FlairMeta | null = null;
+    let cb: ChessBoardMeta | null = null;
     const perks = new Set<string>();
     const moods = new Set<string>();
 
@@ -96,6 +97,7 @@ export function useEquippedItems(): EquippedItems {
       if (!r.equipped) continue;
       if (item.category === "chat_theme") ct = meta;
       else if (item.category === "site_theme") st = meta;
+      else if (item.category === "chess_board") cb = meta;
       else if (item.category === "profile_flair") {
         if (meta.ring) fRing = meta;
         if (meta.name_gradient) fName = meta;
@@ -108,6 +110,7 @@ export function useEquippedItems(): EquippedItems {
     setFlairRing(fRing);
     setFlairNameGradient(fName);
     setFlairBadge(fBadge);
+    setChessBoard(cb);
     setOwnedPerks(perks);
     setOwnedPackMoods(moods);
     setLoaded(true);
