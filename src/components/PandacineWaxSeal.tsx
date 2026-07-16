@@ -21,6 +21,7 @@ export function PandacineWaxSeal({
   onClick,
   ariaLabel = "Break seal",
   interactive = true,
+  motto,
 }: {
   tone?: Tone;
   breaking?: boolean;
@@ -28,8 +29,17 @@ export function PandacineWaxSeal({
   onClick?: () => void;
   ariaLabel?: string;
   interactive?: boolean;
+  motto?: string;
 }) {
   const p = PALETTE[tone];
+  const ringText = (() => {
+    const base = (motto?.trim() || "PANDACINE · SEALED WITH LOVE").toUpperCase();
+    // Repeat so the text always wraps the ring fully, no matter how short.
+    const spaced = `${base} · `;
+    let out = spaced;
+    while (out.length < 60) out += spaced;
+    return out;
+  })();
   const [phase, setPhase] = useState<"idle" | "crack" | "melt">("idle");
 
   useEffect(() => {
