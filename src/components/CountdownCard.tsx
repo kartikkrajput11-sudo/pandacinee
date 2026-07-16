@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Calendar, Sparkles } from "lucide-react";
+import { UserAvatar } from "@/components/UserAvatar";
 import {
   computeCountdown,
   daysTogether,
