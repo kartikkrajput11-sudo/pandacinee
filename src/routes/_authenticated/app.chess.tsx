@@ -396,11 +396,23 @@ function GameScreen({
       } else if (result.winner && myColor && myColor !== "both" && result.winner !== myColor) {
         sfx.lose({ muted });
       }
+      // 🐼 Panda Coins — grant when I win (partner online = per game; AI = daily cap)
+      if (result.winner && result.winner !== "draw" && myColor && myColor !== "both" && result.winner === myColor) {
+        void (async () => {
+          const { grantPandaCoins, todayKey } = await import("@/lib/coins");
+          if (mode === "partner" && game?.id) {
+            await grantPandaCoins("game_won", 10, `chess-${game.id}`);
+          } else if (mode === "ai") {
+            await grantPandaCoins("game_won", 5, `chess-ai-${todayKey()}`);
+          }
+        })();
+      }
       // The win animation drives its own cinematic stinger via winCinematic.
       setTimeout(() => setConfetti(false), 4500);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chess]);
+
 
   // Game-start chime once game/mode is ready
   const startedRef = useRef(false);
