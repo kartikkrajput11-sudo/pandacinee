@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { isGroupMessageUnread } from "@/lib/groupRead";
 
 export type GroupRow = {
   id: string;
@@ -79,7 +80,9 @@ export function useGroups() {
           const gMembers = (allMembers ?? []).filter((m) => m.group_id === g.id);
           const gMsgs = (msgs ?? []).filter((m) => m.group_id === g.id);
           const last = gMsgs[0] ?? null;
-          const unread = gMsgs.filter((m) => m.sender_id !== me && !m.read_at).length;
+          const unread = gMsgs.filter(
+            (m) => m.sender_id !== me && isGroupMessageUnread(me, g.id, m.created_at),
+          ).length;
           return {
             group: g as GroupRow,
             memberIds: gMembers.map((m) => m.user_id),
@@ -109,9 +112,17 @@ export function useGroups() {
       .on("postgres_changes", { event: "*", schema: "public", table: "chat_group_members" }, () =>
         qc.invalidateQueries({ queryKey: ["groups"] }),
       )
+      .on("postgres_changes", { event: "*", schema: "public", table: "messages" }, (payload) => {
+        const row = (payload.new ?? payload.old) as { group_id?: string | null };
+        if (row.group_id) qc.invalidateQueries({ queryKey: ["groups"] });
+      })
       .subscribe();
+
+    const onGroupRead = () => qc.invalidateQueries({ queryKey: ["groups"] });
+    window.addEventListener("group-read-updated", onGroupRead);
     return () => {
       supabase.removeChannel(ch);
+      window.removeEventListener("group-read-updated", onGroupRead);
     };
   }, [qc]);
 

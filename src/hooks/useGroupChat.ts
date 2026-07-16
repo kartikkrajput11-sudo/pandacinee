@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { MessageRow } from "@/lib/chat";
 import { sfxSend, sfxReceive, sfxReaction } from "@/lib/sfx";
-import { setGroupLastRead } from "@/lib/groupRead";
+import { markGroupReadNow, setGroupLastRead } from "@/lib/groupRead";
 
 export type GroupMessage = MessageRow & {
   deleted_at: string | null;
@@ -63,8 +63,9 @@ export function useGroupChat(groupId: string | null, meId: string | null) {
     initialLoaded.current = false;
     setMessages([]);
     setReactions([]);
+    if (meId && groupId) markGroupReadNow(meId, groupId);
     void loadMessages();
-  }, [loadMessages]);
+  }, [loadMessages, meId, groupId]);
 
   useEffect(() => {
     if (initialLoaded.current) void loadReactions();
