@@ -1,7 +1,8 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, LogOut, Heart, Copy, Camera, Save, Sun, Moon, Monitor, ChevronRight, Lock, Coins } from "lucide-react";
+import { ArrowLeft, LogOut, Heart, Copy, Camera, Save, Sun, Moon, Monitor, ChevronRight, Lock, Coins, Volume2, VolumeX } from "lucide-react";
+import { isSfxEnabled, setSfxEnabled, sfxReaction } from "@/lib/sfx";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
@@ -243,6 +244,8 @@ function Me() {
           </button>
 
           <ThemeSection />
+          <SoundToggle />
+
 
           <PunishmentLockToggle me={me} onSaved={() => queryClient.invalidateQueries({ queryKey: ["profile"] })} />
 
@@ -420,6 +423,37 @@ function ThemeSection() {
         ))}
       </div>
     </div>
+  );
+}
+
+function SoundToggle() {
+  const [on, setOn] = useState<boolean>(() => isSfxEnabled());
+  function toggle() {
+    const next = !on;
+    setOn(next);
+    setSfxEnabled(next);
+    if (next) sfxReaction();
+    toast.success(next ? "Sound effects on" : "Sound effects muted");
+  }
+  return (
+    <button
+      onClick={toggle}
+      className="w-full p-5 mb-4 rounded-3xl border border-border bg-surface flex items-center gap-3 hover:border-petal/40 transition-colors text-left"
+    >
+      {on ? <Volume2 className="size-5 text-petal" /> : <VolumeX className="size-5 text-candle-muted" />}
+      <div className="flex-1">
+        <p className="text-[10px] uppercase tracking-widest text-petal">Sound effects</p>
+        <p className="text-sm text-candle">{on ? "On — pings, kisses & alerts" : "Muted — silence across the app"}</p>
+      </div>
+      <span
+        className={`relative w-11 h-6 rounded-full transition-colors ${on ? "bg-petal" : "bg-velvet border border-border"}`}
+        aria-hidden
+      >
+        <span
+          className={`absolute top-0.5 size-5 rounded-full bg-white shadow transition-transform ${on ? "translate-x-5" : "translate-x-0.5"}`}
+        />
+      </span>
+    </button>
   );
 }
 
