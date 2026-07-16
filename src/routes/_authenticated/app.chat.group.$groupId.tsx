@@ -11,6 +11,7 @@ import { useGroupChat, type GroupMessage } from "@/hooks/useGroupChat";
 import { supabase } from "@/integrations/supabase/client";
 import { uploadChatMedia, signMedia } from "@/lib/chat";
 import { startGroupCall } from "@/lib/callActions";
+import { UserAvatar } from "@/components/UserAvatar";
 
 const QUICK_REACTIONS = ["❤️", "😂", "🥺", "🔥", "🐼", "👍"];
 
