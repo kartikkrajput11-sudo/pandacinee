@@ -284,8 +284,18 @@ function Composer({
       d.setHours(9, 0, 0, 0);
       return d;
     }
+    if (unlockChoice === "anniversary" && anniversaryDate) {
+      // Next occurrence of the couple's anniversary (MM-DD) at 09:00.
+      const [ay, am, ad] = anniversaryDate.split("-").map(Number);
+      const now = new Date();
+      const candidate = new Date(now.getFullYear(), (am ?? 1) - 1, ad ?? 1, 9, 0, 0);
+      if (candidate.getTime() <= now.getTime()) candidate.setFullYear(candidate.getFullYear() + 1);
+      // ay is unused for the recurrence rule; reference it so tsc doesn't complain.
+      void ay;
+      return candidate;
+    }
     return new Date(customDate + "T09:00:00");
-  }, [unlockChoice, customDate]);
+  }, [unlockChoice, customDate, anniversaryDate]);
 
   async function draft() {
     setAiLoading(true);
