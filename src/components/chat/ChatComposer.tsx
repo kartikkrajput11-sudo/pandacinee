@@ -49,6 +49,7 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
   const [gamePickerOpen, setGamePickerOpen] = useState(false);
   const [wheelOpen, setWheelOpen] = useState(false);
   const [pandaOpen, setPandaOpen] = useState(false);
+  const [aiOpen, setAiOpen] = useState(false);
   const [whisper, setWhisper] = useState(false);
   const [recording, setRecording] = useState(false);
 
