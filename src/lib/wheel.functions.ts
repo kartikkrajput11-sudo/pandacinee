@@ -68,6 +68,7 @@ export const wheelAiSuggest = createServerFn({ method: "POST" })
       });
       titles = (output?.titles ?? []).map((t) => String(t).trim()).filter(Boolean).slice(0, data.count);
     } catch (err) {
+      // Recover raw model text from a schema-mismatch error and parse it best-effort.
       if (NoObjectGeneratedError.isInstance(err)) {
         const raw = err.text ?? "";
         try {
@@ -76,19 +77,32 @@ export const wheelAiSuggest = createServerFn({ method: "POST" })
             titles = parsed.titles.map((t: unknown) => String(t).trim()).filter(Boolean).slice(0, data.count);
           }
         } catch {
-          // Extract quoted strings or bullet lines as a last resort
           titles = Array.from(raw.matchAll(/"([^"\n]{2,80})"/g)).map((m) => m[1].trim());
           if (titles.length === 0) {
-            titles = raw.split(/\r?\n/).map((l) => l.replace(/^\s*[-*\d.]+\s*/, "").trim()).filter((l) => l.length > 1 && l.length < 80);
+            titles = raw
+              .split(/\r?\n/)
+              .map((l) => l.replace(/^\s*[-*\d.]+\s*/, "").trim())
+              .filter((l) => l.length > 1 && l.length < 80);
           }
           titles = titles.slice(0, data.count);
         }
       } else {
-        throw err;
+        // Any other AI error (rate limit, credits, network) — swallow and fall
+        // back to trending so the user always gets a wheel.
+        console.warn("wheelAiSuggest: AI curate failed, falling back to trending", err);
+        titles = [];
       }
     }
 
-    const results = await Promise.all(titles.map((t) => searchOne(t)));
+    let results: (TmdbLite | null)[] = [];
+    if (titles.length > 0) {
+      try {
+        results = await Promise.all(titles.map((t) => searchOne(t)));
+      } catch {
+        results = [];
+      }
+    }
+
     const seen = new Set<number>();
     const movies: TmdbLite[] = [];
     for (const m of results) {
@@ -97,17 +111,23 @@ export const wheelAiSuggest = createServerFn({ method: "POST" })
         movies.push(m);
       }
     }
-    // Fallback pad with trending if AI results were sparse
-    if (movies.length < 4) {
-      const trending = await tmdbGet<{ results: TmdbLite[] }>("/trending/movie/week");
-      for (const m of trending.results) {
-        if (movies.length >= data.count) break;
-        if (!seen.has(m.id)) {
-          seen.add(m.id);
-          movies.push(m);
+
+    // Always pad up to `count` with trending so we never return empty / error.
+    if (movies.length < data.count) {
+      try {
+        const trending = await tmdbGet<{ results: TmdbLite[] }>("/trending/movie/week");
+        for (const m of trending.results) {
+          if (movies.length >= data.count) break;
+          if (!seen.has(m.id)) {
+            seen.add(m.id);
+            movies.push(m);
+          }
         }
+      } catch {
+        // ignore — return whatever we have
       }
     }
+
     return movies.slice(0, data.count);
   });
 
