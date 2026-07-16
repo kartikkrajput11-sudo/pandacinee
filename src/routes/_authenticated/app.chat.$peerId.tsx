@@ -627,6 +627,7 @@ function ChatPeer() {
         open={!!forwardMsg}
         onClose={() => setForwardMsg(null)}
       />
-    </div>
+    </ChatThemeScope>
+
   );
 }
