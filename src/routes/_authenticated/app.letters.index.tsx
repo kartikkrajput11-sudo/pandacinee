@@ -153,6 +153,7 @@ function LettersRoute() {
           me={me.id}
           partnerId={partner.id}
           partnerName={data?.profile?.partner_nickname || partner.display_name}
+          anniversaryDate={data?.profile?.anniversary_date ?? null}
           onClose={() => setComposing(false)}
         />
       )}
