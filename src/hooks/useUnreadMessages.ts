@@ -24,7 +24,23 @@ export function useUnreadMessages() {
         .select("id", { count: "exact", head: true })
         .eq("receiver_id", userId)
         .is("read_at", null);
-      setCount(dm ?? 0);
+
+      const { data: myGroups } = await supabase
+        .from("chat_group_members")
+        .select("group_id")
+        .eq("user_id", userId);
+      const groupIds = (myGroups ?? []).map((g) => g.group_id);
+      let gm = 0;
+      if (groupIds.length > 0) {
+        const { count } = await supabase
+          .from("messages")
+          .select("id", { count: "exact", head: true })
+          .in("group_id", groupIds)
+          .neq("sender_id", userId)
+          .is("read_at", null);
+        gm = count ?? 0;
+      }
+      setCount((dm ?? 0) + gm);
     };
 
     fetchCount();
