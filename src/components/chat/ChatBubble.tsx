@@ -123,7 +123,7 @@ export function ChatBubble({
       clearLongPress();
     }
     if (gesture.current.moved && Math.abs(dx) > Math.abs(dy)) {
-      const clamped = mine ? Math.min(0, Math.max(-90, dx)) : Math.max(0, Math.min(90, dx));
+      const clamped = Math.max(-100, Math.min(100, dx));
       dragXRef.current = clamped;
       setDragX(clamped);
     }
@@ -137,7 +137,8 @@ export function ChatBubble({
     setDragX(0);
     if (wasLP) return;
     if (moved) {
-      if (Math.abs(dx) > 45) {
+      // Right swipe = reply. Left swipe = peek timestamp (no commit).
+      if (dx > 45) {
         onReply(m);
         if ("vibrate" in navigator) navigator.vibrate?.(20);
       }
