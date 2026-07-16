@@ -1,9 +1,9 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useRef, useState, useEffect } from "react";
 import { ArrowLeft, Heart, Users, Settings, Phone, Video } from "lucide-react";
 import { toast } from "sonner";
 import { useProfile } from "@/hooks/useProfile";
-import { useGroup, useLeaveGroup } from "@/hooks/useGroups";
+import { useGroup } from "@/hooks/useGroups";
 import { useGroupChat } from "@/hooks/useGroupChat";
 import { ChatBubble } from "@/components/chat/ChatBubble";
 import { ChatComposer } from "@/components/chat/ChatComposer";
