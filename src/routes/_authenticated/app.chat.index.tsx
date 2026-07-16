@@ -5,6 +5,7 @@ import { useChatThreads } from "@/hooks/useChatThreads";
 import { useProfile } from "@/hooks/useProfile";
 import { useGroups } from "@/hooks/useGroups";
 import { NewGroupDialog } from "@/components/chat/NewGroupDialog";
+import { UserAvatar } from "@/components/UserAvatar";
 
 export const Route = createFileRoute("/_authenticated/app/chat/")({
   component: ChatList,
@@ -148,11 +149,7 @@ function PartnerCard({ thread, nickname }: { thread: NonNullable<ReturnType<type
       className="flex items-center gap-3 p-4 rounded-3xl bg-gradient-to-br from-petal-soft to-petal-soft/40 border border-petal/30 petal-glow"
     >
       <div className="relative size-14 rounded-full bg-petal-soft ring-2 ring-petal petal-glow flex items-center justify-center overflow-hidden shrink-0">
-        {thread.peer.avatar_url ? (
-          <img src={thread.peer.avatar_url} alt="" className="size-full object-cover" />
-        ) : (
-          <span className="text-2xl">🐼</span>
-        )}
+        <UserAvatar src={thread.peer.avatar_url} name={thread.peer.display_name} className="size-full" />
         <span className="absolute -bottom-0.5 -right-0.5 size-5 rounded-full bg-petal text-velvet flex items-center justify-center">
           <Heart className="size-2.5 fill-current" />
         </span>
@@ -182,13 +179,7 @@ function FriendCard({ thread, meId }: { thread: NonNullable<ReturnType<typeof us
       params={{ peerId: thread.peer.id }}
       className="flex items-center gap-3 p-3 rounded-2xl bg-surface/40 border border-transparent hover:bg-surface transition-colors"
     >
-      <div className="size-12 rounded-full bg-petal-soft flex items-center justify-center overflow-hidden shrink-0">
-        {thread.peer.avatar_url ? (
-          <img src={thread.peer.avatar_url} alt="" className="size-full object-cover" />
-        ) : (
-          <span className="text-xl">🐼</span>
-        )}
-      </div>
+      <UserAvatar src={thread.peer.avatar_url} name={thread.peer.display_name} className="size-12" />
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <p className="font-serif italic text-base truncate">{thread.peer.display_name}</p>
