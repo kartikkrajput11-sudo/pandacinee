@@ -312,9 +312,13 @@ function ChatBubbleImpl({
             return (
               <div className="flex flex-col items-center py-2 w-full">
                 <div className="relative w-[260px] bg-velvet border border-candle/20 p-6 flex flex-col items-center text-center shadow-[0_0_40px_rgba(255,143,166,0.05)]">
-                  <div className="w-12 h-12 rounded-full border border-petal/30 flex items-center justify-center mb-4 bg-velvet ring-4 ring-velvet">
-                    <span className="text-2xl leading-none">{m.content || "💋"}</span>
-                  </div>
+                  <img
+                    src={pandaKiss}
+                    alt="Two pandas kissing"
+                    loading="lazy"
+                    className="w-24 h-24 object-contain mb-3 drop-shadow-[0_0_20px_rgba(255,143,166,0.15)]"
+                  />
+
                   <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-petal mb-1">Kiss</span>
                   <p className="font-serif italic text-candle text-xl leading-tight">{mine ? "sent with love" : "for you"}</p>
                   <div className="mt-4 flex flex-col items-center w-full">
