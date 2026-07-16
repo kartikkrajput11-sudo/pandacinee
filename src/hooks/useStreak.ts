@@ -47,6 +47,19 @@ export function useStreak(meId: string | null, partnerId: string | null) {
         .from("daily_checkins")
         .insert({ user_id: meId, partner_id: partnerId, date: today() } as any);
       if (error && !error.message.includes("duplicate")) throw error;
+      // Earn: daily check-in (+5), idempotent per day
+      await grantPandaCoins("daily_checkin", 5, `checkin-${todayKey()}`);
+      // Earn: 7-day couple streak bonus (+50) at every 7-day multiple
+      if (partnerId) {
+        const { data: s } = await supabase.rpc("couple_streak" as any, {
+          _me: meId,
+          _partner: partnerId,
+        });
+        const streak = (s as number) ?? 0;
+        if (streak > 0 && streak % 7 === 0) {
+          await grantPandaCoins("streak_bonus", 50, `streak-${streak}`);
+        }
+      }
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["streak"] }),
   });
