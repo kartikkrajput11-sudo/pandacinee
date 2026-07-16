@@ -26,9 +26,9 @@ export function ChatSearch({
       <button
         onClick={() => setOpen(true)}
         aria-label="Search messages"
-        className="size-10 rounded-full bg-surface border border-border flex items-center justify-center text-petal"
+        className="text-candle/55 hover:text-petal transition-colors"
       >
-        <Search className="size-4" />
+        <Search className="size-[18px]" strokeWidth={1.5} />
       </button>
     );
   }
