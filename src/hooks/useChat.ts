@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { chatChannelKey, expirySeconds, type MessageRow } from "@/lib/chat";
 import { sfxSend, sfxReceive, sfxReaction } from "@/lib/sfx";
+import { grantPandaCoins, todayKey } from "@/lib/coins";
 
 type TypingState = { isTyping: boolean; at: number };
 
@@ -227,6 +228,8 @@ export function useChat(meId: string | null, partnerId: string | null) {
       }
       if (data) {
         setMessages((prev) => mergeMessages(prev.filter((m) => m.id !== draft.id), [data as MessageRow]));
+        // Earn: first message of day (+2), idempotent per day per sender
+        grantPandaCoins("first_message", 2, `first-msg-${meId}-${todayKey()}`);
       }
     },
     [meId, partnerId],
