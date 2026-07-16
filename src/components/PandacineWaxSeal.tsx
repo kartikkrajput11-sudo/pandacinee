@@ -313,12 +313,8 @@ export function PandacineWaxSeal({
           <path d="M56 168 L144 168" stroke={p.deep} strokeOpacity="0.4" strokeWidth="0.6" />
         </g>
 
-        {/* Candle flame at the top */}
-        <g className="pcs-flame">
-          <ellipse cx="100" cy="4" rx="4" ry="8" fill={p.hi} opacity="0.9" />
-          <ellipse cx="100" cy="6" rx="2.2" ry="5" fill="#fff" opacity="0.9" />
-          <line x1="100" y1="12" x2="100" y2="18" stroke={p.deep} strokeWidth="0.8" />
-        </g>
+
+
 
         {/* Falling wax droplets */}
         <g className="pcs-fall" fill={p.mid}>
@@ -491,14 +487,7 @@ export function PandacineWaxSeal({
           50%     { opacity: 1; transform: scale(1.2); }
         }
 
-        /* Candle flame */
-        .pcs-flame { transform-origin: 100px 12px; transform-box: fill-box; animation: pcs-flicker 0.9s ease-in-out infinite; filter: drop-shadow(0 0 6px currentColor); }
-        @keyframes pcs-flicker {
-          0%,100% { transform: scale(1,1) translate(0,0); }
-          25%     { transform: scale(0.95,1.05) translate(-0.3px,-0.2px); }
-          50%     { transform: scale(1.05,0.95) translate(0.4px,0.3px); }
-          75%     { transform: scale(0.98,1.02) translate(-0.2px,0.2px); }
-        }
+
 
         /* Falling drops during melt */
         .pcs-fall { opacity: 0; }
