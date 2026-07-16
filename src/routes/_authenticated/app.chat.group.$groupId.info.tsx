@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, type ReactNode } from "react";
 import { ArrowLeft, Users, Palette, Image as ImageIcon, Search, BellOff, Bell, Crown, UserMinus, UserPlus, LogOut, Check, Pin } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
