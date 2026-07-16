@@ -451,6 +451,87 @@ export function PandacineWaxSeal({
         .pcs-ember.e4 { --dx: -12px; }
         .pcs-ember.e5 { --dx: 6px; }
         .pcs-ember.e6 { --dx: -4px; }
+
+        /* Rotating rays behind the disc */
+        .pcs-rays {
+          position: absolute; inset: -10%;
+          width: 120%; height: 120%;
+          opacity: 0.55;
+          mix-blend-mode: screen;
+          animation: pcs-spin-slow 26s linear infinite;
+          pointer-events: none;
+        }
+        @keyframes pcs-spin-slow { to { transform: rotate(360deg); } }
+
+        /* Pulsing outer ring */
+        .pcs-pulse-ring {
+          position: absolute; inset: 4%;
+          border-radius: 9999px;
+          pointer-events: none;
+          animation: pcs-pulse 2.6s ease-in-out infinite;
+        }
+        @keyframes pcs-pulse {
+          0%,100% { transform: scale(1); opacity: 0.55; }
+          50%     { transform: scale(1.05); opacity: 1; }
+        }
+
+        /* Twinkling stars */
+        .pcs-twinkle-field { position: absolute; inset: -14%; pointer-events: none; }
+        .pcs-tw {
+          position: absolute;
+          width: 4px; height: 4px;
+          background: currentColor;
+          border-radius: 9999px;
+          box-shadow: 0 0 6px currentColor, 0 0 12px currentColor;
+          opacity: 0;
+          animation: pcs-twinkle 2.8s ease-in-out infinite;
+        }
+        @keyframes pcs-twinkle {
+          0%,100% { opacity: 0; transform: scale(0.6); }
+          50%     { opacity: 1; transform: scale(1.2); }
+        }
+
+        /* Candle flame */
+        .pcs-flame { transform-origin: 100px 12px; transform-box: fill-box; animation: pcs-flicker 0.9s ease-in-out infinite; filter: drop-shadow(0 0 6px currentColor); }
+        @keyframes pcs-flicker {
+          0%,100% { transform: scale(1,1) translate(0,0); }
+          25%     { transform: scale(0.95,1.05) translate(-0.3px,-0.2px); }
+          50%     { transform: scale(1.05,0.95) translate(0.4px,0.3px); }
+          75%     { transform: scale(0.98,1.02) translate(-0.2px,0.2px); }
+        }
+
+        /* Falling drops during melt */
+        .pcs-fall { opacity: 0; }
+        .pcs-wrap.pcs-phase-melt .pcs-fall { opacity: 1; }
+        .pcs-drop { animation: pcs-drop-fall 1.6s ease-in forwards; opacity: 0; }
+        .pcs-wrap.pcs-phase-melt .pcs-drop.d1 { animation-delay: 60ms; }
+        .pcs-wrap.pcs-phase-melt .pcs-drop.d2 { animation-delay: 180ms; }
+        .pcs-wrap.pcs-phase-melt .pcs-drop.d3 { animation-delay: 300ms; }
+        .pcs-wrap.pcs-phase-melt .pcs-drop.d4 { animation-delay: 440ms; }
+        .pcs-wrap.pcs-phase-melt .pcs-drop.d5 { animation-delay: 560ms; }
+        @keyframes pcs-drop-fall {
+          0%   { opacity: 0; transform: translateY(0) scale(0.6); }
+          20%  { opacity: 1; }
+          100% { opacity: 0; transform: translateY(70px) scale(1.1); }
+        }
+
+        /* Floating hearts (always on) */
+        .pcs-heart { transform-origin: center; animation: pcs-heart-drift 5s ease-in-out infinite; filter: drop-shadow(0 0 3px currentColor); opacity: 0.7; }
+        .pcs-heart.h1 { animation-delay: 0s; }
+        .pcs-heart.h2 { animation-delay: 1.4s; }
+        .pcs-heart.h3 { animation-delay: 2.8s; }
+        @keyframes pcs-heart-drift {
+          0%,100% { transform: translate(0,0) scale(0.9); opacity: 0.3; }
+          50%     { transform: translate(0,-8px) scale(1.1); opacity: 0.9; }
+        }
+
+        /* Gentle pulse for gem & crown */
+        .pcs-gem { transform-origin: center; animation: pcs-pulse-mini 2.2s ease-in-out infinite; }
+        .pcs-crown { transform-origin: center; animation: pcs-pulse-mini 3s ease-in-out infinite; }
+        @keyframes pcs-pulse-mini {
+          0%,100% { opacity: 0.7; transform: scale(1); }
+          50%     { opacity: 1;   transform: scale(1.06); }
+        }
       `}</style>
     </Tag>
   );
