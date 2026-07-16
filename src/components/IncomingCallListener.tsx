@@ -151,19 +151,11 @@ export function IncomingCallListener() {
     } catch (e) {
       console.warn("answer failed", e);
     }
-    if (incoming.scope === "group" && incoming.groupId) {
-      navigate({
-        to: "/app/call/group/$groupId",
-        params: { groupId: incoming.groupId },
-        search: { callId: incoming.callId, role: "callee" },
-      });
-    } else {
-      navigate({
-        to: "/app/call/$peerId",
-        params: { peerId: incoming.fromId },
-        search: { callId: incoming.callId, role: "callee", mode: incoming.kind },
-      });
-    }
+    navigate({
+      to: "/app/call/$peerId",
+      params: { peerId: incoming.fromId },
+      search: { callId: incoming.callId, role: "callee", mode: incoming.kind },
+    });
     setIncoming(null);
   }
 
