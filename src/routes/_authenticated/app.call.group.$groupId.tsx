@@ -49,8 +49,7 @@ function GroupCall() {
   }
 
   async function hangup() {
-    try { await leaveCall(callId); } catch {}
-    call.leave();
+    try { await call.hangup(); } catch {}
     navigate({ to: "/app/chat/group/$groupId", params: { groupId } });
   }
 
