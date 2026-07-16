@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Calendar, Sparkles } from "lucide-react";
+import { UserAvatar } from "@/components/UserAvatar";
 import {
   computeCountdown,
   daysTogether,
@@ -196,13 +197,11 @@ function Avatar({ profile }: { profile?: Profile }) {
     .join("")
     .toUpperCase();
   return (
-    <div className="size-9 rounded-full border-2 border-surface-elevated overflow-hidden bg-velvet flex items-center justify-center">
-      {profile?.avatar_url ? (
-        <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
-      ) : (
-        <span className="text-[10px] font-semibold text-candle">{initials ?? "🐼"}</span>
-      )}
-    </div>
+    <UserAvatar
+      src={profile?.avatar_url}
+      name={profile?.display_name ?? initials ?? "🐼"}
+      className="size-9 border-2 border-surface-elevated"
+    />
   );
 }
 
