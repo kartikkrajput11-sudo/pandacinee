@@ -624,6 +624,29 @@ function ItemPreview({ item, compact = false }: { item: ShopItem; compact?: bool
       </div>
     );
   }
+  if (item.category === "chess_pieces") {
+    const glyphs = meta.glyphs?.w ?? { k: "♔", q: "♕", r: "♖", b: "♗", n: "♘", p: "♙" };
+    const isEmoji = meta.emoji === true;
+    const pieces: string[] = ["k", "q", "r", "b", "n", "p"].map((t) => glyphs[t] ?? "?");
+    return (
+      <div className="w-full h-full bg-gradient-to-br from-velvet to-surface flex flex-col items-center justify-center gap-2 p-3 relative">
+        <div className="grid grid-cols-3 gap-1.5 w-[80%]">
+          {pieces.map((g, i) => (
+            <div key={i} className="aspect-square rounded-lg bg-surface/70 border border-petal/20 flex items-center justify-center">
+              <span className={`text-2xl leading-none ${isEmoji ? "" : "text-candle"}`} style={{ textShadow: "0 1px 2px rgba(0,0,0,0.4)" }}>
+                {g}
+              </span>
+            </div>
+          ))}
+        </div>
+        {meta.label && (
+          <div className="absolute bottom-1 right-2 text-[9px] uppercase tracking-[0.2em] font-bold text-petal">
+            {meta.label}
+          </div>
+        )}
+      </div>
+    );
+  }
   return <div className="w-full h-full bg-velvet" />;
 }
 
