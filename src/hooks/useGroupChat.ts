@@ -146,6 +146,7 @@ export function useGroupChat(groupId: string | null, meId: string | null) {
           user_id: meId,
           emoji,
         });
+        sfxReaction();
       }
       void loadReactions();
     },
