@@ -309,7 +309,7 @@ function ChatPeer() {
         )}
       </header>
 
-      <MoodBar me={me} partner={peer} />
+      
 
       {isPartner && (sharedMedia.length > 0 || daysTogether > 0) && (
         <div className="px-3 py-2 flex items-center gap-2 border-b border-border bg-petal/5">
