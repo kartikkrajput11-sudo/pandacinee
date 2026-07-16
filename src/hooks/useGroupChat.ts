@@ -105,7 +105,7 @@ export function useGroupChat(groupId: string | null, meId: string | null) {
     return () => {
       supabase.removeChannel(ch);
     };
-  }, [groupId, loadReactions]);
+  }, [groupId, meId, loadReactions]);
 
   const send = useCallback(
     async (input: {
