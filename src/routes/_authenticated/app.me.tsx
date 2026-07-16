@@ -152,17 +152,22 @@ function Me() {
                 <Camera className="size-5 text-candle" />
               </span>
             </button>
-
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
               onChange={(e) => {
                 const f = e.target.files?.[0];
                 if (f) uploadAvatar(f);
               }}
             />
             <div className="min-w-0 flex-1">
-              <p className="font-serif text-2xl italic truncate">{me.display_name}</p>
+              <p className={`font-serif text-2xl italic truncate ${nameClass}`}>{me.display_name}</p>
               <p className="text-sm text-candle-muted truncate">@{me.username}</p>
             </div>
           </div>
+
 
           <Link
             to="/app/shop"
