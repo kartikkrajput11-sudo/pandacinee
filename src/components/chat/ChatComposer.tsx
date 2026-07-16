@@ -393,80 +393,82 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
 
 
 
-      <form onSubmit={sendText} className="px-3 py-3 flex items-center gap-2 relative overflow-hidden">
+      <form onSubmit={sendText} className="px-3 py-3 relative">
         <input ref={imgRef} type="file" accept="image/*" className="hidden" onChange={handleImage} />
         <input ref={vidRef} type="file" accept="video/*" className="hidden" onChange={handleVideo} />
         <input ref={fileRef} type="file" className="hidden" onChange={handleFile} />
 
-        {/* Text side — slides out left and sinks when recording starts */}
-        <div
-          className={`flex items-center gap-2 flex-1 min-w-0 transition-all duration-300 ease-out ${
-            recording
-              ? "opacity-0 -translate-x-6 blur-sm pointer-events-none max-w-0 mr-0"
-              : "opacity-100 translate-x-0 blur-0 max-w-full"
-          }`}
-          aria-hidden={recording}
-        >
-          <button
-            type="button"
-            onClick={() => { setMenuOpen((m) => !m); setStickersOpen(false); }}
-            className="size-11 rounded-full bg-surface border border-border flex items-center justify-center text-petal shrink-0"
-          >
-            <Plus className={`size-4 transition-transform ${menuOpen ? "rotate-45" : ""}`} />
-          </button>
-          <button
-            type="button"
-            onClick={() => { setStickersOpen((s) => !s); setMenuOpen(false); }}
-            className="size-11 rounded-full bg-surface border border-border flex items-center justify-center text-petal shrink-0"
-          >
-            <Smile className="size-4" />
-          </button>
-          <button
-            type="button"
-            onClick={() => setWhisper((w) => !w)}
-            className={`size-11 rounded-full flex items-center justify-center shrink-0 transition-colors ${
-              whisper ? "bg-petal text-velvet petal-glow" : "bg-surface border border-border text-petal"
+        {/* Layered composer: text row + voice row stack in the same slot, cross-fade with slide */}
+        <div className="relative h-11">
+          {/* Text row */}
+          <div
+            className={`absolute inset-0 flex items-center gap-2 transition-[opacity,transform] duration-300 ease-out ${
+              recording ? "opacity-0 -translate-x-4 pointer-events-none" : "opacity-100 translate-x-0"
             }`}
-            title={whisper ? "Whisper on — text arrives blurred" : "Send as whisper (blurred until tapped)"}
-            aria-label="Toggle whisper mode"
+            aria-hidden={recording}
           >
-            {whisper ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-          </button>
-          <div className="flex-1 relative min-w-0">
-            <input
-              value={text}
-              onChange={(e) => { setText(e.target.value); onTyping(e.target.value.length > 0); }}
-              onBlur={() => onTyping(false)}
-              placeholder={whisper ? `Whisper to ${partnerName}…` : `Message ${partnerName}…`}
-              disabled={recording}
-              className={`w-full px-4 py-3 bg-surface border rounded-full text-sm text-candle placeholder:text-candle-muted focus:outline-none transition-colors ${
-                whisper ? "border-petal/70 focus:border-petal" : "border-border focus:border-petal/60"
+            <button
+              type="button"
+              onClick={() => { setMenuOpen((m) => !m); setStickersOpen(false); }}
+              className="size-11 rounded-full bg-surface border border-border flex items-center justify-center text-petal shrink-0"
+            >
+              <Plus className={`size-4 transition-transform ${menuOpen ? "rotate-45" : ""}`} />
+            </button>
+            <button
+              type="button"
+              onClick={() => { setStickersOpen((s) => !s); setMenuOpen(false); }}
+              className="size-11 rounded-full bg-surface border border-border flex items-center justify-center text-petal shrink-0"
+            >
+              <Smile className="size-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setWhisper((w) => !w)}
+              className={`size-11 rounded-full flex items-center justify-center shrink-0 transition-colors ${
+                whisper ? "bg-petal text-velvet petal-glow" : "bg-surface border border-border text-petal"
               }`}
-            />
-            {whisper && (
-              <span className="absolute -top-2 right-3 text-[10px] px-1.5 py-0.5 rounded-full bg-petal text-velvet">
-                🤫 whisper
-              </span>
+              title={whisper ? "Whisper on — text arrives blurred" : "Send as whisper (blurred until tapped)"}
+              aria-label="Toggle whisper mode"
+            >
+              {whisper ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+            </button>
+            <div className="flex-1 relative min-w-0">
+              <input
+                value={text}
+                onChange={(e) => { setText(e.target.value); onTyping(e.target.value.length > 0); }}
+                onBlur={() => onTyping(false)}
+                placeholder={whisper ? `Whisper to ${partnerName}…` : `Message ${partnerName}…`}
+                disabled={recording}
+                className={`w-full px-4 py-3 bg-surface border rounded-full text-sm text-candle placeholder:text-candle-muted focus:outline-none transition-colors ${
+                  whisper ? "border-petal/70 focus:border-petal" : "border-border focus:border-petal/60"
+                }`}
+              />
+              {whisper && (
+                <span className="absolute -top-2 right-3 text-[10px] px-1.5 py-0.5 rounded-full bg-petal text-velvet">
+                  🤫 whisper
+                </span>
+              )}
+            </div>
+            {text.trim() ? (
+              <button
+                type="submit"
+                disabled={sending}
+                className="size-11 rounded-full bg-petal text-velvet flex items-center justify-center petal-glow disabled:opacity-40 shrink-0"
+              >
+                <Send className="size-4" />
+              </button>
+            ) : (
+              <div className="shrink-0">
+                <VoiceRecorder userId={meId} onSend={handleVoiceSend} onRecordingChange={setRecording} />
+              </div>
             )}
           </div>
-        </div>
 
-        {/* Recorder side — slides in from right and expands to fill */}
-        <div
-          className={`flex items-center transition-all duration-300 ease-out ${
-            recording ? "flex-1 translate-x-0 opacity-100" : "flex-none translate-x-0 opacity-100"
-          }`}
-        >
-          {text.trim() && !recording ? (
-            <button
-              type="submit"
-              disabled={sending}
-              className="size-11 rounded-full bg-petal text-velvet flex items-center justify-center petal-glow disabled:opacity-40 animate-scale-in"
+          {/* Voice row — only rendered while recording, slides in from right */}
+          {recording && (
+            <div
+              className="absolute inset-0 flex items-center transition-[opacity,transform] duration-300 ease-out animate-[slide-in-right_0.3s_ease-out] opacity-100"
             >
-              <Send className="size-4" />
-            </button>
-          ) : (
-            <div className={`${recording ? "w-full animate-fade-in" : "w-auto"} transition-all duration-300`}>
               <VoiceRecorder userId={meId} onSend={handleVoiceSend} onRecordingChange={setRecording} />
             </div>
           )}
@@ -474,5 +476,6 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
       </form>
     </div>
   );
+
 
 }
