@@ -1,10 +1,11 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Lock, Trash2, Clock } from "lucide-react";
+import { ArrowLeft, Lock, Trash2, Clock, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
 import { openLoveLetter } from "@/lib/letters.functions";
+import { PandacineWaxSeal } from "@/components/PandacineWaxSeal";
 
 export const Route = createFileRoute("/_authenticated/app/letters/$id")({
   component: LetterView,
