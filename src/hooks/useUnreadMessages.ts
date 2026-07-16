@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { getGroupLastRead } from "@/lib/groupRead";
+import { isGroupMessageUnread } from "@/lib/groupRead";
 
 export function useUnreadMessages() {
   const [count, setCount] = useState(0);
@@ -45,8 +45,7 @@ export function useUnreadMessages() {
           .is("deleted_at", null);
         for (const r of gRows ?? []) {
           if (!r.group_id) continue;
-          const lastRead = getGroupLastRead(userId, r.group_id);
-          if (!lastRead || r.created_at > lastRead) {
+          if (isGroupMessageUnread(userId, r.group_id, r.created_at)) {
             unreadGroups.add(r.group_id);
           }
         }

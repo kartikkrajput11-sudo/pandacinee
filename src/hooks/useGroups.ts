@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { getGroupLastRead } from "@/lib/groupRead";
+import { isGroupMessageUnread } from "@/lib/groupRead";
 
 export type GroupRow = {
   id: string;
@@ -80,9 +80,8 @@ export function useGroups() {
           const gMembers = (allMembers ?? []).filter((m) => m.group_id === g.id);
           const gMsgs = (msgs ?? []).filter((m) => m.group_id === g.id);
           const last = gMsgs[0] ?? null;
-          const lastRead = getGroupLastRead(me, g.id);
           const unread = gMsgs.filter(
-            (m) => m.sender_id !== me && (!lastRead || m.created_at > lastRead),
+            (m) => m.sender_id !== me && isGroupMessageUnread(me, g.id, m.created_at),
           ).length;
           return {
             group: g as GroupRow,
