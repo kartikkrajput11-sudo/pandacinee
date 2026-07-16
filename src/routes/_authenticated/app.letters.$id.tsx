@@ -206,7 +206,7 @@ function LetterView() {
             </button>
             {breaking && (
               <div className="mt-6">
-                <PandacineWaxSeal tone={letter.theme} interactive={false} breaking size={176} />
+                <PandacineWaxSeal tone={letter.theme} interactive={false} breaking size={176} motto={letter.seal_motto ?? undefined} />
               </div>
             )}
           </div>
