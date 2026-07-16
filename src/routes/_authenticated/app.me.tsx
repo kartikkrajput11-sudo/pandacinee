@@ -27,6 +27,11 @@ function Me() {
   const me = data?.profile;
   const partner = data?.partner;
   const fileRef = useRef<HTMLInputElement>(null);
+  const { flairRing, flairNameGradient } = useEquippedItems();
+  const ringClass =
+    flairRing?.ring === "aurora" ? "avatar-flair-aurora" : flairRing?.ring === "gold" ? "avatar-flair-gold" : "";
+  const nameClass = flairNameGradient?.name_gradient === "sunset" ? "name-gradient-sunset" : "";
+
 
   const [displayName, setDisplayName] = useState("");
   const [bio, setBio] = useState("");
