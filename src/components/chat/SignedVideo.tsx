@@ -74,14 +74,21 @@ export function SignedVideo({ path }: { path: string }) {
     nudgeControls();
   }
 
-  function requestFullscreen() {
+  async function toggleFullscreen() {
     const el = wrapRef.current;
+    const doc: any = document;
+    const fsEl = doc.fullscreenElement || doc.webkitFullscreenElement || doc.webkitCurrentFullScreenElement;
+    if (fsEl) {
+      const exit = doc.exitFullscreen || doc.webkitExitFullscreen || doc.webkitCancelFullScreen;
+      if (exit) { try { await exit.call(doc); } catch { /* ignore */ } }
+      return;
+    }
     if (!el) return;
     const anyEl = el as any;
-    const fn = el.requestFullscreen || anyEl.webkitRequestFullscreen || anyEl.webkitEnterFullscreen;
-    if (fn) fn.call(el);
-    else {
-      // iOS Safari fallback: fullscreen the video element itself
+    const fn = el.requestFullscreen || anyEl.webkitRequestFullscreen;
+    if (fn) {
+      try { await fn.call(el); } catch { /* ignore */ }
+    } else {
       const v = videoRef.current as any;
       if (v?.webkitEnterFullscreen) v.webkitEnterFullscreen();
     }
