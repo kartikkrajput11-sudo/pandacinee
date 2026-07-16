@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
 import { draftLoveLetter } from "@/lib/letters.functions";
+import { PandacineWaxSeal } from "@/components/PandacineWaxSeal";
 
 export const Route = createFileRoute("/_authenticated/app/letters/")({
   component: LettersRoute,
