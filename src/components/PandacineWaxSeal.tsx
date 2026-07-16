@@ -433,16 +433,7 @@ export function PandacineWaxSeal({
         .pcs-ember.e5 { --dx: 6px; }
         .pcs-ember.e6 { --dx: -4px; }
 
-        /* Rotating rays behind the disc */
-        .pcs-rays {
-          position: absolute; inset: -10%;
-          width: 120%; height: 120%;
-          opacity: 0.55;
-          mix-blend-mode: screen;
-          animation: pcs-spin-slow 26s linear infinite;
-          pointer-events: none;
-        }
-        @keyframes pcs-spin-slow { to { transform: rotate(360deg); } }
+
 
         /* Pulsing outer ring */
         .pcs-pulse-ring {
