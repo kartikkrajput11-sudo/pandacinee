@@ -139,16 +139,7 @@ export function AiStickerPicker({ open, onClose, onPick }: Props) {
     }
   }
 
-    setBusyMood(mood);
-    try {
-      await genFn({ data: { mood } });
-      qc.invalidateQueries({ queryKey: ["ai-stickers", me?.id] });
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Couldn't generate sticker");
-    } finally {
-      setBusyMood(null);
-    }
-  }
+
 
   if (!open) return null;
 
