@@ -298,6 +298,33 @@ export type Database = {
         }
         Relationships: []
       }
+      coin_ledger: {
+        Row: {
+          created_at: string
+          delta: number
+          id: string
+          reason: string
+          ref_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          delta: number
+          id?: string
+          reason: string
+          ref_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          delta?: number
+          id?: string
+          reason?: string
+          ref_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       concierge_suggestions: {
         Row: {
           author_id: string
@@ -1125,6 +1152,7 @@ export type Database = {
           mood_updated_at: string | null
           notifications_enabled: boolean
           paired_at: string | null
+          panda_coins: number
           partner_id: string | null
           partner_nickname: string | null
           pl_cat_activity: boolean
@@ -1159,6 +1187,7 @@ export type Database = {
           mood_updated_at?: string | null
           notifications_enabled?: boolean
           paired_at?: string | null
+          panda_coins?: number
           partner_id?: string | null
           partner_nickname?: string | null
           pl_cat_activity?: boolean
@@ -1193,6 +1222,7 @@ export type Database = {
           mood_updated_at?: string | null
           notifications_enabled?: boolean
           paired_at?: string | null
+          panda_coins?: number
           partner_id?: string | null
           partner_nickname?: string | null
           pl_cat_activity?: boolean
@@ -1379,6 +1409,51 @@ export type Database = {
         }
         Relationships: []
       }
+      shop_items: {
+        Row: {
+          active: boolean
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          item_key: string
+          metadata: Json
+          name: string
+          preview_url: string | null
+          price: number
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          category: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          item_key: string
+          metadata?: Json
+          name: string
+          preview_url?: string | null
+          price: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          item_key?: string
+          metadata?: Json
+          name?: string
+          preview_url?: string | null
+          price?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       suppressed_emails: {
         Row: {
           created_at: string
@@ -1453,6 +1528,38 @@ export type Database = {
           id?: string
         }
         Relationships: []
+      }
+      user_inventory: {
+        Row: {
+          acquired_at: string
+          equipped: boolean
+          id: string
+          item_id: string
+          user_id: string
+        }
+        Insert: {
+          acquired_at?: string
+          equipped?: boolean
+          id?: string
+          item_id: string
+          user_id: string
+        }
+        Update: {
+          acquired_at?: string
+          equipped?: boolean
+          id?: string
+          item_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_inventory_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "shop_items"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       watch_rooms: {
         Row: {
@@ -1757,6 +1864,10 @@ export type Database = {
           username: string
         }[]
       }
+      grant_coins: {
+        Args: { _amount: number; _reason: string; _ref_id?: string }
+        Returns: number
+      }
       has_answered_on: {
         Args: { _date: string; _user: string }
         Returns: boolean
@@ -1835,6 +1946,7 @@ export type Database = {
           mood_updated_at: string | null
           notifications_enabled: boolean
           paired_at: string | null
+          panda_coins: number
           partner_id: string | null
           partner_nickname: string | null
           pl_cat_activity: boolean
@@ -1856,6 +1968,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      purchase_shop_item: { Args: { _item_id: string }; Returns: Json }
       purge_expired_messages: { Args: never; Returns: undefined }
       purge_stale_call_signals: { Args: never; Returns: undefined }
       read_email_batch: {
@@ -1878,6 +1991,10 @@ export type Database = {
           id: string
           username: string
         }[]
+      }
+      toggle_equip_item: {
+        Args: { _equip: boolean; _item_id: string }
+        Returns: undefined
       }
       unpair_partner: { Args: never; Returns: undefined }
     }
