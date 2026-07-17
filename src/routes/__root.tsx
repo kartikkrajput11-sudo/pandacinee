@@ -16,6 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import PartnerMessageNotifier from "@/components/PartnerMessageNotifier";
 import OwnersMonthiversary from "@/components/OwnersMonthiversary";
+import PairAnniversaryCelebration from "@/components/PairAnniversaryCelebration";
 
 function NotFoundComponent() {
   return (
@@ -153,6 +154,7 @@ function RootComponent() {
         <Outlet />
         <PartnerMessageNotifier />
         <OwnersMonthiversary />
+        <PairAnniversaryCelebration />
         <Toaster
           theme="dark"
           position="top-center"
