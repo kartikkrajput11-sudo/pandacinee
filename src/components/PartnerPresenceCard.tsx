@@ -61,7 +61,7 @@ export function PartnerPresenceCard({
           <p className="font-serif text-xl italic truncate leading-tight">{name}</p>
           <div className="flex items-center gap-2 mt-1 text-[11px] text-candle-muted">
             <Circle className={`size-2 ${online ? "fill-emerald-400 text-emerald-400" : "fill-current"}`} />
-            <span>{online ? "Online now" : `Active ${lastSeen}`}</span>
+            <span>{activityHidden ? "Activity hidden" : online ? "Online now" : `Active ${lastSeen}`}</span>
           </div>
         </div>
 
