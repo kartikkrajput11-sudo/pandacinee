@@ -637,10 +637,10 @@ function GroupChoice({
       className={`flex items-center gap-2 px-2.5 py-2 rounded-xl border transition-all active:scale-[0.97] ${
         active
           ? "bg-gradient-to-br from-petal/25 to-petal/[0.04] border-petal/60 shadow-[inset_0_0_18px_-8px_rgba(236,72,153,0.55)]"
-          : "bg-gradient-to-br from-white/[0.05] to-transparent border-white/10 hover:border-petal/50 hover:from-petal/15"
+          : "bg-gradient-to-br from-candle/[0.05] to-transparent border-candle/15 hover:border-petal/50 hover:from-petal/15"
       }`}
     >
-      <span className="shrink-0 flex items-center justify-center size-6 rounded-lg bg-white/[0.04] text-petal">
+      <span className="shrink-0 flex items-center justify-center size-6 rounded-lg bg-candle/[0.06] text-petal">
         {icon}
       </span>
       <span className="text-left leading-tight min-w-0">
