@@ -316,15 +316,60 @@ function LudoBoard({
           let fill = "oklch(0.22 0.02 320)";
           if (i === PLAYER_META.red.start) fill = PLAYER_META.red.light;
           if (i === PLAYER_META.yellow.start) fill = PLAYER_META.yellow.light;
+          const isStart = i === PLAYER_META.red.start || i === PLAYER_META.yellow.start;
+          const startColor = i === PLAYER_META.red.start ? PLAYER_META.red.color : PLAYER_META.yellow.color;
           return (
             <g key={`t-${i}`}>
-              <rect x={c * CELL + 1} y={r * CELL + 1} width={CELL - 2} height={CELL - 2} fill={fill} stroke="oklch(0.35 0.04 320)" strokeWidth={0.8} rx={3} />
-              {SAFE.has(i) && (
+              <rect
+                x={c * CELL + 1}
+                y={r * CELL + 1}
+                width={CELL - 2}
+                height={CELL - 2}
+                fill={fill}
+                stroke={isStart ? startColor : "oklch(0.35 0.04 320)"}
+                strokeWidth={isStart ? 1.6 : 0.8}
+                rx={3}
+              />
+              {SAFE.has(i) && !isStart && (
                 <text x={c * CELL + CELL / 2} y={r * CELL + CELL / 2 + 4} textAnchor="middle" fontSize={12} fill="oklch(0.75 0.08 75)">★</text>
               )}
             </g>
           );
         })}
+
+        {/* Yard → start entry lanes */}
+        {/* Red: yard (bottom-left) → start [1,6] above */}
+        <g>
+          <path
+            d={`M ${1.5 * CELL} ${9 * CELL} L ${1.5 * CELL} ${7 * CELL}`}
+            stroke={PLAYER_META.red.color}
+            strokeWidth={3}
+            strokeLinecap="round"
+            strokeDasharray="3 3"
+            opacity={0.55}
+          />
+          <polygon
+            points={`${1.5 * CELL - 4},${6.9 * CELL} ${1.5 * CELL + 4},${6.9 * CELL} ${1.5 * CELL},${6.4 * CELL}`}
+            fill={PLAYER_META.red.color}
+            opacity={0.85}
+          />
+        </g>
+        {/* Yellow: yard (top-right) → start [13,8] below */}
+        <g>
+          <path
+            d={`M ${13.5 * CELL} ${6 * CELL} L ${13.5 * CELL} ${8 * CELL}`}
+            stroke={PLAYER_META.yellow.color}
+            strokeWidth={3}
+            strokeLinecap="round"
+            strokeDasharray="3 3"
+            opacity={0.55}
+          />
+          <polygon
+            points={`${13.5 * CELL - 4},${8.1 * CELL} ${13.5 * CELL + 4},${8.1 * CELL} ${13.5 * CELL},${8.6 * CELL}`}
+            fill={PLAYER_META.yellow.color}
+            opacity={0.85}
+          />
+        </g>
         {/* Home columns */}
         {HOME_COL.red.map(([c, r], i) => (
           <rect key={`hr-${i}`} x={c * CELL + 1} y={r * CELL + 1} width={CELL - 2} height={CELL - 2} fill={PLAYER_META.red.light} stroke={PLAYER_META.red.color} strokeWidth={1} rx={3} />
