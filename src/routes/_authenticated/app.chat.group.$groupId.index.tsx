@@ -162,7 +162,7 @@ function GroupChat() {
           <VideoIcon className="size-4" />
         </button>
         <Link
-          to="/app/chat/group/$groupId/info"
+          to="/app/chat/group/$groupId/settings"
           params={{ groupId }}
           className="size-9 rounded-full bg-surface border border-border flex items-center justify-center text-candle-muted"
           aria-label="Settings"
