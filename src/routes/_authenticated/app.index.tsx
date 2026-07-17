@@ -29,7 +29,7 @@ function Home() {
       <Petals count={4} />
 
       {/* Header */}
-      <header className="relative z-10 flex items-start justify-between">
+      <header className="relative z-[120] flex items-start justify-between">
         <div>
           <p className="text-[10px] uppercase tracking-[0.22em] text-petal mb-1">{greeting}</p>
           <h1 className="font-serif text-3xl italic leading-tight">
