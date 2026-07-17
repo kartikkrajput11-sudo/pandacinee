@@ -1120,7 +1120,8 @@ function CatalogWatch({ id }: { id: string }) {
               </div>
             )}
 
-            {/* Ready-check gate — both partners must load before host can hit play */}
+            {/* Ready-check gate — both partners must load before host can hit play.
+                 Host can force-start after a delay in case partner's video is slow. */}
             {started && gateActive && !bothReady && (
               <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-4 bg-velvet/85 backdrop-blur-xl">
                 <span className="relative size-16 rounded-full flex items-center justify-center bg-petal/10 border border-petal/30">
@@ -1138,6 +1139,33 @@ function CatalogWatch({ id }: { id: string }) {
                     {partnerFirst} {peerReady ? "ready" : "loading…"}
                   </span>
                 </div>
+                {iAmHost && myReady && (
+                  <button
+                    onClick={() => {
+                      // Force-start: skip the wait and play now. Follower will
+                      // catch up via the "play" broadcast (retries muted if needed).
+                      const h = customPlayerRef.current;
+                      setPausedByHost(false);
+                      runSuppressedPlayerAction(() => {
+                        h?.setMuted(false);
+                        h?.seek(startAt ?? 0);
+                        h?.play();
+                      });
+                      publish({
+                        event: "play",
+                        currentTime: startAt ?? 0,
+                        duration: h?.duration() ?? mine.duration,
+                        sourceIdx,
+                        playbackRate: 1,
+                        season: isTv ? season : null,
+                        episode: isTv ? episode : null,
+                      });
+                    }}
+                    className="mt-2 px-5 h-10 rounded-full bg-petal text-velvet text-xs font-semibold shadow-lg shadow-petal/30"
+                  >
+                    Start anyway
+                  </button>
+                )}
               </div>
             )}
 
