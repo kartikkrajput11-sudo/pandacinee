@@ -96,16 +96,17 @@ export default function NotificationCenter() {
         onClick={() => setOpen((v) => !v)}
         aria-label="Notifications"
         title={unread > 0 ? `${unread} new` : "Notifications"}
-        className="group relative flex h-8 w-8 items-center justify-center rounded-full border border-petal/40 bg-[var(--surface-elevated)]/85 shadow-[0_4px_14px_-6px_rgba(230,180,120,0.5)] backdrop-blur-md transition hover:border-petal/70"
+        className="group relative flex h-7 w-7 items-center justify-center rounded-full border border-petal/40 bg-[var(--surface-elevated)]/85 shadow-[0_4px_14px_-6px_rgba(230,180,120,0.5)] backdrop-blur-md transition hover:border-petal/70"
       >
-        <Bell className="h-4 w-4 text-candle" />
+        <Bell className="h-3.5 w-3.5 text-candle" />
         {unread > 0 && (
-          <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-rose-500 shadow-[0_0_6px_rgba(244,63,94,0.85)] ring-2 ring-[var(--surface-elevated)] animate-pulse" />
+          <span className="absolute -right-0.5 -top-0.5 h-1.5 w-1.5 rounded-full bg-rose-500 shadow-[0_0_6px_rgba(244,63,94,0.85)] ring-2 ring-[var(--surface-elevated)] animate-pulse" />
         )}
       </button>
 
       {open && (
-        <div className="absolute right-0 top-10 w-[min(22rem,calc(100vw-1.5rem))] overflow-hidden rounded-2xl border border-petal/30 bg-[var(--surface-elevated)]/98 shadow-[0_30px_60px_-20px_rgba(0,0,0,0.55)] backdrop-blur-xl">
+        <div className="absolute right-0 top-9 z-[200] w-[min(22rem,calc(100vw-1.5rem))] overflow-hidden rounded-2xl border border-petal/30 bg-[var(--surface-elevated)]/98 shadow-[0_30px_60px_-20px_rgba(0,0,0,0.55)] backdrop-blur-xl">
+
 
 
           {/* header */}
