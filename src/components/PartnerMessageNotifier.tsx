@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
-import AvatarImg from "@/components/AvatarImg";
+import { AvatarImg } from "@/components/AvatarImg";
 
 type Notice = {
   id: string;
