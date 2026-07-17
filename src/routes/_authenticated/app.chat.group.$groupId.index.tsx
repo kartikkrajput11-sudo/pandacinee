@@ -46,6 +46,16 @@ function GroupChat() {
   const members = groupData?.members ?? [];
   const isAdmin = members.find((m) => m.user_id === meId)?.role === "admin";
   const theme = group?.theme ?? "aurora";
+  const bgPath = (group as any)?.background_url as string | null | undefined;
+  const [bgUrl, setBgUrl] = useState<string | null>(null);
+  useEffect(() => {
+    let alive = true;
+    if (!bgPath) { setBgUrl(null); return; }
+    supabase.storage.from("group-backgrounds").createSignedUrl(bgPath, 60 * 60).then(({ data }) => {
+      if (alive) setBgUrl(data?.signedUrl ?? null);
+    });
+    return () => { alive = false; };
+  }, [bgPath]);
 
   const memberById = useMemo(() => {
     const m = new Map<string, { display_name: string; avatar_url: string | null }>();
@@ -116,7 +126,17 @@ function GroupChat() {
   }
 
   return (
-    <div className="flex flex-col h-[100dvh]" data-group-theme={theme}>
+    <div className="flex flex-col h-[100dvh] relative isolate" data-group-theme={theme}>
+      {bgUrl && (
+        <>
+          <div
+            aria-hidden
+            className="absolute inset-0 -z-10 bg-cover bg-center"
+            style={{ backgroundImage: `url(${bgUrl})` }}
+          />
+          <div aria-hidden className="absolute inset-0 -z-10 bg-velvet/70 backdrop-blur-sm" />
+        </>
+      )}
       {/* Header */}
       <header className="flex items-center gap-3 px-4 py-3 border-b border-border bg-surface/70 backdrop-blur">
         <Link to="/app/chat" className="text-candle-muted">
