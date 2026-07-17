@@ -115,10 +115,12 @@ export default function PartnerMessageNotifier() {
 
       // Group listener
       const { data: memberships } = await supabase
-        .from("group_members")
+        .from("chat_group_members")
         .select("group_id")
         .eq("user_id", meId);
-      const groupIds = (memberships ?? []).map((m) => m.group_id).filter(Boolean);
+      const groupIds = ((memberships ?? []) as { group_id: string | null }[])
+        .map((m) => m.group_id)
+        .filter((x): x is string => !!x);
 
       const groupChannels: any[] = [];
       for (const gid of groupIds) {
@@ -129,7 +131,7 @@ export default function PartnerMessageNotifier() {
             {
               event: "INSERT",
               schema: "public",
-              table: "group_messages",
+              table: "messages",
               filter: `group_id=eq.${gid}`,
             },
             async (payload) => {
@@ -147,10 +149,11 @@ export default function PartnerMessageNotifier() {
               const peer = await loadPeer(row.sender_id);
               if (!peer) return;
               const { data: g } = await supabase
-                .from("groups")
+                .from("chat_groups")
                 .select("name")
                 .eq("id", row.group_id)
                 .maybeSingle();
+              const gName = (g as { name?: string } | null)?.name ?? "Group";
               push({
                 id: row.id,
                 peerId: row.sender_id,
