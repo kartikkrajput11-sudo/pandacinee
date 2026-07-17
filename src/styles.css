@@ -645,5 +645,104 @@ html.theme-anim * {
   15%  { opacity: 0.9; }
   100% { transform: translateY(280px) rotate(540deg); opacity: 0; }
 }
+
+/* ── Uno victory animations ── */
+.uno-win-crown {
+  animation: uno-crown-rise 900ms cubic-bezier(0.2, 1.6, 0.4, 1) both,
+             uno-crown-float 3.4s ease-in-out 900ms infinite;
+  transform-origin: center;
+  filter: drop-shadow(0 8px 24px color-mix(in oklab, var(--petal) 60%, transparent));
+}
+@keyframes uno-crown-rise {
+  0%   { transform: translateY(40px) scale(0.4) rotate(-14deg); opacity: 0; }
+  60%  { transform: translateY(-6px) scale(1.15) rotate(6deg); opacity: 1; }
+  100% { transform: translateY(0) scale(1) rotate(0deg); opacity: 1; }
+}
+@keyframes uno-crown-float {
+  0%,100% { transform: translateY(0) rotate(-2deg); }
+  50%     { transform: translateY(-6px) rotate(2deg); }
+}
+.uno-win-title {
+  background: linear-gradient(100deg,
+    oklch(0.92 0.09 88) 10%,
+    oklch(1 0.05 88) 45%,
+    oklch(0.78 0.14 60) 55%,
+    oklch(0.92 0.09 88) 90%);
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: uno-title-shimmer 3s linear infinite, uno-title-in 700ms cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+@keyframes uno-title-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+@keyframes uno-title-in {
+  0%   { transform: translateY(14px) scale(0.9); opacity: 0; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+.uno-win-rays {
+  position: absolute;
+  inset: -40%;
+  background:
+    repeating-conic-gradient(from 0deg,
+      color-mix(in oklab, var(--petal) 32%, transparent) 0deg 3deg,
+      transparent 3deg 20deg);
+  mask: radial-gradient(closest-side, transparent 28%, black 44%, black 68%, transparent 90%);
+  -webkit-mask: radial-gradient(closest-side, transparent 28%, black 44%, black 68%, transparent 90%);
+  animation: uno-rays-spin 14s linear infinite;
+  opacity: 0.5;
+  pointer-events: none;
+}
+@keyframes uno-rays-spin { to { transform: rotate(360deg); } }
+.uno-win-ring {
+  position: absolute;
+  inset: 8%;
+  border-radius: 9999px;
+  border: 1px solid color-mix(in oklab, var(--petal) 60%, transparent);
+  box-shadow:
+    0 0 40px color-mix(in oklab, var(--petal) 40%, transparent) inset,
+    0 0 30px color-mix(in oklab, var(--petal) 30%, transparent);
+  animation: uno-ring-pulse 2.4s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes uno-ring-pulse {
+  0%,100% { transform: scale(0.98); opacity: 0.55; }
+  50%     { transform: scale(1.04); opacity: 0.95; }
+}
+.uno-win-card {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 42px;
+  height: 60px;
+  margin-left: -21px;
+  margin-top: -30px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.18);
+  box-shadow: 0 18px 36px -14px rgba(0,0,0,0.7);
+  animation: uno-card-burst 1800ms cubic-bezier(0.2, 1.2, 0.4, 1) infinite;
+  will-change: transform, opacity;
+}
+@keyframes uno-card-burst {
+  0%   { transform: translate(0,0) rotate(0deg) scale(0.4); opacity: 0; }
+  15%  { opacity: 1; }
+  100% { transform: translate(var(--tx), var(--ty)) rotate(var(--tr)) scale(1); opacity: 0; }
+}
+.uno-win-spark {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background: radial-gradient(circle, oklch(0.95 0.09 88), transparent 70%);
+  animation: uno-spark-drift 2.4s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes uno-spark-drift {
+  0%   { transform: translateY(0) scale(0.6); opacity: 0; }
+  20%  { opacity: 1; }
+  100% { transform: translateY(-140px) scale(1.1); opacity: 0; }
+}
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

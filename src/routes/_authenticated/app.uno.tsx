@@ -373,14 +373,61 @@ function UnoPage() {
 
         {/* Winner overlay */}
         {state.winner && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-velvet/70 backdrop-blur-xl animate-fade-in">
-            <div className="relative rounded-3xl border border-petal/40 bg-surface p-8 max-w-sm w-full text-center overflow-hidden">
-              <div className="absolute inset-0 pointer-events-none opacity-60"
-                style={{ background: "radial-gradient(60% 60% at 50% 30%, color-mix(in oklab, var(--petal) 30%, transparent), transparent 70%)" }} />
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-velvet/80 backdrop-blur-xl animate-fade-in">
+            {/* Ambient rays behind everything */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="relative w-[520px] h-[520px] max-w-[95vw] max-h-[95vw]">
+                <div className="uno-win-rays" />
+                <div className="uno-win-ring" />
+              </div>
+            </div>
+
+            {/* Card burst */}
+            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+              {Array.from({ length: 18 }).map((_, i) => {
+                const angle = (i / 18) * Math.PI * 2;
+                const dist = 180 + (i % 3) * 40;
+                const color = [COLOR_SWATCH.red, COLOR_SWATCH.yellow, COLOR_SWATCH.green, COLOR_SWATCH.blue][i % 4];
+                const grad = COLOR_GRAD[(["red","yellow","green","blue"] as UnoColor[])[i % 4]];
+                return (
+                  <div
+                    key={`c-${i}`}
+                    className="uno-win-card"
+                    style={{
+                      background: grad,
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      ["--tx" as any]: `${Math.cos(angle) * dist}px`,
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      ["--ty" as any]: `${Math.sin(angle) * dist}px`,
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      ["--tr" as any]: `${(i * 47) % 360}deg`,
+                      animationDelay: `${(i % 6) * 120}ms`,
+                      boxShadow: `0 20px 40px -12px ${color}80`,
+                    }}
+                  />
+                );
+              })}
+              {/* Sparks */}
+              {Array.from({ length: 14 }).map((_, i) => (
+                <span
+                  key={`s-${i}`}
+                  className="uno-win-spark"
+                  style={{
+                    left: `${(i * 71) % 100}%`,
+                    top: `${60 + (i * 13) % 30}%`,
+                    animationDelay: `${(i * 180) % 2400}ms`,
+                  }}
+                />
+              ))}
+            </div>
+
+            <div className="relative rounded-3xl border border-petal/40 bg-surface/90 p-8 max-w-sm w-full text-center overflow-hidden">
+              <div className="absolute inset-0 pointer-events-none opacity-70"
+                style={{ background: "radial-gradient(60% 60% at 50% 30%, color-mix(in oklab, var(--petal) 35%, transparent), transparent 70%)" }} />
               <div className="relative">
-                <div className="text-4xl mb-2">👑</div>
+                <div className="uno-win-crown text-5xl mb-2 leading-none">👑</div>
                 <p className="text-[10px] uppercase tracking-[0.3em] text-petal">Salon closes</p>
-                <h2 className="font-serif italic text-3xl mt-1 mb-3">
+                <h2 className="uno-win-title font-serif italic text-4xl mt-1 mb-3">
                   {state.winner === mySeat ? "You win" : "They win"}
                 </h2>
                 <p className="text-sm text-candle-muted mb-5 font-serif italic">
@@ -389,14 +436,14 @@ function UnoPage() {
                 <button
                   type="button"
                   onClick={reset}
-                  className="w-full rounded-full py-3 bg-petal text-velvet font-serif italic tracking-wide"
+                  className="w-full rounded-full py-3 bg-petal text-velvet font-serif italic tracking-wide hover:brightness-110 transition"
                 >
                   Deal again
                 </button>
               </div>
               {/* confetti-like drift */}
               <div className="pointer-events-none absolute inset-0">
-                {Array.from({ length: 14 }).map((_, i) => (
+                {Array.from({ length: 18 }).map((_, i) => (
                   <span
                     key={i}
                     className="uno-confetti absolute block w-2 h-3 rounded-sm"
