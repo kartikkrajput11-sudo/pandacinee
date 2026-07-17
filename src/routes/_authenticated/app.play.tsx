@@ -101,6 +101,21 @@ function Play() {
                   Soon
                 </span>
               )}
+              {partnerHere && (
+                <div className="absolute top-2 right-2 flex items-center gap-1.5 rounded-full bg-velvet/80 backdrop-blur border border-petal/50 pl-1 pr-2 py-0.5 shadow-lg animate-pulse">
+                  <span className="relative inline-block size-5 rounded-full overflow-hidden ring-1 ring-petal/70">
+                    {partner?.avatar_url ? (
+                      <AvatarImg src={partner.avatar_url} className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="w-full h-full flex items-center justify-center bg-petal-soft text-petal text-[10px]">
+                        {partner?.username?.[0]?.toUpperCase() ?? "•"}
+                      </span>
+                    )}
+                    <span className="absolute -bottom-0.5 -right-0.5 size-2 rounded-full bg-emerald-400 ring-1 ring-velvet" />
+                  </span>
+                  <span className="text-[9px] uppercase tracking-widest text-petal font-medium">Here</span>
+                </div>
+              )}
             </>
           );
           if (g.comingSoon) {
