@@ -18,6 +18,7 @@ import { Route as AuthenticatedAppIndexRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedAppWishlistRouteImport } from './routes/_authenticated/app.wishlist'
 import { Route as AuthenticatedAppWatchlistRouteImport } from './routes/_authenticated/app.watchlist'
 import { Route as AuthenticatedAppWatchRouteImport } from './routes/_authenticated/app.watch'
+import { Route as AuthenticatedAppUnoRouteImport } from './routes/_authenticated/app.uno'
 import { Route as AuthenticatedAppTimelineRouteImport } from './routes/_authenticated/app.timeline'
 import { Route as AuthenticatedAppTamannaRouteImport } from './routes/_authenticated/app.tamanna'
 import { Route as AuthenticatedAppShopRouteImport } from './routes/_authenticated/app.shop'
@@ -104,6 +105,11 @@ const AuthenticatedAppWatchlistRoute =
 const AuthenticatedAppWatchRoute = AuthenticatedAppWatchRouteImport.update({
   id: '/watch',
   path: '/watch',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
+const AuthenticatedAppUnoRoute = AuthenticatedAppUnoRouteImport.update({
+  id: '/uno',
+  path: '/uno',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
 const AuthenticatedAppTimelineRoute =
@@ -367,6 +373,7 @@ export interface FileRoutesByFullPath {
   '/app/shop': typeof AuthenticatedAppShopRoute
   '/app/tamanna': typeof AuthenticatedAppTamannaRoute
   '/app/timeline': typeof AuthenticatedAppTimelineRoute
+  '/app/uno': typeof AuthenticatedAppUnoRoute
   '/app/watch': typeof AuthenticatedAppWatchRoute
   '/app/watchlist': typeof AuthenticatedAppWatchlistRoute
   '/app/wishlist': typeof AuthenticatedAppWishlistRoute
@@ -416,6 +423,7 @@ export interface FileRoutesByTo {
   '/app/shop': typeof AuthenticatedAppShopRoute
   '/app/tamanna': typeof AuthenticatedAppTamannaRoute
   '/app/timeline': typeof AuthenticatedAppTimelineRoute
+  '/app/uno': typeof AuthenticatedAppUnoRoute
   '/app/watch': typeof AuthenticatedAppWatchRoute
   '/app/watchlist': typeof AuthenticatedAppWatchlistRoute
   '/app/wishlist': typeof AuthenticatedAppWishlistRoute
@@ -469,6 +477,7 @@ export interface FileRoutesById {
   '/_authenticated/app/shop': typeof AuthenticatedAppShopRoute
   '/_authenticated/app/tamanna': typeof AuthenticatedAppTamannaRoute
   '/_authenticated/app/timeline': typeof AuthenticatedAppTimelineRoute
+  '/_authenticated/app/uno': typeof AuthenticatedAppUnoRoute
   '/_authenticated/app/watch': typeof AuthenticatedAppWatchRoute
   '/_authenticated/app/watchlist': typeof AuthenticatedAppWatchlistRoute
   '/_authenticated/app/wishlist': typeof AuthenticatedAppWishlistRoute
@@ -522,6 +531,7 @@ export interface FileRouteTypes {
     | '/app/shop'
     | '/app/tamanna'
     | '/app/timeline'
+    | '/app/uno'
     | '/app/watch'
     | '/app/watchlist'
     | '/app/wishlist'
@@ -571,6 +581,7 @@ export interface FileRouteTypes {
     | '/app/shop'
     | '/app/tamanna'
     | '/app/timeline'
+    | '/app/uno'
     | '/app/watch'
     | '/app/watchlist'
     | '/app/wishlist'
@@ -623,6 +634,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/shop'
     | '/_authenticated/app/tamanna'
     | '/_authenticated/app/timeline'
+    | '/_authenticated/app/uno'
     | '/_authenticated/app/watch'
     | '/_authenticated/app/watchlist'
     | '/_authenticated/app/wishlist'
@@ -715,6 +727,13 @@ declare module '@tanstack/react-router' {
       path: '/watch'
       fullPath: '/app/watch'
       preLoaderRoute: typeof AuthenticatedAppWatchRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/uno': {
+      id: '/_authenticated/app/uno'
+      path: '/uno'
+      fullPath: '/app/uno'
+      preLoaderRoute: typeof AuthenticatedAppUnoRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/timeline': {
@@ -1082,6 +1101,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppShopRoute: typeof AuthenticatedAppShopRoute
   AuthenticatedAppTamannaRoute: typeof AuthenticatedAppTamannaRoute
   AuthenticatedAppTimelineRoute: typeof AuthenticatedAppTimelineRoute
+  AuthenticatedAppUnoRoute: typeof AuthenticatedAppUnoRoute
   AuthenticatedAppWatchRoute: typeof AuthenticatedAppWatchRoute
   AuthenticatedAppWatchlistRoute: typeof AuthenticatedAppWatchlistRoute
   AuthenticatedAppWishlistRoute: typeof AuthenticatedAppWishlistRoute
@@ -1124,6 +1144,7 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppShopRoute: AuthenticatedAppShopRoute,
   AuthenticatedAppTamannaRoute: AuthenticatedAppTamannaRoute,
   AuthenticatedAppTimelineRoute: AuthenticatedAppTimelineRoute,
+  AuthenticatedAppUnoRoute: AuthenticatedAppUnoRoute,
   AuthenticatedAppWatchRoute: AuthenticatedAppWatchRoute,
   AuthenticatedAppWatchlistRoute: AuthenticatedAppWatchlistRoute,
   AuthenticatedAppWishlistRoute: AuthenticatedAppWishlistRoute,
