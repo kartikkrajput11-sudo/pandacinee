@@ -22,6 +22,23 @@ function ChatList() {
 
   const [showNewGroup, setShowNewGroup] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [joinOpen, setJoinOpen] = useState(false);
+  const [joinCode, setJoinCode] = useState("");
+  const navigate = useNavigate();
+  const joinGroup = useJoinGroupByCode();
+
+  async function doJoin() {
+    if (!joinCode.trim()) return;
+    try {
+      const g = await joinGroup.mutateAsync(joinCode);
+      toast.success(`Joined ${g.name}`);
+      setJoinOpen(false);
+      setJoinCode("");
+      navigate({ to: "/app/chat/group/$groupId", params: { groupId: g.id } });
+    } catch (e: any) {
+      toast.error(e.message ?? "Could not join");
+    }
+  }
 
   const partnerThread = threads?.find((t) => t.isPartner) ?? null;
   const friendThreads = threads?.filter((t) => !t.isPartner) ?? [];
