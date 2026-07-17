@@ -219,8 +219,10 @@ export function ChessBoard({ chess, orientation, canMoveColor, lastMove, onMove 
                           top: `${b.t}%`,
                           width: `${b.s}px`,
                           height: `${b.s}px`,
-                          background: "radial-gradient(circle at 35% 30%, #ff4a4a 0%, #b30f0f 55%, #6a0808 100%)",
-                          boxShadow: "0 0 6px rgba(160,10,10,0.55)",
+                          background: "radial-gradient(ellipse at 40% 35%, #7a1414 0%, #4a0808 55%, #240202 100%)",
+                          boxShadow: "inset 0 0 2px rgba(0,0,0,0.6), 0 0 3px rgba(40,0,0,0.7)",
+                          filter: "blur(0.3px)",
+                          opacity: 0.92,
                           zIndex: 3,
                           animation: `chess-blood-splat 3s ease-out ${b.d}ms both`,
                         }}
