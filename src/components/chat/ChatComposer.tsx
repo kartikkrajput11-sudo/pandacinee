@@ -57,6 +57,7 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
   const fileRef = useRef<HTMLInputElement>(null);
   const imgRef = useRef<HTMLInputElement>(null);
   const vidRef = useRef<HTMLInputElement>(null);
+  const camRef = useRef<HTMLInputElement>(null);
 
   async function sendGameInvite(g: GamePick) {
     setGamePickerOpen(false);
