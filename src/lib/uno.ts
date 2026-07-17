@@ -271,6 +271,7 @@ export function chooseWildColor(s: UnoState, who: UnoPlayer, color: UnoColor): U
     return ns;
   }
   ns.turn = other(who);
+  resetUnoFlags(ns);
   return ns;
 }
 
