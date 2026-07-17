@@ -1,9 +1,11 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { ArrowLeft, MessageCircle, Heart, Users, Plus, UsersRound } from "lucide-react";
+import { ArrowLeft, MessageCircle, Heart, Users, Plus, UsersRound, KeyRound, X } from "lucide-react";
+import { toast } from "sonner";
 import { useChatThreads } from "@/hooks/useChatThreads";
 import { useProfile } from "@/hooks/useProfile";
 import { useGroups } from "@/hooks/useGroups";
+import { useJoinGroupByCode } from "@/hooks/useGroupAdmin";
 import { NewGroupDialog } from "@/components/chat/NewGroupDialog";
 import { UserAvatar } from "@/components/UserAvatar";
 
