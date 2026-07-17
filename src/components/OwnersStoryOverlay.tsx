@@ -44,10 +44,46 @@ const CHAPTERS: Chapter[] = [
     emoji: "🌧️",
   },
   {
-    kicker: "To be continued…",
-    title: "Two broken people, one quiet fate",
-    body: "She was crying in her nights. He was crying in his. Neither of them knew the universe was already stitching their silences together. (The rest of the story is still being written.)",
+    kicker: "Fate — Chapter I",
+    title: "A friend between two silences",
+    body: "In the middle of both their sadness, the universe sent a quiet messenger — a mutual friend, his from society, hers from school. One introduction, one small hello, and two lonely worlds brushed against each other for the first time.",
+    emoji: "🧵",
+  },
+  {
+    kicker: "Fate — Chapter II",
+    title: "The nights that healed them",
+    body: "They started talking. One night became many. Hours turned into sunrises. For the first time in a long while, both of them laughed at 3 a.m. instead of crying. Happiness, softly, came back — brighter than anything they'd ever known before.",
     emoji: "🌙",
+  },
+  {
+    kicker: "Fate — Chapter III",
+    title: "He believed again",
+    body: "Somewhere along those endless conversations, he started believing in God again — because how else could someone so gentle, so exactly right, be sent to him after everything? She felt like a gift wrapped by the sky itself.",
+    emoji: "✨",
+  },
+  {
+    kicker: "Fate — Chapter IV",
+    title: "She saw their forever",
+    body: "And she — she started seeing pictures of a future only the two of them lived in. A home, a life, small ordinary mornings. She wasn't dreaming anymore; she was remembering something that hadn't happened yet.",
+    emoji: "🔮",
+  },
+  {
+    kicker: "18 · April · 2026",
+    title: "The day they said yes",
+    body: "On 18 April 2026, they stopped being two healing souls and became one quiet promise. He gave her a name only he was allowed to use — panda. That single word would one day name a whole little world.",
+    emoji: "🐼",
+  },
+  {
+    kicker: "The Beginning of Pandacine",
+    title: "A home for couples like them",
+    body: "He wanted a place where couples — especially the long-distance ones, the healing ones, the ones rebuilding — could chat, play, watch, and love without distance in the way. So he built it. This site. Pandacine. Named after her.",
+    emoji: "🎬",
+  },
+  {
+    kicker: "Every 18th, forever",
+    title: "The world celebrates them",
+    body: "And that's why every 18th of every month, Pandacine lights up in gold — a small, quiet celebration of the two people whose story became the reason this place exists at all.",
+    emoji: "💛",
   },
 ];
 
