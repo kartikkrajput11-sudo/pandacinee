@@ -342,10 +342,23 @@ function ChatPeer() {
           <div className="flex-1 min-w-0">
             <h1 className="font-serif italic text-[19px] leading-none text-candle truncate">{peerDisplay}</h1>
             <div className="mt-1 flex items-center gap-1.5 min-w-0">
-              <span className={`size-1.5 rounded-full shrink-0 ${partnerOnline ? "bg-petal" : "bg-candle/25"}`} />
-              <span className="text-[9px] uppercase tracking-[0.15em] text-candle/40 font-medium truncate">
-                {partnerTyping ? "typing…" : formatLastSeen(peer.last_seen_at, partnerOnline)}
-              </span>
+              {(() => {
+                const peerHidden = (peer as any).activity_visible === false;
+                const showOnline = !peerHidden && partnerOnline;
+                const statusText = partnerTyping
+                  ? "typing…"
+                  : peerHidden
+                    ? "activity hidden"
+                    : formatLastSeen(peer.last_seen_at, partnerOnline);
+                return (
+                  <>
+                    <span className={`size-1.5 rounded-full shrink-0 ${showOnline ? "bg-petal" : "bg-candle/25"}`} />
+                    <span className="text-[9px] uppercase tracking-[0.15em] text-candle/40 font-medium truncate">
+                      {statusText}
+                    </span>
+                  </>
+                );
+              })()}
               {isPartner && (
                 <>
                   <span className="text-[9px] text-candle/20">·</span>
