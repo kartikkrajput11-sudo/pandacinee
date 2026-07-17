@@ -68,12 +68,12 @@ export default function OwnersMonthiversary() {
           <span className="text-[9px] uppercase tracking-[0.28em] text-[#f5d6a4] shrink-0">
             {monthName} 18
           </span>
-          <span className="font-serif italic text-[12px] text-candle truncate">
+          <span className="font-serif italic text-[12px] text-[#fdf6ec] truncate">
             Founders' monthiversary — tap to relive their story
           </span>
         </span>
 
-        <span className="relative ml-1 text-[9px] uppercase tracking-[0.24em] text-petal opacity-80 group-hover:opacity-100 transition-opacity hidden sm:inline">
+        <span className="relative ml-1 text-[9px] uppercase tracking-[0.24em] text-[#f5c9dd] opacity-90 group-hover:opacity-100 transition-opacity hidden sm:inline">
           Open ✨
         </span>
 
