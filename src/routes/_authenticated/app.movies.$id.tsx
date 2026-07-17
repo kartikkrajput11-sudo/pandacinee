@@ -1,7 +1,7 @@
 import { createFileRoute, Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { ArrowLeft, Send, Film, Play, ExternalLink, Tv } from "lucide-react";
+import { ArrowLeft, Send, Film, Play, ExternalLink, Tv, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { tmdbMovie, tmdbTvFull, tmdbTvSeason } from "@/lib/tmdb.functions";
 import { watchmodeSources, type WatchSource } from "@/lib/watchmode.functions";
