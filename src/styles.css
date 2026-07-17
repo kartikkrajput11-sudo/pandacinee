@@ -243,6 +243,24 @@ html.theme-anim * {
     inset 0 1px 0 color-mix(in oklab, var(--candle) 12%, transparent);
 }
 
+@utility studio-surface {
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--surface-elevated, #1e1423) 94%, transparent) 0%,
+    color-mix(in oklab, var(--surface, #120c16) 98%, transparent) 100%
+  );
+  border-top: 1px solid color-mix(in oklab, var(--candle) 10%, transparent);
+}
+.light .studio-surface {
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--petal) 6%, #ffffff) 0%,
+    color-mix(in oklab, var(--petal) 3%, #ffffff) 100%
+  );
+  border-top: 1px solid color-mix(in oklab, var(--candle) 20%, transparent);
+}
+
+
 /* Animations */
 @keyframes float-petal {
   0% { transform: translateY(-10vh) translateX(0) rotate(0deg); opacity: 0; }
