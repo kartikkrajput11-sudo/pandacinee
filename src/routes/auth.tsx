@@ -79,7 +79,8 @@ function AuthPage() {
 
   async function handlePhoneSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const p = normalizePhone(phone);
+    const localDigits = phone.replace(/\D/g, "");
+    const p = `${countryCode}${localDigits}`;
     if (p.length < 8) {
       toast.error("Enter a valid phone number with country code");
       return;
