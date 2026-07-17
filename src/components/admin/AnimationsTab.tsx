@@ -7,6 +7,8 @@ import {
 import { KissOverlay } from "@/components/chat/KissOverlay";
 import { HugOverlay } from "@/components/chat/HugOverlay";
 import { HeadpatOverlay } from "@/components/chat/HeadpatOverlay";
+import { HandholdOverlay } from "@/components/chat/HandholdOverlay";
+import { BoopOverlay } from "@/components/chat/BoopOverlay";
 import { UnlockCelebration } from "@/components/chat/UnlockCelebration";
 import OwnersStoryOverlay from "@/components/OwnersStoryOverlay";
 import { Petals } from "@/components/Petals";
@@ -24,6 +26,8 @@ export default function AnimationsTab() {
   const [kissTrigger, setKissTrigger] = useState(0);
   const [hugTrigger, setHugTrigger] = useState(0);
   const [headpatTrigger, setHeadpatTrigger] = useState(0);
+  const [handholdTrigger, setHandholdTrigger] = useState(0);
+  const [boopTrigger, setBoopTrigger] = useState(0);
   const [unlockTrigger, setUnlockTrigger] = useState(0);
   const [storyOpen, setStoryOpen] = useState(false);
   const [petalsOn, setPetalsOn] = useState(false);
@@ -39,6 +43,8 @@ export default function AnimationsTab() {
         { label: "Kiss — lipstick imprint", onTest: () => { setKissTrigger((v) => v + 1); sfxKiss(); } },
         { label: "Hug — warm arcs & heart ring", onTest: () => setHugTrigger((v) => v + 1) },
         { label: "Headpat — golden ripple", onTest: () => setHeadpatTrigger((v) => v + 1) },
+        { label: "Handhold — pandas holding hands", onTest: () => setHandholdTrigger((v) => v + 1) },
+        { label: "Boop — nose-tap ripple", onTest: () => setBoopTrigger((v) => v + 1) },
       ],
     },
     {
