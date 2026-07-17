@@ -238,41 +238,50 @@ const SCENES: Scene[] = [
   },
 ];
 
-const TOTAL_ROUNDS = 4; // two per player
+const TOTAL_ROUNDS = 4;
 const MAX_ATTEMPTS = 4;
+/** Seeker click within this radius (percent units) counts as a find. */
+const HIT_RADIUS = 7;
 
-/** Euclidean distance in scene space (0-100 units). */
-function distance(a: Spot, b: Spot): number {
+type Pt = { x: number; y: number };
+
+function distance(a: Pt, b: Pt): number {
   return Math.hypot(a.x - b.x, a.y - b.y);
 }
-function heatFor(a: Spot, b: Spot): { label: string; emoji: string; cls: string } {
+function heatFor(a: Pt, b: Pt): { label: string; emoji: string; cls: string } {
   const d = distance(a, b);
-  if (d === 0) return { label: "Burning!", emoji: "🔥", cls: "text-rose-300" };
-  if (d < 30)  return { label: "Warm",     emoji: "🌡️", cls: "text-amber-300" };
-  return { label: "Cold", emoji: "❄️", cls: "text-sky-300" };
+  if (d <= HIT_RADIUS) return { label: "Burning!", emoji: "🔥", cls: "text-rose-300" };
+  if (d < 18) return { label: "Boiling",   emoji: "🌋", cls: "text-orange-300" };
+  if (d < 32) return { label: "Warm",      emoji: "🌡️", cls: "text-amber-300" };
+  if (d < 48) return { label: "Cool",      emoji: "💧", cls: "text-sky-300" };
+  return { label: "Ice cold", emoji: "❄️", cls: "text-sky-200" };
 }
 
+/** Nearest furniture label to a point, for prose descriptions. */
+function nearestLabel(scene: Scene, pt: Pt): string {
+  let best = { d: Infinity, label: "in the open" };
+  for (const f of scene.furniture) {
+    const cx = f.x + f.w / 2;
+    const cy = f.y + f.h / 2;
+    const d = Math.hypot(cx - pt.x, cy - pt.y);
+    if (d < best.d) best = { d, label: f.label ?? "shadow" };
+  }
+  return best.d < 12 ? `by the ${best.label}` : "in the open";
+}
 
 /* ────────────────────────  Types  ──────────────────────── */
 
 type Mode = "local" | "online";
 type Phase =
-  | "intro"
-  | "lobby"
-  | "waiting"          // guesser side: hider is choosing
-  | "hider_pick_scene" // hider chooses scene
-  | "hider_pick_spot"  // hider chooses spot in that scene
-  | "hider_watch"      // hider watching seeker search
-  | "handoff"          // local: pass phone
-  | "seeker"           // seeker searching
-  | "round_result"     // between-round summary
-  | "final";
+  | "intro" | "lobby" | "waiting"
+  | "hider_pick_scene" | "hider_pick_spot" | "hider_watch"
+  | "handoff" | "seeker" | "round_result" | "final";
 
 type PeerMsg =
   | { t: "hello"; from: string }
   | { t: "start"; from: string; hiderId: string; round: number }
-  | { t: "hide"; from: string; sceneId: string; spot: number } // sent to seeker on start
-  | { t: "guess"; from: string; attempt: number; spot: number }
+  | { t: "hide"; from: string; sceneId: string; x: number; y: number }
+  | { t: "guess"; from: string; attempt: number; x: number; y: number }
   | { t: "round_end"; from: string; scores: [number, number]; foundAt: number | null }
   | { t: "next_round"; from: string; hiderId: string; round: number }
   | { t: "finish"; from: string; scores: [number, number] };
