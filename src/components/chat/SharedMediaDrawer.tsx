@@ -119,7 +119,7 @@ export function SharedMediaDrawer({
             <SignedImage path={preview.media_url} className="w-full max-h-[80vh] object-contain rounded-md" />
           )}
           {preview?.type === "video" && preview.media_url && (
-            <SignedVideo path={preview.media_url} className="w-full max-h-[80vh] rounded-md" />
+            <SignedVideo path={preview.media_url} />
           )}
           {preview && onJumpTo && (
             <div className="flex justify-end pt-2 pb-1 px-2">
