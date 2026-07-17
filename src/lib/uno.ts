@@ -156,7 +156,37 @@ function clone(s: UnoState): UnoState {
     deck: s.deck.slice(),
     discard: s.discard.slice(),
     hands: { you: s.hands.you.slice(), them: s.hands.them.slice() },
+    unoCalled: { you: s.unoCalled?.you ?? false, them: s.unoCalled?.them ?? false },
   };
+}
+
+// Whenever a player's hand size is not exactly 1, they cannot be "on Uno".
+function resetUnoFlags(ns: UnoState) {
+  if (ns.hands.you.length !== 1) ns.unoCalled.you = false;
+  if (ns.hands.them.length !== 1) ns.unoCalled.them = false;
+}
+
+// Player calls "Uno!" — only meaningful when their hand has exactly 1 card.
+export function callUno(s: UnoState, who: UnoPlayer): UnoState {
+  if (s.winner) return s;
+  if (s.hands[who].length !== 1) return s;
+  if (s.unoCalled[who]) return s;
+  const ns = clone(s);
+  ns.unoCalled[who] = true;
+  ns.lastAction = `${who === "you" ? "You" : "They"} called Uno!`;
+  return ns;
+}
+
+// Opponent catches a player who forgot to call Uno — penalty +2.
+export function catchUno(s: UnoState, catcher: UnoPlayer): UnoState {
+  const target = other(catcher);
+  if (s.winner) return s;
+  if (s.hands[target].length !== 1) return s;
+  if (s.unoCalled[target]) return s;
+  const ns = drawCards(s, target, 2);
+  ns.unoCalled[target] = false;
+  ns.lastAction = `${catcher === "you" ? "You" : "They"} caught them silent — +2.`;
+  return ns;
 }
 
 export function playCard(
