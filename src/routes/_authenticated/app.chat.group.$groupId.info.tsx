@@ -280,6 +280,46 @@ function GroupInfo() {
           </div>
         </section>
 
+        {/* Background photo */}
+        <section>
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-[10px] uppercase tracking-widest text-candle-muted">Background photo</p>
+            {bgPath && isAdmin && (
+              <button onClick={removeBackground} className="text-[10px] text-red-400 flex items-center gap-1">
+                <Trash2 className="size-3" /> Remove
+              </button>
+            )}
+          </div>
+          <div className="relative rounded-2xl overflow-hidden border border-border aspect-[16/9] bg-surface/40 flex items-center justify-center">
+            {bgPreview ? (
+              <img src={bgPreview} alt="Group background" className="absolute inset-0 w-full h-full object-cover" />
+            ) : (
+              <div className="text-xs text-candle-muted font-serif italic">No custom photo — theme colors will be used</div>
+            )}
+            {isAdmin && (
+              <button
+                onClick={() => fileRef.current?.click()}
+                disabled={uploadingBg}
+                className="absolute bottom-2 right-2 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-petal text-velvet text-xs font-semibold shadow-lg disabled:opacity-60"
+              >
+                <ImagePlus className="size-3.5" />
+                {uploadingBg ? "Uploading…" : bgPath ? "Change" : "Upload photo"}
+              </button>
+            )}
+          </div>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) uploadBackground(f);
+            }}
+          />
+        </section>
+
+
         {/* Invite code */}
         <section>
           <p className="text-[10px] uppercase tracking-widest text-candle-muted mb-2">Invite code</p>
