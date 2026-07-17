@@ -431,14 +431,12 @@ html.theme-anim * {
 
 
 /* --- Ludo: luxurious dice --- */
-@keyframes ludo-dice-tumble {
-  0%   { transform: perspective(420px) translateY(0)    rotateX(0)    rotateY(0)    rotateZ(0)    scale(1); }
-  15%  { transform: perspective(420px) translateY(-14px) rotateX(140deg) rotateY(80deg)  rotateZ(40deg) scale(1.12); }
-  35%  { transform: perspective(420px) translateY(-22px) rotateX(300deg) rotateY(200deg) rotateZ(120deg) scale(1.18); }
-  55%  { transform: perspective(420px) translateY(-10px) rotateX(480deg) rotateY(320deg) rotateZ(220deg) scale(1.05); }
-  75%  { transform: perspective(420px) translateY(-4px)  rotateX(620deg) rotateY(420deg) rotateZ(300deg) scale(0.94); }
-  90%  { transform: perspective(420px) translateY(-2px)  rotateX(700deg) rotateY(500deg) rotateZ(340deg) scale(1.04); }
-  100% { transform: perspective(420px) translateY(0)    rotateX(720deg) rotateY(540deg) rotateZ(360deg) scale(1); }
+@keyframes ludo-cube-tumble {
+  0%   { transform: translateY(0)    rotateX(var(--rx0)) rotateY(var(--ry0)); }
+  25%  { transform: translateY(-18px) rotateX(calc(var(--rx0) + 360deg)) rotateY(calc(var(--ry0) + 270deg)); }
+  55%  { transform: translateY(-22px) rotateX(calc(var(--rx0) + 720deg)) rotateY(calc(var(--ry0) + 540deg)); }
+  80%  { transform: translateY(-6px)  rotateX(calc(var(--rxF) - 40deg)) rotateY(calc(var(--ryF) + 30deg)); }
+  100% { transform: translateY(0)    rotateX(var(--rxF)) rotateY(var(--ryF)); }
 }
 @keyframes ludo-dice-sheen {
   0%   { transform: translateX(-160%) skewX(-22deg); opacity: 0; }
