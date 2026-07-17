@@ -84,15 +84,22 @@ function LudoPage() {
   const canAct = mode === "local" || state.turn === mySeat;
 
   const [rolling, setRolling] = useState(false);
+  const [lastRoll, setLastRoll] = useState<number | null>(null);
   const handleRoll = () => {
     if (!canAct || state.winner || state.dice != null || rolling) return;
     setRolling(true);
     const v = rollDie();
     window.setTimeout(() => {
+      setLastRoll(v);
       const next = applyRoll(state, v);
       setState(next);
       broadcast(next);
       setRolling(false);
+      // If applyRoll immediately passed the turn (no legal move), toast the outcome.
+      if (next.dice == null && !next.winner) {
+        const stuckInYard = v !== 6 && state.tokens.filter((t) => t.player === state.turn).every((t) => t.pos === -1);
+        toast(`Rolled ${v}${stuckInYard ? " — need a 6 to leave home" : " — no legal move"}`);
+      }
     }, 550);
   };
 
