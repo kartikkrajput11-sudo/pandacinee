@@ -521,16 +521,10 @@ function CatalogWatch({ id }: { id: string }) {
     // Only react to discrete transport events
     if (evt !== "play" && evt !== "pause" && evt !== "seeked" && evt !== "timeupdate" && evt !== "ratechange") return;
 
-    // Tight sync on Pandacine (<video>): use 150/700 ms thresholds w/ rate ramp.
-    // For third-party iframes we can't nudge, so keep coarse thresholds.
-    if (evt === "timeupdate") {
+    // For third-party iframes we can't nudge; only apply on big drift.
+    if (evt === "timeupdate" && !isPandacine) {
       const d = Math.abs(mine.currentTime - peer.currentTime);
-      if (isPandacine) {
-        if (d < 0.15) return; // in-sync
-        // medium/large drift handled below via player handle
-      } else {
-        if (d < 6) return;
-      }
+      if (d < 6) return;
     }
     lastAppliedPeerEventRef.current = peer.updatedAt;
 
@@ -554,32 +548,36 @@ function CatalogWatch({ id }: { id: string }) {
     // Pandacine tight sync: control the <video> via handle.
     if (isPandacine && customPlayerRef.current) {
       const h = customPlayerRef.current;
-      const drift = h.currentTime() - peer.currentTime; // positive => ahead
+      const baseRate = (typeof peer.playbackRate === "number" && peer.playbackRate > 0) ? peer.playbackRate : 1;
+      // Latency compensation: peer.currentTime is timestamped at peer.updatedAt.
+      // If the host is playing, advance it by the elapsed wall-clock.
+      const hostPlaying = evt !== "pause" && evt !== "ended";
+      const elapsed = hostPlaying ? Math.max(0, (Date.now() - peer.updatedAt) / 1000) * baseRate : 0;
+      const targetTime = peer.currentTime + elapsed;
+      const drift = h.currentTime() - targetTime; // positive => follower ahead
       const abs = Math.abs(drift);
+
       runSuppressedPlayerAction(() => {
-        // Rate sync (always — cheap)
-        if (typeof peer.playbackRate === "number" && peer.playbackRate > 0) {
-          h.setPlaybackRate(peer.playbackRate);
-        }
-        if (evt === "seeked" || abs > 0.7) {
+        if (evt === "pause") {
+          h.setPlaybackRate(baseRate);
           h.seek(peer.currentTime);
-          // Restore intended rate after seek
-          if (typeof peer.playbackRate === "number") h.setPlaybackRate(peer.playbackRate);
-        } else if (abs > 0.15) {
-          // Gradual rate correction: ±5% for ~1s per 150ms of drift
-          const baseRate = peer.playbackRate ?? 1;
-          const correction = drift > 0 ? -0.05 : 0.05;
-          h.setPlaybackRate(Math.max(0.25, baseRate + correction));
-          window.setTimeout(() => {
-            const cur = customPlayerRef.current;
-            if (cur) {
-              suppressPlayerEventRef.current = true;
-              cur.setPlaybackRate(baseRate);
-              window.setTimeout(() => { suppressPlayerEventRef.current = false; }, 100);
-            }
-          }, 1000);
+          h.pause();
+          return;
         }
-        if (evt === "pause") h.pause();
+        if (evt === "seeked" || abs > 1.0) {
+          h.seek(targetTime);
+          h.setPlaybackRate(baseRate);
+          if (evt === "play" || hostPlaying) h.play();
+          return;
+        }
+        if (abs > 0.12) {
+          // Proportional rate nudge — closes drift in ~2s. Held until next peer update.
+          const nudge = Math.max(-0.25, Math.min(0.25, -drift / 2));
+          h.setPlaybackRate(Math.max(0.5, baseRate + nudge));
+        } else {
+          // In sync — restore host's base rate.
+          h.setPlaybackRate(baseRate);
+        }
         if (evt === "play") h.play();
       });
       if (evt === "seeked") toast.info(`${partner?.display_name.split(" ")[0]} skipped`);
