@@ -113,7 +113,7 @@ function ChatBubbleImpl({
   const [whisperRevealed, setWhisperRevealed] = useState(false);
   useSharedTick(isLast);
 
-  const bare = isSticker || isWatchInvite || isGameInvite || isMovieWheel || isKiss || isHug || isHeadpat || isNudge || isCall;
+  const bare = isSticker || isWatchInvite || isGameInvite || isMovieWheel || isKiss || isHug || isHeadpat || isHandhold || isBoop || isNudge || isCall;
 
   // ---- Gestures: long-press for actions, swipe for reply, double-tap for heart ----
   const [dragX, setDragX] = useState(0);
@@ -224,7 +224,7 @@ function ChatBubbleImpl({
   };
 
   return (
-    <div className={`group flex ${isKiss || isHug || isHeadpat || isNudge ? "justify-center" : mine ? "justify-end" : "justify-start"} mt-1.5 px-1 relative`}>
+    <div className={`group flex ${isKiss || isHug || isHeadpat || isHandhold || isBoop || isNudge ? "justify-center" : mine ? "justify-end" : "justify-start"} mt-1.5 px-1 relative`}>
       {dragX > 0 && (
         <div
           className="absolute top-1/2 -translate-y-1/2 left-3 size-8 rounded-full bg-petal/20 border border-petal/40 flex items-center justify-center text-petal pointer-events-none"
