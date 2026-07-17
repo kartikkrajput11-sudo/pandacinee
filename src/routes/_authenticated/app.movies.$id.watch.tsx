@@ -194,6 +194,8 @@ function CatalogWatch({ id }: { id: string }) {
     sendPrepare,
     peerPreparing,
     clearPeerPreparing,
+    peerSourceKind,
+    setSourceKind,
   } = useWatchSync(me?.id ?? null, partner?.id ?? null, syncRoomId, isTv ? "tv" : "movie");
 
 
