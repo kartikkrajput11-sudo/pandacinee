@@ -428,6 +428,32 @@ html.theme-anim * {
 .animate-hug-halo  { animation: hug-halo 2.6s ease-out forwards; animation-delay: 0.5s; }
 .animate-hug-ring  { animation: hug-ring 2.2s ease-out forwards; animation-delay: 0.6s; }
 
+/* Headpat overlay */
+@keyframes headpat-hand {
+  0%   { transform: translateY(-260px) rotate(-8deg) scale(0.9); opacity: 0; }
+  25%  { transform: translateY(-40px) rotate(-4deg) scale(1); opacity: 1; }
+  40%  { transform: translateY(0) rotate(0deg) scale(1); }
+  55%  { transform: translateY(14px) rotate(2deg) scale(0.96); }
+  70%  { transform: translateY(-6px) rotate(-2deg) scale(1); }
+  85%  { transform: translateY(6px) rotate(1deg) scale(0.98); opacity: 1; }
+  100% { transform: translateY(-30px) rotate(0deg) scale(1); opacity: 0; }
+}
+@keyframes headpat-ripple {
+  0%   { transform: scale(0.4); opacity: 0; }
+  40%  { transform: scale(0.6); opacity: 0; }
+  60%  { transform: scale(1.2); opacity: 0.9; }
+  100% { transform: scale(2.4); opacity: 0; }
+}
+@keyframes headpat-spark {
+  0%   { transform: translate(0, 0) scale(0.4); opacity: 0; }
+  40%  { transform: translate(0, 0) scale(0.4); opacity: 0; }
+  60%  { opacity: 1; }
+  100% { transform: translate(var(--dx, 0), var(--dy, 0)) scale(0.9); opacity: 0; }
+}
+.animate-headpat-hand   { animation: headpat-hand 2.6s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+.animate-headpat-ripple { animation: headpat-ripple 2.2s ease-out forwards; animation-delay: 0.5s; }
+.animate-headpat-spark  { animation: headpat-spark 1.6s ease-out forwards; }
+
 
 
 
