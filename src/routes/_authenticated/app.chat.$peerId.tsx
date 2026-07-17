@@ -421,18 +421,18 @@ function ChatPeer() {
           <span className="text-[9px] uppercase tracking-[0.3em] text-petal/80 font-semibold">
             Together · {daysTogether}d
           </span>
-          {sharedMedia.length > 0 && (
-            <>
-              <span className="h-3 w-px bg-petal/20" />
-              <button
-                type="button"
-                onClick={() => setMediaDrawerOpen(true)}
-                className="text-[9px] uppercase tracking-[0.3em] text-candle/50 hover:text-petal transition-colors font-semibold"
-              >
-                {sharedMedia.length} shared
-              </button>
-            </>
-          )}
+          <span className="h-3 w-px bg-petal/20" />
+          <button
+            type="button"
+            onClick={() => setMediaDrawerOpen(true)}
+            className="flex items-center gap-1.5 text-[9px] uppercase tracking-[0.3em] text-candle/60 hover:text-petal transition-colors font-semibold"
+          >
+            <Images className="size-3" />
+            Shared Media
+            {sharedMedia.length > 0 && (
+              <span className="text-petal/80">· {sharedMedia.length}</span>
+            )}
+          </button>
         </div>
       )}
 
