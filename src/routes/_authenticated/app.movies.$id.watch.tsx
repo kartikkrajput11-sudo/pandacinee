@@ -1143,6 +1143,13 @@ function CatalogWatch({ id }: { id: string }) {
               </div>
             )}
 
+            {/* Partner online but not on the storage source — sync is disabled */}
+            {started && !!partner && partnerOnline && isPandacine && peerSourceKind !== "pandacine" && peerSourceKind !== "unknown" && (
+              <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20 rounded-full bg-velvet/85 border border-petal/30 px-3 py-1.5 text-[10px] uppercase tracking-[0.3em] text-petal backdrop-blur-md">
+                Waiting for {partnerFirst} to load the movie…
+              </div>
+            )}
+
             {/* Both loaded — host taps to actually start */}
             {started && gateActive && bothReady && iAmHost && pausedByHost && (
               <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-4 bg-velvet/70 backdrop-blur-sm">
