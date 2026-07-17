@@ -746,3 +746,152 @@ html.theme-anim * {
 }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ============ UNO! call button + burst ============ */
+.uno-call-btn {
+  position: fixed;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  animation: uno-call-emerge 380ms cubic-bezier(0.34, 1.7, 0.5, 1) both,
+             uno-call-idle 2.4s ease-in-out 380ms infinite;
+}
+.uno-call-btn:active { transform: translate(-50%, 2px) scale(0.97); }
+.uno-call-face {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 96px;
+  height: 96px;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 30% 25%, rgba(255,255,255,0.55), transparent 55%),
+    conic-gradient(from 200deg,
+      oklch(0.62 0.22 25),
+      oklch(0.82 0.17 88),
+      oklch(0.62 0.17 155),
+      oklch(0.60 0.17 250),
+      oklch(0.62 0.22 25));
+  box-shadow:
+    0 25px 60px -15px rgba(0,0,0,0.7),
+    inset 0 2px 0 rgba(255,255,255,0.5),
+    inset 0 -6px 20px rgba(0,0,0,0.35);
+  border: 2px solid rgba(255,255,255,0.7);
+}
+.uno-call-text {
+  font-family: ui-serif, Georgia, serif;
+  font-style: italic;
+  font-weight: 900;
+  color: #fff;
+  font-size: 26px;
+  letter-spacing: 0.06em;
+  text-shadow: 0 2px 0 rgba(0,0,0,0.35), 0 0 18px rgba(255,255,255,0.55);
+}
+.uno-call-halo {
+  position: absolute;
+  inset: -14px;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(255,255,255,0.35), transparent 65%);
+  animation: uno-call-halo 1.6s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes uno-call-emerge {
+  0%   { transform: translate(-50%, 40px) scale(0.4); opacity: 0; }
+  60%  { transform: translate(-50%, -6px) scale(1.08); opacity: 1; }
+  100% { transform: translate(-50%, 0) scale(1); opacity: 1; }
+}
+@keyframes uno-call-idle {
+  0%,100% { transform: translate(-50%, 0) scale(1); }
+  50%     { transform: translate(-50%, -6px) scale(1.04); }
+}
+@keyframes uno-call-halo {
+  0%,100% { opacity: 0.55; transform: scale(1); }
+  50%     { opacity: 1;    transform: scale(1.15); }
+}
+
+/* Burst overlay */
+.uno-burst-backdrop {
+  background: radial-gradient(60% 60% at 50% 50%, rgba(0,0,0,0.55), rgba(0,0,0,0.15) 70%, transparent);
+  animation: uno-burst-fade 1.8s ease-out both;
+}
+.uno-burst-rays {
+  width: 640px; height: 640px; max-width: 120vw; max-height: 120vw;
+  background:
+    conic-gradient(from 0deg,
+      rgba(255,255,255,0.28) 0 8deg, transparent 8deg 30deg,
+      rgba(255,255,255,0.18) 30deg 38deg, transparent 38deg 60deg,
+      rgba(255,255,255,0.28) 60deg 68deg, transparent 68deg 90deg,
+      rgba(255,255,255,0.18) 90deg 98deg, transparent 98deg 120deg,
+      rgba(255,255,255,0.28) 120deg 128deg, transparent 128deg 150deg,
+      rgba(255,255,255,0.18) 150deg 158deg, transparent 158deg 180deg,
+      rgba(255,255,255,0.28) 180deg 188deg, transparent 188deg 210deg,
+      rgba(255,255,255,0.18) 210deg 218deg, transparent 218deg 240deg,
+      rgba(255,255,255,0.28) 240deg 248deg, transparent 248deg 270deg,
+      rgba(255,255,255,0.18) 270deg 278deg, transparent 278deg 300deg,
+      rgba(255,255,255,0.28) 300deg 308deg, transparent 308deg 330deg,
+      rgba(255,255,255,0.18) 330deg 338deg, transparent 338deg 360deg);
+  mask: radial-gradient(circle, black 20%, transparent 62%);
+  animation: uno-burst-rays 1.8s ease-out both;
+  filter: blur(0.5px);
+}
+.uno-burst-ring {
+  width: 280px; height: 280px;
+  border-radius: 999px;
+  border: 2px solid rgba(255,255,255,0.4);
+  box-shadow: 0 0 60px 8px rgba(255,255,255,0.25) inset, 0 0 40px rgba(255,255,255,0.35);
+  animation: uno-burst-ring 1.4s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+.uno-burst-chip {
+  width: 14px; height: 20px; border-radius: 3px;
+  left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.35);
+  animation: uno-burst-chip 1.6s cubic-bezier(0.2, 0.8, 0.3, 1) both;
+}
+.uno-burst-word {
+  transform: scale(0.4);
+  opacity: 0;
+  animation: uno-burst-word 1.6s cubic-bezier(0.34, 1.7, 0.4, 1) both;
+}
+.uno-burst-word-inner {
+  display: inline-block;
+  font-size: clamp(72px, 18vw, 168px);
+  font-weight: 900;
+  background: linear-gradient(180deg, #fff, oklch(0.82 0.17 88) 55%, oklch(0.62 0.22 25));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 12px 40px rgba(0,0,0,0.55);
+  filter: drop-shadow(0 0 24px rgba(255,255,255,0.5));
+  letter-spacing: 0.04em;
+}
+@keyframes uno-burst-fade {
+  0% { opacity: 0; }
+  15% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { opacity: 0; }
+}
+@keyframes uno-burst-rays {
+  0%   { opacity: 0; transform: rotate(-30deg) scale(0.6); }
+  30%  { opacity: 0.9; }
+  100% { opacity: 0; transform: rotate(80deg) scale(1.2); }
+}
+@keyframes uno-burst-ring {
+  0%   { transform: scale(0.2); opacity: 0; }
+  40%  { transform: scale(1.05); opacity: 1; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+@keyframes uno-burst-chip {
+  0%   { transform: translate(-50%, -50%) rotate(0) scale(0.3); opacity: 0; }
+  20%  { opacity: 1; }
+  100% { transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) rotate(var(--tr)) scale(1); opacity: 0; }
+}
+@keyframes uno-burst-word {
+  0%   { transform: scale(0.3) rotate(-8deg); opacity: 0; }
+  30%  { transform: scale(1.15) rotate(2deg); opacity: 1; }
+  55%  { transform: scale(0.95) rotate(-1deg); }
+  75%  { transform: scale(1.02) rotate(0); opacity: 1; }
+  100% { transform: scale(1) rotate(0); opacity: 0; }
+}

@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, RotateCcw, Send, Sparkles, User, Users } from "lucide-react";
+import { ArrowLeft, RotateCcw, Send, User, Users } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
@@ -10,6 +10,8 @@ import {
   chooseWildColor,
   drawTurn,
   canPlay,
+  callUno,
+  catchUno,
   top,
   COLORS,
   VALUE_LABEL,
@@ -59,6 +61,7 @@ function UnoPage() {
   const [dealNonce, setDealNonce] = useState(0);
   const [chat, setChat] = useState<{ id: string; from: UnoPlayer; text: string; at: number }[]>([]);
   const [chatDraft, setChatDraft] = useState("");
+  const [unoBurst, setUnoBurst] = useState<{ n: number; from: UnoPlayer } | null>(null);
   const chatScrollRef = useRef<HTMLDivElement | null>(null);
 
   // In partner mode: lower UUID plays "you", partner plays "them".
@@ -88,6 +91,10 @@ function UnoPage() {
     ch.on("broadcast", { event: "chat" }, ({ payload }) => {
       setChat((prev) => [...prev, payload as { id: string; from: UnoPlayer; text: string; at: number }]);
       sfxReaction();
+    });
+    ch.on("broadcast", { event: "uno-call" }, ({ payload }) => {
+      setUnoBurst({ n: Date.now(), from: (payload as { from: UnoPlayer }).from });
+      sfxKiss();
     });
     ch.subscribe((status) => {
       if (status === "SUBSCRIBED") {
@@ -161,6 +168,25 @@ function UnoPage() {
     const ns = chooseWildColor(state, mySeat, color);
     if (ns.winner) sfxKiss();
     sync(ns);
+  }
+
+  function handleCallUno() {
+    if (state.hands[mySeat].length !== 1 || state.unoCalled[mySeat] || state.winner) return;
+    const ns = callUno(state, mySeat);
+    sfxKiss();
+    setUnoBurst({ n: Date.now(), from: mySeat });
+    sync(ns);
+    if (mode === "partner" && chRef.current) {
+      chRef.current.send({ type: "broadcast", event: "uno-call", payload: { from: mySeat } });
+    }
+  }
+
+  function handleCatch() {
+    const opp: UnoPlayer = mySeat === "you" ? "them" : "you";
+    if (state.hands[opp].length !== 1 || state.unoCalled[opp] || state.winner) return;
+    sfxReaction();
+    toast("Caught silent!", { description: "+2 penalty cards dealt." });
+    sync(catchUno(state, mySeat));
   }
 
   function reset() {
@@ -256,14 +282,6 @@ function UnoPage() {
             </p>
           </div>
           <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => { const s = initialState(); s.winner = mySeat; sync(s); }}
-              title="Preview win"
-              className="text-petal"
-            >
-              <Sparkles className="size-5" />
-            </button>
             <button type="button" onClick={reset} className="text-candle-muted">
               <RotateCcw className="size-5" />
             </button>
@@ -408,6 +426,39 @@ function UnoPage() {
             </div>
           </div>
         </div>
+
+        {/* UNO! call button — floats when you or they are at 1 card */}
+        {(myHand.length === 1 && !state.unoCalled[mySeat] && !state.winner) && (
+          <button
+            type="button"
+            onClick={handleCallUno}
+            className="uno-call-btn fixed left-1/2 -translate-x-1/2 bottom-24 z-40 select-none"
+            aria-label="Call Uno"
+          >
+            <span className="uno-call-halo" aria-hidden />
+            <span className="uno-call-face">
+              <span className="uno-call-text">UNO!</span>
+            </span>
+          </button>
+        )}
+        {(theirHand.length === 1 && !state.unoCalled[mySeat === "you" ? "them" : "you"] && !state.winner) && (
+          <button
+            type="button"
+            onClick={handleCatch}
+            className="fixed right-4 bottom-24 z-40 rounded-full px-4 py-2 bg-red-500/90 text-white text-xs font-serif italic tracking-wide shadow-[0_15px_40px_-10px_rgba(220,40,60,0.6)] border border-red-300/40 hover:brightness-110 animate-fade-in"
+          >
+            Catch silent!
+          </button>
+        )}
+
+        {/* UNO! call burst */}
+        {unoBurst && (
+          <UnoCallBurst
+            key={unoBurst.n}
+            fromMe={unoBurst.from === mySeat}
+            onDone={() => setUnoBurst(null)}
+          />
+        )}
 
         {/* Table-side chat */}
         {mode === "partner" && (
@@ -602,6 +653,56 @@ function UnoCardVisual({ card, large = false }: { card: UnoCard; activeColor: Un
       {/* sheen */}
       <div className="absolute inset-0 pointer-events-none"
         style={{ background: "linear-gradient(140deg, rgba(255,255,255,0.18), transparent 40%)" }} />
+    </div>
+  );
+}
+
+function UnoCallBurst({ fromMe, onDone }: { fromMe: boolean; onDone: () => void }) {
+  useEffect(() => {
+    const t = setTimeout(onDone, 1800);
+    return () => clearTimeout(t);
+  }, [onDone]);
+  return (
+    <div className="fixed inset-0 z-[60] pointer-events-none flex items-center justify-center">
+      <div className="uno-burst-backdrop absolute inset-0" />
+      {/* Radiating color rays */}
+      <div className="uno-burst-rays absolute" />
+      {/* Petal ring */}
+      <div className="uno-burst-ring absolute" />
+      {/* Confetti cards */}
+      {Array.from({ length: 22 }).map((_, i) => {
+        const angle = (i / 22) * Math.PI * 2;
+        const dist = 220 + (i % 4) * 40;
+        const colors = [
+          "oklch(0.62 0.22 25)",
+          "oklch(0.82 0.17 88)",
+          "oklch(0.62 0.17 155)",
+          "oklch(0.60 0.17 250)",
+        ];
+        return (
+          <span
+            key={i}
+            className="uno-burst-chip absolute"
+            style={{
+              background: colors[i % 4],
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              ["--tx" as any]: `${Math.cos(angle) * dist}px`,
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              ["--ty" as any]: `${Math.sin(angle) * dist}px`,
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              ["--tr" as any]: `${(i * 53) % 360}deg`,
+              animationDelay: `${(i % 6) * 60}ms`,
+            }}
+          />
+        );
+      })}
+      {/* The word */}
+      <div className="uno-burst-word relative font-serif italic">
+        <span className="uno-burst-word-inner">UNO!</span>
+        <span className="uno-burst-word-sub block text-center text-[10px] uppercase tracking-[0.4em] mt-2 text-petal">
+          {fromMe ? "You called it" : "They called it"}
+        </span>
+      </div>
     </div>
   );
 }

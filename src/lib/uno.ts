@@ -24,6 +24,7 @@ export type UnoState = {
   lastAction: string | null;
   awaitingWildFrom: UnoPlayer | null; // player must pick a color
   awaitingWildCardId: string | null;
+  unoCalled: Record<UnoPlayer, boolean>; // has each player called "Uno!"
 };
 
 export const COLORS: UnoColor[] = ["red", "yellow", "green", "blue"];
@@ -100,6 +101,7 @@ export function initialState(seed = Date.now()): UnoState {
     lastAction: "The deck is dealt.",
     awaitingWildFrom: null,
     awaitingWildCardId: null,
+    unoCalled: { you: false, them: false },
   };
 }
 
@@ -154,7 +156,37 @@ function clone(s: UnoState): UnoState {
     deck: s.deck.slice(),
     discard: s.discard.slice(),
     hands: { you: s.hands.you.slice(), them: s.hands.them.slice() },
+    unoCalled: { you: s.unoCalled?.you ?? false, them: s.unoCalled?.them ?? false },
   };
+}
+
+// Whenever a player's hand size is not exactly 1, they cannot be "on Uno".
+function resetUnoFlags(ns: UnoState) {
+  if (ns.hands.you.length !== 1) ns.unoCalled.you = false;
+  if (ns.hands.them.length !== 1) ns.unoCalled.them = false;
+}
+
+// Player calls "Uno!" — only meaningful when their hand has exactly 1 card.
+export function callUno(s: UnoState, who: UnoPlayer): UnoState {
+  if (s.winner) return s;
+  if (s.hands[who].length !== 1) return s;
+  if (s.unoCalled[who]) return s;
+  const ns = clone(s);
+  ns.unoCalled[who] = true;
+  ns.lastAction = `${who === "you" ? "You" : "They"} called Uno!`;
+  return ns;
+}
+
+// Opponent catches a player who forgot to call Uno — penalty +2.
+export function catchUno(s: UnoState, catcher: UnoPlayer): UnoState {
+  const target = other(catcher);
+  if (s.winner) return s;
+  if (s.hands[target].length !== 1) return s;
+  if (s.unoCalled[target]) return s;
+  const ns = drawCards(s, target, 2);
+  ns.unoCalled[target] = false;
+  ns.lastAction = `${catcher === "you" ? "You" : "They"} caught them silent — +2.`;
+  return ns;
 }
 
 export function playCard(
@@ -216,6 +248,7 @@ export function playCard(
     ns.turn = opp;
     // If pending draws exist and opponent has no counter, they'll draw on their action.
   }
+  resetUnoFlags(ns);
   return ns;
 }
 
@@ -238,6 +271,7 @@ export function chooseWildColor(s: UnoState, who: UnoPlayer, color: UnoColor): U
     return ns;
   }
   ns.turn = other(who);
+  resetUnoFlags(ns);
   return ns;
 }
 
@@ -249,6 +283,7 @@ export function drawTurn(s: UnoState, who: UnoPlayer): UnoState {
     ns.pendingDraw = 0;
     ns.lastAction = `Drew ${s.pendingDraw || ""} penalty cards.`;
     ns.turn = other(who);
+    resetUnoFlags(ns);
     return ns;
   }
   // Voluntary draw one; auto-pass if unplayable.
@@ -256,10 +291,12 @@ export function drawTurn(s: UnoState, who: UnoPlayer): UnoState {
   const drawn = ns.hands[who][ns.hands[who].length - 1];
   if (drawn && canPlay(ns, drawn)) {
     ns.lastAction = "Drew a card.";
+    resetUnoFlags(ns);
     return ns; // stays on player, they may play it
   }
   ns.lastAction = "Drew a card and passed.";
   ns.turn = other(who);
+  resetUnoFlags(ns);
   return ns;
 }
 

@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, Dice5, RotateCcw, Users, User, Sparkles } from "lucide-react";
+import { ArrowLeft, Dice5, RotateCcw, Users, User } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { LudoWinAnimation } from "@/components/ludo/LudoWinAnimation";
@@ -215,15 +215,6 @@ function LudoPage() {
               : `${PLAYER_META[state.turn].emoji} ${PLAYER_META[state.turn].name}'s turn`}
           </h1>
         </div>
-        <button
-          onClick={() =>
-            setDemoWin({ n: Date.now(), who: Math.random() > 0.5 ? "red" : "yellow" })
-          }
-          className="px-2 py-1 rounded-full bg-petal/20 border border-petal/40 text-[10px] uppercase tracking-widest text-petal flex items-center gap-1"
-          title="Preview win animation"
-        >
-          <Sparkles className="size-3" /> Test
-        </button>
         <button onClick={handleReset} className="p-2 rounded-full bg-surface border border-border text-candle-muted hover:text-candle" title="Reset">
           <RotateCcw className="size-4" />
         </button>
