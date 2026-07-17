@@ -1,8 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, Dice5, RotateCcw, Users, User } from "lucide-react";
+import { ArrowLeft, Dice5, RotateCcw, Users, User, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { LudoWinAnimation } from "@/components/ludo/LudoWinAnimation";
+
 import { useProfile } from "@/hooks/useProfile";
 import {
   initialState,
