@@ -519,3 +519,25 @@ html.theme-anim * {
   100% { transform: translate3d(var(--drift,0), 110vh, 0) rotate(720deg); opacity: 0; }
 }
 
+/* --- Chess: capture drama (victim dragged + blood spots, ~3s) --- */
+@keyframes chess-victim-drag {
+  0%   { transform: translate(var(--dx,0), var(--dy,0)) scale(1)    rotate(0deg);   opacity: 1; filter: none; }
+  18%  { transform: translate(calc(var(--dx,0) * 0.55), calc(var(--dy,0) * 0.55)) scale(0.96) rotate(-10deg); opacity: 1; }
+  40%  { transform: translate(calc(var(--dx,0) * 0.18), calc(var(--dy,0) * 0.18)) scale(0.9)  rotate(-22deg); opacity: 0.95; }
+  60%  { transform: translate(6%, 10%)  scale(0.78) rotate(-34deg); opacity: 0.85; filter: saturate(0.7); }
+  80%  { transform: translate(10%, 22%) scale(0.62) rotate(-48deg); opacity: 0.55; filter: saturate(0.4) blur(0.4px); }
+  100% { transform: translate(12%, 34%) scale(0.42) rotate(-62deg); opacity: 0;    filter: saturate(0.2) blur(1px); }
+}
+@keyframes chess-blood-splat {
+  0%   { transform: translate(-50%, -50%) scale(0);   opacity: 0; }
+  15%  { transform: translate(-50%, -50%) scale(1.25); opacity: 0.95; }
+  55%  { transform: translate(-50%, -50%) scale(1);   opacity: 0.9; }
+  90%  { opacity: 0.75; }
+  100% { transform: translate(-50%, -50%) scale(1);   opacity: 0; }
+}
+@keyframes chess-blood-drip {
+  0%   { transform: translate(-50%, -50%) scaleY(0); opacity: 0; }
+  20%  { transform: translate(-50%, -50%) scaleY(1); opacity: 0.9; }
+  100% { transform: translate(-50%, 40%) scaleY(1.6); opacity: 0; }
+}
+
