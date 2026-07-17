@@ -135,9 +135,14 @@ export function useWatchSync(
         const p = payload as { userId: string | null };
         if (p.userId) setHostId(p.userId);
       })
+      .on("broadcast", { event: "prepare" }, ({ payload }) => {
+        const p = payload as { from: string; time: number };
+        if (p.from === meId) return;
+        setPeerPreparing({ time: p.time ?? 0, ts: Date.now() });
+      })
       .subscribe(async (status) => {
         if (status === "SUBSCRIBED") {
-          await ch.track({ userId: meId, joinedAt: joinedAtRef.current });
+          await ch.track({ userId: meId, joinedAt: joinedAtRef.current, ready: myReadyRef.current });
         }
       });
 
@@ -148,8 +153,28 @@ export function useWatchSync(
       setPeer(null);
       setPartnerOnline(false);
       setHostId(null);
+      setPeerReady(false);
+      setPeerPreparing(null);
+      myReadyRef.current = false;
+      setMyReadyState(false);
     };
   }, [channelName, meId]);
+
+  const setReady = useCallback((ready: boolean) => {
+    myReadyRef.current = ready;
+    setMyReadyState(ready);
+    const ch = channelRef.current;
+    if (!ch || !meId) return;
+    ch.track({ userId: meId, joinedAt: joinedAtRef.current, ready }).catch(() => {});
+  }, [meId]);
+
+  const sendPrepare = useCallback((time: number) => {
+    const ch = channelRef.current;
+    if (!ch || !meId) return;
+    ch.send({ type: "broadcast", event: "prepare", payload: { from: meId, time } });
+  }, [meId]);
+
+  const clearPeerPreparing = useCallback(() => setPeerPreparing(null), []);
 
   const publish = useCallback((patch: Partial<Mine>) => {
     const now = Date.now();
