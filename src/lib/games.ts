@@ -15,7 +15,8 @@ export type GameKind =
   | "memory-challenge"
   | "puzzle-together"
   | "love-quiz"
-  | "chess";
+  | "chess"
+  | "ludo";
 
 // Games shown in the picker. Rock-Paper-Scissors is retired but the route
 // still handles it for any deep-link, so it stays in GameKind above.

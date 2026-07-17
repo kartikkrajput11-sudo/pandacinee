@@ -32,6 +32,7 @@ import { Route as AuthenticatedAppMoodRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedAppMemoryChallengeRouteImport } from './routes/_authenticated/app.memory-challenge'
 import { Route as AuthenticatedAppMemoriesRouteImport } from './routes/_authenticated/app.memories'
 import { Route as AuthenticatedAppMeRouteImport } from './routes/_authenticated/app.me'
+import { Route as AuthenticatedAppLudoRouteImport } from './routes/_authenticated/app.ludo'
 import { Route as AuthenticatedAppLoveQuizRouteImport } from './routes/_authenticated/app.love-quiz'
 import { Route as AuthenticatedAppInviteRouteImport } from './routes/_authenticated/app.invite'
 import { Route as AuthenticatedAppHelpRouteImport } from './routes/_authenticated/app.help'
@@ -176,6 +177,11 @@ const AuthenticatedAppMemoriesRoute =
 const AuthenticatedAppMeRoute = AuthenticatedAppMeRouteImport.update({
   id: '/me',
   path: '/me',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
+const AuthenticatedAppLudoRoute = AuthenticatedAppLudoRouteImport.update({
+  id: '/ludo',
+  path: '/ludo',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
 const AuthenticatedAppLoveQuizRoute =
@@ -339,6 +345,7 @@ export interface FileRoutesByFullPath {
   '/app/help': typeof AuthenticatedAppHelpRoute
   '/app/invite': typeof AuthenticatedAppInviteRoute
   '/app/love-quiz': typeof AuthenticatedAppLoveQuizRoute
+  '/app/ludo': typeof AuthenticatedAppLudoRoute
   '/app/me': typeof AuthenticatedAppMeRoute
   '/app/memories': typeof AuthenticatedAppMemoriesRoute
   '/app/memory-challenge': typeof AuthenticatedAppMemoryChallengeRoute
@@ -387,6 +394,7 @@ export interface FileRoutesByTo {
   '/app/help': typeof AuthenticatedAppHelpRoute
   '/app/invite': typeof AuthenticatedAppInviteRoute
   '/app/love-quiz': typeof AuthenticatedAppLoveQuizRoute
+  '/app/ludo': typeof AuthenticatedAppLudoRoute
   '/app/me': typeof AuthenticatedAppMeRoute
   '/app/memories': typeof AuthenticatedAppMemoriesRoute
   '/app/memory-challenge': typeof AuthenticatedAppMemoryChallengeRoute
@@ -437,6 +445,7 @@ export interface FileRoutesById {
   '/_authenticated/app/help': typeof AuthenticatedAppHelpRoute
   '/_authenticated/app/invite': typeof AuthenticatedAppInviteRoute
   '/_authenticated/app/love-quiz': typeof AuthenticatedAppLoveQuizRoute
+  '/_authenticated/app/ludo': typeof AuthenticatedAppLudoRoute
   '/_authenticated/app/me': typeof AuthenticatedAppMeRoute
   '/_authenticated/app/memories': typeof AuthenticatedAppMemoriesRoute
   '/_authenticated/app/memory-challenge': typeof AuthenticatedAppMemoryChallengeRoute
@@ -488,6 +497,7 @@ export interface FileRouteTypes {
     | '/app/help'
     | '/app/invite'
     | '/app/love-quiz'
+    | '/app/ludo'
     | '/app/me'
     | '/app/memories'
     | '/app/memory-challenge'
@@ -536,6 +546,7 @@ export interface FileRouteTypes {
     | '/app/help'
     | '/app/invite'
     | '/app/love-quiz'
+    | '/app/ludo'
     | '/app/me'
     | '/app/memories'
     | '/app/memory-challenge'
@@ -585,6 +596,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/help'
     | '/_authenticated/app/invite'
     | '/_authenticated/app/love-quiz'
+    | '/_authenticated/app/ludo'
     | '/_authenticated/app/me'
     | '/_authenticated/app/memories'
     | '/_authenticated/app/memory-challenge'
@@ -789,6 +801,13 @@ declare module '@tanstack/react-router' {
       path: '/me'
       fullPath: '/app/me'
       preLoaderRoute: typeof AuthenticatedAppMeRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/ludo': {
+      id: '/_authenticated/app/ludo'
+      path: '/ludo'
+      fullPath: '/app/ludo'
+      preLoaderRoute: typeof AuthenticatedAppLudoRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/love-quiz': {
@@ -1028,6 +1047,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppHelpRoute: typeof AuthenticatedAppHelpRoute
   AuthenticatedAppInviteRoute: typeof AuthenticatedAppInviteRoute
   AuthenticatedAppLoveQuizRoute: typeof AuthenticatedAppLoveQuizRoute
+  AuthenticatedAppLudoRoute: typeof AuthenticatedAppLudoRoute
   AuthenticatedAppMeRoute: typeof AuthenticatedAppMeRoute
   AuthenticatedAppMemoriesRoute: typeof AuthenticatedAppMemoriesRoute
   AuthenticatedAppMemoryChallengeRoute: typeof AuthenticatedAppMemoryChallengeRoute
@@ -1068,6 +1088,7 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppHelpRoute: AuthenticatedAppHelpRoute,
   AuthenticatedAppInviteRoute: AuthenticatedAppInviteRoute,
   AuthenticatedAppLoveQuizRoute: AuthenticatedAppLoveQuizRoute,
+  AuthenticatedAppLudoRoute: AuthenticatedAppLudoRoute,
   AuthenticatedAppMeRoute: AuthenticatedAppMeRoute,
   AuthenticatedAppMemoriesRoute: AuthenticatedAppMemoriesRoute,
   AuthenticatedAppMemoryChallengeRoute: AuthenticatedAppMemoryChallengeRoute,
