@@ -147,7 +147,7 @@ export function useWatchSync(
       })
       .subscribe(async (status) => {
         if (status === "SUBSCRIBED") {
-          await ch.track({ userId: meId, joinedAt: joinedAtRef.current, ready: myReadyRef.current });
+          await ch.track({ userId: meId, joinedAt: joinedAtRef.current, ready: myReadyRef.current, sourceKind: mySourceKindRef.current });
         }
       });
 
@@ -159,8 +159,10 @@ export function useWatchSync(
       setPartnerOnline(false);
       setHostId(null);
       setPeerReady(false);
+      setPeerSourceKind("unknown");
       setPeerPreparing(null);
       myReadyRef.current = false;
+      mySourceKindRef.current = "unknown";
       setMyReadyState(false);
     };
   }, [channelName, meId]);
@@ -170,7 +172,14 @@ export function useWatchSync(
     setMyReadyState(ready);
     const ch = channelRef.current;
     if (!ch || !meId) return;
-    ch.track({ userId: meId, joinedAt: joinedAtRef.current, ready }).catch(() => {});
+    ch.track({ userId: meId, joinedAt: joinedAtRef.current, ready, sourceKind: mySourceKindRef.current }).catch(() => {});
+  }, [meId]);
+
+  const setSourceKind = useCallback((kind: SourceKind) => {
+    mySourceKindRef.current = kind;
+    const ch = channelRef.current;
+    if (!ch || !meId) return;
+    ch.track({ userId: meId, joinedAt: joinedAtRef.current, ready: myReadyRef.current, sourceKind: kind }).catch(() => {});
   }, [meId]);
 
   const sendPrepare = useCallback((time: number) => {
