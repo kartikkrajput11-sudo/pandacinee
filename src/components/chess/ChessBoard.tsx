@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Chess, Square, Color, PieceSymbol } from "chess.js";
 import { FILES, RANKS, PIECE_GLYPH, legalTargets, squareOf } from "@/lib/chess";
 
