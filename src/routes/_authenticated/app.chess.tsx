@@ -743,6 +743,15 @@ function GameScreen({
           onCancel={() => setPromotion(null)}
         />
       )}
+
+      {mode === "partner" && game && meId && (
+        <GameChat
+          roomKey={`chess:${game.id}`}
+          me={{ id: meId }}
+          partnerName={partnerName}
+          title="Chess table"
+        />
+      )}
     </div>
   );
 }
