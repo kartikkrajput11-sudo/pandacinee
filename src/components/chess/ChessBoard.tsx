@@ -181,6 +181,69 @@ export function ChessBoard({ chess, orientation, canMoveColor, lastMove, onMove 
                     </span>
                   );
                 })()}
+                {capture && capture.sq === sq && (
+                  <>
+                    {/* victim being dragged by the killer */}
+                    <span
+                      key={`victim-${capture.id}`}
+                      aria-hidden
+                      className={`pointer-events-none absolute inset-0 flex items-center justify-center text-[clamp(1.8rem,7vw,3.2rem)] leading-none ${
+                        capture.color === "w" ? "text-white" : "text-black"
+                      }`}
+                      style={{
+                        textShadow: capture.color === "w" ? "0 1px 2px rgba(0,0,0,0.6)" : "0 1px 2px rgba(255,255,255,0.35)",
+                        zIndex: 4,
+                        willChange: "transform, opacity",
+                        ["--dx" as string]: `${capture.dx}%`,
+                        ["--dy" as string]: `${capture.dy}%`,
+                        animation: "chess-victim-drag 3s cubic-bezier(0.4, 0, 0.6, 1) both",
+                      }}
+                    >
+                      {PIECE_GLYPH[capture.color][capture.type]}
+                    </span>
+                    {/* blood spots */}
+                    {[
+                      { l: 42, t: 46, s: 10, d: 0 },
+                      { l: 60, t: 38, s: 6,  d: 80 },
+                      { l: 35, t: 60, s: 5,  d: 140 },
+                      { l: 68, t: 62, s: 4,  d: 220 },
+                      { l: 50, t: 30, s: 3,  d: 300 },
+                      { l: 30, t: 42, s: 3,  d: 380 },
+                    ].map((b, i) => (
+                      <span
+                        key={`blood-${capture.id}-${i}`}
+                        aria-hidden
+                        className="pointer-events-none absolute rounded-full"
+                        style={{
+                          left: `${b.l}%`,
+                          top: `${b.t}%`,
+                          width: `${b.s}px`,
+                          height: `${b.s}px`,
+                          background: "radial-gradient(circle at 35% 30%, #ff4a4a 0%, #b30f0f 55%, #6a0808 100%)",
+                          boxShadow: "0 0 6px rgba(160,10,10,0.55)",
+                          zIndex: 3,
+                          animation: `chess-blood-splat 3s ease-out ${b.d}ms both`,
+                        }}
+                      />
+                    ))}
+                    {/* one drip */}
+                    <span
+                      key={`drip-${capture.id}`}
+                      aria-hidden
+                      className="pointer-events-none absolute rounded-b-full"
+                      style={{
+                        left: "48%",
+                        top: "52%",
+                        width: "4px",
+                        height: "10px",
+                        background: "linear-gradient(to bottom, #b30f0f, #4a0303)",
+                        transformOrigin: "top center",
+                        zIndex: 3,
+                        animation: "chess-blood-drip 3s ease-in 200ms both",
+                      }}
+                    />
+                  </>
+                )}
                 {isTarget && !piece && (
                   <span className="absolute w-3 h-3 rounded-full bg-petal/70 shadow-[0_0_12px_var(--petal)]" />
                 )}
