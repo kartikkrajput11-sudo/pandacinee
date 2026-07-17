@@ -1,9 +1,11 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { ArrowLeft, MessageCircle, Heart, Users, Plus, UsersRound } from "lucide-react";
+import { ArrowLeft, MessageCircle, Heart, Users, Plus, UsersRound, KeyRound, X } from "lucide-react";
+import { toast } from "sonner";
 import { useChatThreads } from "@/hooks/useChatThreads";
 import { useProfile } from "@/hooks/useProfile";
 import { useGroups } from "@/hooks/useGroups";
+import { useJoinGroupByCode } from "@/hooks/useGroupAdmin";
 import { NewGroupDialog } from "@/components/chat/NewGroupDialog";
 import { UserAvatar } from "@/components/UserAvatar";
 
@@ -20,6 +22,23 @@ function ChatList() {
 
   const [showNewGroup, setShowNewGroup] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [joinOpen, setJoinOpen] = useState(false);
+  const [joinCode, setJoinCode] = useState("");
+  const navigate = useNavigate();
+  const joinGroup = useJoinGroupByCode();
+
+  async function doJoin() {
+    if (!joinCode.trim()) return;
+    try {
+      const g = await joinGroup.mutateAsync(joinCode);
+      toast.success(`Joined ${g.name}`);
+      setJoinOpen(false);
+      setJoinCode("");
+      navigate({ to: "/app/chat/group/$groupId", params: { groupId: g.id } });
+    } catch (e: any) {
+      toast.error(e.message ?? "Could not join");
+    }
+  }
 
   const partnerThread = threads?.find((t) => t.isPartner) ?? null;
   const friendThreads = threads?.filter((t) => !t.isPartner) ?? [];
@@ -55,6 +74,12 @@ function ChatList() {
                   className="w-full flex items-center gap-3 px-4 py-3 text-sm hover:bg-surface"
                 >
                   <UsersRound className="size-4 text-petal" /> New group
+                </button>
+                <button
+                  onClick={() => { setMenuOpen(false); setJoinOpen(true); }}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-sm hover:bg-surface border-t border-border"
+                >
+                  <KeyRound className="size-4 text-petal" /> Join by code
                 </button>
                 <Link
                   to="/app/friends"
@@ -137,6 +162,47 @@ function ChatList() {
       )}
 
       <NewGroupDialog open={showNewGroup} onClose={() => setShowNewGroup(false)} />
+
+      {joinOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-black/60 flex items-end sm:items-center justify-center"
+          onClick={() => setJoinOpen(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-sm bg-velvet border border-border rounded-t-3xl sm:rounded-3xl p-6"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <p className="text-[10px] uppercase tracking-widest text-petal">Circles</p>
+                <h2 className="font-serif italic text-2xl">Join a group</h2>
+              </div>
+              <button
+                onClick={() => setJoinOpen(false)}
+                className="size-9 rounded-full bg-surface border border-border text-candle-muted flex items-center justify-center"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+            <p className="text-xs text-candle-muted mb-3">Paste the 8-character invite code shared with you.</p>
+            <input
+              autoFocus
+              value={joinCode}
+              onChange={(e) => setJoinCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8))}
+              maxLength={8}
+              placeholder="ABCD2345"
+              className="w-full bg-surface border border-border rounded-2xl px-4 py-3 text-center font-mono tracking-[0.4em] text-lg text-candle placeholder:text-candle/25 uppercase"
+            />
+            <button
+              onClick={doJoin}
+              disabled={joinCode.length < 4 || joinGroup.isPending}
+              className="w-full mt-4 py-3 bg-petal text-velvet rounded-full font-semibold disabled:opacity-50"
+            >
+              {joinGroup.isPending ? "Joining…" : "Join group"}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -9,9 +9,11 @@ import { useFriendships } from "@/hooks/useFriends";
 import { useGroup, useLeaveGroup } from "@/hooks/useGroups";
 import {
   useUpdateGroup, useSetMemberRole, useRemoveMember, useAddMembers,
+  useRegenerateGroupCode,
   isGroupMuted, setGroupMuted, GROUP_THEMES, type GroupTheme,
 } from "@/hooks/useGroupAdmin";
 import { UserAvatar } from "@/components/UserAvatar";
+import { Copy, RefreshCw } from "lucide-react";
 
 const AVATAR_EMOJIS = ["💜", "🐼", "🌸", "🌙", "🍿", "🎬", "🦋", "🍓", "🌈", "🪐"];
 
@@ -30,6 +32,7 @@ function GroupInfo() {
   const removeMember = useRemoveMember();
   const addMembers = useAddMembers();
   const leave = useLeaveGroup();
+  const regenCode = useRegenerateGroupCode();
 
   const [renaming, setRenaming] = useState(false);
   const [nameDraft, setNameDraft] = useState("");
@@ -225,6 +228,53 @@ function GroupInfo() {
             })}
           </div>
         </section>
+
+        {/* Invite code */}
+        <section>
+          <p className="text-[10px] uppercase tracking-widest text-candle-muted mb-2">Invite code</p>
+          <div className="flex items-center gap-2 px-4 py-3 bg-surface/60 border border-border rounded-2xl">
+            <code className="flex-1 font-mono tracking-[0.35em] text-lg text-candle text-center select-all">
+              {(group as any).invite_code ?? "——————"}
+            </code>
+            <button
+              onClick={async () => {
+                const code = (group as any).invite_code;
+                if (!code) return;
+                try {
+                  await navigator.clipboard.writeText(code);
+                  toast.success("Code copied");
+                } catch {
+                  toast.error("Copy failed");
+                }
+              }}
+              className="size-9 rounded-full bg-petal-soft border border-petal/30 text-petal flex items-center justify-center"
+              aria-label="Copy code"
+            >
+              <Copy className="size-4" />
+            </button>
+            {isAdmin && (
+              <button
+                onClick={async () => {
+                  if (!confirm("Generate a new code? The old one will stop working.")) return;
+                  try {
+                    await regenCode.mutateAsync(groupId);
+                    toast.success("New code generated");
+                  } catch (e: any) {
+                    toast.error(e.message ?? "Failed");
+                  }
+                }}
+                disabled={regenCode.isPending}
+                className="size-9 rounded-full bg-surface border border-border text-candle-muted flex items-center justify-center disabled:opacity-50"
+                aria-label="Regenerate"
+              >
+                <RefreshCw className={`size-4 ${regenCode.isPending ? "animate-spin" : ""}`} />
+              </button>
+            )}
+          </div>
+          <p className="text-[10px] text-candle-muted mt-1.5">Share this code — anyone with it can join.</p>
+        </section>
+
+
 
         {/* Notifications */}
         <section>

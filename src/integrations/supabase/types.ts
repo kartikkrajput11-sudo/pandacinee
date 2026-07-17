@@ -211,6 +211,7 @@ export type Database = {
           created_at: string
           created_by: string
           id: string
+          invite_code: string
           name: string
           theme: string
           updated_at: string
@@ -220,6 +221,7 @@ export type Database = {
           created_at?: string
           created_by: string
           id?: string
+          invite_code?: string
           name: string
           theme?: string
           updated_at?: string
@@ -229,6 +231,7 @@ export type Database = {
           created_at?: string
           created_by?: string
           id?: string
+          invite_code?: string
           name?: string
           theme?: string
           updated_at?: string
@@ -2026,6 +2029,7 @@ export type Database = {
           username: string
         }[]
       }
+      gen_group_invite_code: { Args: never; Returns: string }
       grant_coins: {
         Args: { _amount: number; _reason: string; _ref_id?: string }
         Returns: number
@@ -2048,6 +2052,25 @@ export type Database = {
       is_watch_party_member: {
         Args: { _pid: string; _uid: string }
         Returns: boolean
+      }
+      join_group_with_code: {
+        Args: { _code: string }
+        Returns: {
+          avatar_url: string | null
+          created_at: string
+          created_by: string
+          id: string
+          invite_code: string
+          name: string
+          theme: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "chat_groups"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       move_to_dlq: {
         Args: {
@@ -2142,6 +2165,7 @@ export type Database = {
           read_ct: number
         }[]
       }
+      regenerate_group_invite_code: { Args: { _gid: string }; Returns: string }
       revoke_admin: {
         Args: { _pin: string; _target: string }
         Returns: boolean
