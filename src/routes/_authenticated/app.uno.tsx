@@ -393,9 +393,30 @@ function UnoPage() {
 
         {/* My hand */}
         <div>
-          <p className="text-[9px] uppercase tracking-widest text-candle-muted text-center mb-2">
-            You · {myHand.length} {myHand.length === 1 ? "card — call Uno!" : "cards"}
-          </p>
+          <div className="flex items-center justify-center gap-3 mb-2">
+            <p className="text-[9px] uppercase tracking-widest text-candle-muted">
+              You · {myHand.length} {myHand.length === 1 ? "card" : "cards"}
+            </p>
+            {(myHand.length === 1 && !state.unoCalled[mySeat] && !state.winner) && (
+              <button
+                type="button"
+                onClick={handleCallUno}
+                aria-label="Call Uno"
+                className="rounded-full px-3 py-1 text-[10px] uppercase tracking-widest font-serif italic border border-petal/40 bg-surface/80 text-petal hover:bg-petal/10 transition-colors shadow-[0_6px_18px_-8px_rgba(0,0,0,0.6)]"
+              >
+                Call Uno
+              </button>
+            )}
+            {(theirHand.length === 1 && !state.unoCalled[mySeat === "you" ? "them" : "you"] && !state.winner) && (
+              <button
+                type="button"
+                onClick={handleCatch}
+                className="rounded-full px-3 py-1 text-[10px] uppercase tracking-widest font-serif italic border border-border bg-surface/80 text-candle-muted hover:text-candle hover:border-petal/40 transition-colors shadow-[0_6px_18px_-8px_rgba(0,0,0,0.6)]"
+              >
+                Catch silent
+              </button>
+            )}
+          </div>
           <div className="flex justify-center overflow-x-auto no-scrollbar py-6 -mx-4 px-4">
             <div className="flex items-end" style={{ paddingLeft: 24, paddingRight: 24 }}>
               {myHand.map((c, i) => {
