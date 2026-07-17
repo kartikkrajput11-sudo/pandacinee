@@ -306,10 +306,8 @@ export function PunishmentLockDialog({ open, onClose, targetName, mePrefs, peerP
 
             {/* Decree card */}
             <div
-              className="relative rounded-2xl p-4 border overflow-hidden"
+              className="studio-surface relative rounded-2xl p-4 border overflow-hidden"
               style={{
-                background:
-                  "linear-gradient(180deg, hsl(280 30% 10%), hsl(280 25% 7%))",
                 borderColor: "hsl(38 55% 62% / 0.3)",
               }}
             >
