@@ -392,7 +392,7 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
       />
 
       {menuOpen && (
-        <div className="relative bg-[linear-gradient(180deg,rgba(30,20,35,0.94)_0%,rgba(18,12,22,0.98)_100%)] backdrop-blur-2xl overflow-hidden animate-fade-in">
+        <div className="relative studio-surface backdrop-blur-2xl overflow-hidden animate-fade-in">
           <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-petal/50 to-transparent" />
           <div className="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 w-72 h-24 rounded-full bg-petal/10 blur-3xl" />
 
@@ -400,7 +400,7 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
             <p className="text-[8px] uppercase tracking-[0.32em] text-candle-muted/70 font-medium text-center mb-2">
               Studio
             </p>
-            <div className="grid grid-cols-4 gap-px rounded-2xl overflow-hidden border border-white/[0.06] bg-white/[0.04]">
+            <div className="grid grid-cols-4 gap-px rounded-2xl overflow-hidden border border-candle/10 bg-candle/[0.04]">
               <StudioTile
                 icon={<ImageIcon className="size-4" />}
                 label="Media"
@@ -604,13 +604,13 @@ function StudioTile({
       className={`group relative flex flex-col items-center justify-center gap-1 py-2.5 px-1 transition-all duration-200 active:scale-[0.96] ${
         accent
           ? "bg-gradient-to-b from-petal/[0.14] to-petal/[0.02] hover:from-petal/25 hover:to-petal/[0.06]"
-          : "bg-white/[0.015] hover:bg-white/[0.06]"
+          : "bg-candle/[0.02] hover:bg-candle/[0.08]"
       } ${glow ? "shadow-[inset_0_0_18px_-8px_rgba(236,72,153,0.5)]" : ""}`}
     >
       <span className={`flex items-center justify-center transition-transform duration-200 group-hover:-translate-y-0.5 ${accent ? "text-petal" : "text-candle/80 group-hover:text-petal"}`}>
         {icon}
       </span>
-      <span className="text-[9px] tracking-[0.08em] text-candle/85 uppercase font-medium leading-none">
+      <span className="text-[9px] tracking-[0.08em] text-candle uppercase font-semibold leading-none">
         {label}
       </span>
     </button>
@@ -637,10 +637,10 @@ function GroupChoice({
       className={`flex items-center gap-2 px-2.5 py-2 rounded-xl border transition-all active:scale-[0.97] ${
         active
           ? "bg-gradient-to-br from-petal/25 to-petal/[0.04] border-petal/60 shadow-[inset_0_0_18px_-8px_rgba(236,72,153,0.55)]"
-          : "bg-gradient-to-br from-white/[0.05] to-transparent border-white/10 hover:border-petal/50 hover:from-petal/15"
+          : "bg-gradient-to-br from-candle/[0.05] to-transparent border-candle/15 hover:border-petal/50 hover:from-petal/15"
       }`}
     >
-      <span className="shrink-0 flex items-center justify-center size-6 rounded-lg bg-white/[0.04] text-petal">
+      <span className="shrink-0 flex items-center justify-center size-6 rounded-lg bg-candle/[0.06] text-petal">
         {icon}
       </span>
       <span className="text-left leading-tight min-w-0">
