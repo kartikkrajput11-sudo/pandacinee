@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import {
   Plus, X, Image as ImageIcon, Paperclip, Smile, Send, Film,
-  Video as VideoIcon, Gamepad2, Heart, HeartHandshake, Zap, EyeOff, Eye, Disc3, Sparkles,
+  Video as VideoIcon, Gamepad2, Heart, HeartHandshake, Hand, Zap, EyeOff, Eye, Disc3, Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
 import { uploadChatMedia, type MessageRow } from "@/lib/chat";
@@ -30,7 +30,7 @@ type Props = {
 
   onSend: (input: {
     content?: string;
-    type?: "text" | "voice" | "image" | "video" | "file" | "sticker" | "watch_invite" | "game_invite" | "kiss" | "hug" | "nudge" | "whisper" | "movie_wheel";
+    type?: "text" | "voice" | "image" | "video" | "file" | "sticker" | "watch_invite" | "game_invite" | "kiss" | "hug" | "headpat" | "nudge" | "whisper" | "movie_wheel";
     media_url?: string | null;
     media_meta?: Record<string, unknown> | null;
     reply_to_id?: string | null;
@@ -102,6 +102,16 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
     try {
       await onSend({ type: "hug", content: `🫂 A warm hug for ${partnerName}`, disappear_seconds: disappearSecs });
       toast.success(`You hugged ${partnerName} 🫂`);
+    } catch (err: any) {
+      toast.error(err?.message ?? "Couldn't send");
+    }
+  }
+
+  async function sendHeadpat() {
+    setMenuOpen(false);
+    try {
+      await onSend({ type: "headpat", content: `✋ A gentle headpat for ${partnerName}`, disappear_seconds: disappearSecs });
+      toast.success(`You patted ${partnerName} ✋`);
     } catch (err: any) {
       toast.error(err?.message ?? "Couldn't send");
     }
@@ -436,9 +446,10 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
             )}
 
             {openGroup === "affection" && (
-              <div className="mt-2 grid grid-cols-3 gap-2 animate-fade-in">
+              <div className="mt-2 grid grid-cols-2 gap-2 animate-fade-in">
                 <GroupChoice icon={<Heart className="size-4 fill-current" />} label="Kiss" hint="A soft press" onClick={() => { setOpenGroup(null); sendKiss(); }} />
                 <GroupChoice icon={<HeartHandshake className="size-4" />} label="Hug" hint="Warm & close" onClick={() => { setOpenGroup(null); sendHug(); }} />
+                <GroupChoice icon={<Hand className="size-4" />} label="Headpat" hint="There, there…" onClick={() => { setOpenGroup(null); sendHeadpat(); }} />
                 <GroupChoice icon={<Zap className="size-4" />} label="Nudge" hint="Get attention" onClick={() => { setOpenGroup(null); sendNudge(); }} />
               </div>
             )}

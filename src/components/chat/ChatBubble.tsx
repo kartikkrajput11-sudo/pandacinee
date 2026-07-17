@@ -101,13 +101,14 @@ function ChatBubbleImpl({
   const isMovieWheel = m.type === "movie_wheel";
   const isKiss = m.type === "kiss";
   const isHug = m.type === "hug";
+  const isHeadpat = m.type === "headpat";
   const isNudge = m.type === "nudge";
   const isWhisper = m.type === "whisper";
   const isCall = m.type === "call";
   const [whisperRevealed, setWhisperRevealed] = useState(false);
   useSharedTick(isLast);
 
-  const bare = isSticker || isWatchInvite || isGameInvite || isMovieWheel || isKiss || isHug || isNudge || isCall;
+  const bare = isSticker || isWatchInvite || isGameInvite || isMovieWheel || isKiss || isHug || isHeadpat || isNudge || isCall;
 
   // ---- Gestures: long-press for actions, swipe for reply, double-tap for heart ----
   const [dragX, setDragX] = useState(0);
@@ -218,7 +219,7 @@ function ChatBubbleImpl({
   };
 
   return (
-    <div className={`group flex ${isKiss || isHug || isNudge ? "justify-center" : mine ? "justify-end" : "justify-start"} mt-1.5 px-1 relative`}>
+    <div className={`group flex ${isKiss || isHug || isHeadpat || isNudge ? "justify-center" : mine ? "justify-end" : "justify-start"} mt-1.5 px-1 relative`}>
       {dragX > 0 && (
         <div
           className="absolute top-1/2 -translate-y-1/2 left-3 size-8 rounded-full bg-petal/20 border border-petal/40 flex items-center justify-center text-petal pointer-events-none"
@@ -290,6 +291,7 @@ function ChatBubbleImpl({
                  replyTo.type === "movie_wheel" ? "🎡 Movie wheel" :
                  replyTo.type === "kiss" ? "💜 kiss" :
                  replyTo.type === "hug" ? "🫂 hug" :
+                 replyTo.type === "headpat" ? "✋ headpat" :
                  replyTo.type === "whisper" ? "🤫 whisper" :
                  replyTo.type === "sticker" && isPandaStickerContent(replyTo.content) ? "🐼 Sticker" :
                  replyTo.content}
@@ -407,6 +409,34 @@ function ChatBubbleImpl({
               </div>
             );
           })()}
+
+          {isHeadpat && (() => {
+            const time = new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false });
+            const sender = mine ? "You" : (partnerName || "Them");
+            return (
+              <div className="flex flex-col items-center py-2 w-full">
+                <div className="relative w-[210px] bg-velvet border border-candle/20 px-4 pt-4 pb-3 flex flex-col items-center text-center shadow-[0_0_40px_rgba(255,200,120,0.06)]">
+                  <span className="absolute top-1.5 left-2 text-[8px] font-semibold tracking-[0.2em] uppercase text-candle/40 max-w-[70%] truncate">from {sender}</span>
+                  <div className="relative w-16 h-16 mb-2 mt-2 flex items-center justify-center">
+                    <span className="absolute inset-0 rounded-full border border-candle/25" />
+                    <span className="absolute inset-2 rounded-full border border-petal/30" />
+                    <span className="text-4xl leading-none drop-shadow-[0_0_18px_rgba(255,200,120,0.35)]">✋</span>
+                  </div>
+                  <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-petal mb-0.5">Headpat</span>
+                  <p className="font-serif italic text-candle text-base leading-tight">{mine ? "there, there…" : "gently on your head"}</p>
+                  <div className="mt-3 flex flex-col items-center w-full">
+                    <div className="h-px w-6 bg-candle/20 mb-1.5" />
+                    <span className="text-[8px] font-bold tracking-[0.2em] uppercase text-candle/30">{time}</span>
+                  </div>
+                  <div className="absolute top-1 left-1 w-1.5 h-1.5 border-t border-l border-candle/30" />
+                  <div className="absolute top-1 right-1 w-1.5 h-1.5 border-t border-r border-candle/30" />
+                  <div className="absolute bottom-1 left-1 w-1.5 h-1.5 border-b border-l border-candle/30" />
+                  <div className="absolute bottom-1 right-1 w-1.5 h-1.5 border-b border-r border-candle/30" />
+                </div>
+              </div>
+            );
+          })()}
+
 
 
 
