@@ -371,6 +371,7 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
               Studio
             </p>
             <div className="grid grid-cols-5 gap-1.5">
+              <StudioTile icon={<Camera className="size-4" />} label="Camera" onClick={() => camRef.current?.click()} accent glow />
               <StudioTile icon={<ImageIcon className="size-4" />} label="Photo" onClick={() => imgRef.current?.click()} />
               <StudioTile icon={<VideoIcon className="size-4" />} label="Video" onClick={() => vidRef.current?.click()} />
               <StudioTile
