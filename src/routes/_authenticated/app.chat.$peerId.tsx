@@ -16,6 +16,8 @@ import { ChatSearch } from "@/components/chat/ChatSearch";
 import { KissOverlay } from "@/components/chat/KissOverlay";
 import { HugOverlay } from "@/components/chat/HugOverlay";
 import { HeadpatOverlay } from "@/components/chat/HeadpatOverlay";
+import { HandholdOverlay } from "@/components/chat/HandholdOverlay";
+import { BoopOverlay } from "@/components/chat/BoopOverlay";
 import { PunishmentLockDialog } from "@/components/chat/PunishmentLockDialog";
 import { PunishmentLockOverlay } from "@/components/chat/PunishmentLockOverlay";
 import { PunishmentLockBanner } from "@/components/chat/PunishmentLockBanner";
@@ -154,6 +156,8 @@ function ChatPeer() {
   const [kissEmoji, setKissEmoji] = useState("💜");
   const [hugTick, setHugTick] = useState(0);
   const [headpatTick, setHeadpatTick] = useState(0);
+  const [handholdTick, setHandholdTick] = useState(0);
+  const [boopTick, setBoopTick] = useState(0);
   const [shake, setShake] = useState(false);
   const lastFxIdRef = useRef<string | null>(null);
   const playedFxRef = useRef<Set<string>>(new Set());
