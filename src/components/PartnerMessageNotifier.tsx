@@ -25,6 +25,8 @@ function previewFor(type: string, content: string): string {
     case "kiss": return "💋 sent a kiss";
     case "hug": return "🫂 sent a hug";
     case "headpat": return "✋ patted your head";
+    case "handhold": return "🤝 wants to hold hands";
+    case "boop": return "👉 booped your nose";
     case "nudge": return "👉 Nudge!";
     case "poll": return "📊 Poll";
     default: return content?.slice(0, 80) || "New message";

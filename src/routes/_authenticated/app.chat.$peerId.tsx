@@ -246,7 +246,7 @@ function ChatPeer() {
     const now = Date.now();
     const candidates = messages.filter((m) => {
       if (m.sender_id === me.id) return false;
-      if (m.type !== "kiss" && m.type !== "nudge" && m.type !== "hug" && m.type !== "headpat") return false;
+      if (m.type !== "kiss" && m.type !== "nudge" && m.type !== "hug" && m.type !== "headpat" && m.type !== "handhold" && m.type !== "boop") return false;
       if (playedFxRef.current.has(m.id)) return false;
       const fresh = now - new Date(m.created_at).getTime() <= 15000;
       const unseen = !m.read_at;
