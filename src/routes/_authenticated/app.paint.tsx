@@ -21,6 +21,7 @@ import {
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
+import { GameChat } from "@/components/games/GameChat";
 
 export const Route = createFileRoute("/_authenticated/app/paint")({
   component: PaintTogether,
