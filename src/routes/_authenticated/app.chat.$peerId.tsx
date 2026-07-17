@@ -426,7 +426,7 @@ function ChatPeer() {
               <span className="h-3 w-px bg-petal/20" />
               <button
                 type="button"
-                onClick={() => sharedMedia[0] && jumpTo(sharedMedia[0].id)}
+                onClick={() => setMediaDrawerOpen(true)}
                 className="text-[9px] uppercase tracking-[0.3em] text-candle/50 hover:text-petal transition-colors font-semibold"
               >
                 {sharedMedia.length} shared
@@ -435,6 +435,13 @@ function ChatPeer() {
           )}
         </div>
       )}
+
+      <SharedMediaDrawer
+        open={mediaDrawerOpen}
+        onOpenChange={setMediaDrawerOpen}
+        messages={messages}
+        onJumpTo={jumpTo}
+      />
 
 
 
