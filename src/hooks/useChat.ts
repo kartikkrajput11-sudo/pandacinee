@@ -115,6 +115,13 @@ export function useChat(meId: string | null, partnerId: string | null) {
 
     ch.subscribe(async (status) => {
       if (status === "SUBSCRIBED") {
+        // Respect the user's Activity status setting — if hidden, never broadcast presence.
+        const { data: mine } = await supabase
+          .from("profiles")
+          .select("activity_visible")
+          .eq("id", meId)
+          .maybeSingle();
+        if ((mine as any)?.activity_visible === false) return;
         await ch.track({ online_at: Date.now() });
       }
     });
