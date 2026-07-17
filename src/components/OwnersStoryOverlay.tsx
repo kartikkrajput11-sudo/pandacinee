@@ -54,34 +54,17 @@ export default function OwnersStoryOverlay({
   return (
     <div
       className="fixed inset-0 z-[110] overflow-y-auto"
-      style={{
-        background:
-          "radial-gradient(circle at 50% 20%, rgba(236,72,153,0.22), rgba(10,6,14,0.98) 60%)",
-      }}
+      style={{ background: "#0a060e" }}
     >
-      {/* Petal rain */}
-      <div className="pointer-events-none fixed inset-0 overflow-hidden">
-        {Array.from({ length: 28 }).map((_, i) => (
-          <span
-            key={i}
-            className="absolute rounded-full animate-petal"
-            style={{
-              left: `${(i * 37) % 100}%`,
-              top: "-10%",
-              width: 3 + ((i * 3) % 6),
-              height: 3 + ((i * 3) % 6),
-              background:
-                i % 3 === 0
-                  ? "rgba(245,214,164,0.75)"
-                  : "rgba(236,72,153,0.7)",
-              filter: "blur(0.5px)",
-              animationDelay: `${(i * 0.32) % 7}s`,
-              animationDuration: `${9 + ((i * 2) % 8)}s`,
-              opacity: 0.85,
-            }}
-          />
-        ))}
-      </div>
+      {/* Subtle vignette — no motion, no petals */}
+      <div
+        className="pointer-events-none fixed inset-0"
+        style={{
+          background:
+            "radial-gradient(ellipse at 50% 0%, rgba(236,72,153,0.06), transparent 55%)",
+        }}
+      />
+
 
       {/* Close */}
       <button
