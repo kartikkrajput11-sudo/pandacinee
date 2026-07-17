@@ -437,7 +437,7 @@ function UnoPage() {
           >
             <span className="uno-call-halo" aria-hidden />
             <span className="uno-call-face">
-              <span className="uno-call-text">UNO!</span>
+              <span className="uno-call-text">Call Uno</span>
             </span>
           </button>
         )}
