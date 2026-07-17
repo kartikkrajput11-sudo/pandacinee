@@ -421,6 +421,7 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
               </div>
             )}
           </div>
+        </div>
       )}
 
       <WatchInvitePicker open={watchPickerOpen} onClose={() => setWatchPickerOpen(false)} onPick={sendWatchInvite} />
