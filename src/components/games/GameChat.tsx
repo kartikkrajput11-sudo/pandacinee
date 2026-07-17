@@ -82,7 +82,7 @@ export function GameChat({ roomKey, me, partnerName, title = "Table talk" }: Pro
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="fixed right-4 bottom-4 z-40 flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-black/70 text-champagne shadow-[0_15px_40px_-10px_rgba(0,0,0,0.6)] backdrop-blur-md hover:brightness-110"
+          className="fixed right-4 bottom-4 z-40 flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-black/70 text-amber-200 shadow-[0_15px_40px_-10px_rgba(0,0,0,0.6)] backdrop-blur-md hover:brightness-110"
           aria-label="Open game chat"
         >
           <MessageCircle className="h-5 w-5" />
@@ -98,7 +98,7 @@ export function GameChat({ roomKey, me, partnerName, title = "Table talk" }: Pro
         <div className="fixed right-4 bottom-4 z-40 w-[min(320px,calc(100vw-2rem))] rounded-2xl border border-white/10 bg-black/85 backdrop-blur-xl shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7)] animate-fade-in overflow-hidden">
           <div className="flex items-center justify-between px-3 py-2 border-b border-white/10">
             <div className="flex flex-col leading-tight">
-              <span className="font-serif italic text-sm text-champagne">{title}</span>
+              <span className="font-serif italic text-sm text-amber-200">{title}</span>
               {partnerName && (
                 <span className="text-[10px] uppercase tracking-[0.2em] text-white/40">
                   with {partnerName}
@@ -134,7 +134,7 @@ export function GameChat({ roomKey, me, partnerName, title = "Table talk" }: Pro
                   <div
                     className={`max-w-[80%] rounded-2xl px-3 py-1.5 text-sm break-words ${
                       mine
-                        ? "bg-champagne/20 text-champagne border border-champagne/25"
+                        ? "bg-amber-200/20 text-amber-200 border border-amber-200/25"
                         : "bg-white/10 text-white/90 border border-white/10"
                     }`}
                   >
@@ -158,12 +158,12 @@ export function GameChat({ roomKey, me, partnerName, title = "Table talk" }: Pro
               onChange={(e) => setText(e.target.value)}
               placeholder="Message…"
               maxLength={400}
-              className="flex-1 rounded-full bg-white/5 border border-white/10 px-3 py-1.5 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-champagne/40"
+              className="flex-1 rounded-full bg-white/5 border border-white/10 px-3 py-1.5 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-amber-200/40"
             />
             <button
               type="submit"
               disabled={!text.trim()}
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-champagne/25 text-champagne border border-champagne/30 disabled:opacity-40 hover:brightness-110"
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-200/25 text-amber-200 border border-amber-200/30 disabled:opacity-40 hover:brightness-110"
               aria-label="Send"
             >
               <Send className="h-4 w-4" />
