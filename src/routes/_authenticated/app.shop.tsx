@@ -249,6 +249,29 @@ function ShopRoute() {
 
   const activeCat = CATS.find((c) => c.key === tab)!;
 
+  if (!isAdmin) {
+    return (
+      <div className="pt-10 px-5 pb-24 max-w-md mx-auto min-h-screen">
+        <header className="flex items-center gap-3 mb-10">
+          <Link to="/app" className="text-candle-muted">
+            <ArrowLeft className="size-5" />
+          </Link>
+          <div className="flex-1">
+            <p className="text-[10px] uppercase tracking-[0.25em] text-petal">Panda Bazaar</p>
+            <h1 className="font-serif text-2xl italic">Coin Shop</h1>
+          </div>
+        </header>
+        <div className="rounded-3xl border border-petal/20 bg-velvet/60 backdrop-blur p-10 text-center">
+          <Lock className="size-8 text-petal mx-auto mb-4" />
+          <p className="font-serif italic text-xl text-candle mb-2">Coming soon</p>
+          <p className="text-sm text-candle-muted leading-relaxed">
+            The shop is being polished. It'll open for everyone once the team turns it on.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="pt-10 px-5 pb-24 max-w-md mx-auto">
       <header className="flex items-center gap-3 mb-6">
