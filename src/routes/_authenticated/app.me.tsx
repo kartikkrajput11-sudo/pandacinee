@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, LogOut, Heart, Copy, Camera, Save, Sun, Moon, Monitor, ChevronRight, Lock, Coins, Volume2, VolumeX } from "lucide-react";
+import { ArrowLeft, LogOut, Heart, Copy, Camera, Save, Sun, Moon, Monitor, ChevronRight, Lock, Volume2, VolumeX } from "lucide-react";
 import { isSfxEnabled, setSfxEnabled, sfxReaction } from "@/lib/sfx";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
