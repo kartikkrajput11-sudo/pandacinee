@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { ArrowLeft, Check, Lock, Sparkles, RotateCcw, Heart } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
 import { pickQuestions, type KnowMeQuestion } from "@/lib/knowme";
-import { sfx } from "@/lib/sfx";
+import { sfxReaction, sfxPollVote, sfxKiss } from "@/lib/sfx";
 
 export const Route = createFileRoute("/_authenticated/app/knowme")({
   component: KnowMePage,
