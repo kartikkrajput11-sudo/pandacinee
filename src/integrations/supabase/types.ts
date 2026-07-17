@@ -298,6 +298,131 @@ export type Database = {
         }
         Relationships: []
       }
+      coin_bundles: {
+        Row: {
+          active: boolean
+          bonus_label: string | null
+          bundle_key: string
+          coins: number
+          created_at: string
+          currency: string
+          description: string | null
+          id: string
+          name: string
+          price_paise: number
+          sort_order: number
+        }
+        Insert: {
+          active?: boolean
+          bonus_label?: string | null
+          bundle_key: string
+          coins: number
+          created_at?: string
+          currency?: string
+          description?: string | null
+          id?: string
+          name: string
+          price_paise: number
+          sort_order?: number
+        }
+        Update: {
+          active?: boolean
+          bonus_label?: string | null
+          bundle_key?: string
+          coins?: number
+          created_at?: string
+          currency?: string
+          description?: string | null
+          id?: string
+          name?: string
+          price_paise?: number
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      coin_ledger: {
+        Row: {
+          created_at: string
+          delta: number
+          id: string
+          reason: string
+          ref_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          delta: number
+          id?: string
+          reason: string
+          ref_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          delta?: number
+          id?: string
+          reason?: string
+          ref_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      coin_purchases: {
+        Row: {
+          amount_paise: number
+          bundle_id: string
+          coins: number
+          created_at: string
+          credited_at: string | null
+          currency: string
+          id: string
+          paid_at: string | null
+          razorpay_order_id: string
+          razorpay_payment_id: string | null
+          razorpay_signature: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          amount_paise: number
+          bundle_id: string
+          coins: number
+          created_at?: string
+          credited_at?: string | null
+          currency?: string
+          id?: string
+          paid_at?: string | null
+          razorpay_order_id: string
+          razorpay_payment_id?: string | null
+          razorpay_signature?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          amount_paise?: number
+          bundle_id?: string
+          coins?: number
+          created_at?: string
+          credited_at?: string | null
+          currency?: string
+          id?: string
+          paid_at?: string | null
+          razorpay_order_id?: string
+          razorpay_payment_id?: string | null
+          razorpay_signature?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coin_purchases_bundle_id_fkey"
+            columns: ["bundle_id"]
+            isOneToOne: false
+            referencedRelation: "coin_bundles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       concierge_suggestions: {
         Row: {
           author_id: string
@@ -1125,6 +1250,7 @@ export type Database = {
           mood_updated_at: string | null
           notifications_enabled: boolean
           paired_at: string | null
+          panda_coins: number
           partner_id: string | null
           partner_nickname: string | null
           pl_cat_activity: boolean
@@ -1159,6 +1285,7 @@ export type Database = {
           mood_updated_at?: string | null
           notifications_enabled?: boolean
           paired_at?: string | null
+          panda_coins?: number
           partner_id?: string | null
           partner_nickname?: string | null
           pl_cat_activity?: boolean
@@ -1193,6 +1320,7 @@ export type Database = {
           mood_updated_at?: string | null
           notifications_enabled?: boolean
           paired_at?: string | null
+          panda_coins?: number
           partner_id?: string | null
           partner_nickname?: string | null
           pl_cat_activity?: boolean
@@ -1379,6 +1507,51 @@ export type Database = {
         }
         Relationships: []
       }
+      shop_items: {
+        Row: {
+          active: boolean
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          item_key: string
+          metadata: Json
+          name: string
+          preview_url: string | null
+          price: number
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          category: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          item_key: string
+          metadata?: Json
+          name: string
+          preview_url?: string | null
+          price: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          item_key?: string
+          metadata?: Json
+          name?: string
+          preview_url?: string | null
+          price?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       suppressed_emails: {
         Row: {
           created_at: string
@@ -1453,6 +1626,38 @@ export type Database = {
           id?: string
         }
         Relationships: []
+      }
+      user_inventory: {
+        Row: {
+          acquired_at: string
+          equipped: boolean
+          id: string
+          item_id: string
+          user_id: string
+        }
+        Insert: {
+          acquired_at?: string
+          equipped?: boolean
+          id?: string
+          item_id: string
+          user_id: string
+        }
+        Update: {
+          acquired_at?: string
+          equipped?: boolean
+          id?: string
+          item_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_inventory_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "shop_items"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       watch_rooms: {
         Row: {
@@ -1739,6 +1944,7 @@ export type Database = {
         Args: { _me: string; _partner: string }
         Returns: number
       }
+      credit_coin_purchase: { Args: { _payment_id: string }; Returns: Json }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
@@ -1756,6 +1962,10 @@ export type Database = {
           id: string
           username: string
         }[]
+      }
+      grant_coins: {
+        Args: { _amount: number; _reason: string; _ref_id?: string }
+        Returns: number
       }
       has_answered_on: {
         Args: { _date: string; _user: string }
@@ -1835,6 +2045,7 @@ export type Database = {
           mood_updated_at: string | null
           notifications_enabled: boolean
           paired_at: string | null
+          panda_coins: number
           partner_id: string | null
           partner_nickname: string | null
           pl_cat_activity: boolean
@@ -1856,6 +2067,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      purchase_shop_item: { Args: { _item_id: string }; Returns: Json }
       purge_expired_messages: { Args: never; Returns: undefined }
       purge_stale_call_signals: { Args: never; Returns: undefined }
       read_email_batch: {
@@ -1878,6 +2090,10 @@ export type Database = {
           id: string
           username: string
         }[]
+      }
+      toggle_equip_item: {
+        Args: { _equip: boolean; _item_id: string }
+        Returns: undefined
       }
       unpair_partner: { Args: never; Returns: undefined }
     }
