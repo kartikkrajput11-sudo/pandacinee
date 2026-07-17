@@ -127,7 +127,7 @@ function AdminPage() {
   return <AdminDashboard />;
 }
 
-type Tab = "overview" | "activity" | "users" | "library" | "animations";
+type Tab = "overview" | "activity" | "users" | "library" | "animations" | "broadcast";
 
 function AdminDashboard() {
   const [tab, setTab] = useState<Tab>("overview");
