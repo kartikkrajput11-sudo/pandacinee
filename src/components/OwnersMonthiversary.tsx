@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useRouterState } from "@tanstack/react-router";
 import { Sparkles, X, Heart } from "lucide-react";
 import OwnersStoryOverlay from "./OwnersStoryOverlay";
 
@@ -7,6 +8,8 @@ import OwnersStoryOverlay from "./OwnersStoryOverlay";
 export default function OwnersMonthiversary() {
   const [now, setNow] = useState(() => new Date());
   const [storyOpen, setStoryOpen] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   useEffect(() => {
     // Re-check date every minute so the banner disappears at midnight.
@@ -20,7 +23,14 @@ export default function OwnersMonthiversary() {
     [now]
   );
 
-  if (!is18) return null;
+  // Hide inside chat threads / calls / watch rooms where a top-fixed banner
+  // fights the message scroll container and constantly jumps the viewport.
+  const hideOnRoute =
+    /^\/app\/(chat|call|watch|movies\/[^/]+\/(watch|party)|paint|scribble|chess|ludo|uno|knowme|hideseek)/.test(
+      pathname
+    );
+
+  if (!is18 || dismissed || hideOnRoute) return null;
 
   return (
     <>
