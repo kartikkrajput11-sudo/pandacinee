@@ -307,7 +307,7 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
         poster={poster ?? undefined}
         className="absolute inset-0 w-full h-full object-contain bg-black"
         playsInline
-        preload="metadata"
+        preload="auto"
         onLoadedMetadata={(e) => {
           setDuration(e.currentTarget.duration || 0);
           stopBuffering();
