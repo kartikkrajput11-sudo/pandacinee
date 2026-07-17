@@ -602,7 +602,7 @@ function CatalogWatch({ id }: { id: string }) {
       applySeek(peer.currentTime, { pause: false });
       if (evt === "seeked") toast.info(`${partner?.display_name.split(" ")[0]} skipped`);
     }
-  }, [peer, partnerIsHost, me, mine.currentTime, applySeek, partner, isPandacine, started, customPlayerReady, runSuppressedPlayerAction]);
+  }, [peer, partnerIsHost, me, mine.currentTime, applySeek, partner, isPandacine, peerSourceKind, started, customPlayerReady, runSuppressedPlayerAction]);
 
   // When the custom player mounts after an auto-join, mute + seek + play.
   useEffect(() => {
