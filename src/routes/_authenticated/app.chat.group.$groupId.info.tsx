@@ -1,9 +1,11 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ArrowLeft, Crown, UserPlus, LogOut, BellOff, Bell, X, Check, ShieldOff, UserMinus,
+  ImagePlus, Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
 import { useFriendships } from "@/hooks/useFriends";
 import { useGroup, useLeaveGroup } from "@/hooks/useGroups";
