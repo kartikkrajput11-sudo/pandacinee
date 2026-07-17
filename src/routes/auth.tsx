@@ -37,7 +37,13 @@ function AuthPage() {
     setLoading(true);
     try {
       if (mode === "signup") {
+        if (!acceptedTerms) {
+          toast.error("Please accept the Terms & Privacy to continue");
+          setLoading(false);
+          return;
+        }
         const { error } = await supabase.auth.signUp({
+
           email,
           password,
           options: {
