@@ -616,8 +616,20 @@ function CatalogWatch({ id }: { id: string }) {
     }, 800);
   }, [customPlayerReady, runSuppressedPlayerAction]);
 
+  // -------- Storage-only sync gate --------
+  // Real-time sync (seek, play/pause, drift) is only enabled when BOTH partners
+  // have loaded the movie from Lovable Cloud storage (Pandacine source).
+  // If either side is on a 3rd-party iframe, we can't reliably control it.
+  const bothOnPandacine = isPandacine && peerSourceKind === "pandacine";
+
+  // Announce our current source kind to the partner via presence.
+  useEffect(() => {
+    if (!currentSource) { setSourceKind("unknown"); return; }
+    setSourceKind(isPandacine ? "pandacine" : "iframe");
+  }, [isPandacine, currentSource, setSourceKind]);
+
   // -------- Ready-check gate (both partners must load before host can start) --------
-  const gateActive = !!partner && partnerOnline && isPandacine;
+  const gateActive = !!partner && partnerOnline && bothOnPandacine;
   const bothReady = myReady && peerReady;
 
   // Reset my ready flag whenever we swap streams (source/episode change).
