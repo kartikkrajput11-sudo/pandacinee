@@ -1701,6 +1701,66 @@ export type Database = {
         }
         Relationships: []
       }
+      watch_sync_members: {
+        Row: {
+          current_seconds: number
+          duration_seconds: number
+          episode: number | null
+          event: string | null
+          event_at: string | null
+          is_host: boolean
+          joined_at: string
+          last_seen_at: string
+          partner_id: string | null
+          playback_rate: number
+          ready: boolean
+          room_key: string
+          season: number | null
+          source_idx: number
+          source_kind: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          current_seconds?: number
+          duration_seconds?: number
+          episode?: number | null
+          event?: string | null
+          event_at?: string | null
+          is_host?: boolean
+          joined_at?: string
+          last_seen_at?: string
+          partner_id?: string | null
+          playback_rate?: number
+          ready?: boolean
+          room_key: string
+          season?: number | null
+          source_idx?: number
+          source_kind?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          current_seconds?: number
+          duration_seconds?: number
+          episode?: number | null
+          event?: string | null
+          event_at?: string | null
+          is_host?: boolean
+          joined_at?: string
+          last_seen_at?: string
+          partner_id?: string | null
+          playback_rate?: number
+          ready?: boolean
+          room_key?: string
+          season?: number | null
+          source_idx?: number
+          source_kind?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       watchlist_items: {
         Row: {
           added_by: string
