@@ -158,7 +158,7 @@ function RootComponent() {
         <OwnersMonthiversary />
         <PairAnniversaryCelebration />
         <BroadcastListener />
-        <NotificationCenter />
+        
         <Toaster
           theme="dark"
           position="top-center"
