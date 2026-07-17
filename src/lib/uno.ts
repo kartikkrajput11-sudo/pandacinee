@@ -24,6 +24,7 @@ export type UnoState = {
   lastAction: string | null;
   awaitingWildFrom: UnoPlayer | null; // player must pick a color
   awaitingWildCardId: string | null;
+  unoCalled: Record<UnoPlayer, boolean>; // has each player called "Uno!"
 };
 
 export const COLORS: UnoColor[] = ["red", "yellow", "green", "blue"];
