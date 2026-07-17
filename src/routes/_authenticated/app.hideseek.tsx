@@ -215,6 +215,17 @@ const SCENES: Scene[] = [
       { x: 66, y: 42, w: 16, h: 18, tone: "cloth", label: "Willow" },
       { x: 60, y: 72, w: 16, h: 10, tone: "wood",  label: "Bench" },
       { x: 82, y: 22, w: 12, h: 12, tone: "wood",  label: "Dovecote" },
+      // decoys
+      { x: 30, y: 16, w: 10, h: 10, tone: "cloth", label: "Hedge" },
+      { x: 46, y: 14, w: 10, h: 10, tone: "cloth", label: "Hedge" },
+      { x: 62, y: 16, w: 10, h: 10, tone: "cloth", label: "Hedge" },
+      { x: 22, y: 40, w: 8,  h: 8,  tone: "stone", label: "Sundial" },
+      { x: 40, y: 56, w: 10, h: 6,  tone: "wood",  label: "Path" },
+      { x: 8,  y: 66, w: 8,  h: 8,  tone: "cloth", label: "Bush" },
+      { x: 8,  y: 82, w: 12, h: 10, tone: "cloth", label: "Bed" },
+      { x: 46, y: 82, w: 10, h: 8,  tone: "cloth", label: "Bed" },
+      { x: 82, y: 42, w: 10, h: 8,  tone: "stone", label: "Urn" },
+      { x: 82, y: 78, w: 10, h: 12, tone: "cloth", label: "Bed" },
     ],
     spots: [
       { emoji: "🌹", name: "Rose Trellis",   x: 14, y: 47 },
