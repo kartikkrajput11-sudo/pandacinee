@@ -23,6 +23,7 @@ export type GameKind =
 export const GAME_KINDS: GameKind[] = [
   "paint-together",
   "chess",
+  "ludo",
   "scribble-guess",
   "two-truths-lie",
   "hot-takes",
