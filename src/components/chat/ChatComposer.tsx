@@ -471,7 +471,7 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
                 <GroupChoice icon={<HeartHandshake className="size-4" />} label="Hug" onClick={() => { setOpenGroup(null); sendHug(); }} />
                 <GroupChoice icon={<Hand className="size-4" />} label="Headpat" onClick={() => { setOpenGroup(null); sendHeadpat(); }} />
                 <GroupChoice icon={<Handshake className="size-4" />} label="Handhold" onClick={() => { setOpenGroup(null); sendHandhold(); }} />
-                <GroupChoice icon={<span className="text-base leading-none">👉</span>} label="Boop" onClick={() => { setOpenGroup(null); sendBoop(); }} />
+                <GroupChoice icon={<Pointer className="size-4" />} label="Boop" onClick={() => { setOpenGroup(null); sendBoop(); }} />
                 <GroupChoice icon={<Zap className="size-4" />} label="Nudge" onClick={() => { setOpenGroup(null); sendNudge(); }} />
               </div>
             )}
