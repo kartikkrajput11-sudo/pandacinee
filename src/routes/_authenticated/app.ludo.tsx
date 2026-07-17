@@ -335,7 +335,7 @@ function Die({ value, rolling, active }: { value: number | null; rolling: boolea
         boxShadow:
           "inset 0 2px 0 rgba(255,255,255,0.22), inset 0 -8px 16px rgba(0,0,0,0.5), 0 10px 20px rgba(0,0,0,0.45)" +
           (active && !rolling ? ", 0 0 22px oklch(0.85 0.16 68 / 0.35)" : ""),
-        animation: rolling ? "ludo-dice-tumble 0.6s cubic-bezier(0.22,1,0.36,1)" : undefined,
+        animation: rolling ? "ludo-dice-tumble 0.85s cubic-bezier(0.22,1.4,0.36,1)" : undefined,
       }}
     >
       <DiePips n={face} />
