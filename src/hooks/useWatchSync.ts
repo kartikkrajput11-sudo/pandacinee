@@ -28,7 +28,7 @@ export type Mine = {
   episode: number | null;
 };
 
-type PresenceMeta = { userId: string; joinedAt: number };
+type PresenceMeta = { userId: string; joinedAt: number; ready?: boolean };
 
 const emptyMine = (): Mine => ({
   currentTime: 0,
