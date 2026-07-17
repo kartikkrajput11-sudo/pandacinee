@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, RotateCcw, Sparkles, User, Users } from "lucide-react";
+import { ArrowLeft, RotateCcw, Send, Sparkles, User, Users } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
@@ -57,6 +57,9 @@ function UnoPage() {
   const [flashId, setFlashId] = useState<string | null>(null);
   const [deckPulse, setDeckPulse] = useState(0);
   const [dealNonce, setDealNonce] = useState(0);
+  const [chat, setChat] = useState<{ id: string; from: UnoPlayer; text: string; at: number }[]>([]);
+  const [chatDraft, setChatDraft] = useState("");
+  const chatScrollRef = useRef<HTMLDivElement | null>(null);
 
   // In partner mode: lower UUID plays "you", partner plays "them".
   const mySeat: UnoPlayer = useMemo(() => {
@@ -64,15 +67,34 @@ function UnoPage() {
     return me.id < partner.id ? "you" : "them";
   }, [mode, me, partner]);
 
+  const stateRef = useRef<UnoState>(state);
+  useEffect(() => { stateRef.current = state; }, [state]);
+
   const chRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   useEffect(() => {
     if (mode !== "partner" || !me || !partner) return;
     const key = [me.id, partner.id].sort().join(":");
+    const isHost = me.id < partner.id;
     const ch = supabase.channel(`uno:${key}`, { config: { broadcast: { self: false } } });
     ch.on("broadcast", { event: "state" }, ({ payload }) => {
       setState(payload as UnoState);
     });
-    ch.subscribe();
+    ch.on("broadcast", { event: "hello" }, () => {
+      // Host answers late-joiner with the authoritative current state.
+      if (isHost) {
+        ch.send({ type: "broadcast", event: "state", payload: stateRef.current });
+      }
+    });
+    ch.on("broadcast", { event: "chat" }, ({ payload }) => {
+      setChat((prev) => [...prev, payload as { id: string; from: UnoPlayer; text: string; at: number }]);
+      sfxReaction();
+    });
+    ch.subscribe((status) => {
+      if (status === "SUBSCRIBED") {
+        // Announce presence — host will echo the current state so both sides match.
+        ch.send({ type: "broadcast", event: "hello", payload: { from: me.id } });
+      }
+    });
     chRef.current = ch;
     return () => { ch.unsubscribe(); chRef.current = null; };
   }, [mode, me, partner]);
@@ -83,6 +105,22 @@ function UnoPage() {
       chRef.current.send({ type: "broadcast", event: "state", payload: next });
     }
   }
+
+  function sendChat() {
+    const text = chatDraft.trim();
+    if (!text) return;
+    const msg = { id: crypto.randomUUID(), from: mySeat, text, at: Date.now() };
+    setChat((prev) => [...prev, msg]);
+    setChatDraft("");
+    if (mode === "partner" && chRef.current) {
+      chRef.current.send({ type: "broadcast", event: "chat", payload: msg });
+    }
+  }
+
+  useEffect(() => {
+    const el = chatScrollRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [chat.length]);
 
   // From the seat's perspective, remap "you"/"them" for display.
   // We store state with fixed "you"/"them" seats. In partner mode `mySeat` decides
@@ -370,6 +408,54 @@ function UnoPage() {
             </div>
           </div>
         </div>
+
+        {/* Table-side chat */}
+        {mode === "partner" && (
+          <div className="mt-6 rounded-2xl border border-petal/25 bg-surface/70 backdrop-blur-xl overflow-hidden">
+            <div className="px-4 py-2 border-b border-petal/15 flex items-center justify-between">
+              <p className="text-[10px] uppercase tracking-[0.3em] text-petal">Table talk</p>
+              <p className="text-[10px] text-candle-muted">{chat.length} whispers</p>
+            </div>
+            <div ref={chatScrollRef} className="max-h-40 overflow-y-auto px-3 py-2 space-y-1.5">
+              {chat.length === 0 ? (
+                <p className="text-xs italic text-candle-muted text-center py-3 font-serif">Say something velvet…</p>
+              ) : chat.map((m) => {
+                const mine = m.from === mySeat;
+                return (
+                  <div key={m.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
+                    <div
+                      className={`max-w-[80%] px-3 py-1.5 rounded-2xl text-sm ${mine ? "bg-petal text-velvet rounded-br-sm" : "bg-surface-elevated text-candle rounded-bl-sm border border-border"}`}
+                    >
+                      {m.text}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <form
+              onSubmit={(e) => { e.preventDefault(); sendChat(); }}
+              className="flex items-center gap-2 px-3 py-2 border-t border-petal/15 bg-surface-elevated/50"
+            >
+              <input
+                type="text"
+                value={chatDraft}
+                onChange={(e) => setChatDraft(e.target.value)}
+                placeholder="Whisper to your panda…"
+                maxLength={200}
+                className="flex-1 bg-transparent outline-none text-sm placeholder:text-candle-muted/70"
+              />
+              <button
+                type="submit"
+                disabled={!chatDraft.trim()}
+                className="rounded-full p-2 bg-petal text-velvet disabled:opacity-40 hover:brightness-110 transition"
+              >
+                <Send className="size-4" />
+              </button>
+            </form>
+          </div>
+        )}
+
+
 
         {/* Winner overlay */}
         {state.winner && (
