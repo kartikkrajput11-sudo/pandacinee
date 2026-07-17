@@ -11,6 +11,9 @@ import { MovieWheelCard } from "./MovieWheelCard";
 import { isPandaStickerContent, pandaStickerUrl } from "@/lib/panda-stickers";
 import pandaKiss from "@/assets/panda-kiss.png";
 import pandaHug from "@/assets/panda-hug-sticker.png";
+import pandaHeadpat from "@/assets/panda-headpat-sticker.png";
+import pandaHandhold from "@/assets/panda-handhold-sticker.png";
+import pandaBoop from "@/assets/panda-boop-sticker.png";
 
 
 function relTime(iso?: string | null) {
@@ -102,6 +105,8 @@ function ChatBubbleImpl({
   const isKiss = m.type === "kiss";
   const isHug = m.type === "hug";
   const isHeadpat = m.type === "headpat";
+  const isHandhold = m.type === "handhold";
+  const isBoop = m.type === "boop";
   const isNudge = m.type === "nudge";
   const isWhisper = m.type === "whisper";
   const isCall = m.type === "call";
@@ -417,11 +422,7 @@ function ChatBubbleImpl({
               <div className="flex flex-col items-center py-2 w-full">
                 <div className="relative w-[210px] bg-velvet border border-candle/20 px-4 pt-4 pb-3 flex flex-col items-center text-center shadow-[0_0_40px_rgba(255,200,120,0.06)]">
                   <span className="absolute top-1.5 left-2 text-[8px] font-semibold tracking-[0.2em] uppercase text-candle/40 max-w-[70%] truncate">from {sender}</span>
-                  <div className="relative w-16 h-16 mb-2 mt-2 flex items-center justify-center">
-                    <span className="absolute inset-0 rounded-full border border-candle/25" />
-                    <span className="absolute inset-2 rounded-full border border-petal/30" />
-                    <span className="text-4xl leading-none drop-shadow-[0_0_18px_rgba(255,200,120,0.35)]">✋</span>
-                  </div>
+                  <img src={pandaHeadpat} alt="Panda headpat" loading="lazy" className="w-16 h-16 object-contain mb-2 mt-2 drop-shadow-[0_0_20px_rgba(255,200,120,0.18)]" />
                   <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-petal mb-0.5">Headpat</span>
                   <p className="font-serif italic text-candle text-base leading-tight">{mine ? "there, there…" : "gently on your head"}</p>
                   <div className="mt-3 flex flex-col items-center w-full">
