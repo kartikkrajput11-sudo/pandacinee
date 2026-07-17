@@ -167,6 +167,7 @@ function ChatPeer() {
   const prevFirstIdRef = useRef<string | null>(null);
   const prevLastIdRef = useRef<string | null>(null);
   const prevScrollHeightRef = useRef(0);
+  const stickToBottomRef = useRef(true);
   useEffect(() => {
     const el = scrollRef.current;
     if (!el || messages.length === 0) return;
@@ -174,18 +175,38 @@ function ChatPeer() {
     const lastId = messages[messages.length - 1].id;
     const prevFirst = prevFirstIdRef.current;
     const prevLast = prevLastIdRef.current;
-    if (prevFirst && firstId !== prevFirst) {
+    if (prevFirst && firstId !== prevFirst && lastId === prevLast) {
       // older prepended — keep viewport anchored on what user was reading
       const delta = el.scrollHeight - prevScrollHeightRef.current;
       el.scrollTop = el.scrollTop + delta;
     } else if (!prevLast || lastId !== prevLast) {
       // new message at bottom (or first load) — scroll to bottom
-      el.scrollTo({ top: el.scrollHeight, behavior: prevLast ? "smooth" : "auto" });
+      const lastMsg = messages[messages.length - 1];
+      const iSent = lastMsg?.sender_id === me?.id;
+      if (!prevLast || iSent || stickToBottomRef.current) {
+        const doScroll = () => el.scrollTo({ top: el.scrollHeight, behavior: prevLast ? "smooth" : "auto" });
+        doScroll();
+        requestAnimationFrame(doScroll);
+        setTimeout(doScroll, 120);
+        setTimeout(doScroll, 400);
+      }
     }
     prevFirstIdRef.current = firstId;
     prevLastIdRef.current = lastId;
     prevScrollHeightRef.current = el.scrollHeight;
-  }, [messages, partnerTyping]);
+  }, [messages, partnerTyping, me?.id]);
+
+  // Follow late-growing content (images/videos finishing layout) while pinned to bottom.
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(() => {
+      if (stickToBottomRef.current) el.scrollTop = el.scrollHeight;
+    });
+    ro.observe(el);
+    Array.from(el.children).forEach((c) => ro.observe(c as Element));
+    return () => ro.disconnect();
+  }, [messages.length]);
 
   // Auto-load older when user scrolls near the top, and track scroll-to-bottom FAB visibility.
   const [showScrollFab, setShowScrollFab] = useState(false);
@@ -198,6 +219,7 @@ function ChatPeer() {
         loadOlder();
       }
       const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+      stickToBottomRef.current = distanceFromBottom < 120;
       setShowScrollFab(distanceFromBottom > 240);
     };
     el.addEventListener("scroll", onScroll, { passive: true });
