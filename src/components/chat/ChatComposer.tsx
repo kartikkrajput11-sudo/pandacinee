@@ -107,6 +107,16 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
     }
   }
 
+  async function sendHeadpat() {
+    setMenuOpen(false);
+    try {
+      await onSend({ type: "headpat", content: `✋ A gentle headpat for ${partnerName}`, disappear_seconds: disappearSecs });
+      toast.success(`You patted ${partnerName} ✋`);
+    } catch (err: any) {
+      toast.error(err?.message ?? "Couldn't send");
+    }
+  }
+
 
   async function sendWatchInvite(movie: TmdbMovie) {
     setWatchPickerOpen(false);
