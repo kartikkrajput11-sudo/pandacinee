@@ -123,10 +123,12 @@ function ChatPeer() {
       .filter((m) => m.type === "image" || m.type === "video")
       .slice(-6)
       .reverse();
+    const anniv = me?.anniversary_date ?? me?.paired_at ?? null;
     const first = messages[0]?.created_at;
-    const days = first ? Math.max(1, Math.floor((Date.now() - new Date(first).getTime()) / 86400000)) : 0;
+    const baseISO = anniv ?? first;
+    const days = baseISO ? Math.max(1, Math.floor((Date.now() - new Date(baseISO).getTime()) / 86400000)) : 0;
     return { streakDays: streak, sharedMedia: media, daysTogether: days };
-  }, [messages]);
+  }, [messages, me?.anniversary_date, me?.paired_at]);
 
 
   // Note: the 10-message cap now lives inside the temporary verification chat
