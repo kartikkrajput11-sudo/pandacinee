@@ -73,11 +73,21 @@ function Play() {
 
         {GAME_KINDS.map((kind) => {
           const g = GAMES[kind];
+          const sticker = PANDA_STICKERS[kind];
           const cardCls =
             "aspect-square p-4 bg-surface rounded-3xl border border-border flex flex-col justify-between hover:border-petal/40 transition-colors relative overflow-hidden";
           const inner = (
             <>
-              <span className="text-3xl">{g.emoji}</span>
+              {sticker ? (
+                <img
+                  src={sticker}
+                  alt=""
+                  loading="lazy"
+                  className="w-14 h-14 object-contain -mt-1 -ml-1 drop-shadow-[0_4px_10px_rgba(0,0,0,0.25)]"
+                />
+              ) : (
+                <span className="text-3xl">{g.emoji}</span>
+              )}
               <div>
                 <p className="font-serif italic text-lg leading-tight">{g.name}</p>
                 <p className="text-[11px] text-candle-muted mt-1">{g.body}</p>
