@@ -417,6 +417,7 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
       >
         <input ref={imgRef} type="file" accept="image/*" className="hidden" onChange={handleImage} />
         <input ref={vidRef} type="file" accept="video/*" className="hidden" onChange={handleVideo} />
+        <input ref={camRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleImage} />
         <input ref={fileRef} type="file" className="hidden" onChange={handleFile} />
 
         {/* Text side — collapses to 0fr and fades left when recording */}
