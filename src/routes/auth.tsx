@@ -242,6 +242,8 @@ function AuthPage() {
               {mode === "signin" ? "Create an account" : "Sign in"}
             </button>
           </p>
+            </div>
+          </div>
         </div>
       </main>
     </div>
