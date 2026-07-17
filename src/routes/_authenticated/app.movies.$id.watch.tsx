@@ -614,6 +614,27 @@ function CatalogWatch({ id }: { id: string }) {
     }, 800);
   }, [customPlayerReady, runSuppressedPlayerAction]);
 
+  // -------- Ready-check gate (both partners must load before host can start) --------
+  const gateActive = !!partner && partnerOnline && isPandacine;
+  const bothReady = myReady && peerReady;
+
+  // Reset my ready flag whenever we swap streams (source/episode change).
+  useEffect(() => {
+    setReady(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pandacine?.videoSrc, season, episode, sourceIdx]);
+
+  // Follower auto-mounts (paused) as soon as host broadcasts "prepare".
+  useEffect(() => {
+    if (!peerPreparing || started || !isPandacine) return;
+    setStartAt(peerPreparing.time ?? 0);
+    setPausedByHost(true);
+    setStarted(true);
+    setPlayerLoading(true);
+    clearPeerPreparing();
+  }, [peerPreparing, started, isPandacine, clearPeerPreparing]);
+
+
   async function sendWatchInviteMessage(receiverId: string, extra?: Record<string, unknown>) {
     if (!me || !movie) return { error: new Error("Missing data") };
     const media_meta = {
