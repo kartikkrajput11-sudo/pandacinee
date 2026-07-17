@@ -730,7 +730,7 @@ function Scribble() {
         </div>
       </div>
 
-      <div className="rounded-3xl overflow-hidden border border-border bg-white h-[42vh] touch-none">
+      <div className="rounded-3xl overflow-hidden border border-border bg-white h-[72vh] min-h-[480px] touch-none">
         <canvas
           ref={canvasRef}
           onPointerDown={onDown}
