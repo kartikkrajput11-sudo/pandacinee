@@ -20,7 +20,8 @@ import { tmdbSearch, tmdbMovie, tmdbTvDetail, tmdbTvSeason, type TmdbMovie } fro
 import { getAdminStats, getRecentActivity, getAdminUsers, deleteAdminUser, adminSendCoins, type ActivityItem, type AdminUserRow } from "@/lib/admin-stats.functions";
 import { AvatarImg } from "@/components/AvatarImg";
 import AnimationsTab from "@/components/admin/AnimationsTab";
-import { Wand2 } from "lucide-react";
+import BroadcastTab from "@/components/admin/BroadcastTab";
+import { Wand2, Megaphone } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/app/tamanna")({
   component: AdminPage,
