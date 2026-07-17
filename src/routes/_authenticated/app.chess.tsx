@@ -22,6 +22,7 @@ import {
 } from "@/lib/chess";
 import type { AiLevel, ChessMode } from "@/lib/chess";
 import { sfx } from "@/lib/chess-sfx";
+import { GameChat } from "@/components/games/GameChat";
 
 const searchSchema = z.object({
   game: z.string().uuid().optional(),
@@ -741,6 +742,15 @@ function GameScreen({
             setPromotion(null);
           }}
           onCancel={() => setPromotion(null)}
+        />
+      )}
+
+      {mode === "partner" && game && meId && (
+        <GameChat
+          roomKey={`chess:${game.id}`}
+          me={{ id: meId }}
+          partnerName={partnerName}
+          title="Chess table"
         />
       )}
     </div>

@@ -4,6 +4,7 @@ import { ArrowLeft, Dice5, RotateCcw, Users, User } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { LudoWinAnimation } from "@/components/ludo/LudoWinAnimation";
+import { GameChat } from "@/components/games/GameChat";
 
 import { useProfile } from "@/hooks/useProfile";
 import {
@@ -259,6 +260,15 @@ function LudoPage() {
         winner={winWho ?? null}
         onDone={() => setDemoWin(null)}
       />
+
+      {mode === "partner" && me && partner && (
+        <GameChat
+          roomKey={`ludo:${[me.id, partner.id].sort().join(":")}`}
+          me={me}
+          partnerName={partner.display_name}
+          title="Ludo table"
+        />
+      )}
     </div>
 
   );
