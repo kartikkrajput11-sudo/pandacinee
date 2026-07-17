@@ -241,5 +241,11 @@ export function useWatchSync(
     claimHost,
     releaseHost,
     drift,
+    myReady,
+    peerReady,
+    setReady,
+    sendPrepare,
+    peerPreparing,
+    clearPeerPreparing,
   };
 }
