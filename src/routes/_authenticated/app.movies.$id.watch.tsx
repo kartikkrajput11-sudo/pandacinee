@@ -188,6 +188,12 @@ function CatalogWatch({ id }: { id: string }) {
     claimHost,
     releaseHost,
     drift,
+    myReady,
+    peerReady,
+    setReady,
+    sendPrepare,
+    peerPreparing,
+    clearPeerPreparing,
   } = useWatchSync(me?.id ?? null, partner?.id ?? null, syncRoomId, isTv ? "tv" : "movie");
 
 
@@ -608,6 +614,27 @@ function CatalogWatch({ id }: { id: string }) {
     }, 800);
   }, [customPlayerReady, runSuppressedPlayerAction]);
 
+  // -------- Ready-check gate (both partners must load before host can start) --------
+  const gateActive = !!partner && partnerOnline && isPandacine;
+  const bothReady = myReady && peerReady;
+
+  // Reset my ready flag whenever we swap streams (source/episode change).
+  useEffect(() => {
+    setReady(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pandacine?.videoSrc, season, episode, sourceIdx]);
+
+  // Follower auto-mounts (paused) as soon as host broadcasts "prepare".
+  useEffect(() => {
+    if (!peerPreparing || started || !isPandacine) return;
+    setStartAt(peerPreparing.time ?? 0);
+    setPausedByHost(true);
+    setStarted(true);
+    setPlayerLoading(true);
+    clearPeerPreparing();
+  }, [peerPreparing, started, isPandacine, clearPeerPreparing]);
+
+
   async function sendWatchInviteMessage(receiverId: string, extra?: Record<string, unknown>) {
     if (!me || !movie) return { error: new Error("Missing data") };
     const media_meta = {
@@ -969,6 +996,7 @@ function CatalogWatch({ id }: { id: string }) {
                     customPlayerRef.current = h;
                     setCustomPlayerReady((n) => n + 1);
                     setPlayerLoading(false);
+                    setReady(true);
                   }}
                   onLoadIssue={fallbackFromPandacine}
                   onEvent={(evt) => {
@@ -1015,7 +1043,18 @@ function CatalogWatch({ id }: { id: string }) {
               )
             ) : (
               <button
-                onClick={() => { setStarted(true); setPlayerLoading(true); }}
+                onClick={() => {
+                  // If partner is online and this is a Pandacine source, use the
+                  // ready-check flow: broadcast "prepare" so both sides preload,
+                  // then host can hit Play once both are loaded.
+                  if (gateActive && !partnerIsHost) {
+                    if (!hostId) claimHost();
+                    sendPrepare(startAt ?? 0);
+                    setPausedByHost(true);
+                  }
+                  setStarted(true);
+                  setPlayerLoading(true);
+                }}
                 className="absolute inset-0 w-full h-full flex flex-col items-center justify-center gap-3 group overflow-hidden"
                 style={
                   backdropUrl
@@ -1064,6 +1103,69 @@ function CatalogWatch({ id }: { id: string }) {
                   </span>
                   <span className="text-[10px] uppercase tracking-[0.4em] text-candle-muted">Dimming the lights</span>
                 </div>
+              </div>
+            )}
+
+            {/* Ready-check gate — both partners must load before host can hit play */}
+            {started && gateActive && !bothReady && (
+              <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-4 bg-velvet/85 backdrop-blur-xl">
+                <span className="relative size-16 rounded-full flex items-center justify-center bg-petal/10 border border-petal/30">
+                  <span aria-hidden className="absolute inset-0 rounded-full border-t-2 border-petal animate-spin" />
+                  <RefreshCw className="size-6 text-petal" />
+                </span>
+                <p className="text-[10px] uppercase tracking-[0.35em] text-petal">Loading together</p>
+                <div className="flex flex-col items-center gap-1.5 text-xs text-candle">
+                  <span className="flex items-center gap-2">
+                    {myReady ? <Check className="size-3.5 text-green-400" /> : <span className="size-3.5 rounded-full border-2 border-candle-muted border-t-petal animate-spin" />}
+                    You {myReady ? "ready" : "loading…"}
+                  </span>
+                  <span className="flex items-center gap-2">
+                    {peerReady ? <Check className="size-3.5 text-green-400" /> : <span className="size-3.5 rounded-full border-2 border-candle-muted border-t-petal animate-spin" />}
+                    {partnerFirst} {peerReady ? "ready" : "loading…"}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Both loaded — host taps to actually start */}
+            {started && gateActive && bothReady && iAmHost && pausedByHost && (
+              <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-4 bg-velvet/70 backdrop-blur-sm">
+                <p className="text-[10px] uppercase tracking-[0.35em] text-petal">Both ready 💞</p>
+                <button
+                  onClick={() => {
+                    const h = customPlayerRef.current;
+                    setPausedByHost(false);
+                    runSuppressedPlayerAction(() => {
+                      h?.setMuted(false);
+                      h?.seek(startAt ?? 0);
+                      h?.play();
+                    });
+                    publish({
+                      event: "play",
+                      currentTime: startAt ?? 0,
+                      duration: h?.duration() ?? mine.duration,
+                      sourceIdx,
+                      playbackRate: 1,
+                      season: isTv ? season : null,
+                      episode: isTv ? episode : null,
+                    });
+                  }}
+                  className="relative size-24 rounded-full bg-gradient-to-br from-petal to-petal/80 text-velvet flex items-center justify-center shadow-[0_20px_60px_-10px_rgba(238,130,175,0.7)] active:scale-95 transition-transform ring-4 ring-petal/20"
+                >
+                  <Play className="size-10 fill-velvet ml-1" />
+                </button>
+                <p className="text-xs text-candle-muted">Start the film together</p>
+              </div>
+            )}
+
+            {/* Follower waits for host to start */}
+            {started && gateActive && bothReady && !iAmHost && pausedByHost && (
+              <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-velvet/70 backdrop-blur-sm pointer-events-none">
+                <span className="relative size-14 rounded-full flex items-center justify-center bg-petal/10 border border-petal/30">
+                  <Crown className="size-5 text-petal animate-pulse" />
+                </span>
+                <p className="text-[10px] uppercase tracking-[0.35em] text-petal">Ready</p>
+                <p className="text-sm text-candle">Waiting for {partnerFirst} to start…</p>
               </div>
             )}
 

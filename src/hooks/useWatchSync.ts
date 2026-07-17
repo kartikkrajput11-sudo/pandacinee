@@ -28,7 +28,7 @@ export type Mine = {
   episode: number | null;
 };
 
-type PresenceMeta = { userId: string; joinedAt: number };
+type PresenceMeta = { userId: string; joinedAt: number; ready?: boolean };
 
 const emptyMine = (): Mine => ({
   currentTime: 0,
@@ -54,10 +54,14 @@ export function useWatchSync(
   const [incomingSeek, setIncomingSeek] = useState<{ time: number; startAt?: number } | null>(null);
   const [incomingReaction, setIncomingReaction] = useState<{ id: number; emoji: string } | null>(null);
   const [drift, setDrift] = useState(0);
+  const [myReady, setMyReadyState] = useState(false);
+  const [peerReady, setPeerReady] = useState(false);
+  const [peerPreparing, setPeerPreparing] = useState<{ time: number; ts: number } | null>(null);
 
   const mineRef = useRef<Mine>(emptyMine());
   const channelRef = useRef<RealtimeChannel | null>(null);
   const joinedAtRef = useRef<number>(0);
+  const myReadyRef = useRef(false);
 
   // Deterministic channel name from sorted user IDs + room, so only the couple share it.
   const channelName = useMemo(() => {
@@ -84,7 +88,9 @@ export function useWatchSync(
       entries.sort((a, b) => a.joinedAt - b.joinedAt || a.userId.localeCompare(b.userId));
       const host = entries[0]?.userId ?? null;
       setHostId(host);
-      setPartnerOnline(entries.some((e) => e.userId !== meId));
+      const others = entries.filter((e) => e.userId !== meId);
+      setPartnerOnline(others.length > 0);
+      setPeerReady(others.length > 0 && others.every((e) => !!e.ready));
     };
 
     ch
@@ -129,9 +135,14 @@ export function useWatchSync(
         const p = payload as { userId: string | null };
         if (p.userId) setHostId(p.userId);
       })
+      .on("broadcast", { event: "prepare" }, ({ payload }) => {
+        const p = payload as { from: string; time: number };
+        if (p.from === meId) return;
+        setPeerPreparing({ time: p.time ?? 0, ts: Date.now() });
+      })
       .subscribe(async (status) => {
         if (status === "SUBSCRIBED") {
-          await ch.track({ userId: meId, joinedAt: joinedAtRef.current });
+          await ch.track({ userId: meId, joinedAt: joinedAtRef.current, ready: myReadyRef.current });
         }
       });
 
@@ -142,8 +153,28 @@ export function useWatchSync(
       setPeer(null);
       setPartnerOnline(false);
       setHostId(null);
+      setPeerReady(false);
+      setPeerPreparing(null);
+      myReadyRef.current = false;
+      setMyReadyState(false);
     };
   }, [channelName, meId]);
+
+  const setReady = useCallback((ready: boolean) => {
+    myReadyRef.current = ready;
+    setMyReadyState(ready);
+    const ch = channelRef.current;
+    if (!ch || !meId) return;
+    ch.track({ userId: meId, joinedAt: joinedAtRef.current, ready }).catch(() => {});
+  }, [meId]);
+
+  const sendPrepare = useCallback((time: number) => {
+    const ch = channelRef.current;
+    if (!ch || !meId) return;
+    ch.send({ type: "broadcast", event: "prepare", payload: { from: meId, time } });
+  }, [meId]);
+
+  const clearPeerPreparing = useCallback(() => setPeerPreparing(null), []);
 
   const publish = useCallback((patch: Partial<Mine>) => {
     const now = Date.now();
@@ -210,5 +241,11 @@ export function useWatchSync(
     claimHost,
     releaseHost,
     drift,
+    myReady,
+    peerReady,
+    setReady,
+    sendPrepare,
+    peerPreparing,
+    clearPeerPreparing,
   };
 }
