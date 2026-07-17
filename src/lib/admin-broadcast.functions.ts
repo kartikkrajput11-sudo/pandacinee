@@ -175,6 +175,13 @@ export const sendTargetedBroadcast = createServerFn({ method: "POST" })
     if (data.sendEmail && ids.length > 0) {
       const users = await emailsForUsers(supabaseAdmin, idSet);
 
+      // Lazy-load heavy server-only deps so they don't leak into the client bundle.
+      const React = await import("react");
+      const { render } = await import("@react-email/render");
+      const { template: broadcastTemplate } = await import(
+        "@/lib/email-templates/broadcast-announcement"
+      );
+
       // Render the template once — same content for all recipients.
       const element = React.createElement(broadcastTemplate.component, {
         title: data.title,
