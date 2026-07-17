@@ -54,7 +54,7 @@ function KnowMePage() {
   }
 
   function pickSetter(optIdx: number) {
-    sfx.pop?.();
+    sfxReaction();
     const next = [...answers, optIdx];
     setAnswers(next);
     if (next.length >= questions.length) {
@@ -71,8 +71,8 @@ function KnowMePage() {
     next[idx] = optIdx;
     setGuesses(next);
     setRevealIdx(idx);
-    if (optIdx === answers[idx]) sfx.correct?.();
-    else sfx.wrong?.();
+    if (optIdx === answers[idx]) sfxKiss();
+    else sfxPollVote();
   }
 
   function nextGuess() {
