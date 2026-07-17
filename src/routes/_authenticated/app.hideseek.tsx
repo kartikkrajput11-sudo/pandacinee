@@ -238,41 +238,50 @@ const SCENES: Scene[] = [
   },
 ];
 
-const TOTAL_ROUNDS = 4; // two per player
+const TOTAL_ROUNDS = 4;
 const MAX_ATTEMPTS = 4;
+/** Seeker click within this radius (percent units) counts as a find. */
+const HIT_RADIUS = 7;
 
-/** Euclidean distance in scene space (0-100 units). */
-function distance(a: Spot, b: Spot): number {
+type Pt = { x: number; y: number };
+
+function distance(a: Pt, b: Pt): number {
   return Math.hypot(a.x - b.x, a.y - b.y);
 }
-function heatFor(a: Spot, b: Spot): { label: string; emoji: string; cls: string } {
+function heatFor(a: Pt, b: Pt): { label: string; emoji: string; cls: string } {
   const d = distance(a, b);
-  if (d === 0) return { label: "Burning!", emoji: "🔥", cls: "text-rose-300" };
-  if (d < 30)  return { label: "Warm",     emoji: "🌡️", cls: "text-amber-300" };
-  return { label: "Cold", emoji: "❄️", cls: "text-sky-300" };
+  if (d <= HIT_RADIUS) return { label: "Burning!", emoji: "🔥", cls: "text-rose-300" };
+  if (d < 18) return { label: "Boiling",   emoji: "🌋", cls: "text-orange-300" };
+  if (d < 32) return { label: "Warm",      emoji: "🌡️", cls: "text-amber-300" };
+  if (d < 48) return { label: "Cool",      emoji: "💧", cls: "text-sky-300" };
+  return { label: "Ice cold", emoji: "❄️", cls: "text-sky-200" };
 }
 
+/** Nearest furniture label to a point, for prose descriptions. */
+function nearestLabel(scene: Scene, pt: Pt): string {
+  let best = { d: Infinity, label: "in the open" };
+  for (const f of scene.furniture) {
+    const cx = f.x + f.w / 2;
+    const cy = f.y + f.h / 2;
+    const d = Math.hypot(cx - pt.x, cy - pt.y);
+    if (d < best.d) best = { d, label: f.label ?? "shadow" };
+  }
+  return best.d < 12 ? `by the ${best.label}` : "in the open";
+}
 
 /* ────────────────────────  Types  ──────────────────────── */
 
 type Mode = "local" | "online";
 type Phase =
-  | "intro"
-  | "lobby"
-  | "waiting"          // guesser side: hider is choosing
-  | "hider_pick_scene" // hider chooses scene
-  | "hider_pick_spot"  // hider chooses spot in that scene
-  | "hider_watch"      // hider watching seeker search
-  | "handoff"          // local: pass phone
-  | "seeker"           // seeker searching
-  | "round_result"     // between-round summary
-  | "final";
+  | "intro" | "lobby" | "waiting"
+  | "hider_pick_scene" | "hider_pick_spot" | "hider_watch"
+  | "handoff" | "seeker" | "round_result" | "final";
 
 type PeerMsg =
   | { t: "hello"; from: string }
   | { t: "start"; from: string; hiderId: string; round: number }
-  | { t: "hide"; from: string; sceneId: string; spot: number } // sent to seeker on start
-  | { t: "guess"; from: string; attempt: number; spot: number }
+  | { t: "hide"; from: string; sceneId: string; x: number; y: number }
+  | { t: "guess"; from: string; attempt: number; x: number; y: number }
   | { t: "round_end"; from: string; scores: [number, number]; foundAt: number | null }
   | { t: "next_round"; from: string; hiderId: string; round: number }
   | { t: "finish"; from: string; scores: [number, number] };
@@ -288,12 +297,12 @@ function HideSeekPage() {
   const [mode, setMode] = useState<Mode>("local");
   const [phase, setPhase] = useState<Phase>("intro");
   const [round, setRound] = useState(1);
-  const [hiderId, setHiderId] = useState<string | null>(null); // for local: "me"/"partner"; for online: user id
+  const [hiderId, setHiderId] = useState<string | null>(null);
   const [sceneId, setSceneId] = useState<string | null>(null);
-  const [spot, setSpot] = useState<number | null>(null);
-  const [attempts, setAttempts] = useState<number[]>([]); // spot indexes tried
-  const [scores, setScores] = useState<[number, number]>([0, 0]); // [me, partner]
-  const [foundAt, setFoundAt] = useState<number | null>(null); // attempts index (0-based) or null
+  const [spot, setSpot] = useState<Pt | null>(null);           // hider's chosen point
+  const [attempts, setAttempts] = useState<Pt[]>([]);          // seeker's clicks
+  const [scores, setScores] = useState<[number, number]>([0, 0]);
+  const [foundAt, setFoundAt] = useState<number | null>(null); // 0-based attempt idx
 
   const scene = useMemo(() => SCENES.find((s) => s.id === sceneId) ?? null, [sceneId]);
 
@@ -371,9 +380,9 @@ function HideSeekPage() {
     }
 
     if (msg.t === "hide") {
-      // I'm the seeker — receive scene, start seeking
+      // I'm the seeker — receive scene + hider's point
       setSceneId(msg.sceneId);
-      setSpot(msg.spot);
+      setSpot({ x: msg.x, y: msg.y });
       setAttempts([]);
       setFoundAt(null);
       setPhase("seeker");
@@ -381,14 +390,14 @@ function HideSeekPage() {
     }
 
     if (msg.t === "guess") {
-      // I'm the hider — record the seeker's attempt so I can watch
+      // I'm the hider — record the seeker's attempt
       setAttempts((prev) => {
         const next = [...prev];
-        next[msg.attempt] = msg.spot;
+        next[msg.attempt] = { x: msg.x, y: msg.y };
         return next;
       });
       const truth = stateRef.current.spot;
-      if (truth != null && msg.spot === truth) sfxKiss();
+      if (truth && distance({ x: msg.x, y: msg.y }, truth) <= HIT_RADIUS) sfxKiss();
       else sfxReaction();
       return;
     }
@@ -451,32 +460,29 @@ function HideSeekPage() {
     setPhase("hider_pick_spot");
   }
 
-  function pickSpot(i: number) {
+  function pickSpot(pt: Pt) {
     sfxPollVote();
-    setSpot(i);
+    setSpot(pt);
     if (mode === "online" && me && sceneId != null) {
-      send({ t: "hide", from: me.id, sceneId, spot: i });
+      send({ t: "hide", from: me.id, sceneId, x: pt.x, y: pt.y });
       setPhase("hider_watch");
     } else {
-      // local hand-off
       setPhase("handoff");
     }
   }
 
-  function seekerGuess(i: number) {
-    if (attempts.includes(i)) return;
+  function seekerGuess(pt: Pt) {
     const attemptIdx = attempts.length;
-    const next = [...attempts, i];
+    const next = [...attempts, pt];
     setAttempts(next);
-    const correct = i === spot;
+    const correct = !!spot && distance(pt, spot) <= HIT_RADIUS;
 
     if (mode === "online" && me) {
-      send({ t: "guess", from: me.id, attempt: attemptIdx, spot: i });
+      send({ t: "guess", from: me.id, attempt: attemptIdx, x: pt.x, y: pt.y });
     }
 
     if (correct) {
       sfxKiss();
-      // Score: MAX_ATTEMPTS - attempts_used_so_far. Higher is better.
       const gained = MAX_ATTEMPTS - attemptIdx;
       finishRound(attemptIdx, gained);
     } else {
@@ -696,7 +702,7 @@ function Intro({
   return (
     <div className="rounded-3xl border border-border bg-surface/80 backdrop-blur p-6 space-y-5">
       <p className="text-candle-muted text-sm leading-relaxed">
-        One panda hides in one of six velvet spots. The other has <span className="text-candle font-medium">{MAX_ATTEMPTS} guesses</span> to find them — with warm/cold hints after every miss.
+        One panda hides <em>anywhere</em> on the room's map. The other has <span className="text-candle font-medium">{MAX_ATTEMPTS} taps</span> to find them — with warm/cold hints after every miss.
       </p>
 
       <div className="grid grid-cols-2 gap-2 text-[11px] uppercase tracking-widest">
@@ -892,7 +898,7 @@ function PickScene({ onPick }: { onPick: (id: string) => void }) {
             </div>
             <div className="px-3 py-2 flex items-center justify-between">
               <p className="text-[11px] tracking-wide text-candle">{s.emoji} {s.name}</p>
-              <p className="text-[9px] uppercase tracking-widest text-candle-muted">6 spots</p>
+              <p className="text-[9px] uppercase tracking-widest text-candle-muted">Hide anywhere</p>
             </div>
           </button>
         ))}
@@ -901,7 +907,49 @@ function PickScene({ onPick }: { onPick: (id: string) => void }) {
   );
 }
 
-function PickSpot({ scene, onPick, onBack }: { scene: Scene; onPick: (i: number) => void; onBack: () => void }) {
+/** Turn a click on the map into percent coords, clamped to a safe inset. */
+function mapPointFromEvent(e: React.MouseEvent<HTMLElement> | React.PointerEvent<HTMLElement>): Pt {
+  const el = e.currentTarget as HTMLElement;
+  const r = el.getBoundingClientRect();
+  const x = ((e.clientX - r.left) / r.width) * 100;
+  const y = ((e.clientY - r.top) / r.height) * 100;
+  return { x: Math.max(2, Math.min(98, x)), y: Math.max(2, Math.min(98, y)) };
+}
+
+function HidingMarker({ pt, label, pulse }: { pt: Pt; label?: string; pulse?: boolean }) {
+  return (
+    <div
+      className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2"
+      style={{ left: `${pt.x}%`, top: `${pt.y}%` }}
+    >
+      <span className={`relative flex items-center justify-center size-9 rounded-full border-2 border-petal bg-petal-soft/70 shadow-[0_0_20px_rgba(255,120,160,0.55)] ${pulse ? "animate-pulse" : ""}`}>
+        <span className="text-lg">🐼</span>
+        {pulse && (
+          <span className="absolute inset-0 rounded-full border-2 border-petal/70 animate-ping" />
+        )}
+      </span>
+      {label && (
+        <span className="absolute top-full left-1/2 -translate-x-1/2 mt-1 whitespace-nowrap text-[9px] uppercase tracking-widest text-petal">{label}</span>
+      )}
+    </div>
+  );
+}
+
+function AttemptMark({ pt, hit, index }: { pt: Pt; hit: boolean; index: number }) {
+  return (
+    <div
+      className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2"
+      style={{ left: `${pt.x}%`, top: `${pt.y}%` }}
+    >
+      <span className={`relative flex items-center justify-center size-7 rounded-full border ${hit ? "border-emerald-300 bg-emerald-400/25" : "border-rose-300/70 bg-rose-500/20"} backdrop-blur-sm shadow-md`}>
+        <span className="text-[10px] font-serif italic text-candle">{hit ? "✓" : index + 1}</span>
+      </span>
+    </div>
+  );
+}
+
+function PickSpot({ scene, onPick, onBack }: { scene: Scene; onPick: (pt: Pt) => void; onBack: () => void }) {
+  const [preview, setPreview] = useState<Pt | null>(null);
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
@@ -909,23 +957,19 @@ function PickSpot({ scene, onPick, onBack }: { scene: Scene; onPick: (i: number)
         <p className="font-serif italic text-lg">{scene.name}</p>
         <span />
       </div>
-      <p className="text-center text-xs text-candle-muted">Tap the spot you'll hide in. Only you will see it.</p>
-      <RoomFrame scene={scene}>
-        {scene.spots.map((sp, i) => (
-          <button
-            key={i}
-            onClick={() => onPick(i)}
-            className="absolute -translate-x-1/2 -translate-y-1/2 group focus:outline-none"
-            style={{ left: `${sp.x}%`, top: `${sp.y}%` }}
-            aria-label={sp.name}
-          >
-            <span className="relative flex items-center justify-center size-14 sm:size-16 rounded-full bg-velvet/40 backdrop-blur border border-candle/20 group-hover:border-petal group-hover:bg-velvet/70 transition shadow-lg">
-              <span className="text-3xl drop-shadow" style={{ filter: "drop-shadow(0 2px 3px rgba(0,0,0,0.5))" }}>{sp.emoji}</span>
-              <span className="absolute -bottom-5 whitespace-nowrap text-[10px] uppercase tracking-widest text-candle-muted opacity-0 group-hover:opacity-100 transition">{sp.name}</span>
-            </span>
-          </button>
-        ))}
-      </RoomFrame>
+      <p className="text-center text-xs text-candle-muted">Tap anywhere on the map to hide. Behind furniture, in a corner — anywhere.</p>
+      <div onClick={(e) => setPreview(mapPointFromEvent(e))} className="cursor-crosshair">
+        <RoomFrame scene={scene}>
+          {preview && <HidingMarker pt={preview} label={nearestLabel(scene, preview)} pulse />}
+        </RoomFrame>
+      </div>
+      <button
+        onClick={() => preview && onPick(preview)}
+        disabled={!preview}
+        className="w-full py-3 rounded-2xl bg-gradient-to-br from-petal to-rose-500 text-velvet font-medium tracking-wide shadow-lg shadow-petal/20 disabled:opacity-40"
+      >
+        {preview ? `Hide here (${nearestLabel(scene, preview)})` : "Tap the map to place yourself"}
+      </button>
     </div>
   );
 }
@@ -943,38 +987,19 @@ function Handoff({ hiderName, seekerName, onReady }: { hiderName: string; seeker
   );
 }
 
-function HiderWatch({ scene, spot, attempts, seekerName }: { scene: Scene; spot: number; attempts: number[]; seekerName: string }) {
-  const mySpot = scene.spots[spot];
+function HiderWatch({ scene, spot, attempts, seekerName }: { scene: Scene; spot: Pt; attempts: Pt[]; seekerName: string }) {
   return (
     <div className="space-y-3">
       <div className="text-center">
-        <p className="text-[10px] uppercase tracking-[0.28em] text-petal">You are hiding at</p>
-        <p className="font-serif italic text-xl">{mySpot.emoji} {mySpot.name}</p>
+        <p className="text-[10px] uppercase tracking-[0.28em] text-petal">You are hiding {nearestLabel(scene, spot)}</p>
         <p className="text-xs text-candle-muted mt-1">{seekerName} has {MAX_ATTEMPTS - attempts.length} of {MAX_ATTEMPTS} guesses left.</p>
       </div>
 
       <RoomFrame scene={scene}>
-        {scene.spots.map((sp, i) => {
-          const guessed = attempts.includes(i);
-          const isMe = i === spot;
-          return (
-            <div
-              key={i}
-              className="absolute -translate-x-1/2 -translate-y-1/2 flex items-center justify-center"
-              style={{ left: `${sp.x}%`, top: `${sp.y}%` }}
-            >
-              <span
-                className={`relative flex items-center justify-center size-14 sm:size-16 rounded-full border transition ${
-                  isMe ? "border-petal bg-petal-soft/50 ring-2 ring-petal/60 animate-pulse" : "border-candle/20 bg-velvet/40 backdrop-blur"
-                } ${guessed && !isMe ? "opacity-40" : ""}`}
-              >
-                <span className="text-3xl">{sp.emoji}</span>
-                {isMe && <span className="absolute -top-2 -right-2 text-lg">🫣</span>}
-                {guessed && !isMe && <span className="absolute -top-2 -right-2 text-base">❌</span>}
-              </span>
-            </div>
-          );
-        })}
+        <HidingMarker pt={spot} pulse />
+        {attempts.map((a, i) => (
+          <AttemptMark key={i} pt={a} index={i} hit={distance(a, spot) <= HIT_RADIUS} />
+        ))}
       </RoomFrame>
 
       <div className="rounded-2xl border border-border bg-surface p-4">
@@ -984,10 +1009,10 @@ function HiderWatch({ scene, spot, attempts, seekerName }: { scene: Scene; spot:
         ) : (
           <ul className="space-y-1.5 text-sm">
             {attempts.map((a, i) => {
-              const heat = heatFor(scene.spots[a], mySpot);
+              const heat = heatFor(a, spot);
               return (
                 <li key={i} className="flex items-center justify-between">
-                  <span className="text-candle">Guess {i + 1}: {scene.spots[a].emoji} {scene.spots[a].name}</span>
+                  <span className="text-candle">Guess {i + 1}: {nearestLabel(scene, a)}</span>
                   <span className={`text-[11px] uppercase tracking-widest ${heat.cls}`}>{heat.emoji} {heat.label}</span>
                 </li>
               );
@@ -1000,12 +1025,12 @@ function HiderWatch({ scene, spot, attempts, seekerName }: { scene: Scene; spot:
 }
 
 function SeekerBoard({ scene, spot, attempts, onGuess, hiderName }: {
-  scene: Scene; spot: number; attempts: number[]; onGuess: (i: number) => void; hiderName: string;
+  scene: Scene; spot: Pt; attempts: Pt[]; onGuess: (pt: Pt) => void; hiderName: string;
 }) {
-  const mySpot = scene.spots[spot];
   const lastAttempt = attempts.length > 0 ? attempts[attempts.length - 1] : null;
-  const lastHeat = lastAttempt != null ? heatFor(scene.spots[lastAttempt], mySpot) : null;
+  const lastHeat = lastAttempt ? heatFor(lastAttempt, spot) : null;
   const remaining = MAX_ATTEMPTS - attempts.length;
+  const done = remaining <= 0 || (lastAttempt && distance(lastAttempt, spot) <= HIT_RADIUS);
 
   return (
     <div className="space-y-3">
@@ -1022,36 +1047,19 @@ function SeekerBoard({ scene, spot, attempts, onGuess, hiderName }: {
         </div>
       )}
 
-      <RoomFrame scene={scene}>
-        {scene.spots.map((sp, i) => {
-          const tried = attempts.includes(i);
-          return (
-            <button
-              key={i}
-              onClick={() => onGuess(i)}
-              disabled={tried}
-              className="absolute -translate-x-1/2 -translate-y-1/2 group focus:outline-none disabled:cursor-not-allowed"
-              style={{ left: `${sp.x}%`, top: `${sp.y}%` }}
-              aria-label={tried ? "Already searched" : sp.name}
-            >
-              <span
-                className={`relative flex items-center justify-center size-14 sm:size-16 rounded-full border transition shadow-lg ${
-                  tried
-                    ? "border-candle/10 bg-velvet/20 opacity-40"
-                    : "border-candle/25 bg-velvet/40 backdrop-blur group-hover:border-petal group-hover:bg-velvet/70 group-active:scale-90"
-                }`}
-              >
-                <span className="text-3xl" style={{ filter: "drop-shadow(0 2px 3px rgba(0,0,0,0.5))" }}>{tried ? "❌" : "❓"}</span>
-                {!tried && (
-                  <span className="pointer-events-none absolute inset-0 rounded-full ring-2 ring-petal/0 group-hover:ring-petal/60 transition" />
-                )}
-              </span>
-            </button>
-          );
-        })}
-      </RoomFrame>
+      <div
+        onClick={(e) => { if (!done) onGuess(mapPointFromEvent(e)); }}
+        className={done ? "cursor-not-allowed" : "cursor-crosshair"}
+      >
+        <RoomFrame scene={scene}>
+          {attempts.map((a, i) => {
+            const hit = distance(a, spot) <= HIT_RADIUS;
+            return <AttemptMark key={i} pt={a} index={i} hit={hit} />;
+          })}
+        </RoomFrame>
+      </div>
 
-      <p className="text-center text-[11px] text-candle-muted italic">Tap any hotspot to search it. Warmer means close, burning means dead-on.</p>
+      <p className="text-center text-[11px] text-candle-muted italic">Tap anywhere on the map. Warmer means close, burning means dead-on.</p>
     </div>
   );
 }
@@ -1059,7 +1067,7 @@ function SeekerBoard({ scene, spot, attempts, onGuess, hiderName }: {
 
 
 function RoundResult({ scene, spot, attempts, foundAt, hiderName, seekerName, onNext, isFinal }: {
-  scene: Scene; spot: number; attempts: number[]; foundAt: number | null;
+  scene: Scene; spot: Pt; attempts: Pt[]; foundAt: number | null;
   hiderName: string; seekerName: string; onNext: () => void; isFinal: boolean;
 }) {
   const found = foundAt != null;
@@ -1073,18 +1081,20 @@ function RoundResult({ scene, spot, attempts, foundAt, hiderName, seekerName, on
           {found ? `Found in ${(foundAt ?? 0) + 1} ${(foundAt ?? 0) + 1 === 1 ? "guess" : "guesses"}!` : `${hiderName} slipped away.`}
         </p>
         <p className="text-sm text-candle-muted mt-1">
-          Hidden at <span className="text-candle">{scene.spots[spot].emoji} {scene.spots[spot].name}</span> in {scene.name}.
+          Hidden <span className="text-candle">{nearestLabel(scene, spot)}</span> in {scene.name}.
         </p>
+        {!found && <p className="text-[11px] text-candle-muted mt-1 italic">{seekerName}, better luck next round.</p>}
       </div>
-      {attempts.length > 0 && (
-        <div className="flex flex-wrap justify-center gap-1.5">
+
+      <div className="rounded-2xl overflow-hidden border border-border">
+        <RoomFrame scene={scene} compact>
+          <HidingMarker pt={spot} pulse />
           {attempts.map((a, i) => (
-            <span key={i} className={`text-[10px] uppercase tracking-widest px-2 py-1 rounded-full border ${a === spot ? "border-petal text-petal bg-petal-soft" : "border-border text-candle-muted"}`}>
-              {i + 1}. {scene.spots[a].emoji}
-            </span>
+            <AttemptMark key={i} pt={a} index={i} hit={distance(a, spot) <= HIT_RADIUS} />
           ))}
-        </div>
-      )}
+        </RoomFrame>
+      </div>
+
       <button onClick={onNext} className="w-full py-3 rounded-2xl bg-gradient-to-br from-petal to-rose-500 text-velvet font-medium tracking-wide shadow-lg shadow-petal/20">
         {isFinal ? "See final score" : "Swap and continue"}
       </button>
