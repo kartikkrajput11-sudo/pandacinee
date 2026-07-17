@@ -11,6 +11,8 @@ import {
   legalMoves,
   cellOf,
   rollDie,
+  pathOf,
+  destinationOf,
   PLAYER_META,
   PLAYERS,
   TRACK,
