@@ -227,16 +227,26 @@ function LudoPage() {
 }
 
 function Die({ value, rolling, active }: { value: number | null; rolling: boolean; active: boolean }) {
+  const [face, setFace] = useState<number | null>(value);
+  useEffect(() => {
+    if (!rolling) { setFace(value); return; }
+    const iv = window.setInterval(() => {
+      setFace(1 + Math.floor(Math.random() * 6));
+    }, 70);
+    return () => window.clearInterval(iv);
+  }, [rolling, value]);
   return (
     <div
-      className={`w-16 h-16 rounded-2xl border flex items-center justify-center text-3xl font-serif shadow-inner transition-all ${rolling ? "animate-pulse" : ""} ${active ? "border-petal shadow-[0_0_20px_-4px_var(--petal)]" : "border-petal/30 opacity-80"}`}
+      className={`w-16 h-16 rounded-2xl border flex items-center justify-center text-3xl font-serif shadow-inner ${active ? "border-petal shadow-[0_0_20px_-4px_var(--petal)]" : "border-petal/30 opacity-80"}`}
       style={{
         background:
           "linear-gradient(145deg, oklch(0.28 0.05 320), oklch(0.18 0.03 320))",
         color: "oklch(0.92 0.08 75)",
+        animation: rolling ? "ludo-dice-tumble 0.55s ease-out" : undefined,
+        transition: "border-color 200ms, box-shadow 200ms",
       }}
     >
-      {rolling ? "🎲" : value ?? "·"}
+      {face ?? "·"}
     </div>
   );
 }
