@@ -17,6 +17,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import PartnerMessageNotifier from "@/components/PartnerMessageNotifier";
 import OwnersMonthiversary from "@/components/OwnersMonthiversary";
 import PairAnniversaryCelebration from "@/components/PairAnniversaryCelebration";
+import { BroadcastListener } from "@/components/BroadcastListener";
 
 function NotFoundComponent() {
   return (
