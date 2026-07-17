@@ -446,9 +446,10 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
             )}
 
             {openGroup === "affection" && (
-              <div className="mt-2 grid grid-cols-3 gap-2 animate-fade-in">
+              <div className="mt-2 grid grid-cols-2 gap-2 animate-fade-in">
                 <GroupChoice icon={<Heart className="size-4 fill-current" />} label="Kiss" hint="A soft press" onClick={() => { setOpenGroup(null); sendKiss(); }} />
                 <GroupChoice icon={<HeartHandshake className="size-4" />} label="Hug" hint="Warm & close" onClick={() => { setOpenGroup(null); sendHug(); }} />
+                <GroupChoice icon={<Hand className="size-4" />} label="Headpat" hint="There, there…" onClick={() => { setOpenGroup(null); sendHeadpat(); }} />
                 <GroupChoice icon={<Zap className="size-4" />} label="Nudge" hint="Get attention" onClick={() => { setOpenGroup(null); sendNudge(); }} />
               </div>
             )}
