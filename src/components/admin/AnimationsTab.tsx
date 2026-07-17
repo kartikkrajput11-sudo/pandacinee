@@ -179,6 +179,8 @@ export default function AnimationsTab() {
       <KissOverlay trigger={kissTrigger} />
       <HugOverlay trigger={hugTrigger} />
       <HeadpatOverlay trigger={headpatTrigger} />
+      <HandholdOverlay trigger={handholdTrigger} />
+      <BoopOverlay trigger={boopTrigger} />
       <UnlockCelebration trigger={unlockTrigger} />
       <OwnersStoryOverlay open={storyOpen} onClose={() => setStoryOpen(false)} />
       {petalsOn && (
