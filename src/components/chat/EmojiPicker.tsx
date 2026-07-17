@@ -35,7 +35,7 @@ export function EmojiPicker({ open, onPick, onClose }: Props) {
   if (!open) return null;
 
   return (
-    <div className="relative bg-[linear-gradient(180deg,rgba(30,20,35,0.92)_0%,rgba(18,12,22,0.96)_100%)] backdrop-blur-2xl rounded-t-[28px] overflow-hidden animate-fade-in shadow-[0_-20px_60px_-20px_rgba(0,0,0,0.6)]">
+    <div className="relative studio-surface backdrop-blur-2xl rounded-t-[28px] overflow-hidden animate-fade-in shadow-[0_-20px_60px_-20px_rgba(0,0,0,0.35)]">
       {/* Champagne hairline */}
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-petal/50 to-transparent" />
       {/* Ambient corner glow */}
