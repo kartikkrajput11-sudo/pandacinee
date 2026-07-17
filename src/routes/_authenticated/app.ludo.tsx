@@ -426,21 +426,57 @@ function LudoBoard({
           fill="oklch(0.35 0.04 320)"
         />
 
+        {/* Destination previews for the current dice roll */}
+        {destinations.map((d) => (
+          <g key={`dest-${d.key}`}>
+            <circle
+              cx={d.c * CELL + CELL / 2}
+              cy={d.r * CELL + CELL / 2}
+              r={CELL * 0.44}
+              fill="none"
+              stroke={d.color}
+              strokeWidth={1.6}
+              strokeDasharray="3 3"
+              opacity={0.9}
+            >
+              <animate attributeName="opacity" values="0.4;1;0.4" dur="1.1s" repeatCount="indefinite" />
+              <animateTransform
+                attributeName="transform"
+                type="rotate"
+                from={`0 ${d.c * CELL + CELL / 2} ${d.r * CELL + CELL / 2}`}
+                to={`360 ${d.c * CELL + CELL / 2} ${d.r * CELL + CELL / 2}`}
+                dur="6s"
+                repeatCount="indefinite"
+              />
+            </circle>
+            <circle
+              cx={d.c * CELL + CELL / 2}
+              cy={d.r * CELL + CELL / 2}
+              r={2.5}
+              fill={d.color}
+              opacity={0.9}
+            />
+          </g>
+        ))}
+
         {/* Tokens */}
-        {positions.map(({ t, cx, cy }) => {
+        {positions.map(({ t, cx, cy, isWalking, effectivePos }) => {
           const k = `${Math.round(cx)},${Math.round(cy)}`;
           const count = cellCounts.get(k) ?? 1;
           const idx = (cellIndex.get(k) ?? 0);
           cellIndex.set(k, idx + 1);
-          const offset = count > 1 ? 6 : 0;
-          const angle = count > 1 ? (idx / count) * Math.PI * 2 : 0;
+          const offset = count > 1 && !isWalking ? 6 : 0;
+          const angle = count > 1 && !isWalking ? (idx / count) * Math.PI * 2 : 0;
           const ox = Math.cos(angle) * offset;
           const oy = Math.sin(angle) * offset;
-          const isLegal = legalIds.has(`${t.player}:${t.idx}`);
+          const isLegal = legalIds.has(`${t.player}:${t.idx}`) && !walking;
           const tokenId = `${t.player}-${t.idx}`;
-          if (t.pos === 200) return null; // hidden at finish
+          if (effectivePos === 200) return null; // hidden at finish
           const tx = cx + ox;
           const ty = cy + oy;
+          const walkTransition = "cx 170ms cubic-bezier(0.34,1.56,0.64,1), cy 170ms cubic-bezier(0.34,1.56,0.64,1)";
+          const idleTransition = "cx 450ms cubic-bezier(0.4,0,0.2,1), cy 450ms cubic-bezier(0.4,0,0.2,1)";
+          const trans = isWalking ? walkTransition : idleTransition;
           return (
             <g
               key={tokenId}
@@ -448,9 +484,19 @@ function LudoBoard({
               style={{ cursor: canAct && isLegal ? "pointer" : "default" }}
             >
               {isLegal && canAct && (
-                <circle cx={tx} cy={ty} r={CELL * 0.5} fill="none" stroke={PLAYER_META[t.player].color} strokeWidth={2} opacity={0.7} style={{ transition: "cx 450ms cubic-bezier(0.4,0,0.2,1), cy 450ms cubic-bezier(0.4,0,0.2,1)" }}>
+                <circle cx={tx} cy={ty} r={CELL * 0.5} fill="none" stroke={PLAYER_META[t.player].color} strokeWidth={2} opacity={0.7} style={{ transition: trans }}>
                   <animate attributeName="r" values={`${CELL * 0.45};${CELL * 0.6};${CELL * 0.45}`} dur="1.2s" repeatCount="indefinite" />
                 </circle>
+              )}
+              {isWalking && (
+                <circle
+                  cx={tx}
+                  cy={ty}
+                  r={CELL * 0.55}
+                  fill={PLAYER_META[t.player].color}
+                  opacity={0.25}
+                  style={{ transition: trans, filter: "blur(4px)" }}
+                />
               )}
               <circle
                 cx={tx}
@@ -459,9 +505,21 @@ function LudoBoard({
                 fill={PLAYER_META[t.player].color}
                 stroke="white"
                 strokeWidth={2}
-                style={{ transition: "cx 450ms cubic-bezier(0.4,0,0.2,1), cy 450ms cubic-bezier(0.4,0,0.2,1)" }}
+                style={{
+                  transition: trans,
+                  transformBox: "fill-box",
+                  transformOrigin: "center",
+                  animation: isWalking ? "ludo-token-hop 170ms ease-in-out" : undefined,
+                }}
               />
-              <circle cx={tx - 3} cy={ty - 3} r={CELL * 0.12} fill="white" opacity={0.6} style={{ transition: "cx 450ms cubic-bezier(0.4,0,0.2,1), cy 450ms cubic-bezier(0.4,0,0.2,1)" }} />
+              <circle
+                cx={tx - 3}
+                cy={ty - 3}
+                r={CELL * 0.12}
+                fill="white"
+                opacity={0.6}
+                style={{ transition: trans }}
+              />
             </g>
           );
         })}
