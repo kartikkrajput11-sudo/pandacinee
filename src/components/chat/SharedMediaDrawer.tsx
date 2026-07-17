@@ -101,12 +101,9 @@ export function SharedMediaDrawer({
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
                     ) : (
-                      <>
-                        <SignedVideo path={m.media_url!} className="w-full h-full object-cover" />
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/30 pointer-events-none">
-                          <VideoIcon className="h-6 w-6 text-white/90 drop-shadow" />
-                        </div>
-                      </>
+                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-petal/20 to-velvet">
+                        <VideoIcon className="h-7 w-7 text-petal/80 drop-shadow" />
+                      </div>
                     )}
                   </button>
                 ))}
