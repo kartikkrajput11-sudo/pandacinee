@@ -1,7 +1,7 @@
 import { createFileRoute, Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { ArrowLeft, Send, Film, Play, ExternalLink, Tv } from "lucide-react";
+import { ArrowLeft, Send, Film, Play, ExternalLink, Tv, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { tmdbMovie, tmdbTvFull, tmdbTvSeason } from "@/lib/tmdb.functions";
 import { watchmodeSources, type WatchSource } from "@/lib/watchmode.functions";
@@ -281,6 +281,13 @@ function MovieDetailInner({ id }: { id: string }) {
           >
             <Film className="size-3.5 opacity-60" /> Watch together
           </button>
+          <Link
+            to="/app/movies/$id/party"
+            params={{ id: String(movie.id) }}
+            className="flex items-center justify-center gap-2 py-3 bg-surface border border-petal/30 rounded-xl text-[10px] font-semibold uppercase tracking-widest text-candle col-span-2"
+          >
+            <Sparkles className="size-3.5 text-petal" /> Same-room party · no sync
+          </Link>
           {trailer ? (
             <a
               href={`https://www.youtube.com/watch?v=${trailer.key}`}
