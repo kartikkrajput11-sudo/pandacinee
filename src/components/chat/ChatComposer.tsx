@@ -544,3 +544,22 @@ function StudioTile({
     </button>
   );
 }
+
+function StudioGroup({ label, children }: { label: string; children: React.ReactNode }) {
+  const count = Array.isArray(children) ? children.length : 1;
+  return (
+    <div className="rounded-2xl overflow-hidden border border-white/[0.06] bg-white/[0.02]">
+      <div className="px-3 pt-1.5 pb-1 flex items-center gap-1.5">
+        <span className="h-px flex-1 bg-gradient-to-r from-transparent to-white/10" />
+        <span className="text-[8px] uppercase tracking-[0.3em] text-candle-muted/70 font-medium">{label}</span>
+        <span className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent" />
+      </div>
+      <div
+        className="grid gap-px bg-white/[0.04]"
+        style={{ gridTemplateColumns: `repeat(${count}, minmax(0, 1fr))` }}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
