@@ -57,6 +57,9 @@ function UnoPage() {
   const [flashId, setFlashId] = useState<string | null>(null);
   const [deckPulse, setDeckPulse] = useState(0);
   const [dealNonce, setDealNonce] = useState(0);
+  const [chat, setChat] = useState<{ id: string; from: UnoPlayer; text: string; at: number }[]>([]);
+  const [chatDraft, setChatDraft] = useState("");
+  const chatScrollRef = useRef<HTMLDivElement | null>(null);
 
   // In partner mode: lower UUID plays "you", partner plays "them".
   const mySeat: UnoPlayer = useMemo(() => {
@@ -64,15 +67,34 @@ function UnoPage() {
     return me.id < partner.id ? "you" : "them";
   }, [mode, me, partner]);
 
+  const stateRef = useRef<UnoState>(state);
+  useEffect(() => { stateRef.current = state; }, [state]);
+
   const chRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   useEffect(() => {
     if (mode !== "partner" || !me || !partner) return;
     const key = [me.id, partner.id].sort().join(":");
+    const isHost = me.id < partner.id;
     const ch = supabase.channel(`uno:${key}`, { config: { broadcast: { self: false } } });
     ch.on("broadcast", { event: "state" }, ({ payload }) => {
       setState(payload as UnoState);
     });
-    ch.subscribe();
+    ch.on("broadcast", { event: "hello" }, () => {
+      // Host answers late-joiner with the authoritative current state.
+      if (isHost) {
+        ch.send({ type: "broadcast", event: "state", payload: stateRef.current });
+      }
+    });
+    ch.on("broadcast", { event: "chat" }, ({ payload }) => {
+      setChat((prev) => [...prev, payload as { id: string; from: UnoPlayer; text: string; at: number }]);
+      sfxReaction();
+    });
+    ch.subscribe((status) => {
+      if (status === "SUBSCRIBED") {
+        // Announce presence — host will echo the current state so both sides match.
+        ch.send({ type: "broadcast", event: "hello", payload: { from: me.id } });
+      }
+    });
     chRef.current = ch;
     return () => { ch.unsubscribe(); chRef.current = null; };
   }, [mode, me, partner]);
@@ -83,6 +105,22 @@ function UnoPage() {
       chRef.current.send({ type: "broadcast", event: "state", payload: next });
     }
   }
+
+  function sendChat() {
+    const text = chatDraft.trim();
+    if (!text) return;
+    const msg = { id: crypto.randomUUID(), from: mySeat, text, at: Date.now() };
+    setChat((prev) => [...prev, msg]);
+    setChatDraft("");
+    if (mode === "partner" && chRef.current) {
+      chRef.current.send({ type: "broadcast", event: "chat", payload: msg });
+    }
+  }
+
+  useEffect(() => {
+    const el = chatScrollRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [chat.length]);
 
   // From the seat's perspective, remap "you"/"them" for display.
   // We store state with fixed "you"/"them" seats. In partner mode `mySeat` decides
