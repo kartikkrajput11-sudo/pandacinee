@@ -656,3 +656,53 @@ function UnoCardVisual({ card, large = false }: { card: UnoCard; activeColor: Un
     </div>
   );
 }
+
+function UnoCallBurst({ fromMe, onDone }: { fromMe: boolean; onDone: () => void }) {
+  useEffect(() => {
+    const t = setTimeout(onDone, 1800);
+    return () => clearTimeout(t);
+  }, [onDone]);
+  return (
+    <div className="fixed inset-0 z-[60] pointer-events-none flex items-center justify-center">
+      <div className="uno-burst-backdrop absolute inset-0" />
+      {/* Radiating color rays */}
+      <div className="uno-burst-rays absolute" />
+      {/* Petal ring */}
+      <div className="uno-burst-ring absolute" />
+      {/* Confetti cards */}
+      {Array.from({ length: 22 }).map((_, i) => {
+        const angle = (i / 22) * Math.PI * 2;
+        const dist = 220 + (i % 4) * 40;
+        const colors = [
+          "oklch(0.62 0.22 25)",
+          "oklch(0.82 0.17 88)",
+          "oklch(0.62 0.17 155)",
+          "oklch(0.60 0.17 250)",
+        ];
+        return (
+          <span
+            key={i}
+            className="uno-burst-chip absolute"
+            style={{
+              background: colors[i % 4],
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              ["--tx" as any]: `${Math.cos(angle) * dist}px`,
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              ["--ty" as any]: `${Math.sin(angle) * dist}px`,
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              ["--tr" as any]: `${(i * 53) % 360}deg`,
+              animationDelay: `${(i % 6) * 60}ms`,
+            }}
+          />
+        );
+      })}
+      {/* The word */}
+      <div className="uno-burst-word relative font-serif italic">
+        <span className="uno-burst-word-inner">UNO!</span>
+        <span className="uno-burst-word-sub block text-center text-[10px] uppercase tracking-[0.4em] mt-2 text-petal">
+          {fromMe ? "You called it" : "They called it"}
+        </span>
+      </div>
+    </div>
+  );
+}
