@@ -94,6 +94,8 @@ export function useWatchSync(
       const others = entries.filter((e) => e.userId !== meId);
       setPartnerOnline(others.length > 0);
       setPeerReady(others.length > 0 && others.every((e) => !!e.ready));
+      const firstOther = others[0];
+      setPeerSourceKind(firstOther?.sourceKind ?? "unknown");
     };
 
     ch
