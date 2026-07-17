@@ -623,7 +623,6 @@ function GroupChoice({
       </span>
       <span className="text-left leading-tight min-w-0">
         <span className="block text-[11px] font-medium text-candle truncate">{label}</span>
-        {hint && <span className="block text-[9px] uppercase tracking-widest text-candle-muted truncate">{hint}</span>}
       </span>
     </button>
   );
