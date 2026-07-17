@@ -64,7 +64,7 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
   const [time, setTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [muted, setMuted] = useState(false);
-  const [volume, setVolume] = useState(1);
+  const [volume, setVolume] = useState(2);
   const [rate, setRate] = useState(1);
   const [rateOpen, setRateOpen] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
@@ -87,7 +87,7 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
       const ctx = new Ctx();
       const src = ctx.createMediaElementSource(v);
       const gain = ctx.createGain();
-      gain.gain.value = 1;
+      gain.gain.value = 2;
       src.connect(gain).connect(ctx.destination);
       audioCtxRef.current = ctx;
       gainNodeRef.current = gain;
@@ -149,6 +149,11 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
   useEffect(() => {
     const v = videoRef.current;
     if (!v || !onReadyRef.current) return;
+    try { v.volume = 1; } catch {}
+    // Boost default output to 200% via Web Audio gain — many movie files
+    // are mastered quietly and browser max is 100% without a gain node.
+    setupGain();
+    try { audioCtxRef.current?.resume(); } catch {}
     onReadyRef.current({
       play: () => {
         setBuffering(true);
