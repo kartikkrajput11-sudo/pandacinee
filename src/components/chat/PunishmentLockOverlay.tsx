@@ -355,7 +355,7 @@ export function PunishmentLockOverlay({
 
 
         {/* Progress rail — champagne */}
-        <div className="mb-4 rounded-2xl border border-white/5 bg-white/[0.02] backdrop-blur-sm px-4 py-3">
+        <div className="mb-4 rounded-2xl border border-border bg-candle/[0.04] backdrop-blur-sm px-4 py-3">
           <div className="flex justify-between items-center text-[10px] uppercase tracking-[0.28em] text-candle-muted mb-2">
             <span>Progress</span>
             <span className="tabular-nums text-candle/85 flex items-center gap-1.5">
