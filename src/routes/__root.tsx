@@ -15,6 +15,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { supabase } from "@/integrations/supabase/client";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import PartnerMessageNotifier from "@/components/PartnerMessageNotifier";
+import OwnersMonthiversary from "@/components/OwnersMonthiversary";
 
 function NotFoundComponent() {
   return (
