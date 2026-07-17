@@ -319,16 +319,16 @@ function UnoPage() {
 
         {/* Wild color picker */}
         {state.awaitingWildFrom === mySeat && (
-          <div className="mb-5 rounded-2xl p-4 border border-petal/40 bg-surface/80 backdrop-blur-xl">
+          <div className="uno-wild-picker mb-5 rounded-2xl p-4 border border-petal/40 bg-surface/80 backdrop-blur-xl">
             <p className="text-[10px] uppercase tracking-widest text-petal mb-2">Declare a color</p>
             <div className="grid grid-cols-4 gap-2">
-              {COLORS.map((c) => (
+              {COLORS.map((c, i) => (
                 <button
                   key={c}
                   type="button"
                   onClick={() => handleColor(c)}
-                  className="aspect-square rounded-xl border border-white/10 hover:scale-105 transition-transform shadow-[0_10px_30px_-10px_rgba(0,0,0,0.7)]"
-                  style={{ background: COLOR_GRAD[c] }}
+                  className="uno-wild-swatch aspect-square rounded-xl border border-white/10 hover:scale-105 transition-transform shadow-[0_10px_30px_-10px_rgba(0,0,0,0.7)]"
+                  style={{ background: COLOR_GRAD[c], animationDelay: `${i * 70}ms` }}
                 />
               ))}
             </div>
