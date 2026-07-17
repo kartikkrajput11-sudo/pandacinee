@@ -26,9 +26,27 @@ const CHAPTERS: Chapter[] = [
     emoji: "🌧️",
   },
   {
+    kicker: "His Story — Part I",
+    title: "A love that kept lying",
+    body: "On the other side of the world, he was loving a girl who was always somewhere else — texting other boys, deleting chats the moment he reached for her phone. He kept choosing to trust; she kept choosing to hide.",
+    emoji: "📱",
+  },
+  {
+    kicker: "His Story — Part II",
+    title: "Betrayed twice in one blow",
+    body: "The truth arrived brutally: she had cheated on him with his own best friend. In one night he lost the girl he defended and the brother he trusted. Two betrayals wearing the same face.",
+    emoji: "🗡️",
+  },
+  {
+    kicker: "His Story — Part III",
+    title: "Alone with his own family's sting",
+    body: "His family — who had warned him — turned their worry into words that cut: 'you chose her over us, and look what she did.' He cried through nights no one heard, and slowly stopped believing anyone up there was still listening.",
+    emoji: "🌧️",
+  },
+  {
     kicker: "To be continued…",
-    title: "And then, softly, he arrived",
-    body: "Somewhere in the middle of all that noise, a different kind of love was walking toward her. (The rest of the story is still being written.)",
+    title: "Two broken people, one quiet fate",
+    body: "She was crying in her nights. He was crying in his. Neither of them knew the universe was already stitching their silences together. (The rest of the story is still being written.)",
     emoji: "🌙",
   },
 ];
