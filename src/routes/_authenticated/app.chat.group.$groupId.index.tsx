@@ -20,7 +20,7 @@ import type { MessageRow } from "@/lib/chat";
 
 const QUICK_REACTIONS = ["❤️", "😂", "🥺", "🔥", "🐼", "👍"];
 
-export const Route = createFileRoute("/_authenticated/app/chat/group/$groupId")({
+export const Route = createFileRoute("/_authenticated/app/chat/group/$groupId/")({
   component: GroupChat,
 });
 
