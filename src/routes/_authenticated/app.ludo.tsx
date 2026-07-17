@@ -259,6 +259,15 @@ function LudoPage() {
         winner={winWho ?? null}
         onDone={() => setDemoWin(null)}
       />
+
+      {mode === "partner" && me && partner && (
+        <GameChat
+          roomKey={`ludo:${[me.id, partner.id].sort().join(":")}`}
+          me={me}
+          partnerName={partner.display_name}
+          title="Ludo table"
+        />
+      )}
     </div>
 
   );
