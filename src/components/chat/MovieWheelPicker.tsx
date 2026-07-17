@@ -131,7 +131,7 @@ export function MovieWheelPicker({ open, onClose, onSend }: Props) {
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full sm:max-w-sm bg-[linear-gradient(180deg,rgba(30,20,35,0.96)_0%,rgba(18,12,22,0.98)_100%)] backdrop-blur-2xl sm:rounded-3xl rounded-t-3xl flex flex-col max-h-[86vh] overflow-hidden shadow-[0_-20px_60px_-20px_rgba(0,0,0,0.7)]"
+        className="relative w-full sm:max-w-sm studio-surface backdrop-blur-2xl sm:rounded-3xl rounded-t-3xl flex flex-col max-h-[86vh] overflow-hidden shadow-[0_-20px_60px_-20px_rgba(0,0,0,0.4)]"
       >
         {/* Champagne hairline */}
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-petal/50 to-transparent" />
