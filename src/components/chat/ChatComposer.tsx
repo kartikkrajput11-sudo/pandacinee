@@ -604,13 +604,13 @@ function StudioTile({
       className={`group relative flex flex-col items-center justify-center gap-1 py-2.5 px-1 transition-all duration-200 active:scale-[0.96] ${
         accent
           ? "bg-gradient-to-b from-petal/[0.14] to-petal/[0.02] hover:from-petal/25 hover:to-petal/[0.06]"
-          : "bg-white/[0.015] hover:bg-white/[0.06]"
+          : "bg-candle/[0.02] hover:bg-candle/[0.08]"
       } ${glow ? "shadow-[inset_0_0_18px_-8px_rgba(236,72,153,0.5)]" : ""}`}
     >
       <span className={`flex items-center justify-center transition-transform duration-200 group-hover:-translate-y-0.5 ${accent ? "text-petal" : "text-candle/80 group-hover:text-petal"}`}>
         {icon}
       </span>
-      <span className="text-[9px] tracking-[0.08em] text-candle/85 uppercase font-medium leading-none">
+      <span className="text-[9px] tracking-[0.08em] text-candle uppercase font-semibold leading-none">
         {label}
       </span>
     </button>
