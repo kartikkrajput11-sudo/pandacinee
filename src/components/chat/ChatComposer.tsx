@@ -400,7 +400,7 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
             <p className="text-[8px] uppercase tracking-[0.32em] text-candle-muted/70 font-medium text-center mb-2">
               Studio
             </p>
-            <div className="grid grid-cols-4 gap-px rounded-2xl overflow-hidden border border-white/[0.06] bg-white/[0.04]">
+            <div className="grid grid-cols-4 gap-px rounded-2xl overflow-hidden border border-candle/10 bg-candle/[0.04]">
               <StudioTile
                 icon={<ImageIcon className="size-4" />}
                 label="Media"
