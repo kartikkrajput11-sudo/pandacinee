@@ -54,10 +54,14 @@ export function useWatchSync(
   const [incomingSeek, setIncomingSeek] = useState<{ time: number; startAt?: number } | null>(null);
   const [incomingReaction, setIncomingReaction] = useState<{ id: number; emoji: string } | null>(null);
   const [drift, setDrift] = useState(0);
+  const [myReady, setMyReadyState] = useState(false);
+  const [peerReady, setPeerReady] = useState(false);
+  const [peerPreparing, setPeerPreparing] = useState<{ time: number; ts: number } | null>(null);
 
   const mineRef = useRef<Mine>(emptyMine());
   const channelRef = useRef<RealtimeChannel | null>(null);
   const joinedAtRef = useRef<number>(0);
+  const myReadyRef = useRef(false);
 
   // Deterministic channel name from sorted user IDs + room, so only the couple share it.
   const channelName = useMemo(() => {
