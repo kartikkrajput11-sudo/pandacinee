@@ -126,7 +126,7 @@ function AdminPage() {
   return <AdminDashboard />;
 }
 
-type Tab = "overview" | "activity" | "users" | "library";
+type Tab = "overview" | "activity" | "users" | "library" | "animations";
 
 function AdminDashboard() {
   const [tab, setTab] = useState<Tab>("overview");
@@ -149,6 +149,7 @@ function AdminDashboard() {
           ["activity", ActivityIcon, "Activity"],
           ["users", Users, "Users"],
           ["library", Film, "Library"],
+          ["animations", Wand2, "Animations"],
         ] as const).map(([k, Icon, label]) => {
           const active = tab === k;
           return (
@@ -172,6 +173,7 @@ function AdminDashboard() {
       {tab === "activity" && <ActivityTab />}
       {tab === "users" && <UsersTab />}
       {tab === "library" && <LibraryTab />}
+      {tab === "animations" && <AnimationsTab />}
     </div>
   );
 }
