@@ -181,9 +181,25 @@ function AuthPage() {
               required
               minLength={6}
             />
+            {mode === "signup" && (
+              <label className="flex items-start gap-2.5 pt-1 text-[11px] leading-snug text-candle-muted select-none cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={acceptedTerms}
+                  onChange={(e) => setAcceptedTerms(e.target.checked)}
+                  className="mt-0.5 h-3.5 w-3.5 accent-petal shrink-0"
+                />
+                <span>
+                  I agree to PANDACINE's{" "}
+                  <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-petal hover:underline">Terms &amp; Conditions</a>
+                  {" "}and{" "}
+                  <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-petal hover:underline">Privacy Policy</a>.
+                </span>
+              </label>
+            )}
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || (mode === "signup" && !acceptedTerms)}
               className="w-full py-3.5 bg-petal text-velvet rounded-full font-semibold text-sm petal-glow hover:brightness-110 transition-all disabled:opacity-50"
             >
               {loading
@@ -192,6 +208,7 @@ function AuthPage() {
                   ? "Sign in"
                   : "Create my PANDACINE"}
             </button>
+
             {mode === "signin" && (
               <button
                 type="button"
