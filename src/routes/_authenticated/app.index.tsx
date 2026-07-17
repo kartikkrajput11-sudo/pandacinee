@@ -9,6 +9,8 @@ import { PartnerPresenceCard } from "@/components/PartnerPresenceCard";
 import { MemoryOfTheDayCard } from "@/components/MemoryOfTheDayCard";
 import { Heart, ArrowRight, Users, LineChart, Clapperboard, BookHeart, Gift, Feather, Sparkles, Stars, Milestone, ListChecks } from "lucide-react";
 import { AvatarImg } from "@/components/AvatarImg";
+import NotificationCenter from "@/components/NotificationCenter";
+
 
 export const Route = createFileRoute("/_authenticated/app/")({
   component: Home,
@@ -39,7 +41,11 @@ function Home() {
             </p>
           )}
         </div>
-        <Avatar profile={profile} />
+        <div className="flex items-center gap-3">
+          <NotificationCenter />
+          <Avatar profile={profile} />
+        </div>
+
       </header>
 
       {/* Invite banner (no partner) */}
