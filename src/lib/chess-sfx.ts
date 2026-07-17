@@ -1,24 +1,7 @@
 // Web Audio-based chess sound effects. No audio assets shipped.
 // All sounds are synthesized on demand; each call is self-contained
 // (no shared graph) so overlapping sounds mix cleanly.
-import thunderRumble from "@/assets/chess/thunder-rumble.mp3.asset.json";
-import thunderCrack from "@/assets/chess/thunder-crack.mp3.asset.json";
-import swordSlash from "@/assets/chess/sword-slash.mp3.asset.json";
-import rainLoop from "@/assets/chess/rain-loop.mp3.asset.json";
 
-function playSample(url: string, { delay = 0, volume = 1, muted = false }: { delay?: number; volume?: number; muted?: boolean } = {}) {
-  if (muted || typeof window === "undefined") return;
-  const start = () => {
-    try {
-      const a = new Audio(url);
-      a.volume = Math.min(1, Math.max(0, volume));
-      a.preload = "auto";
-      void a.play().catch(() => { /* autoplay guard */ });
-    } catch { /* ignore */ }
-  };
-  if (delay > 0) window.setTimeout(start, delay * 1000);
-  else start();
-}
 
 // All sounds are synthesized on demand; each call is self-contained
 // (no shared graph) so overlapping sounds mix cleanly.
