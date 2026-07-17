@@ -551,7 +551,7 @@ function CatalogWatch({ id }: { id: string }) {
       const baseRate = (typeof peer.playbackRate === "number" && peer.playbackRate > 0) ? peer.playbackRate : 1;
       // Latency compensation: peer.currentTime is timestamped at peer.updatedAt.
       // If the host is playing, advance it by the elapsed wall-clock.
-      const hostPlaying = evt !== "pause" && evt !== "ended";
+      const hostPlaying = evt !== "pause";
       const elapsed = hostPlaying ? Math.max(0, (Date.now() - peer.updatedAt) / 1000) * baseRate : 0;
       const targetTime = peer.currentTime + elapsed;
       const drift = h.currentTime() - targetTime; // positive => follower ahead
