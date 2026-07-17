@@ -179,6 +179,17 @@ const SCENES: Scene[] = [
       { x: 68, y: 28, w: 14, h: 12, tone: "gold",  label: "Lantern" },
       { x: 82, y: 56, w: 10, h: 14, tone: "stone", label: "Gate" },
       { x: 14, y: 18, w: 14, h: 12, tone: "cloth", label: "Cobwebs" },
+      // decoys
+      { x: 30, y: 62, w: 12, h: 12, tone: "wood",  label: "Cask" },
+      { x: 68, y: 62, w: 12, h: 12, tone: "wood",  label: "Cask" },
+      { x: 60, y: 34, w: 6,  h: 12, tone: "wood",  label: "Rack" },
+      { x: 82, y: 34, w: 8,  h: 12, tone: "wood",  label: "Rack" },
+      { x: 30, y: 18, w: 12, h: 10, tone: "cloth", label: "Sack" },
+      { x: 52, y: 18, w: 12, h: 10, tone: "stone", label: "Altar" },
+      { x: 8,  y: 84, w: 14, h: 8,  tone: "wood",  label: "Pallet" },
+      { x: 36, y: 84, w: 12, h: 8,  tone: "wood",  label: "Pallet" },
+      { x: 68, y: 84, w: 14, h: 8,  tone: "cloth", label: "Rug" },
+      { x: 88, y: 84, w: 6,  h: 8,  tone: "gold",  label: "Torch" },
     ],
     spots: [
       { emoji: "🛢️", name: "Oak Barrel",     x: 17, y: 69 },
