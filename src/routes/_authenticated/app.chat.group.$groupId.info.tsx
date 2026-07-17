@@ -57,7 +57,8 @@ function GroupInfo() {
 
   if (!group) return <div className="p-6 text-candle-muted">Loading…</div>;
 
-  async function toggleAdmin_placeholder() {} // removed helpers below still use setRole
+
+
 
 
   async function toggleAdmin(userId: string, currentRole: "admin" | "member") {
