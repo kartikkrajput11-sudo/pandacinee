@@ -267,17 +267,18 @@ function UnoPage() {
           <div className="relative flex items-center justify-center gap-4">
             {/* Deck */}
             <button
+              key={`deck-${deckPulse}`}
               type="button"
               onClick={handleDraw}
               disabled={!isMyTurn || !!state.awaitingWildFrom}
-              className="relative w-20 h-28 rounded-xl border border-petal/40 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.7)] disabled:opacity-50 transition-transform hover:-translate-y-1 active:translate-y-0"
+              className="uno-deck-draw relative w-20 h-28 rounded-xl border border-petal/40 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.7)] disabled:opacity-50 transition-transform hover:-translate-y-1 active:translate-y-0"
               style={{ background: "linear-gradient(135deg, oklch(0.22 0.06 340), oklch(0.12 0.04 340))" }}
             >
               <div className="absolute inset-1 rounded-lg border border-petal/30 flex items-center justify-center">
                 <span className="font-serif italic text-petal text-lg">Uno</span>
               </div>
               {state.pendingDraw > 0 && (
-                <span className="absolute -top-2 -right-2 bg-petal text-velvet text-[10px] font-bold px-2 py-0.5 rounded-full shadow-lg">
+                <span className="uno-pending-badge absolute -top-2 -right-2 bg-petal text-velvet text-[10px] font-bold px-2 py-0.5 rounded-full shadow-lg">
                   +{state.pendingDraw}
                 </span>
               )}
@@ -285,7 +286,9 @@ function UnoPage() {
 
             {/* Discard top */}
             <div className="relative">
-              <UnoCardVisual card={topCard} activeColor={state.activeColor} large />
+              <div key={topCard.id} className="uno-discard">
+                <UnoCardVisual card={topCard} activeColor={state.activeColor} large />
+              </div>
               <div
                 className="absolute -inset-3 rounded-2xl pointer-events-none"
                 style={{
@@ -300,7 +303,8 @@ function UnoPage() {
             <div className="flex flex-col items-center gap-1">
               <span className="text-[9px] uppercase tracking-widest text-candle-muted">Color</span>
               <div
-                className="w-8 h-8 rounded-full border border-white/20 shadow-[0_10px_20px_-10px_rgba(0,0,0,0.7)]"
+                key={`chip-${state.activeColor}`}
+                className="uno-color-chip w-8 h-8 rounded-full border border-white/20 shadow-[0_10px_20px_-10px_rgba(0,0,0,0.7)]"
                 style={{ background: COLOR_SWATCH[state.activeColor] }}
               />
             </div>
