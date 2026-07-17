@@ -365,11 +365,12 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
           <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-petal/50 to-transparent" />
           <div className="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 w-72 h-24 rounded-full bg-petal/10 blur-3xl" />
 
-          <div className="relative px-3 pt-2.5 pb-3">
-            <p className="text-[8px] uppercase tracking-[0.32em] text-candle-muted/70 font-medium text-center mb-2">
+          <div className="relative px-3 pt-2.5 pb-3 space-y-2">
+            <p className="text-[8px] uppercase tracking-[0.32em] text-candle-muted/70 font-medium text-center">
               Studio
             </p>
-            <div className="grid grid-cols-6 gap-px rounded-2xl overflow-hidden border border-white/[0.06] bg-white/[0.03]">
+
+            <StudioGroup label="Media">
               <StudioTile icon={<ImageIcon className="size-4" />} label="Photo" onClick={() => imgRef.current?.click()} />
               <StudioTile icon={<VideoIcon className="size-4" />} label="Video" onClick={() => vidRef.current?.click()} />
               <StudioTile
@@ -384,15 +385,24 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
                 glow={viewOnce}
               />
               <StudioTile icon={<Paperclip className="size-4" />} label="File" onClick={() => fileRef.current?.click()} />
-              <StudioTile icon={<span className="text-base leading-none">🐼</span>} label="Panda" onClick={() => { setPandaOpen(true); setMenuOpen(false); }} accent />
+            </StudioGroup>
+
+            <StudioGroup label="Stickers">
               <StudioTile icon={<Sparkles className="size-4" />} label="AI" onClick={() => { setAiOpen(true); setMenuOpen(false); }} accent glow />
+              <StudioTile icon={<span className="text-base leading-none">🐼</span>} label="Panda" onClick={() => { setPandaOpen(true); setMenuOpen(false); }} accent />
+            </StudioGroup>
+
+            <StudioGroup label="Together">
               <StudioTile icon={<Film className="size-4" />} label="Watch" onClick={() => { setWatchPickerOpen(true); setMenuOpen(false); }} accent />
               <StudioTile icon={<Gamepad2 className="size-4" />} label="Game" onClick={() => { setGamePickerOpen(true); setMenuOpen(false); }} accent />
               <StudioTile icon={<Disc3 className="size-4" />} label="Wheel" onClick={() => { setWheelOpen(true); setMenuOpen(false); }} accent />
+            </StudioGroup>
+
+            <StudioGroup label="Affection">
               <StudioTile icon={<Heart className="size-4 fill-current" />} label="Kiss" onClick={sendKiss} accent glow />
               <StudioTile icon={<HeartHandshake className="size-4" />} label="Hug" onClick={sendHug} accent glow />
               <StudioTile icon={<Zap className="size-4" />} label="Nudge" onClick={sendNudge} />
-            </div>
+            </StudioGroup>
           </div>
         </div>
       )}
