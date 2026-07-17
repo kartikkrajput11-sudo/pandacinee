@@ -1014,7 +1014,7 @@ function CatalogWatch({ id }: { id: string }) {
                     setPlayerLoading(false);
                     setReady(true);
                   }}
-                  onLoadIssue={fallbackFromPandacine}
+                  
                   onEvent={(evt) => {
                     if (suppressPlayerEventRef.current) return;
                     const now = Date.now();
