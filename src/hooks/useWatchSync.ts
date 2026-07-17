@@ -28,7 +28,8 @@ export type Mine = {
   episode: number | null;
 };
 
-type PresenceMeta = { userId: string; joinedAt: number; ready?: boolean };
+type SourceKind = "pandacine" | "iframe" | "unknown";
+type PresenceMeta = { userId: string; joinedAt: number; ready?: boolean; sourceKind?: SourceKind };
 
 const emptyMine = (): Mine => ({
   currentTime: 0,
@@ -56,12 +57,14 @@ export function useWatchSync(
   const [drift, setDrift] = useState(0);
   const [myReady, setMyReadyState] = useState(false);
   const [peerReady, setPeerReady] = useState(false);
+  const [peerSourceKind, setPeerSourceKind] = useState<SourceKind>("unknown");
   const [peerPreparing, setPeerPreparing] = useState<{ time: number; ts: number } | null>(null);
 
   const mineRef = useRef<Mine>(emptyMine());
   const channelRef = useRef<RealtimeChannel | null>(null);
   const joinedAtRef = useRef<number>(0);
   const myReadyRef = useRef(false);
+  const mySourceKindRef = useRef<SourceKind>("unknown");
 
   // Deterministic channel name from sorted user IDs + room, so only the couple share it.
   const channelName = useMemo(() => {
@@ -91,6 +94,8 @@ export function useWatchSync(
       const others = entries.filter((e) => e.userId !== meId);
       setPartnerOnline(others.length > 0);
       setPeerReady(others.length > 0 && others.every((e) => !!e.ready));
+      const firstOther = others[0];
+      setPeerSourceKind(firstOther?.sourceKind ?? "unknown");
     };
 
     ch
@@ -142,7 +147,7 @@ export function useWatchSync(
       })
       .subscribe(async (status) => {
         if (status === "SUBSCRIBED") {
-          await ch.track({ userId: meId, joinedAt: joinedAtRef.current, ready: myReadyRef.current });
+          await ch.track({ userId: meId, joinedAt: joinedAtRef.current, ready: myReadyRef.current, sourceKind: mySourceKindRef.current });
         }
       });
 
@@ -154,8 +159,10 @@ export function useWatchSync(
       setPartnerOnline(false);
       setHostId(null);
       setPeerReady(false);
+      setPeerSourceKind("unknown");
       setPeerPreparing(null);
       myReadyRef.current = false;
+      mySourceKindRef.current = "unknown";
       setMyReadyState(false);
     };
   }, [channelName, meId]);
@@ -165,7 +172,14 @@ export function useWatchSync(
     setMyReadyState(ready);
     const ch = channelRef.current;
     if (!ch || !meId) return;
-    ch.track({ userId: meId, joinedAt: joinedAtRef.current, ready }).catch(() => {});
+    ch.track({ userId: meId, joinedAt: joinedAtRef.current, ready, sourceKind: mySourceKindRef.current }).catch(() => {});
+  }, [meId]);
+
+  const setSourceKind = useCallback((kind: SourceKind) => {
+    mySourceKindRef.current = kind;
+    const ch = channelRef.current;
+    if (!ch || !meId) return;
+    ch.track({ userId: meId, joinedAt: joinedAtRef.current, ready: myReadyRef.current, sourceKind: kind }).catch(() => {});
   }, [meId]);
 
   const sendPrepare = useCallback((time: number) => {
@@ -247,5 +261,7 @@ export function useWatchSync(
     sendPrepare,
     peerPreparing,
     clearPeerPreparing,
+    peerSourceKind,
+    setSourceKind,
   };
 }

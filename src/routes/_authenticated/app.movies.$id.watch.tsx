@@ -194,6 +194,8 @@ function CatalogWatch({ id }: { id: string }) {
     sendPrepare,
     peerPreparing,
     clearPeerPreparing,
+    peerSourceKind,
+    setSourceKind,
   } = useWatchSync(me?.id ?? null, partner?.id ?? null, syncRoomId, isTv ? "tv" : "movie");
 
 
@@ -519,9 +521,11 @@ function CatalogWatch({ id }: { id: string }) {
     if (typeof peer.episode === "number" && peer.episode !== episode) setEpisode(peer.episode);
   }, [partnerIsHost, peer, isTv, season, episode]);
 
-  // Follower auto-sync: when partner is host, mirror their play/pause/seek
+  // Follower auto-sync: when partner is host, mirror their play/pause/seek.
+  // Only runs when BOTH partners loaded the movie from storage (Pandacine).
   useEffect(() => {
     if (!peer || !partnerIsHost || !me) return;
+    if (!isPandacine || peerSourceKind !== "pandacine") return;
     if (peer.updatedAt <= lastAppliedPeerEventRef.current) return;
     const evt = peer.event;
     // Only react to discrete transport events
@@ -598,7 +602,7 @@ function CatalogWatch({ id }: { id: string }) {
       applySeek(peer.currentTime, { pause: false });
       if (evt === "seeked") toast.info(`${partner?.display_name.split(" ")[0]} skipped`);
     }
-  }, [peer, partnerIsHost, me, mine.currentTime, applySeek, partner, isPandacine, started, customPlayerReady, runSuppressedPlayerAction]);
+  }, [peer, partnerIsHost, me, mine.currentTime, applySeek, partner, isPandacine, peerSourceKind, started, customPlayerReady, runSuppressedPlayerAction]);
 
   // When the custom player mounts after an auto-join, mute + seek + play.
   useEffect(() => {
@@ -614,8 +618,20 @@ function CatalogWatch({ id }: { id: string }) {
     }, 800);
   }, [customPlayerReady, runSuppressedPlayerAction]);
 
+  // -------- Storage-only sync gate --------
+  // Real-time sync (seek, play/pause, drift) is only enabled when BOTH partners
+  // have loaded the movie from Lovable Cloud storage (Pandacine source).
+  // If either side is on a 3rd-party iframe, we can't reliably control it.
+  const bothOnPandacine = isPandacine && peerSourceKind === "pandacine";
+
+  // Announce our current source kind to the partner via presence.
+  useEffect(() => {
+    if (!currentSource) { setSourceKind("unknown"); return; }
+    setSourceKind(isPandacine ? "pandacine" : "iframe");
+  }, [isPandacine, currentSource, setSourceKind]);
+
   // -------- Ready-check gate (both partners must load before host can start) --------
-  const gateActive = !!partner && partnerOnline && isPandacine;
+  const gateActive = !!partner && partnerOnline && bothOnPandacine;
   const bothReady = myReady && peerReady;
 
   // Reset my ready flag whenever we swap streams (source/episode change).
@@ -1124,6 +1140,13 @@ function CatalogWatch({ id }: { id: string }) {
                     {partnerFirst} {peerReady ? "ready" : "loading…"}
                   </span>
                 </div>
+              </div>
+            )}
+
+            {/* Partner online but not on the storage source — sync is disabled */}
+            {started && !!partner && partnerOnline && isPandacine && peerSourceKind !== "pandacine" && peerSourceKind !== "unknown" && (
+              <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20 rounded-full bg-velvet/85 border border-petal/30 px-3 py-1.5 text-[10px] uppercase tracking-[0.3em] text-petal backdrop-blur-md">
+                Waiting for {partnerFirst} to load the movie…
               </div>
             )}
 
