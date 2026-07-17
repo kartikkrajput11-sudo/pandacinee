@@ -59,6 +59,18 @@ export const Route = createFileRoute("/lovable/email/transactional/send")({
           return Response.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
+        // Restrict sending to admins only — prevents any signed-in user from
+        // using our verified domain to send branded emails to arbitrary
+        // recipients with attacker-chosen subject/body.
+        const { data: adminRow, error: adminErr } = await supabase
+          .from('profiles')
+          .select('is_admin')
+          .eq('id', user.id)
+          .maybeSingle()
+        if (adminErr || !adminRow?.is_admin) {
+          return Response.json({ error: 'Forbidden' }, { status: 403 })
+        }
+
         // Parse request body
         let templateName: string
         let recipientEmail: string
