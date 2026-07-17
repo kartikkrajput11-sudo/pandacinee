@@ -185,7 +185,7 @@ function ConstellationRoute() {
 
       <div className="relative z-10 pt-10 px-5 pb-24">
         <header className="flex items-center gap-3 mb-6">
-          <Link to="/app" className="text-white/60">
+          <Link to="/app" className="text-white/80">
             <ArrowLeft className="size-5" />
           </Link>
           <div className="flex-1">
@@ -215,7 +215,7 @@ function ConstellationRoute() {
         </header>
 
         {!partner ? (
-          <div className="p-5 rounded-3xl border border-white/10 bg-white/5">
+          <div className="p-5 rounded-3xl border border-white/20 bg-white/[0.07]">
             <p className="text-sm text-white/80">
               Pair with your partner to build the sky together.{" "}
               <Link to="/app/invite" className="text-[#c9a84c] underline">
@@ -228,26 +228,26 @@ function ConstellationRoute() {
             <ConstellationCanvas stars={stars} onSelect={setSelected} />
 
             {stars.length === 0 && (
-              <div className="mt-6 p-5 rounded-2xl border border-white/10 text-white/70 text-sm text-center">
+              <div className="mt-6 p-5 rounded-2xl border border-white/20 text-white/85 text-sm text-center">
                 Your sky is dark. Every anniversary, memory, and moment you save adds a star.
               </div>
             )}
 
             <div className="mt-8 space-y-2">
-              <p className="text-[10px] uppercase tracking-[0.25em] text-white/50 mb-2">Recent stars</p>
+              <p className="text-[10px] uppercase tracking-[0.25em] text-white/75 mb-2">Recent stars</p>
               {stars.slice(0, 8).map((s) => (
                 <button
                   key={s.id}
                   onClick={() => setSelected(s)}
-                  className="w-full flex items-center gap-3 p-3 rounded-2xl bg-white/5 border border-white/10 hover:border-[#c9a84c]/50 transition-colors text-left"
+                  className="w-full flex items-center gap-3 p-3 rounded-2xl bg-white/[0.07] border border-white/20 hover:border-[#c9a84c]/50 transition-colors text-left"
                 >
                   <span className="text-xl w-8 text-center">{s.glyph}</span>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-white/90 truncate">{s.title}</p>
-                    <p className="text-[10px] text-white/40">
+                    <p className="text-[10px] text-white/85">
                       {new Date(s.date).toLocaleDateString([], { dateStyle: "medium" })} ·{" "}
                       <span className="text-[#c9a84c]/70 uppercase tracking-widest">{s.origin}</span>
-                      {s.author && <> · <span className="text-white/60 normal-case tracking-normal">{s.author}</span></>}
+                      {s.author && <> · <span className="text-white/80 normal-case tracking-normal">{s.author}</span></>}
                       {s.isAi && <> · <span className="text-[#c9a84c]/80 uppercase tracking-widest">auto</span></>}
                     </p>
                   </div>
@@ -315,7 +315,7 @@ function ConstellationCanvas({ stars, onSelect }: { stars: Star[]; onSelect: (s:
   }, [stars]);
 
   return (
-    <div className="relative w-full aspect-[4/5] rounded-3xl border border-white/10 bg-gradient-to-b from-[#0a0f2a] to-[#050716] overflow-hidden">
+    <div className="relative w-full aspect-[4/5] rounded-3xl border border-white/20 bg-gradient-to-b from-[#0a0f2a] to-[#050716] overflow-hidden">
       <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 w-full h-full">
         <defs>
           <linearGradient id="linegrad" x1="0" y1="0" x2="1" y2="1">
@@ -365,10 +365,10 @@ function StarSheet({ star, onClose }: { star: Star; onClose: () => void }) {
     <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center animate-fade-in" onClick={onClose}>
       <div
         onClick={(e) => e.stopPropagation()}
-        className="w-full sm:max-w-md bg-[#0a0f2a] border border-white/10 rounded-t-3xl sm:rounded-3xl p-6 animate-scale-in"
+        className="w-full sm:max-w-md bg-[#0a0f2a] border border-white/20 rounded-t-3xl sm:rounded-3xl p-6 animate-scale-in"
       >
         <div className="flex items-start gap-4 mb-4">
-          <div className="size-14 rounded-2xl bg-white/5 border border-[#c9a84c]/30 flex items-center justify-center text-2xl">
+          <div className="size-14 rounded-2xl bg-white/[0.07] border border-[#c9a84c]/30 flex items-center justify-center text-2xl">
             {star.glyph}
           </div>
           <div className="flex-1 min-w-0">
@@ -384,24 +384,24 @@ function StarSheet({ star, onClose }: { star: Star; onClose: () => void }) {
                       : "Pinned"}
             </p>
             <h2 className="font-serif italic text-2xl text-white leading-tight">{star.title}</h2>
-            <p className="text-xs text-white/50 mt-1">{new Date(star.date).toLocaleDateString([], { dateStyle: "long" })}</p>
+            <p className="text-xs text-white/75 mt-1">{new Date(star.date).toLocaleDateString([], { dateStyle: "long" })}</p>
           </div>
-          <button onClick={onClose} className="text-white/60">
+          <button onClick={onClose} className="text-white/80">
             <X className="size-4" />
           </button>
         </div>
         {star.detail && (
           <p className="text-white/80 text-sm leading-relaxed font-serif italic">{star.detail}</p>
         )}
-        <div className="mt-4 pt-3 border-t border-white/10 flex items-center gap-2 text-[11px]">
+        <div className="mt-4 pt-3 border-t border-white/20 flex items-center gap-2 text-[11px]">
           {star.isAi ? (
             <span className="inline-flex items-center gap-1 text-[#c9a84c]/90">
               <Sparkles className="size-3" /> Auto-discovered by the app
             </span>
           ) : star.author ? (
-            <span className="text-white/60">Written by <span className="text-white/90">{star.author}</span></span>
+            <span className="text-white/80">Written by <span className="text-white/90">{star.author}</span></span>
           ) : (
-            <span className="text-white/40">From your shared timeline</span>
+            <span className="text-white/85">From your shared timeline</span>
           )}
         </div>
       </div>
@@ -455,12 +455,12 @@ function NoteComposer({
     <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center animate-fade-in" onClick={onClose}>
       <div
         onClick={(e) => e.stopPropagation()}
-        className="w-full sm:max-w-md bg-[#0a0f2a] border border-white/10 rounded-t-3xl sm:rounded-3xl p-5 animate-scale-in"
+        className="w-full sm:max-w-md bg-[#0a0f2a] border border-white/20 rounded-t-3xl sm:rounded-3xl p-5 animate-scale-in"
       >
         <div className="flex items-center gap-2 mb-4">
           <Sparkles className="size-4 text-[#c9a84c]" />
           <p className="font-serif italic text-xl text-white">Pin a star</p>
-          <button onClick={onClose} className="ml-auto text-white/60">
+          <button onClick={onClose} className="ml-auto text-white/80">
             <X className="size-4" />
           </button>
         </div>
@@ -468,28 +468,28 @@ function NoteComposer({
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="What happened?"
-          className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-white placeholder:text-white/40 mb-3"
+          className="w-full bg-white/[0.07] border border-white/20 rounded-xl px-3 py-2.5 text-white placeholder:text-white/85 mb-3"
         />
         <textarea
           value={note}
           onChange={(e) => setNote(e.target.value)}
           rows={3}
           placeholder="A line about it…"
-          className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-white placeholder:text-white/40 mb-3 resize-none"
+          className="w-full bg-white/[0.07] border border-white/20 rounded-xl px-3 py-2.5 text-white placeholder:text-white/85 mb-3 resize-none"
         />
         <input
           type="date"
           value={occurredAt}
           onChange={(e) => setOccurredAt(e.target.value)}
           max={new Date().toISOString().slice(0, 10)}
-          className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-white mb-3"
+          className="w-full bg-white/[0.07] border border-white/20 rounded-xl px-3 py-2.5 text-white mb-3"
         />
         <div className="flex flex-wrap gap-2 mb-4">
           {GLYPHS.map((g) => (
             <button
               key={g}
               onClick={() => setGlyph(g)}
-              className={`size-9 rounded-xl text-lg flex items-center justify-center border ${glyph === g ? "border-[#c9a84c] bg-[#c9a84c]/15" : "border-white/10 bg-white/5"}`}
+              className={`size-9 rounded-xl text-lg flex items-center justify-center border ${glyph === g ? "border-[#c9a84c] bg-[#c9a84c]/15" : "border-white/20 bg-white/[0.07]"}`}
             >
               {g}
             </button>
