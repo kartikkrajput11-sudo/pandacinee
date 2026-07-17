@@ -152,6 +152,7 @@ function RootComponent() {
       <ThemeProvider>
         <Outlet />
         <PartnerMessageNotifier />
+        <OwnersMonthiversary />
         <Toaster
           theme="dark"
           position="top-center"
