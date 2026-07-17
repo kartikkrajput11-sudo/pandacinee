@@ -8,28 +8,28 @@ type Chapter = { kicker: string; title: string; body: string; emoji?: string };
 
 const CHAPTERS: Chapter[] = [
   {
-    kicker: "Chapter One",
-    title: "Before the beginning",
-    body: "Two worlds moving in parallel, neither knowing the other was already writing them into the same page.",
+    kicker: "Her Story — Part I",
+    title: "A love that gave too much",
+    body: "Before him, there was a boy she loved with everything she had. He cheated, and she forgave. He cheated again, and she still chose him over herself. Love, for her, meant staying — even when staying hurt.",
+    emoji: "🥀",
+  },
+  {
+    kicker: "Her Story — Part II",
+    title: "The classroom that broke her",
+    body: "The lies grew louder until she walked into her own classroom and saw him with another girl. Something inside her cracked that day. She finally said the word she never thought she could say: enough.",
+    emoji: "💔",
+  },
+  {
+    kicker: "Her Story — Part III",
+    title: "Broken, but still soft",
+    body: "She left him, but her heart didn't know how to stop loving. He moved on — publicly — yet still stalked her shadow, controlled her silence, and turned her nights into long, quiet oceans of crying.",
+    emoji: "🌧️",
+  },
+  {
+    kicker: "To be continued…",
+    title: "And then, softly, he arrived",
+    body: "Somewhere in the middle of all that noise, a different kind of love was walking toward her. (The rest of the story is still being written.)",
     emoji: "🌙",
-  },
-  {
-    kicker: "Chapter Two",
-    title: "The first hello",
-    body: "A moment small enough to miss, big enough to change everything. Words spoken like they'd been rehearsed in a dream.",
-    emoji: "💌",
-  },
-  {
-    kicker: "Chapter Three",
-    title: "The slow spark",
-    body: "Late nights, longer conversations, laughter that outlasted the battery on the phone.",
-    emoji: "✨",
-  },
-  {
-    kicker: "Chapter Four",
-    title: "The 18th",
-    body: "The day the universe stopped pretending. From then on, every 18th belongs to them.",
-    emoji: "🌹",
   },
 ];
 
