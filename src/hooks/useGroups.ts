@@ -11,6 +11,7 @@ export type GroupRow = {
   created_at: string;
   updated_at: string;
   theme: string;
+  background_url: string | null;
 };
 
 export type GroupMemberProfile = {

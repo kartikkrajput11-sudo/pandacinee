@@ -25,11 +25,13 @@ export function useUpdateGroup() {
       name?: string;
       avatar_url?: string | null;
       theme?: GroupTheme;
+      background_url?: string | null;
     }) => {
-      const patch: { name?: string; avatar_url?: string | null; theme?: string } = {};
+      const patch: { name?: string; avatar_url?: string | null; theme?: string; background_url?: string | null } = {};
       if (input.name !== undefined) patch.name = input.name.trim();
       if (input.avatar_url !== undefined) patch.avatar_url = input.avatar_url;
       if (input.theme !== undefined) patch.theme = input.theme;
+      if (input.background_url !== undefined) patch.background_url = input.background_url;
       const { error } = await supabase.from("chat_groups").update(patch).eq("id", input.groupId);
       if (error) throw error;
     },
