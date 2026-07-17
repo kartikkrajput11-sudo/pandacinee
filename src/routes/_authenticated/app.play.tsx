@@ -2,6 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { GAMES, GAME_KINDS, type GameKind } from "@/lib/games";
 import { useProfile } from "@/hooks/useProfile";
+import { useGamePresence } from "@/hooks/useGamePresence";
+import { AvatarImg } from "@/components/AvatarImg";
 import pandaPaint from "@/assets/pandas/panda-paint.png";
 import pandaChess from "@/assets/pandas/panda-chess.png";
 import pandaLudo from "@/assets/pandas/panda-ludo.png";
@@ -47,6 +49,7 @@ export const Route = createFileRoute("/_authenticated/app/play")({
 function Play() {
   const { data } = useProfile();
   const partner = data?.partner;
+  const partnerGame = useGamePresence(data?.profile?.id, partner?.id, { subscribe: true });
 
   return (
     <div className="pt-10 px-5">
@@ -74,8 +77,9 @@ function Play() {
         {GAME_KINDS.map((kind) => {
           const g = GAMES[kind];
           const sticker = PANDA_STICKERS[kind];
+          const partnerHere = partner && partnerGame === kind;
           const cardCls =
-            "aspect-square p-4 bg-surface rounded-3xl border border-border flex flex-col justify-between hover:border-petal/40 transition-colors relative overflow-hidden";
+            `aspect-square p-4 bg-surface rounded-3xl border ${partnerHere ? "border-petal ring-2 ring-petal/40 shadow-[0_0_24px_-6px_rgba(236,72,153,0.5)]" : "border-border"} flex flex-col justify-between hover:border-petal/40 transition-colors relative overflow-hidden`;
           const inner = (
             <>
               {sticker ? (
@@ -96,6 +100,21 @@ function Play() {
                 <span className="absolute top-2 right-2 text-[9px] uppercase tracking-widest bg-petal-soft text-petal px-2 py-0.5 rounded-full">
                   Soon
                 </span>
+              )}
+              {partnerHere && (
+                <div className="absolute top-2 right-2 flex items-center gap-1.5 rounded-full bg-velvet/80 backdrop-blur border border-petal/50 pl-1 pr-2 py-0.5 shadow-lg animate-pulse">
+                  <span className="relative inline-block size-5 rounded-full overflow-hidden ring-1 ring-petal/70">
+                    {partner?.avatar_url ? (
+                      <AvatarImg src={partner.avatar_url} className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="w-full h-full flex items-center justify-center bg-petal-soft text-petal text-[10px]">
+                        {partner?.username?.[0]?.toUpperCase() ?? "•"}
+                      </span>
+                    )}
+                    <span className="absolute -bottom-0.5 -right-0.5 size-2 rounded-full bg-emerald-400 ring-1 ring-velvet" />
+                  </span>
+                  <span className="text-[9px] uppercase tracking-widest text-petal font-medium">Here</span>
+                </div>
               )}
             </>
           );
