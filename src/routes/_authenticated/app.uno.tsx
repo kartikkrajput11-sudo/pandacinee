@@ -427,6 +427,39 @@ function UnoPage() {
           </div>
         </div>
 
+        {/* UNO! call button — floats when you or they are at 1 card */}
+        {(myHand.length === 1 && !state.unoCalled[mySeat] && !state.winner) && (
+          <button
+            type="button"
+            onClick={handleCallUno}
+            className="uno-call-btn fixed left-1/2 -translate-x-1/2 bottom-24 z-40 select-none"
+            aria-label="Call Uno"
+          >
+            <span className="uno-call-halo" aria-hidden />
+            <span className="uno-call-face">
+              <span className="uno-call-text">UNO!</span>
+            </span>
+          </button>
+        )}
+        {(theirHand.length === 1 && !state.unoCalled[mySeat === "you" ? "them" : "you"] && !state.winner) && (
+          <button
+            type="button"
+            onClick={handleCatch}
+            className="fixed right-4 bottom-24 z-40 rounded-full px-4 py-2 bg-red-500/90 text-white text-xs font-serif italic tracking-wide shadow-[0_15px_40px_-10px_rgba(220,40,60,0.6)] border border-red-300/40 hover:brightness-110 animate-fade-in"
+          >
+            Catch silent!
+          </button>
+        )}
+
+        {/* UNO! call burst */}
+        {unoBurst && (
+          <UnoCallBurst
+            key={unoBurst.n}
+            fromMe={unoBurst.from === mySeat}
+            onDone={() => setUnoBurst(null)}
+          />
+        )}
+
         {/* Table-side chat */}
         {mode === "partner" && (
           <div className="mt-6 rounded-2xl border border-petal/25 bg-surface/80 backdrop-blur-xl overflow-hidden lg:fixed lg:top-24 lg:right-4 lg:w-72 lg:mt-0 lg:z-30 lg:shadow-[0_20px_60px_-20px_rgba(0,0,0,0.7)]">
