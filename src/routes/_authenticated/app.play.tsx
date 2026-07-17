@@ -77,8 +77,9 @@ function Play() {
         {GAME_KINDS.map((kind) => {
           const g = GAMES[kind];
           const sticker = PANDA_STICKERS[kind];
+          const partnerHere = partner && partnerGame === kind;
           const cardCls =
-            "aspect-square p-4 bg-surface rounded-3xl border border-border flex flex-col justify-between hover:border-petal/40 transition-colors relative overflow-hidden";
+            `aspect-square p-4 bg-surface rounded-3xl border ${partnerHere ? "border-petal ring-2 ring-petal/40 shadow-[0_0_24px_-6px_rgba(236,72,153,0.5)]" : "border-border"} flex flex-col justify-between hover:border-petal/40 transition-colors relative overflow-hidden`;
           const inner = (
             <>
               {sticker ? (
