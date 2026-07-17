@@ -409,6 +409,54 @@ function UnoPage() {
           </div>
         </div>
 
+        {/* Table-side chat */}
+        {mode === "partner" && (
+          <div className="mt-6 rounded-2xl border border-petal/25 bg-surface/70 backdrop-blur-xl overflow-hidden">
+            <div className="px-4 py-2 border-b border-petal/15 flex items-center justify-between">
+              <p className="text-[10px] uppercase tracking-[0.3em] text-petal">Table talk</p>
+              <p className="text-[10px] text-candle-muted">{chat.length} whispers</p>
+            </div>
+            <div ref={chatScrollRef} className="max-h-40 overflow-y-auto px-3 py-2 space-y-1.5">
+              {chat.length === 0 ? (
+                <p className="text-xs italic text-candle-muted text-center py-3 font-serif">Say something velvet…</p>
+              ) : chat.map((m) => {
+                const mine = m.from === mySeat;
+                return (
+                  <div key={m.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
+                    <div
+                      className={`max-w-[80%] px-3 py-1.5 rounded-2xl text-sm ${mine ? "bg-petal text-velvet rounded-br-sm" : "bg-surface-elevated text-candle rounded-bl-sm border border-border"}`}
+                    >
+                      {m.text}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <form
+              onSubmit={(e) => { e.preventDefault(); sendChat(); }}
+              className="flex items-center gap-2 px-3 py-2 border-t border-petal/15 bg-surface-elevated/50"
+            >
+              <input
+                type="text"
+                value={chatDraft}
+                onChange={(e) => setChatDraft(e.target.value)}
+                placeholder="Whisper to your panda…"
+                maxLength={200}
+                className="flex-1 bg-transparent outline-none text-sm placeholder:text-candle-muted/70"
+              />
+              <button
+                type="submit"
+                disabled={!chatDraft.trim()}
+                className="rounded-full p-2 bg-petal text-velvet disabled:opacity-40 hover:brightness-110 transition"
+              >
+                <Send className="size-4" />
+              </button>
+            </form>
+          </div>
+        )}
+
+
+
         {/* Winner overlay */}
         {state.winner && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-velvet/80 backdrop-blur-xl animate-fade-in">
