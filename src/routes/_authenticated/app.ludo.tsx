@@ -83,12 +83,17 @@ function LudoPage() {
 
   const canAct = mode === "local" || state.turn === mySeat;
 
+  const [rolling, setRolling] = useState(false);
   const handleRoll = () => {
-    if (!canAct || state.winner || state.dice != null) return;
+    if (!canAct || state.winner || state.dice != null || rolling) return;
+    setRolling(true);
     const v = rollDie();
-    const next = applyRoll(state, v);
-    setState(next);
-    broadcast(next);
+    window.setTimeout(() => {
+      const next = applyRoll(state, v);
+      setState(next);
+      broadcast(next);
+      setRolling(false);
+    }, 550);
   };
 
   const handleMove = (t: Token) => {
