@@ -584,21 +584,37 @@ function StudioTile({
   );
 }
 
-function StudioGroup({ label, children }: { label: string; children: React.ReactNode }) {
-  const count = Array.isArray(children) ? children.length : 1;
+function GroupChoice({
+  icon,
+  label,
+  hint,
+  onClick,
+  active,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  hint?: string;
+  onClick: () => void;
+  active?: boolean;
+}) {
   return (
-    <div className="rounded-2xl overflow-hidden border border-white/[0.06] bg-white/[0.02]">
-      <div className="px-3 pt-1.5 pb-1 flex items-center gap-1.5">
-        <span className="h-px flex-1 bg-gradient-to-r from-transparent to-white/10" />
-        <span className="text-[8px] uppercase tracking-[0.3em] text-candle-muted/70 font-medium">{label}</span>
-        <span className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent" />
-      </div>
-      <div
-        className="grid gap-px bg-white/[0.04]"
-        style={{ gridTemplateColumns: `repeat(${count}, minmax(0, 1fr))` }}
-      >
-        {children}
-      </div>
-    </div>
+    <button
+      type="button"
+      onClick={onClick}
+      className={`flex items-center gap-2 px-2.5 py-2 rounded-xl border transition-all active:scale-[0.97] ${
+        active
+          ? "bg-gradient-to-br from-petal/25 to-petal/[0.04] border-petal/60 shadow-[inset_0_0_18px_-8px_rgba(236,72,153,0.55)]"
+          : "bg-gradient-to-br from-white/[0.05] to-transparent border-white/10 hover:border-petal/50 hover:from-petal/15"
+      }`}
+    >
+      <span className="shrink-0 flex items-center justify-center size-6 rounded-lg bg-white/[0.04] text-petal">
+        {icon}
+      </span>
+      <span className="text-left leading-tight min-w-0">
+        <span className="block text-[11px] font-medium text-candle truncate">{label}</span>
+        {hint && <span className="block text-[9px] uppercase tracking-widest text-candle-muted truncate">{hint}</span>}
+      </span>
+    </button>
   );
 }
+
