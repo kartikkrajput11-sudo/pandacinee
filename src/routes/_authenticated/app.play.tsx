@@ -2,6 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { GAMES, GAME_KINDS, type GameKind } from "@/lib/games";
 import { useProfile } from "@/hooks/useProfile";
+import { useGamePresence } from "@/hooks/useGamePresence";
+import { AvatarImg } from "@/components/AvatarImg";
 import pandaPaint from "@/assets/pandas/panda-paint.png";
 import pandaChess from "@/assets/pandas/panda-chess.png";
 import pandaLudo from "@/assets/pandas/panda-ludo.png";
