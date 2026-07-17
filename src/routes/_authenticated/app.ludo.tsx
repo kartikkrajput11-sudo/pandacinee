@@ -188,28 +188,43 @@ function LudoPage() {
       <LudoBoard state={state} legalIds={legalIds} onMoveToken={handleMove} canAct={canAct} />
 
       <div className="mt-5 flex items-center justify-center gap-4">
-        <Die value={state.dice} />
+        <Die value={state.dice} rolling={rolling} />
         <button
           onClick={handleRoll}
-          disabled={!canAct || state.dice != null || !!state.winner}
-          className="px-6 py-3 rounded-2xl bg-petal text-white font-medium disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg"
+          disabled={!canAct || state.dice != null || !!state.winner || rolling}
+          className="px-6 py-3 rounded-2xl bg-petal text-white font-serif italic text-lg disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 shadow-[0_10px_30px_-8px_rgba(225,29,116,0.6)] hover:shadow-[0_14px_36px_-8px_rgba(225,29,116,0.75)] transition-shadow"
         >
           <Dice5 className="size-4" />
-          Roll
+          {rolling ? "Rolling…" : "Roll dice"}
         </button>
       </div>
 
-      {state.dice != null && legalIds.size === 0 && !state.winner && (
-        <p className="text-center text-xs text-candle-muted mt-3">No legal move — passing turn…</p>
-      )}
+      <div className="text-center mt-3 min-h-[1.25rem]">
+        {state.winner ? null : state.dice != null && legalIds.size > 0 ? (
+          <p className="text-xs text-petal">Tap a glowing token to move it {state.dice} step{state.dice === 1 ? "" : "s"}.</p>
+        ) : state.dice != null ? (
+          <p className="text-xs text-candle-muted">No legal move — passing turn…</p>
+        ) : !canAct && mode === "partner" ? (
+          <p className="text-xs text-candle-muted">Waiting for opponent to roll…</p>
+        ) : (
+          <p className="text-xs text-candle-muted">Your turn — roll the dice.</p>
+        )}
+      </div>
     </div>
   );
 }
 
-function Die({ value }: { value: number | null }) {
+function Die({ value, rolling }: { value: number | null; rolling: boolean }) {
   return (
-    <div className="w-14 h-14 rounded-2xl bg-surface border-2 border-border flex items-center justify-center text-2xl font-bold shadow-inner">
-      {value ?? "–"}
+    <div
+      className={`w-16 h-16 rounded-2xl border border-petal/40 flex items-center justify-center text-3xl font-serif shadow-inner ${rolling ? "animate-pulse" : ""}`}
+      style={{
+        background:
+          "linear-gradient(145deg, oklch(0.28 0.05 320), oklch(0.18 0.03 320))",
+        color: "oklch(0.92 0.08 75)",
+      }}
+    >
+      {rolling ? "🎲" : value ?? "·"}
     </div>
   );
 }
