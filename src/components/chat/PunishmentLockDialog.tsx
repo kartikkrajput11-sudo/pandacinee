@@ -125,7 +125,7 @@ export function PunishmentLockDialog({ open, onClose, targetName, mePrefs, peerP
           </div>
           <button
             onClick={() => { reset(); onClose(); }}
-            className="size-8 rounded-full bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-candle-muted flex items-center justify-center transition-colors"
+            className="size-8 rounded-full bg-candle/[0.05] hover:bg-candle/[0.09] border border-border text-candle-muted flex items-center justify-center transition-colors"
           >
             <X className="size-4" />
           </button>
@@ -141,7 +141,7 @@ export function PunishmentLockDialog({ open, onClose, targetName, mePrefs, peerP
                     ? "text-velvet border-transparent"
                     : step > n
                       ? "text-petal border-petal/40 bg-petal/10"
-                      : "text-candle-muted border-white/10 bg-white/[0.02]"
+                      : "text-candle-muted border-border bg-candle/[0.03]"
                 }`}
                 style={
                   step === n
@@ -173,7 +173,7 @@ export function PunishmentLockDialog({ open, onClose, targetName, mePrefs, peerP
               <button
                 key={p.id}
                 onClick={() => pickType(p.id)}
-                className="group relative rounded-2xl border border-white/10 hover:border-petal/50 bg-gradient-to-b from-white/[0.03] to-white/[0.01] p-3 text-left transition-all hover:-translate-y-0.5 hover:shadow-[0_12px_24px_-16px_rgba(236,72,153,0.6)]"
+                className="group relative rounded-2xl border border-border hover:border-petal/50 bg-gradient-to-b from-candle/[0.05] to-candle/[0.02] p-3 text-left transition-all hover:-translate-y-0.5 hover:shadow-[0_12px_24px_-16px_rgba(236,72,153,0.6)]"
               >
                 <div className="text-2xl mb-1">{p.emoji}</div>
                 <p className="font-serif italic text-sm text-candle">{p.label}</p>
@@ -214,7 +214,7 @@ export function PunishmentLockDialog({ open, onClose, targetName, mePrefs, peerP
                       className={`text-xs px-3 py-1.5 rounded-full border transition-all ${
                         active
                           ? "border-transparent text-velvet"
-                          : "border-white/10 bg-white/[0.03] text-candle-muted hover:border-petal/40 hover:text-candle"
+                          : "border-border bg-candle/[0.04] text-candle-muted hover:border-petal/40 hover:text-candle"
                       }`}
                       style={
                         active
@@ -240,7 +240,7 @@ export function PunishmentLockDialog({ open, onClose, targetName, mePrefs, peerP
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
                 maxLength={140}
-                className="w-full bg-white/[0.03] border border-white/10 focus:border-petal/50 rounded-2xl px-4 py-3 text-sm text-candle placeholder:text-candle-muted/60 outline-none transition-colors"
+                className="w-full bg-candle/[0.04] border border-border focus:border-petal/50 rounded-2xl px-4 py-3 text-sm text-candle placeholder:text-candle-muted/60 outline-none transition-colors"
               />
             </div>
 
@@ -286,7 +286,7 @@ export function PunishmentLockDialog({ open, onClose, targetName, mePrefs, peerP
                     className={`py-2.5 rounded-2xl border text-sm transition-all ${
                       active
                         ? "border-transparent text-velvet"
-                        : "border-white/10 bg-white/[0.03] text-candle-muted hover:border-petal/40 hover:text-candle"
+                        : "border-border bg-candle/[0.04] text-candle-muted hover:border-petal/40 hover:text-candle"
                     }`}
                     style={
                       active
@@ -390,7 +390,7 @@ function GhostButton({
     <button
       onClick={onClick}
       disabled={disabled}
-      className="flex-1 py-3 rounded-full text-[11px] uppercase tracking-[0.28em] font-medium text-candle bg-white/[0.03] border border-white/10 hover:border-petal/40 hover:text-petal disabled:opacity-60 transition-colors"
+      className="flex-1 py-3 rounded-full text-[11px] uppercase tracking-[0.28em] font-medium text-candle bg-candle/[0.04] border border-border hover:border-petal/40 hover:text-petal disabled:opacity-60 transition-colors"
     >
       {children}
     </button>
