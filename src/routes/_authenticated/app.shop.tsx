@@ -98,6 +98,7 @@ type ShopItem = {
 function ShopRoute() {
   const { data, refetch } = useProfile();
   const me = data?.profile as any;
+  const isAdmin = me?.is_admin === true;
   const [items, setItems] = useState<ShopItem[]>([]);
   const [bundles, setBundles] = useState<CoinBundle[]>([]);
   const [inventory, setInventory] = useState<Map<string, boolean>>(new Map()); // item_id -> equipped
