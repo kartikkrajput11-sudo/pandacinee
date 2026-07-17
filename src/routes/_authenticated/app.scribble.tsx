@@ -730,109 +730,116 @@ function Scribble() {
         </div>
       </div>
 
-      <div className="rounded-3xl overflow-hidden border border-border bg-white h-[52vh] min-h-[320px] touch-none">
-        <canvas
-          ref={canvasRef}
-          onPointerDown={onDown}
-          onPointerMove={onMove}
-          onPointerUp={onUp}
-          onPointerCancel={onUp}
-          className="w-full h-full cursor-crosshair"
-        />
-      </div>
+      <div className="grid gap-3 lg:grid-cols-[1fr_340px] lg:items-start">
+        <div>
+          <div className="rounded-3xl overflow-hidden border border-border bg-white h-[60vh] min-h-[360px] touch-none">
+            <canvas
+              ref={canvasRef}
+              onPointerDown={onDown}
+              onPointerMove={onMove}
+              onPointerUp={onUp}
+              onPointerCancel={onUp}
+              className="w-full h-full cursor-crosshair"
+            />
+          </div>
 
-      {iAmDrawer && phase === "playing" && (
-        <div className="mt-3 rounded-2xl border border-border bg-surface/70 backdrop-blur p-2.5 space-y-2">
-          {/* Color palette */}
-          <div className="flex gap-1.5 flex-wrap">
-            {COLORS.map((c) => {
-              const active = color === c && !erase;
-              return (
+          {iAmDrawer && phase === "playing" && (
+            <div className="mt-3 rounded-2xl border border-border bg-surface/70 backdrop-blur p-2.5 space-y-2">
+              {/* Color palette */}
+              <div className="flex gap-1.5 flex-wrap">
+                {COLORS.map((c) => {
+                  const active = color === c && !erase;
+                  return (
+                    <button
+                      key={c}
+                      onClick={() => { setColor(c); setErase(false); }}
+                      className={`size-6 rounded-full border-2 transition-transform ${active ? "border-petal scale-125 ring-2 ring-petal/40" : "border-border/60 hover:scale-110"}`}
+                      style={{ background: c, boxShadow: c === "#ffffff" ? "inset 0 0 0 1px rgba(0,0,0,0.15)" : undefined }}
+                      aria-label={`Color ${c}`}
+                    />
+                  );
+                })}
+              </div>
+
+              {/* Tools row */}
+              <div className="flex items-center gap-2 flex-wrap">
                 <button
-                  key={c}
-                  onClick={() => { setColor(c); setErase(false); }}
-                  className={`size-6 rounded-full border-2 transition-transform ${active ? "border-petal scale-125 ring-2 ring-petal/40" : "border-border/60 hover:scale-110"}`}
-                  style={{ background: c, boxShadow: c === "#ffffff" ? "inset 0 0 0 1px rgba(0,0,0,0.15)" : undefined }}
-                  aria-label={`Color ${c}`}
-                />
-              );
-            })}
-          </div>
+                  onClick={() => setErase((e) => !e)}
+                  className={`h-8 px-2.5 rounded-full border flex items-center gap-1.5 text-xs ${erase ? "border-petal bg-petal-soft text-petal" : "border-border bg-velvet text-candle"}`}
+                  aria-label="Eraser"
+                  title="Eraser"
+                >
+                  <Eraser className="size-3.5" />
+                  <span>Eraser</span>
+                </button>
 
-          {/* Tools row */}
-          <div className="flex items-center gap-2 flex-wrap">
-            <button
-              onClick={() => setErase((e) => !e)}
-              className={`h-8 px-2.5 rounded-full border flex items-center gap-1.5 text-xs ${erase ? "border-petal bg-petal-soft text-petal" : "border-border bg-velvet text-candle"}`}
-              aria-label="Eraser"
-              title="Eraser"
-            >
-              <Eraser className="size-3.5" />
-              <span>Eraser</span>
-            </button>
+                <div className="h-6 w-px bg-border" />
 
-            <div className="h-6 w-px bg-border" />
+                <span className="text-[10px] uppercase tracking-widest text-candle-muted">Brush</span>
+                {[3, 6, 12, 20].map((n) => (
+                  <button
+                    key={n}
+                    onClick={() => setSize(n)}
+                    className={`size-8 rounded-full flex items-center justify-center border transition ${size === n ? "border-petal bg-petal-soft/40 scale-105" : "border-border bg-velvet hover:border-petal/50"}`}
+                    aria-label={`Brush size ${n}`}
+                  >
+                    <span
+                      className="rounded-full"
+                      style={{
+                        width: Math.min(n, 18),
+                        height: Math.min(n, 18),
+                        background: erase ? "#ffffff" : color,
+                        border: erase ? "1px solid var(--border, #d4d4d8)" : undefined,
+                      }}
+                    />
+                  </button>
+                ))}
 
-            <span className="text-[10px] uppercase tracking-widest text-candle-muted">Brush</span>
-            {[3, 6, 12, 20].map((n) => (
-              <button
-                key={n}
-                onClick={() => setSize(n)}
-                className={`size-8 rounded-full flex items-center justify-center border transition ${size === n ? "border-petal bg-petal-soft/40 scale-105" : "border-border bg-velvet hover:border-petal/50"}`}
-                aria-label={`Brush size ${n}`}
-              >
-                <span
-                  className="rounded-full"
-                  style={{
-                    width: Math.min(n, 18),
-                    height: Math.min(n, 18),
-                    background: erase ? "#ffffff" : color,
-                    border: erase ? "1px solid var(--border, #d4d4d8)" : undefined,
-                  }}
-                />
-              </button>
-            ))}
-
-            <button
-              onClick={() => { strokes.current = []; redraw(); chRef.current?.send({ type: "broadcast", event: "clear", payload: {} }); persist(); }}
-              className="ml-auto h-8 rounded-full bg-velvet border border-border px-3 text-xs flex items-center gap-1 text-candle hover:border-petal/50"
-            >
-              <RotateCcw className="size-3" /> Clear
-            </button>
-          </div>
-        </div>
-      )}
-
-      {phase === "playing" && !iAmDrawer && (
-        <div className="mt-3 flex gap-2">
-          <input
-            value={guess}
-            onChange={(e) => onGuessChange(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && sendGuess()}
-            placeholder="Type your guess…"
-            className="flex-1 rounded-full bg-surface border border-border px-4 py-2.5 text-sm text-candle focus:outline-none focus:border-petal/50"
-          />
-          <button
-            onClick={sendGuess}
-            className="rounded-full bg-petal text-white px-4 py-2.5 text-sm flex items-center gap-2"
-          >
-            <Send className="size-4" />
-          </button>
-        </div>
-      )}
-
-      <div className="mt-3 rounded-2xl border border-border bg-surface p-3 max-h-40 overflow-y-auto space-y-1.5">
-        {messages.length === 0 ? (
-          <p className="text-xs text-candle-muted text-center py-2">Guesses appear here</p>
-        ) : (
-          messages.map((m) => (
-            <div key={m.id} className={`text-sm ${m.correct ? "text-petal font-semibold" : "text-candle"}`}>
-              <span className="text-candle-muted mr-2">{m.name}:</span>{m.text}
-              {m.correct && " ✨"}
+                <button
+                  onClick={() => { strokes.current = []; redraw(); chRef.current?.send({ type: "broadcast", event: "clear", payload: {} }); persist(); }}
+                  className="ml-auto h-8 rounded-full bg-velvet border border-border px-3 text-xs flex items-center gap-1 text-candle hover:border-petal/50"
+                >
+                  <RotateCcw className="size-3" /> Clear
+                </button>
+              </div>
             </div>
-          ))
-        )}
+          )}
+        </div>
+
+        <div className="lg:sticky lg:top-4 space-y-3">
+          {phase === "playing" && !iAmDrawer && (
+            <div className="flex gap-2">
+              <input
+                value={guess}
+                onChange={(e) => onGuessChange(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && sendGuess()}
+                placeholder="Type your guess…"
+                className="flex-1 rounded-full bg-surface border border-border px-4 py-2.5 text-sm text-candle focus:outline-none focus:border-petal/50"
+              />
+              <button
+                onClick={sendGuess}
+                className="rounded-full bg-petal text-white px-4 py-2.5 text-sm flex items-center gap-2"
+              >
+                <Send className="size-4" />
+              </button>
+            </div>
+          )}
+
+          <div className="rounded-2xl border border-border bg-surface p-3 max-h-[50vh] lg:max-h-[60vh] overflow-y-auto space-y-1.5">
+            {messages.length === 0 ? (
+              <p className="text-xs text-candle-muted text-center py-2">Guesses appear here</p>
+            ) : (
+              messages.map((m) => (
+                <div key={m.id} className={`text-sm ${m.correct ? "text-petal font-semibold" : "text-candle"}`}>
+                  <span className="text-candle-muted mr-2">{m.name}:</span>{m.text}
+                  {m.correct && " ✨"}
+                </div>
+              ))
+            )}
+          </div>
+        </div>
       </div>
+
 
 
 
