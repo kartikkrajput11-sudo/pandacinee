@@ -202,7 +202,7 @@ Pose / expression: ${SOLO_MOOD_PROMPTS[data.mood as AiStickerSoloMood]}.`;
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3.1-flash-image",
+        model: "google/gemini-3.1-flash-lite-image",
         messages: [{ role: "user", content }],
         modalities: ["image", "text"],
       }),
