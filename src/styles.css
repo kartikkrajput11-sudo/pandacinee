@@ -437,3 +437,9 @@ html.theme-anim * {
   75%  { transform: rotate(540deg) scale(1.08); }
   100% { transform: rotate(720deg) scale(1); }
 }
+
+@keyframes ludo-token-hop {
+  0%   { transform: translateY(0) scale(1); }
+  45%  { transform: translateY(-6px) scale(1.12); }
+  100% { transform: translateY(0) scale(1); }
+}
