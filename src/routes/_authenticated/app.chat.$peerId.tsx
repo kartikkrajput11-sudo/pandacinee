@@ -379,6 +379,12 @@ function ChatPeer() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="bg-velvet border-candle/20">
               <DropdownMenuItem
+                onSelect={(e) => { e.preventDefault(); setMediaDrawerOpen(true); }}
+                className="text-candle focus:text-petal focus:bg-petal/10 gap-2"
+              >
+                <Images className="size-4" /> Shared media
+              </DropdownMenuItem>
+              <DropdownMenuItem
                 onSelect={(e) => { e.preventDefault(); setClearConfirmOpen(true); }}
                 className="text-petal focus:text-petal focus:bg-petal/10 gap-2"
               >
