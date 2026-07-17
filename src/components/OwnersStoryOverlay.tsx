@@ -407,7 +407,7 @@ function EndSlide({ onClose }: { onClose: () => void }) {
       >
         And every 18th since,
         <br />
-        the world stops for a breath
+        Pandacine stops for a breath
         <br />
         to remember them.
       </p>
