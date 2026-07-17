@@ -94,6 +94,34 @@ export function useAddMembers() {
   });
 }
 
+export function useRegenerateGroupCode() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (groupId: string) => {
+      const { data, error } = await (supabase.rpc as any)("regenerate_group_invite_code", { _gid: groupId });
+      if (error) throw error;
+      return data as string;
+    },
+    onSuccess: (_r, groupId) => invalidateGroup(qc, groupId),
+  });
+}
+
+export function useJoinGroupByCode() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (code: string) => {
+      const { data, error } = await (supabase.rpc as any)("join_group_with_code", {
+        _code: code.trim().toUpperCase(),
+      });
+      if (error) throw error;
+      return data as { id: string; name: string };
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["groups"] });
+    },
+  });
+}
+
 const MUTE_KEY = (id: string) => `panda_group_mute_${id}`;
 
 export function isGroupMuted(groupId: string): boolean {
