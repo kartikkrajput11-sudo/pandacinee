@@ -356,7 +356,7 @@ function Die({ value, rolling, active }: { value: number | null; rolling: boolea
   const restTransform = `rotateX(${rxF}deg) rotateY(${ryF}deg)`;
 
   return (
-    <div className="relative" style={{ width: SIZE, height: SIZE, perspective: 640 }}>
+    <div className="relative" style={{ width: SIZE, height: SIZE, perspective: 320, perspectiveOrigin: "50% 40%" }}>
       {/* cast shadow */}
       <span
         aria-hidden
@@ -371,28 +371,37 @@ function Die({ value, rolling, active }: { value: number | null; rolling: boolea
           animation: rolling ? "ludo-dice-shadow 0.9s cubic-bezier(0.22,1,0.36,1)" : undefined,
         }}
       />
+      {/* Persistent isometric tilt so 3 faces are always visible */}
       <div
         className="relative w-full h-full"
         style={{
           transformStyle: "preserve-3d",
-          transform: rolling ? undefined : restTransform,
-          transition: rolling ? undefined : "transform 500ms cubic-bezier(0.22,1,0.36,1)",
-          animation: rolling ? "ludo-cube-tumble 0.9s cubic-bezier(0.22,1,0.36,1) forwards" : undefined,
-          // custom props consumed by the keyframes
-          ["--rx0" as any]: `${rx0}deg`,
-          ["--ry0" as any]: `${ry0}deg`,
-          ["--rxF" as any]: `${rxF + 720}deg`,
-          ["--ryF" as any]: `${ryF + 540}deg`,
-          filter: active && !rolling ? "drop-shadow(0 10px 22px rgba(0,0,0,0.5))" : "drop-shadow(0 8px 18px rgba(0,0,0,0.45))",
+          transform: "rotateX(-22deg) rotateY(-28deg)",
         }}
       >
-        {faces.map((f) => (
-          <CubeFace key={f.n} n={f.n} transform={f.transform} />
-        ))}
+        <div
+          className="relative w-full h-full"
+          style={{
+            transformStyle: "preserve-3d",
+            transform: rolling ? undefined : restTransform,
+            transition: rolling ? undefined : "transform 500ms cubic-bezier(0.22,1,0.36,1)",
+            animation: rolling ? "ludo-cube-tumble 0.9s cubic-bezier(0.22,1,0.36,1) forwards" : undefined,
+            ["--rx0" as any]: `${rx0}deg`,
+            ["--ry0" as any]: `${ry0}deg`,
+            ["--rxF" as any]: `${rxF + 720}deg`,
+            ["--ryF" as any]: `${ryF + 540}deg`,
+            filter: active && !rolling ? "drop-shadow(0 12px 24px rgba(0,0,0,0.55))" : "drop-shadow(0 10px 20px rgba(0,0,0,0.45))",
+          }}
+        >
+          {faces.map((f) => (
+            <CubeFace key={f.n} n={f.n} transform={f.transform} />
+          ))}
+        </div>
       </div>
     </div>
   );
 }
+
 
 function LudoBoard({
   state,
