@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import {
   Plus, X, Image as ImageIcon, Paperclip, Smile, Send, Film,
-  Video as VideoIcon, Gamepad2, Heart, HeartHandshake, Zap, EyeOff, Eye, Disc3, Sparkles, Camera,
+  Video as VideoIcon, Gamepad2, Heart, HeartHandshake, Zap, EyeOff, Eye, Disc3, Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
 import { uploadChatMedia, type MessageRow } from "@/lib/chat";
@@ -57,7 +57,6 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
   const fileRef = useRef<HTMLInputElement>(null);
   const imgRef = useRef<HTMLInputElement>(null);
   const vidRef = useRef<HTMLInputElement>(null);
-  const camRef = useRef<HTMLInputElement>(null);
 
   async function sendGameInvite(g: GamePick) {
     setGamePickerOpen(false);
@@ -371,7 +370,6 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
               Studio
             </p>
             <div className="grid grid-cols-5 gap-1.5">
-              <StudioTile icon={<Camera className="size-4" />} label="Camera" onClick={() => camRef.current?.click()} accent glow />
               <StudioTile icon={<ImageIcon className="size-4" />} label="Photo" onClick={() => imgRef.current?.click()} />
               <StudioTile icon={<VideoIcon className="size-4" />} label="Video" onClick={() => vidRef.current?.click()} />
               <StudioTile
@@ -417,7 +415,6 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
       >
         <input ref={imgRef} type="file" accept="image/*" className="hidden" onChange={handleImage} />
         <input ref={vidRef} type="file" accept="video/*" className="hidden" onChange={handleVideo} />
-        <input ref={camRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleImage} />
         <input ref={fileRef} type="file" className="hidden" onChange={handleFile} />
 
         {/* Text side — collapses to 0fr and fades left when recording */}
