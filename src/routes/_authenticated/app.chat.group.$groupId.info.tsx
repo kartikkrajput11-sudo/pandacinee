@@ -41,6 +41,9 @@ function GroupInfo() {
   const [addingOpen, setAddingOpen] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [muted, setMutedState] = useState<boolean>(() => isGroupMuted(groupId));
+  const [uploadingBg, setUploadingBg] = useState(false);
+  const [bgPreview, setBgPreview] = useState<string | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   const me = profileData?.profile;
   const group = groupData?.group;
