@@ -248,6 +248,7 @@ export function playCard(
     ns.turn = opp;
     // If pending draws exist and opponent has no counter, they'll draw on their action.
   }
+  resetUnoFlags(ns);
   return ns;
 }
 
