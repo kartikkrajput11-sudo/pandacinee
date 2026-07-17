@@ -608,7 +608,7 @@ function LudoBoard({
                   transition: trans,
                   transformBox: "fill-box",
                   transformOrigin: "center",
-                  animation: isWalking ? "ludo-token-hop 260ms cubic-bezier(0.34,1.56,0.64,1)" : undefined,
+                  animation: isWalking ? "ludo-token-hop 320ms cubic-bezier(0.34,1.7,0.64,1)" : undefined,
                   filter: isWalking ? `drop-shadow(0 4px 6px color-mix(in oklab, ${PLAYER_META[t.player].color} 65%, transparent))` : undefined,
                 }}
               />
