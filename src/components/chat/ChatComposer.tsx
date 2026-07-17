@@ -519,17 +519,16 @@ function StudioTile({
     <button
       type="button"
       onClick={onClick}
-      className={`group relative flex flex-col items-center justify-center gap-1 py-2 rounded-xl border transition-all duration-200 active:scale-95 ${
+      className={`group relative flex flex-col items-center justify-center gap-1 py-2.5 px-1 transition-all duration-200 active:scale-[0.96] ${
         accent
-          ? "bg-gradient-to-b from-petal/20 to-petal/[0.04] border-petal/30 hover:border-petal/60 hover:from-petal/30"
-          : "bg-white/[0.02] border-white/[0.06] hover:bg-white/[0.05] hover:border-white/15"
-      } ${glow ? "shadow-[0_4px_16px_-6px_rgba(236,72,153,0.4)]" : ""}`}
+          ? "bg-gradient-to-b from-petal/[0.14] to-petal/[0.02] hover:from-petal/25 hover:to-petal/[0.06]"
+          : "bg-white/[0.015] hover:bg-white/[0.06]"
+      } ${glow ? "shadow-[inset_0_0_18px_-8px_rgba(236,72,153,0.5)]" : ""}`}
     >
-      <span className="absolute inset-x-3 top-0 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent opacity-60" />
       <span className={`flex items-center justify-center transition-transform duration-200 group-hover:-translate-y-0.5 ${accent ? "text-petal" : "text-candle/80 group-hover:text-petal"}`}>
         {icon}
       </span>
-      <span className="text-[10px] tracking-[0.08em] text-candle/90 uppercase font-medium">
+      <span className="text-[9px] tracking-[0.08em] text-candle/85 uppercase font-medium leading-none">
         {label}
       </span>
     </button>
