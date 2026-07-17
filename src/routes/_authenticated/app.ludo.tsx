@@ -227,16 +227,26 @@ function LudoPage() {
 }
 
 function Die({ value, rolling, active }: { value: number | null; rolling: boolean; active: boolean }) {
+  const [face, setFace] = useState<number | null>(value);
+  useEffect(() => {
+    if (!rolling) { setFace(value); return; }
+    const iv = window.setInterval(() => {
+      setFace(1 + Math.floor(Math.random() * 6));
+    }, 70);
+    return () => window.clearInterval(iv);
+  }, [rolling, value]);
   return (
     <div
-      className={`w-16 h-16 rounded-2xl border flex items-center justify-center text-3xl font-serif shadow-inner transition-all ${rolling ? "animate-pulse" : ""} ${active ? "border-petal shadow-[0_0_20px_-4px_var(--petal)]" : "border-petal/30 opacity-80"}`}
+      className={`w-16 h-16 rounded-2xl border flex items-center justify-center text-3xl font-serif shadow-inner ${active ? "border-petal shadow-[0_0_20px_-4px_var(--petal)]" : "border-petal/30 opacity-80"}`}
       style={{
         background:
           "linear-gradient(145deg, oklch(0.28 0.05 320), oklch(0.18 0.03 320))",
         color: "oklch(0.92 0.08 75)",
+        animation: rolling ? "ludo-dice-tumble 0.55s ease-out" : undefined,
+        transition: "border-color 200ms, box-shadow 200ms",
       }}
     >
-      {rolling ? "🎲" : value ?? "·"}
+      {face ?? "·"}
     </div>
   );
 }
@@ -353,6 +363,8 @@ function LudoBoard({
           const isLegal = legalIds.has(`${t.player}:${t.idx}`);
           const tokenId = `${t.player}-${t.idx}`;
           if (t.pos === 200) return null; // hidden at finish
+          const tx = cx + ox;
+          const ty = cy + oy;
           return (
             <g
               key={tokenId}
@@ -360,19 +372,20 @@ function LudoBoard({
               style={{ cursor: canAct && isLegal ? "pointer" : "default" }}
             >
               {isLegal && canAct && (
-                <circle cx={cx + ox} cy={cy + oy} r={CELL * 0.5} fill="none" stroke={PLAYER_META[t.player].color} strokeWidth={2} opacity={0.7}>
+                <circle cx={tx} cy={ty} r={CELL * 0.5} fill="none" stroke={PLAYER_META[t.player].color} strokeWidth={2} opacity={0.7} style={{ transition: "cx 450ms cubic-bezier(0.4,0,0.2,1), cy 450ms cubic-bezier(0.4,0,0.2,1)" }}>
                   <animate attributeName="r" values={`${CELL * 0.45};${CELL * 0.6};${CELL * 0.45}`} dur="1.2s" repeatCount="indefinite" />
                 </circle>
               )}
               <circle
-                cx={cx + ox}
-                cy={cy + oy}
+                cx={tx}
+                cy={ty}
                 r={CELL * 0.38}
                 fill={PLAYER_META[t.player].color}
                 stroke="white"
                 strokeWidth={2}
+                style={{ transition: "cx 450ms cubic-bezier(0.4,0,0.2,1), cy 450ms cubic-bezier(0.4,0,0.2,1)" }}
               />
-              <circle cx={cx + ox - 3} cy={cy + oy - 3} r={CELL * 0.12} fill="white" opacity={0.6} />
+              <circle cx={tx - 3} cy={ty - 3} r={CELL * 0.12} fill="white" opacity={0.6} style={{ transition: "cx 450ms cubic-bezier(0.4,0,0.2,1), cy 450ms cubic-bezier(0.4,0,0.2,1)" }} />
             </g>
           );
         })}

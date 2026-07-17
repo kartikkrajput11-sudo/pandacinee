@@ -429,3 +429,11 @@ html.theme-anim * {
 
 
 
+
+@keyframes ludo-dice-tumble {
+  0%   { transform: rotate(0deg) scale(1); }
+  25%  { transform: rotate(180deg) scale(1.15); }
+  50%  { transform: rotate(360deg) scale(0.92); }
+  75%  { transform: rotate(540deg) scale(1.08); }
+  100% { transform: rotate(720deg) scale(1); }
+}
