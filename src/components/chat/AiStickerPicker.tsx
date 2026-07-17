@@ -113,7 +113,7 @@ export function AiStickerPicker({ open, onClose, onPick }: Props) {
       return;
     }
     if (!isMoodUnlocked(mood)) {
-      toast.info("This mood is part of an AI Pack — unlock it in the shop.");
+      toast.info("This mood is part of an AI Pack — locked.");
       return;
     }
     if (isCoupleTab && !partner) {
@@ -277,15 +277,14 @@ function StickerCell({
   if (!row) {
     if (locked) {
       return (
-        <Link
-          to="/app/shop"
-          className="aspect-square rounded-2xl bg-surface-elevated/60 border border-dashed border-candle/15 flex flex-col items-center justify-center gap-1 hover:border-petal/50 transition"
-          title="Unlock in shop"
+        <div
+          className="aspect-square rounded-2xl bg-surface-elevated/60 border border-dashed border-candle/15 flex flex-col items-center justify-center gap-1"
+          title="Locked"
         >
           <Lock className="size-4 text-candle-muted" />
           <span className="text-[9px] text-candle-muted px-1 text-center">{label}</span>
-          <span className="text-[8px] uppercase tracking-widest text-petal/80">Shop</span>
-        </Link>
+          <span className="text-[8px] uppercase tracking-widest text-candle-muted/80">Locked</span>
+        </div>
       );
     }
     return (
