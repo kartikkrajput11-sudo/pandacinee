@@ -392,7 +392,7 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
       />
 
       {menuOpen && (
-        <div className="relative bg-[linear-gradient(180deg,rgba(30,20,35,0.94)_0%,rgba(18,12,22,0.98)_100%)] backdrop-blur-2xl overflow-hidden animate-fade-in">
+        <div className="relative studio-surface backdrop-blur-2xl overflow-hidden animate-fade-in">
           <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-petal/50 to-transparent" />
           <div className="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 w-72 h-24 rounded-full bg-petal/10 blur-3xl" />
 
