@@ -59,7 +59,7 @@ export default function OwnersMonthiversary() {
             {monthName} 18
           </span>
           <span className="font-serif italic text-[12px] text-candle truncate">
-            Happy Monthiversary — tap to relive their story
+            Pandacine's founders' monthiversary — tap to relive their story
           </span>
         </span>
 
