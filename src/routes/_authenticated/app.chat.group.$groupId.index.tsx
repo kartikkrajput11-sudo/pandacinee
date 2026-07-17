@@ -46,6 +46,16 @@ function GroupChat() {
   const members = groupData?.members ?? [];
   const isAdmin = members.find((m) => m.user_id === meId)?.role === "admin";
   const theme = group?.theme ?? "aurora";
+  const bgPath = (group as any)?.background_url as string | null | undefined;
+  const [bgUrl, setBgUrl] = useState<string | null>(null);
+  useEffect(() => {
+    let alive = true;
+    if (!bgPath) { setBgUrl(null); return; }
+    supabase.storage.from("group-backgrounds").createSignedUrl(bgPath, 60 * 60).then(({ data }) => {
+      if (alive) setBgUrl(data?.signedUrl ?? null);
+    });
+    return () => { alive = false; };
+  }, [bgPath]);
 
   const memberById = useMemo(() => {
     const m = new Map<string, { display_name: string; avatar_url: string | null }>();
