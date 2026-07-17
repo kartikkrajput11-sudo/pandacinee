@@ -24,6 +24,7 @@ import { UnlockCelebration } from "@/components/chat/UnlockCelebration";
 import { typeMeta } from "@/lib/punishment";
 import { UserAvatar } from "@/components/UserAvatar";
 import { ForwardDialog, canForward } from "@/components/chat/ForwardDialog";
+import { SharedMediaDrawer } from "@/components/chat/SharedMediaDrawer";
 
 
 
