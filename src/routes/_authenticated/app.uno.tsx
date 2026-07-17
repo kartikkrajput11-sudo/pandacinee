@@ -258,14 +258,6 @@ function UnoPage() {
             </p>
           </div>
           <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => { const s = initialState(); s.winner = mySeat; sync(s); }}
-              title="Preview win"
-              className="text-petal"
-            >
-              <Sparkles className="size-5" />
-            </button>
             <button type="button" onClick={reset} className="text-candle-muted">
               <RotateCcw className="size-5" />
             </button>
