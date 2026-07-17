@@ -588,14 +588,43 @@ function LudoBoard({
                 </circle>
               )}
               {isWalking && (
-                <circle
-                  cx={tx}
-                  cy={ty}
-                  r={CELL * 0.55}
-                  fill={PLAYER_META[t.player].color}
-                  opacity={0.25}
-                  style={{ transition: trans, filter: "blur(4px)" }}
-                />
+                <>
+                  {/* footprint shadow that squishes with the hop */}
+                  <ellipse
+                    cx={tx}
+                    cy={ty + CELL * 0.32}
+                    rx={CELL * 0.32}
+                    ry={CELL * 0.09}
+                    fill="rgba(0,0,0,0.55)"
+                    style={{
+                      transition: trans,
+                      filter: "blur(2.5px)",
+                      transformBox: "fill-box",
+                      transformOrigin: "center",
+                      animation: "ludo-token-shadow 220ms cubic-bezier(0.34,1.56,0.64,1)",
+                    }}
+                  />
+                  {/* soft glow halo */}
+                  <circle
+                    cx={tx}
+                    cy={ty}
+                    r={CELL * 0.6}
+                    fill={PLAYER_META[t.player].color}
+                    opacity={0.28}
+                    style={{ transition: trans, filter: "blur(5px)" }}
+                  />
+                  {/* stamped ripple at the step */}
+                  <circle
+                    key={`ripple-${effectivePos}`}
+                    cx={tx}
+                    cy={ty}
+                    r={4}
+                    fill="none"
+                    stroke={PLAYER_META[t.player].color}
+                    strokeWidth={1.5}
+                    style={{ animation: "ludo-trail-ripple 420ms ease-out forwards" }}
+                  />
+                </>
               )}
               <circle
                 cx={tx}
@@ -608,7 +637,8 @@ function LudoBoard({
                   transition: trans,
                   transformBox: "fill-box",
                   transformOrigin: "center",
-                  animation: isWalking ? "ludo-token-hop 220ms cubic-bezier(0.34,1.56,0.64,1)" : undefined,
+                  animation: isWalking ? "ludo-token-hop 260ms cubic-bezier(0.34,1.56,0.64,1)" : undefined,
+                  filter: isWalking ? `drop-shadow(0 4px 6px color-mix(in oklab, ${PLAYER_META[t.player].color} 65%, transparent))` : undefined,
                 }}
               />
               <circle
@@ -616,7 +646,7 @@ function LudoBoard({
                 cy={ty - 3}
                 r={CELL * 0.12}
                 fill="white"
-                opacity={0.6}
+                opacity={0.75}
                 style={{ transition: trans }}
               />
             </g>
