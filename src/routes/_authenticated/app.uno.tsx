@@ -55,6 +55,8 @@ function UnoPage() {
   const [mode, setMode] = useState<Mode | null>(null);
   const [state, setState] = useState<UnoState>(() => initialState());
   const [flashId, setFlashId] = useState<string | null>(null);
+  const [deckPulse, setDeckPulse] = useState(0);
+  const [dealNonce, setDealNonce] = useState(0);
 
   // In partner mode: lower UUID plays "you", partner plays "them".
   const mySeat: UnoPlayer = useMemo(() => {
