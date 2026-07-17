@@ -91,10 +91,8 @@ export function PunishmentLockDialog({ open, onClose, targetName, mePrefs, peerP
 
       {/* Sheet */}
       <div
-        className="relative w-full sm:max-w-md sm:rounded-3xl rounded-t-3xl p-5 max-h-[88vh] overflow-y-auto border shadow-[0_30px_80px_-30px_rgba(236,72,153,0.55)]"
+        className="studio-surface relative w-full sm:max-w-md sm:rounded-3xl rounded-t-3xl p-5 max-h-[88vh] overflow-y-auto border shadow-[0_30px_80px_-30px_rgba(236,72,153,0.55)]"
         style={{
-          background:
-            "linear-gradient(180deg, hsl(280 35% 12% / 0.98), hsl(280 30% 8% / 0.98))",
           borderColor: "hsl(38 55% 62% / 0.25)",
         }}
       >
