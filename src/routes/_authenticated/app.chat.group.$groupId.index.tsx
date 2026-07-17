@@ -126,7 +126,17 @@ function GroupChat() {
   }
 
   return (
-    <div className="flex flex-col h-[100dvh]" data-group-theme={theme}>
+    <div className="flex flex-col h-[100dvh] relative isolate" data-group-theme={theme}>
+      {bgUrl && (
+        <>
+          <div
+            aria-hidden
+            className="absolute inset-0 -z-10 bg-cover bg-center"
+            style={{ backgroundImage: `url(${bgUrl})` }}
+          />
+          <div aria-hidden className="absolute inset-0 -z-10 bg-velvet/70 backdrop-blur-sm" />
+        </>
+      )}
       {/* Header */}
       <header className="flex items-center gap-3 px-4 py-3 border-b border-border bg-surface/70 backdrop-blur">
         <Link to="/app/chat" className="text-candle-muted">
