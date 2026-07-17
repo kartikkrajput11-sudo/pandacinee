@@ -149,6 +149,11 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
   useEffect(() => {
     const v = videoRef.current;
     if (!v || !onReadyRef.current) return;
+    try { v.volume = 1; } catch {}
+    // Boost default output to 200% via Web Audio gain — many movie files
+    // are mastered quietly and browser max is 100% without a gain node.
+    setupGain();
+    try { audioCtxRef.current?.resume(); } catch {}
     onReadyRef.current({
       play: () => {
         setBuffering(true);
