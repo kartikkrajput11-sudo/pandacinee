@@ -822,6 +822,15 @@ function PaintTogether() {
       {galleryOpen && (
         <GalleryOverlay pairKey={pairKey()} onClose={() => setGalleryOpen(false)} />
       )}
+
+      {me && partner && (
+        <GameChat
+          roomKey={`paint:${[me.id, partner.id].sort().join(":")}`}
+          me={me}
+          partnerName={partner.display_name}
+          title="Studio chat"
+        />
+      )}
     </div>
   );
 }
