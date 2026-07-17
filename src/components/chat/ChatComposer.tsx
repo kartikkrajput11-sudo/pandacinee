@@ -361,20 +361,20 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
       />
 
       {menuOpen && (
-        <div className="relative bg-[linear-gradient(180deg,rgba(30,20,35,0.92)_0%,rgba(18,12,22,0.96)_100%)] backdrop-blur-2xl overflow-hidden animate-fade-in">
+        <div className="relative bg-[linear-gradient(180deg,rgba(30,20,35,0.94)_0%,rgba(18,12,22,0.98)_100%)] backdrop-blur-2xl overflow-hidden animate-fade-in">
           <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-petal/50 to-transparent" />
-          <div className="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 w-56 h-20 rounded-full bg-petal/10 blur-3xl" />
+          <div className="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 w-72 h-24 rounded-full bg-petal/10 blur-3xl" />
 
-          <div className="relative px-3 pt-2 pb-3">
-            <p className="text-[8px] uppercase tracking-[0.32em] text-candle-muted/70 font-medium text-center mb-1.5">
+          <div className="relative px-3 pt-2.5 pb-3">
+            <p className="text-[8px] uppercase tracking-[0.32em] text-candle-muted/70 font-medium text-center mb-2">
               Studio
             </p>
-            <div className="grid grid-cols-5 gap-1.5">
+            <div className="grid grid-cols-6 gap-px rounded-2xl overflow-hidden border border-white/[0.06] bg-white/[0.03]">
               <StudioTile icon={<ImageIcon className="size-4" />} label="Photo" onClick={() => imgRef.current?.click()} />
               <StudioTile icon={<VideoIcon className="size-4" />} label="Video" onClick={() => vidRef.current?.click()} />
               <StudioTile
                 icon={<Eye className="size-4" />}
-                label={viewOnce ? "Once ✓" : "View once"}
+                label={viewOnce ? "Once ✓" : "Once"}
                 onClick={() => {
                   const next = !viewOnce;
                   setViewOnce(next);
@@ -385,7 +385,7 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
               />
               <StudioTile icon={<Paperclip className="size-4" />} label="File" onClick={() => fileRef.current?.click()} />
               <StudioTile icon={<span className="text-base leading-none">🐼</span>} label="Panda" onClick={() => { setPandaOpen(true); setMenuOpen(false); }} accent />
-              <StudioTile icon={<Sparkles className="size-4" />} label="AI ✨" onClick={() => { setAiOpen(true); setMenuOpen(false); }} accent glow />
+              <StudioTile icon={<Sparkles className="size-4" />} label="AI" onClick={() => { setAiOpen(true); setMenuOpen(false); }} accent glow />
               <StudioTile icon={<Film className="size-4" />} label="Watch" onClick={() => { setWatchPickerOpen(true); setMenuOpen(false); }} accent />
               <StudioTile icon={<Gamepad2 className="size-4" />} label="Game" onClick={() => { setGamePickerOpen(true); setMenuOpen(false); }} accent />
               <StudioTile icon={<Disc3 className="size-4" />} label="Wheel" onClick={() => { setWheelOpen(true); setMenuOpen(false); }} accent />
