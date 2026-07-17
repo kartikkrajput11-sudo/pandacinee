@@ -222,7 +222,7 @@ export default function OwnersStoryOverlay({
         <div key={i} className="w-full max-w-[640px] max-h-full overflow-y-auto py-16 sm:py-20">
           {current.kind === "cover" && <CoverSlide />}
           {current.kind === "act" && <ActSlide act={current.act} />}
-          {current.kind === "chapter" && <ChapterSlide c={CHAPTERS[current.idx]} art={CHAPTER_ART[current.idx]} />}
+          {current.kind === "chapter" && <ChapterSlide c={CHAPTERS[current.idx]} idx={current.idx} />}
           {current.kind === "end" && <EndSlide onClose={onClose} />}
         </div>
       </div>
