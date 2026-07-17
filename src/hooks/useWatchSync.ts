@@ -261,5 +261,7 @@ export function useWatchSync(
     sendPrepare,
     peerPreparing,
     clearPeerPreparing,
+    peerSourceKind,
+    setSourceKind,
   };
 }
