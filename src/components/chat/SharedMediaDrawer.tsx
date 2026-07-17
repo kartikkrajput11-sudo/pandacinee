@@ -24,7 +24,7 @@ export function SharedMediaDrawer({
 
   const media = useMemo(() => {
     return messages
-      .filter((m) => (m.type === "image" || m.type === "video") && !!m.media_url)
+      .filter((m) => (m.type === "image" || m.type === "video") && !!m.media_url && !(m.media_meta as any)?.view_once)
       .slice()
       .reverse();
   }, [messages]);
