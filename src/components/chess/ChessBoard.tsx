@@ -124,7 +124,7 @@ export function ChessBoard({ chess, orientation, canMoveColor, lastMove, onMove 
                 {piece && (() => {
                   const gliding = lastMove && lastMove.to === sq;
                   const dir = orientation === "w" ? 1 : -1;
-                  const dx = gliding ? (FILES.indexOf(lastMove.from[0]) - FILES.indexOf(lastMove.to[0])) * dir * 100 : 0;
+                  const dx = gliding ? (FILES.indexOf(lastMove.from[0] as typeof FILES[number]) - FILES.indexOf(lastMove.to[0] as typeof FILES[number])) * dir * 100 : 0;
                   const dy = gliding ? (parseInt(lastMove.to[1]) - parseInt(lastMove.from[1])) * dir * 100 : 0;
                   return (
                     <span
