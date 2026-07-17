@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 import type { Chess, Square, Color, PieceSymbol } from "chess.js";
 import { FILES, RANKS, PIECE_GLYPH, legalTargets, squareOf } from "@/lib/chess";
-import { useEquippedItems } from "@/hooks/useEquippedItems";
 
 type Props = {
   chess: Chess;
@@ -13,16 +12,6 @@ type Props = {
 
 export function ChessBoard({ chess, orientation, canMoveColor, lastMove, onMove }: Props) {
   const [selected, setSelected] = useState<Square | null>(null);
-  const { chessBoard, chessPieces } = useEquippedItems();
-  const lightSq = chessBoard?.light ?? "oklch(0.82 0.04 320)";
-  const darkSq = chessBoard?.dark ?? "oklch(0.42 0.09 310)";
-  const accent = chessBoard?.accent ?? "var(--petal)";
-  const pieceGlyph = (color: Color, type: PieceSymbol): string => {
-    const g = chessPieces?.glyphs?.[color]?.[type];
-    return g ?? PIECE_GLYPH[color][type];
-  };
-  const emojiPieces = chessPieces?.emoji === true;
-  const glassPieces = chessPieces?.style === "glass";
 
   const targets = useMemo(() => {
     if (!selected) return new Map<Square, boolean>();
@@ -115,14 +104,11 @@ export function ChessBoard({ chess, orientation, canMoveColor, lastMove, onMove 
                 onDrop={(e) => onDrop(e, sq)}
                 className={[
                   "relative flex items-center justify-center select-none transition-colors",
+                  light ? "bg-[oklch(0.82_0.04_320)]" : "bg-[oklch(0.42_0.09_310)]",
                   isLast ? "ring-2 ring-inset ring-amber-300/70" : "",
-                  isSelected ? "ring-2 ring-inset" : "",
-                  isCheck ? "!bg-red-500/60" : "",
+                  isSelected ? "ring-2 ring-inset ring-petal" : "",
+                  isCheck ? "bg-red-500/60" : "",
                 ].join(" ")}
-                style={{
-                  background: light ? lightSq : darkSq,
-                  ...(isSelected ? { boxShadow: `inset 0 0 0 2px ${accent}` } : {}),
-                }}
                 aria-label={sq}
               >
                 {showRank && (
@@ -136,69 +122,22 @@ export function ChessBoard({ chess, orientation, canMoveColor, lastMove, onMove 
                   </span>
                 )}
                 {piece && (
-                  glassPieces ? (
-                    <span
-                      draggable={canMove(piece)}
-                      onDragStart={(e) => onDragStart(e, sq)}
-                      className="relative flex items-center justify-center rounded-full"
-                      style={{
-                        width: "78%",
-                        height: "78%",
-                        background: piece.color === "w"
-                          ? "linear-gradient(135deg, rgba(255,255,255,0.55), rgba(220,240,255,0.15))"
-                          : "linear-gradient(135deg, rgba(40,20,60,0.85), rgba(10,10,25,0.55))",
-                        backdropFilter: "blur(6px) saturate(160%)",
-                        border: piece.color === "w"
-                          ? "1px solid rgba(255,255,255,0.7)"
-                          : "1px solid rgba(180,140,220,0.5)",
-                        boxShadow: piece.color === "w"
-                          ? "inset 0 1px 2px rgba(255,255,255,0.9), 0 2px 8px rgba(120,180,255,0.35)"
-                          : "inset 0 1px 2px rgba(200,150,255,0.35), 0 2px 8px rgba(0,0,0,0.5)",
-                      }}
-                    >
-                      <span
-                        className="text-[clamp(1.4rem,5.6vw,2.6rem)] leading-none"
-                        style={{
-                          background: piece.color === "w"
-                            ? "linear-gradient(180deg, #ffffff, #c7ecff 60%, #7fb8ff)"
-                            : "linear-gradient(180deg, #f4d5ff, #b58bff 55%, #4a2a7a)",
-                          WebkitBackgroundClip: "text",
-                          backgroundClip: "text",
-                          color: "transparent",
-                          textShadow: "0 1px 1px rgba(0,0,0,0.2)",
-                          filter: "drop-shadow(0 0 3px rgba(255,255,255,0.4))",
-                        }}
-                      >
-                        {pieceGlyph(piece.color as Color, piece.type as PieceSymbol)}
-                      </span>
-                    </span>
-                  ) : (
-                    <span
-                      draggable={canMove(piece)}
-                      onDragStart={(e) => onDragStart(e, sq)}
-                      className={`text-[clamp(1.8rem,7vw,3.2rem)] leading-none drop-shadow-md ${
-                        emojiPieces
-                          ? piece.color === "w" ? "grayscale-0" : "grayscale contrast-125"
-                          : piece.color === "w" ? "text-white" : "text-black"
-                      }`}
-                      style={{
-                        textShadow: emojiPieces
-                          ? "0 1px 2px rgba(0,0,0,0.5)"
-                          : piece.color === "w"
-                            ? "0 1px 2px rgba(0,0,0,0.6)"
-                            : "0 1px 2px rgba(255,255,255,0.35)",
-                        filter: emojiPieces && piece.color === "b" ? "drop-shadow(0 0 1px rgba(0,0,0,0.9))" : undefined,
-                      }}
-                    >
-                      {pieceGlyph(piece.color as Color, piece.type as PieceSymbol)}
-                    </span>
-                  )
+                  <span
+                    draggable={canMove(piece)}
+                    onDragStart={(e) => onDragStart(e, sq)}
+                    className={`text-[clamp(1.8rem,7vw,3.2rem)] leading-none drop-shadow-md ${
+                      piece.color === "w" ? "text-white" : "text-black"
+                    }`}
+                    style={{ textShadow: piece.color === "w" ? "0 1px 2px rgba(0,0,0,0.6)" : "0 1px 2px rgba(255,255,255,0.35)" }}
+                  >
+                    {PIECE_GLYPH[piece.color as Color][piece.type as PieceSymbol]}
+                  </span>
                 )}
                 {isTarget && !piece && (
-                  <span className="absolute w-3 h-3 rounded-full" style={{ background: accent, boxShadow: `0 0 12px ${accent}` }} />
+                  <span className="absolute w-3 h-3 rounded-full bg-petal/70 shadow-[0_0_12px_var(--petal)]" />
                 )}
                 {isTarget && isCapture && (
-                  <span className="absolute inset-1 rounded-full border-4" style={{ borderColor: accent, boxShadow: `0 0 16px ${accent}` }} />
+                  <span className="absolute inset-1 rounded-full border-4 border-petal/70 shadow-[0_0_16px_var(--petal)]" />
                 )}
               </button>
             );

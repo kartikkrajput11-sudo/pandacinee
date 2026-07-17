@@ -145,10 +145,6 @@ export const generateAiSticker = createServerFn({ method: "POST" })
 
     const isCouple = (COUPLE_MOODS as readonly string[]).includes(data.mood);
 
-    // Pack gating is currently disabled — every mood is free for all users
-    // while the shop is admin-only. Re-enable this block when the shop opens.
-
-
     const { data: me } = await (context.supabase as any)
       .from("profiles")
       .select("avatar_url, partner_id")

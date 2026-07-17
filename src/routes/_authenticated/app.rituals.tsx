@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { ArrowLeft, Flame, Heart, Wind, X, Check, Coins } from "lucide-react";
+import { ArrowLeft, Flame, Heart, Wind, X, Check, Coins, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
@@ -238,6 +238,12 @@ function ActiveRitual({ ritual, me, onEnd }: { ritual: Ritual; me: string; onEnd
           </span>
         </div>
         <div className="flex gap-2 justify-center">
+          <Link
+            to="/app/shop"
+            className="px-5 py-3 bg-petal text-velvet rounded-full font-semibold inline-flex items-center gap-2"
+          >
+            <Sparkles className="size-4" /> Spend on tags
+          </Link>
           <button onClick={onEnd} className="px-5 py-3 rounded-full font-semibold border border-border text-candle">
             Close
           </button>

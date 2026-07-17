@@ -190,19 +190,9 @@ function Scribble() {
     if (winnerCountedRef.current === winnerId) return;
     winnerCountedRef.current = winnerId;
     void bumpMyStats({ games_played: 1, wins: winnerId === me.id ? 1 : 0 });
-    if (winnerId === me.id) {
-      gameSfx.win();
-      // 🐼 Panda Coins — win a scribble round (idempotent per pair+day)
-      void (async () => {
-        const { grantPandaCoins, todayKey } = await import("@/lib/coins");
-        await grantPandaCoins("game_won", 8, `scribble-${pairKey}-${todayKey()}`);
-      })();
-    } else {
-      gameSfx.lose();
-    }
+    if (winnerId === me.id) gameSfx.win(); else gameSfx.lose();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [winnerId, me?.id]);
-
 
   const pairKey = me ? (partner ? [me.id, partner.id].sort().join(":") : me.id) : "";
   const storageKey = pairKey ? `scribble:${pairKey}` : "";

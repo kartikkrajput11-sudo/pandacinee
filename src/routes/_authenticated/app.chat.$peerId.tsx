@@ -24,10 +24,6 @@ import { UnlockCelebration } from "@/components/chat/UnlockCelebration";
 import { typeMeta } from "@/lib/punishment";
 import { UserAvatar } from "@/components/UserAvatar";
 import { ForwardDialog, canForward } from "@/components/chat/ForwardDialog";
-import { ChatThemeScope } from "@/components/chat/ChatThemeScope";
-import { ConfettiBurst, PetalRain } from "@/components/chat/PerkEffects";
-import { useEquippedItems } from "@/hooks/useEquippedItems";
-
 
 
 
@@ -153,17 +149,8 @@ function ChatPeer() {
   const [kissEmoji, setKissEmoji] = useState("💜");
   const [hugTick, setHugTick] = useState(0);
   const [shake, setShake] = useState(false);
-  const [confettiTick, setConfettiTick] = useState(0);
-  const [petalTick, setPetalTick] = useState(0);
   const lastFxIdRef = useRef<string | null>(null);
   const playedFxRef = useRef<Set<string>>(new Set());
-
-  const { ownedPerks } = useEquippedItems();
-  const hasKissGold = ownedPerks.has("kiss_gold");
-  const hasHugWarm = ownedPerks.has("hug_warm");
-  const hasConfetti = ownedPerks.has("confetti");
-  const hasPetalRain = ownedPerks.has("petal_rain");
-
 
   const jumpTo = useCallback((id: string) => {
     const el = bubbleRefs.current[id];
@@ -271,29 +258,6 @@ function ChatPeer() {
     }
   }, [messages, me]);
 
-  // Confetti / petal-rain perks: fire when a recent message (own or partner's)
-  // contains 🎉 / 🎊 (confetti) or 🌸 / 🌺 / 🌷 (petals) and the perk is owned.
-  const playedPerkRef = useRef<Set<string>>(new Set());
-  useEffect(() => {
-    if (!me || messages.length === 0) return;
-    if (!hasConfetti && !hasPetalRain) return;
-    const now = Date.now();
-    for (const m of messages.slice(-8)) {
-      if (playedPerkRef.current.has(m.id)) continue;
-      if (now - new Date(m.created_at).getTime() > 15000) continue;
-      const text = m.content ?? "";
-      if (hasConfetti && /[🎉🎊🥳]/u.test(text)) {
-        playedPerkRef.current.add(m.id);
-        setConfettiTick((n) => n + 1);
-      } else if (hasPetalRain && /[🌸🌺🌷🌹💮]/u.test(text)) {
-        playedPerkRef.current.add(m.id);
-        setPetalTick((n) => n + 1);
-      }
-    }
-  }, [messages, me, hasConfetti, hasPetalRain]);
-
-
-
 
   if (isLoading || peerQ.isLoading) {
     return <div className="flex flex-col h-screen items-center justify-center text-candle-muted">Loading…</div>;
@@ -312,8 +276,7 @@ function ChatPeer() {
   const peerDisplay = (isPartner && me.partner_nickname) ? me.partner_nickname : peer.display_name;
 
   return (
-    <ChatThemeScope className={`relative flex flex-col h-screen ${shake ? "animate-chat-shake" : ""} ${hasKissGold ? "perk-kiss-gold" : ""} ${hasHugWarm ? "perk-hug-warm" : ""}`}>
-
+    <div className={`relative flex flex-col h-screen ${shake ? "animate-chat-shake" : ""}`}>
       <header className="relative px-5 pt-7 pb-4 flex items-center gap-4 border-b border-white/5 bg-velvet/90 backdrop-blur-md sticky top-0 z-10">
         <Link to="/app/chat" className="text-candle/60 hover:text-candle transition-colors shrink-0">
           <ArrowLeft className="size-5" strokeWidth={1.5} />
@@ -562,7 +525,7 @@ function ChatPeer() {
           type="button"
           onClick={scrollToBottom}
           aria-label="Scroll to latest"
-          className="!absolute right-4 bottom-28 size-11 rounded-full bg-surface-elevated/95 backdrop-blur-md border border-petal/40 flex items-center justify-center text-petal shadow-xl animate-fade-in z-30"
+          className="absolute right-4 bottom-40 size-10 rounded-full bg-surface-elevated/90 backdrop-blur-md border border-petal/30 flex items-center justify-center text-petal shadow-lg animate-fade-in z-20"
         >
           <ArrowDown className="size-4" />
         </button>
@@ -585,10 +548,7 @@ function ChatPeer() {
       />
       <KissOverlay trigger={kissTick} />
       <HugOverlay trigger={hugTick} />
-      <ConfettiBurst trigger={confettiTick} />
-      <PetalRain trigger={petalTick} />
       <UnlockCelebration trigger={unlockTick || null} />
-
 
       {activeLock && iAmLocked && !isVerifyMode && (
         <PunishmentLockOverlay
@@ -627,7 +587,6 @@ function ChatPeer() {
         open={!!forwardMsg}
         onClose={() => setForwardMsg(null)}
       />
-    </ChatThemeScope>
-
+    </div>
   );
 }

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { X, Sparkles, Loader2, RefreshCw, ImagePlus, Lock } from "lucide-react";
+import { X, Sparkles, Loader2, RefreshCw, ImagePlus } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -7,17 +7,12 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
 import { signMedia } from "@/lib/chat";
-import { useEquippedItems } from "@/hooks/useEquippedItems";
 import {
   generateAiSticker,
   AI_STICKER_SOLO_MOODS,
   AI_STICKER_COUPLE_MOODS,
   type AiStickerMood,
 } from "@/lib/ai-stickers.functions";
-
-// Base free moods available to every user without buying a pack.
-const FREE_MOODS = new Set<AiStickerMood>(["happy", "love", "wave"]);
-
 
 type StickerRow = {
   id: string;
@@ -59,14 +54,9 @@ export function AiStickerPicker({ open, onClose, onPick }: Props) {
   const partner = profileData?.partner;
   const qc = useQueryClient();
   const genFn = useServerFn(generateAiSticker);
-  const { ownedPackMoods } = useEquippedItems();
 
   const [tab, setTab] = useState<Tab>("me");
   const [busyMood, setBusyMood] = useState<AiStickerMood | null>(null);
-
-  const isMoodUnlocked = (m: AiStickerMood) =>
-    FREE_MOODS.has(m) || ownedPackMoods.has(m);
-
 
   const isCoupleTab = tab === "us";
   // Couple stickers are stored under the current user's row so they can regenerate.
@@ -112,10 +102,6 @@ export function AiStickerPicker({ open, onClose, onPick }: Props) {
       toast.info(`${partnerName} needs to generate their own AI stickers.`);
       return;
     }
-    if (!isMoodUnlocked(mood)) {
-      toast.info("This mood is part of an AI Pack — locked.");
-      return;
-    }
     if (isCoupleTab && !partner) {
       toast.info("Pair with your partner first to make couple stickers.");
       return;
@@ -138,8 +124,6 @@ export function AiStickerPicker({ open, onClose, onPick }: Props) {
       setBusyMood(null);
     }
   }
-
-
 
   if (!open) return null;
 
@@ -221,21 +205,18 @@ export function AiStickerPicker({ open, onClose, onPick }: Props) {
               {moods.map((mood) => {
                 const row = byMood.get(mood);
                 const busy = busyMood === mood;
-                const locked = !isMoodUnlocked(mood);
                 return (
                   <StickerCell
                     key={mood}
                     label={MOOD_LABEL[mood]}
                     row={row}
                     busy={busy}
-                    locked={locked}
                     canRegenerate={canRegenerate}
                     onPick={() => row && onPick(row.storage_path, mood)}
                     onGenerate={() => generate(mood)}
                   />
                 );
               })}
-
             </div>
             <p className="text-[10px] text-candle-muted text-center mt-3">
               {tab === "me" && "Tap ✨ to generate, tap a sticker to send."}
@@ -253,7 +234,6 @@ function StickerCell({
   label,
   row,
   busy,
-  locked = false,
   canRegenerate,
   onPick,
   onGenerate,
@@ -261,7 +241,6 @@ function StickerCell({
   label: string;
   row: StickerRow | undefined;
   busy: boolean;
-  locked?: boolean;
   canRegenerate: boolean;
   onPick: () => void;
   onGenerate: () => void;
@@ -275,18 +254,6 @@ function StickerCell({
   }, [row?.storage_path]);
 
   if (!row) {
-    if (locked) {
-      return (
-        <div
-          className="aspect-square rounded-2xl bg-surface-elevated/60 border border-dashed border-candle/15 flex flex-col items-center justify-center gap-1"
-          title="Locked"
-        >
-          <Lock className="size-4 text-candle-muted" />
-          <span className="text-[9px] text-candle-muted px-1 text-center">{label}</span>
-          <span className="text-[8px] uppercase tracking-widest text-candle-muted/80">Locked</span>
-        </div>
-      );
-    }
     return (
       <button
         onClick={onGenerate}
@@ -302,7 +269,6 @@ function StickerCell({
       </button>
     );
   }
-
 
   return (
     <div className="relative group">

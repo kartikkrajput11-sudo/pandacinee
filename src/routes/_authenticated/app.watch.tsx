@@ -222,17 +222,11 @@ function Watch() {
         </div>
 
         <button
-          onClick={async () => {
-            await pushState({ video_url: null, video_title: null, is_playing: false, position_seconds: 0, last_event: "end" });
-            // 🐼 Panda Coins — finishing a watch party together (idempotent per room+day)
-            const { grantPandaCoins, todayKey } = await import("@/lib/coins");
-            await grantPandaCoins("watch_party", 15, `watch-${room.id}-${todayKey()}`);
-          }}
+          onClick={() => pushState({ video_url: null, video_title: null, is_playing: false, position_seconds: 0, last_event: "end" })}
           className="mt-3 w-full py-3 text-xs text-candle-muted hover:text-candle"
         >
           End this room
         </button>
-
       </div>
     </Shell>
   );
