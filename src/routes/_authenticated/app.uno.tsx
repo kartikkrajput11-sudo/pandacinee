@@ -113,6 +113,7 @@ function UnoPage() {
   function handleDraw() {
     if (!isMyTurn) { toast("Not your turn"); return; }
     sfxReaction();
+    setDeckPulse((n) => n + 1);
     sync(drawTurn(state, mySeat));
   }
 
@@ -126,6 +127,7 @@ function UnoPage() {
 
   function reset() {
     const s = initialState();
+    setDealNonce((n) => n + 1);
     sync(s);
   }
 
