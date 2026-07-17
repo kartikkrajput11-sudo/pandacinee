@@ -200,7 +200,7 @@ function LudoPage() {
       <LudoBoard state={state} legalIds={legalIds} onMoveToken={handleMove} canAct={canAct} />
 
       <div className="mt-5 flex items-center justify-center gap-4">
-        <Die value={state.dice} rolling={rolling} />
+        <Die value={state.dice ?? lastRoll} rolling={rolling} active={state.dice != null} />
         <button
           onClick={handleRoll}
           disabled={!canAct || state.dice != null || !!state.winner || rolling}
