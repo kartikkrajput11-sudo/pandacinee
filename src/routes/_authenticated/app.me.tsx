@@ -458,6 +458,47 @@ function SoundToggle() {
   );
 }
 
+function ActivityVisibleToggle({ me, onSaved }: { me: any; onSaved: () => void }) {
+  const on = me?.activity_visible !== false;
+  const [busy, setBusy] = useState(false);
+  async function toggle() {
+    setBusy(true);
+    const next = !on;
+    const { error } = await (supabase as any)
+      .from("profiles")
+      .update({ activity_visible: next })
+      .eq("id", me.id);
+    setBusy(false);
+    if (error) return toast.error(error.message);
+    toast.success(next ? "Activity status visible" : "Activity status hidden");
+    onSaved();
+  }
+  return (
+    <button
+      onClick={toggle}
+      disabled={busy}
+      className="w-full p-5 mb-4 rounded-3xl border border-border bg-surface flex items-center gap-3 hover:border-petal/40 transition-colors text-left disabled:opacity-60"
+    >
+      {on ? <Eye className="size-5 text-petal" /> : <EyeOff className="size-5 text-candle-muted" />}
+      <div className="flex-1">
+        <p className="text-[10px] uppercase tracking-widest text-petal">Activity status</p>
+        <p className="text-sm text-candle">
+          {on ? "Partner sees when you're online & last active" : "Hidden — no online dot or last-seen time"}
+        </p>
+      </div>
+      <span
+        className={`relative w-11 h-6 rounded-full transition-colors ${on ? "bg-petal" : "bg-velvet border border-border"}`}
+        aria-hidden
+      >
+        <span
+          className={`absolute top-0.5 size-5 rounded-full bg-white shadow transition-transform ${on ? "translate-x-5" : "translate-x-0.5"}`}
+        />
+      </span>
+    </button>
+  );
+}
+
+
 
 function PunishmentLockToggle({ me, onSaved }: { me: any; onSaved: () => void }) {
   const enabled = me?.punishment_lock_enabled ?? true;
