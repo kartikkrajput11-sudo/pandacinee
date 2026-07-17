@@ -226,10 +226,10 @@ function LudoPage() {
   );
 }
 
-function Die({ value, rolling }: { value: number | null; rolling: boolean }) {
+function Die({ value, rolling, active }: { value: number | null; rolling: boolean; active: boolean }) {
   return (
     <div
-      className={`w-16 h-16 rounded-2xl border border-petal/40 flex items-center justify-center text-3xl font-serif shadow-inner ${rolling ? "animate-pulse" : ""}`}
+      className={`w-16 h-16 rounded-2xl border flex items-center justify-center text-3xl font-serif shadow-inner transition-all ${rolling ? "animate-pulse" : ""} ${active ? "border-petal shadow-[0_0_20px_-4px_var(--petal)]" : "border-petal/30 opacity-80"}`}
       style={{
         background:
           "linear-gradient(145deg, oklch(0.28 0.05 320), oklch(0.18 0.03 320))",
