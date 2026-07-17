@@ -1,21 +1,19 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import {
   ArrowLeft, Crown, UserPlus, LogOut, BellOff, Bell, X, Check, ShieldOff, UserMinus,
-  ImagePlus, Trash2,
+  Settings as SettingsIcon, Copy, RefreshCw,
 } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
 import { useFriendships } from "@/hooks/useFriends";
 import { useGroup, useLeaveGroup } from "@/hooks/useGroups";
 import {
-  useUpdateGroup, useSetMemberRole, useRemoveMember, useAddMembers,
+  useSetMemberRole, useRemoveMember, useAddMembers,
   useRegenerateGroupCode,
-  isGroupMuted, setGroupMuted, GROUP_THEMES, type GroupTheme,
+  isGroupMuted, setGroupMuted,
 } from "@/hooks/useGroupAdmin";
 import { UserAvatar } from "@/components/UserAvatar";
-import { Copy, RefreshCw } from "lucide-react";
 
 const AVATAR_EMOJIS = ["💜", "🐼", "🌸", "🌙", "🍿", "🎬", "🦋", "🍓", "🌈", "🪐"];
 
