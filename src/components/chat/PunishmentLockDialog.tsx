@@ -113,7 +113,7 @@ export function PunishmentLockDialog({ open, onClose, targetName, mePrefs, peerP
                 "0 8px 20px -10px rgba(236,72,153,0.6), inset 0 1px 0 rgba(255,255,255,0.25)",
             }}
           >
-            <div className="size-[30px] rounded-full bg-velvet/85 flex items-center justify-center">
+            <div className="size-[30px] rounded-full bg-background/85 flex items-center justify-center">
               <Lock className="size-3.5 text-petal" strokeWidth={1.7} />
             </div>
           </div>
