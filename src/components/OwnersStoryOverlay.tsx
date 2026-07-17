@@ -349,27 +349,34 @@ function ActSlide({ act }: { act: Chapter["act"] }) {
   );
 }
 
-function ChapterSlide({ c }: { c: Chapter }) {
+function ChapterSlide({ c, art }: { c: Chapter; art: string }) {
   const first = c.body.charAt(0);
   const rest = c.body.slice(1);
   return (
     <article className="relative">
-      {/* Hero sticker */}
+      {/* Hero scene sticker */}
       <div className="text-center mb-8">
         <div
-          className="sticker-hero inline-block text-[76px] sm:text-[92px] leading-none select-none"
+          className="sticker-hero inline-block select-none"
           style={{
-            padding: "16px 22px",
-            borderRadius: "26px",
+            padding: "14px",
+            borderRadius: "28px",
             background: "linear-gradient(180deg, rgba(30,20,35,0.7), rgba(15,10,20,0.9))",
             border: `1px solid ${GOLD}44`,
             boxShadow: `0 30px 70px -20px ${GOLD}66, inset 0 1px 0 rgba(255,255,255,0.06)`,
           }}
-          aria-hidden
         >
-          {c.sticker}
+          <img
+            src={art}
+            alt={c.title}
+            width={240}
+            height={240}
+            className="block w-[200px] h-[200px] sm:w-[240px] sm:h-[240px] object-contain"
+            draggable={false}
+          />
         </div>
       </div>
+
 
       {/* Chapter marker */}
       <div className="slide-enter-2 flex items-baseline gap-4 mb-4">
