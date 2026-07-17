@@ -297,12 +297,12 @@ function HideSeekPage() {
   const [mode, setMode] = useState<Mode>("local");
   const [phase, setPhase] = useState<Phase>("intro");
   const [round, setRound] = useState(1);
-  const [hiderId, setHiderId] = useState<string | null>(null); // for local: "me"/"partner"; for online: user id
+  const [hiderId, setHiderId] = useState<string | null>(null);
   const [sceneId, setSceneId] = useState<string | null>(null);
-  const [spot, setSpot] = useState<number | null>(null);
-  const [attempts, setAttempts] = useState<number[]>([]); // spot indexes tried
-  const [scores, setScores] = useState<[number, number]>([0, 0]); // [me, partner]
-  const [foundAt, setFoundAt] = useState<number | null>(null); // attempts index (0-based) or null
+  const [spot, setSpot] = useState<Pt | null>(null);           // hider's chosen point
+  const [attempts, setAttempts] = useState<Pt[]>([]);          // seeker's clicks
+  const [scores, setScores] = useState<[number, number]>([0, 0]);
+  const [foundAt, setFoundAt] = useState<number | null>(null); // 0-based attempt idx
 
   const scene = useMemo(() => SCENES.find((s) => s.id === sceneId) ?? null, [sceneId]);
 
