@@ -38,6 +38,13 @@ export function useGamePresence(meId: string | null | undefined, partnerId: stri
     const name = coupleChannel(meId, partnerId);
     if (!name || !meId) return;
 
+    // Ensure any stale channel with the same topic is removed so we can
+    // attach presence callbacks before subscribing (Supabase forbids adding
+    // callbacks after subscribe()).
+    for (const c of supabase.getChannels()) {
+      if (c.topic === `realtime:${name}`) supabase.removeChannel(c);
+    }
+
     const channel = supabase.channel(name, {
       config: { presence: { key: meId } },
     });
@@ -65,6 +72,7 @@ export function useGamePresence(meId: string | null | undefined, partnerId: stri
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [meId, partnerId, subscribe]);
+
 
   // Update tracked path whenever the user navigates.
   useEffect(() => {
