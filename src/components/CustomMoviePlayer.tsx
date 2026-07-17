@@ -64,7 +64,7 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
   const [time, setTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [muted, setMuted] = useState(false);
-  const [volume, setVolume] = useState(2);
+  const [volume, setVolume] = useState(1);
   const [rate, setRate] = useState(1);
   const [rateOpen, setRateOpen] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
@@ -73,31 +73,8 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
   const hideTimer = useRef<number | null>(null);
   const bufferTimer = useRef<number | null>(null);
   const scrubbing = useRef(false);
-  const audioCtxRef = useRef<AudioContext | null>(null);
-  const gainNodeRef = useRef<GainNode | null>(null);
-  const sourceNodeRef = useRef<MediaElementAudioSourceNode | null>(null);
-
-  // Set up Web Audio gain node for volume boost (up to 300%)
-  const setupGain = useCallback(() => {
-    const v = videoRef.current;
-    if (!v || sourceNodeRef.current) return;
-    try {
-      const Ctx = (window.AudioContext || (window as any).webkitAudioContext);
-      if (!Ctx) return;
-      const ctx = new Ctx();
-      const src = ctx.createMediaElementSource(v);
-      const gain = ctx.createGain();
-      gain.gain.value = 2;
-      src.connect(gain).connect(ctx.destination);
-      audioCtxRef.current = ctx;
-      gainNodeRef.current = gain;
-      sourceNodeRef.current = src;
-    } catch {}
-  }, []);
-
   useEffect(() => {
     return () => {
-      try { audioCtxRef.current?.close(); } catch {}
       if (bufferTimer.current) window.clearTimeout(bufferTimer.current);
     };
   }, []);
@@ -133,6 +110,10 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
     setDuration(0);
     setTime(0);
     if (!v || !src) return;
+    try {
+      v.preload = "auto";
+      v.load();
+    } catch {}
     const timer = window.setTimeout(() => {
       if (v.readyState < 1 || !Number.isFinite(v.duration)) {
         stopBuffering();
@@ -150,10 +131,6 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
     const v = videoRef.current;
     if (!v || !onReadyRef.current) return;
     try { v.volume = 1; } catch {}
-    // Boost default output to 200% via Web Audio gain — many movie files
-    // are mastered quietly and browser max is 100% without a gain node.
-    setupGain();
-    try { audioCtxRef.current?.resume(); } catch {}
     onReadyRef.current({
       play: () => {
         setBuffering(true);
@@ -507,31 +484,22 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
             <input
               type="range"
               min={0}
-              max={300}
+                max={100}
               value={muted ? 0 : Math.round(volume * 100)}
               onChange={(e) => {
                 const v = videoRef.current;
                 if (!v) return;
-                setupGain();
-                try { audioCtxRef.current?.resume(); } catch {}
                 const pct = Number(e.target.value);
                 const val = pct / 100;
-                // Video element volume caps at 1; use gain node for >100%
-                v.volume = Math.min(1, val);
+                  v.volume = val;
                 v.muted = val === 0;
-                if (gainNodeRef.current) {
-                  gainNodeRef.current.gain.value = val <= 1 ? 1 : val;
-                }
                 setVolume(val);
                 setMuted(val === 0);
               }}
               className="w-24 accent-petal"
               aria-label="Volume"
-              title={`${Math.round(volume * 100)}%${volume > 1 ? " (boosted)" : ""}`}
+                title={`${Math.round(volume * 100)}%`}
             />
-            {volume > 1 && (
-              <span className="text-[10px] text-petal font-semibold">{Math.round(volume * 100)}%</span>
-            )}
           </div>
 
 
