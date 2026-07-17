@@ -139,6 +139,16 @@ const SCENES: Scene[] = [
       { x: 62, y: 64, w: 18, h: 18, tone: "stone", label: "Fountain" },
       { x: 82, y: 52, w: 12, h: 18, tone: "cloth", label: "Orchid" },
       { x: 52, y: 14, w: 18, h: 12, tone: "glass", label: "Pane" },
+      // decoys
+      { x: 26, y: 24, w: 10, h: 10, tone: "cloth", label: "Fern" },
+      { x: 10, y: 22, w: 10, h: 10, tone: "wood",  label: "Planter" },
+      { x: 38, y: 54, w: 10, h: 8,  tone: "wood",  label: "Bench" },
+      { x: 8,  y: 76, w: 10, h: 12, tone: "cloth", label: "Ivy" },
+      { x: 82, y: 78, w: 10, h: 10, tone: "wood",  label: "Trough" },
+      { x: 70, y: 24, w: 10, h: 8,  tone: "glass", label: "Terrarium" },
+      { x: 40, y: 78, w: 12, h: 10, tone: "stone", label: "Sundial" },
+      { x: 88, y: 30, w: 6,  h: 12, tone: "cloth", label: "Vine" },
+      { x: 20, y: 54, w: 6,  h: 6,  tone: "wood",  label: "Bulb" },
     ],
     spots: [
       { emoji: "🌴", name: "Fan Palm",        x: 14, y: 51 },
