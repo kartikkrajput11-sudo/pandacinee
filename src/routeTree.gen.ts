@@ -34,6 +34,7 @@ import { Route as AuthenticatedAppMemoriesRouteImport } from './routes/_authenti
 import { Route as AuthenticatedAppMeRouteImport } from './routes/_authenticated/app.me'
 import { Route as AuthenticatedAppLudoRouteImport } from './routes/_authenticated/app.ludo'
 import { Route as AuthenticatedAppLoveQuizRouteImport } from './routes/_authenticated/app.love-quiz'
+import { Route as AuthenticatedAppKnowmeRouteImport } from './routes/_authenticated/app.knowme'
 import { Route as AuthenticatedAppInviteRouteImport } from './routes/_authenticated/app.invite'
 import { Route as AuthenticatedAppHelpRouteImport } from './routes/_authenticated/app.help'
 import { Route as AuthenticatedAppFriendsRouteImport } from './routes/_authenticated/app.friends'
@@ -190,6 +191,11 @@ const AuthenticatedAppLoveQuizRoute =
     path: '/love-quiz',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppKnowmeRoute = AuthenticatedAppKnowmeRouteImport.update({
+  id: '/knowme',
+  path: '/knowme',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
 const AuthenticatedAppInviteRoute = AuthenticatedAppInviteRouteImport.update({
   id: '/invite',
   path: '/invite',
@@ -344,6 +350,7 @@ export interface FileRoutesByFullPath {
   '/app/friends': typeof AuthenticatedAppFriendsRoute
   '/app/help': typeof AuthenticatedAppHelpRoute
   '/app/invite': typeof AuthenticatedAppInviteRoute
+  '/app/knowme': typeof AuthenticatedAppKnowmeRoute
   '/app/love-quiz': typeof AuthenticatedAppLoveQuizRoute
   '/app/ludo': typeof AuthenticatedAppLudoRoute
   '/app/me': typeof AuthenticatedAppMeRoute
@@ -393,6 +400,7 @@ export interface FileRoutesByTo {
   '/app/friends': typeof AuthenticatedAppFriendsRoute
   '/app/help': typeof AuthenticatedAppHelpRoute
   '/app/invite': typeof AuthenticatedAppInviteRoute
+  '/app/knowme': typeof AuthenticatedAppKnowmeRoute
   '/app/love-quiz': typeof AuthenticatedAppLoveQuizRoute
   '/app/ludo': typeof AuthenticatedAppLudoRoute
   '/app/me': typeof AuthenticatedAppMeRoute
@@ -444,6 +452,7 @@ export interface FileRoutesById {
   '/_authenticated/app/friends': typeof AuthenticatedAppFriendsRoute
   '/_authenticated/app/help': typeof AuthenticatedAppHelpRoute
   '/_authenticated/app/invite': typeof AuthenticatedAppInviteRoute
+  '/_authenticated/app/knowme': typeof AuthenticatedAppKnowmeRoute
   '/_authenticated/app/love-quiz': typeof AuthenticatedAppLoveQuizRoute
   '/_authenticated/app/ludo': typeof AuthenticatedAppLudoRoute
   '/_authenticated/app/me': typeof AuthenticatedAppMeRoute
@@ -496,6 +505,7 @@ export interface FileRouteTypes {
     | '/app/friends'
     | '/app/help'
     | '/app/invite'
+    | '/app/knowme'
     | '/app/love-quiz'
     | '/app/ludo'
     | '/app/me'
@@ -545,6 +555,7 @@ export interface FileRouteTypes {
     | '/app/friends'
     | '/app/help'
     | '/app/invite'
+    | '/app/knowme'
     | '/app/love-quiz'
     | '/app/ludo'
     | '/app/me'
@@ -595,6 +606,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/friends'
     | '/_authenticated/app/help'
     | '/_authenticated/app/invite'
+    | '/_authenticated/app/knowme'
     | '/_authenticated/app/love-quiz'
     | '/_authenticated/app/ludo'
     | '/_authenticated/app/me'
@@ -815,6 +827,13 @@ declare module '@tanstack/react-router' {
       path: '/love-quiz'
       fullPath: '/app/love-quiz'
       preLoaderRoute: typeof AuthenticatedAppLoveQuizRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/knowme': {
+      id: '/_authenticated/app/knowme'
+      path: '/knowme'
+      fullPath: '/app/knowme'
+      preLoaderRoute: typeof AuthenticatedAppKnowmeRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/invite': {
@@ -1046,6 +1065,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppFriendsRoute: typeof AuthenticatedAppFriendsRoute
   AuthenticatedAppHelpRoute: typeof AuthenticatedAppHelpRoute
   AuthenticatedAppInviteRoute: typeof AuthenticatedAppInviteRoute
+  AuthenticatedAppKnowmeRoute: typeof AuthenticatedAppKnowmeRoute
   AuthenticatedAppLoveQuizRoute: typeof AuthenticatedAppLoveQuizRoute
   AuthenticatedAppLudoRoute: typeof AuthenticatedAppLudoRoute
   AuthenticatedAppMeRoute: typeof AuthenticatedAppMeRoute
@@ -1087,6 +1107,7 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppFriendsRoute: AuthenticatedAppFriendsRoute,
   AuthenticatedAppHelpRoute: AuthenticatedAppHelpRoute,
   AuthenticatedAppInviteRoute: AuthenticatedAppInviteRoute,
+  AuthenticatedAppKnowmeRoute: AuthenticatedAppKnowmeRoute,
   AuthenticatedAppLoveQuizRoute: AuthenticatedAppLoveQuizRoute,
   AuthenticatedAppLudoRoute: AuthenticatedAppLudoRoute,
   AuthenticatedAppMeRoute: AuthenticatedAppMeRoute,

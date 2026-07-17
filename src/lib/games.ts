@@ -4,6 +4,7 @@ export type GameKind =
   | "would-you-rather"
   | "never-have-i-ever"
   | "guess-me"
+  | "know-me"
   | "two-truths-lie"
   | "hot-takes"
   | "emoji-riddle"
@@ -24,6 +25,7 @@ export const GAME_KINDS: GameKind[] = [
   "paint-together",
   "chess",
   "ludo",
+  "know-me",
   "scribble-guess",
   "two-truths-lie",
   "hot-takes",
@@ -42,6 +44,7 @@ export const GAMES: Record<GameKind, { name: string; emoji: string; body: string
   "paint-together": { name: "Paint Together", emoji: "🎨", body: "Live shared canvas.", href: "/app/paint" },
   "chess": { name: "Chess", emoji: "♟️", body: "Play with your panda, live.", href: "/app/chess" },
   "ludo": { name: "Ludo", emoji: "🎲", body: "Roll, race, capture — 2-player.", href: "/app/ludo" },
+  "know-me": { name: "How Well Do You Know Me?", emoji: "💌", body: "Pass-and-play couple quiz.", href: "/app/knowme" },
   "scribble-guess": { name: "Scribble & Guess", emoji: "✏️", body: "Draw. Guess. Win.", href: "/app/scribble" },
   "daily-challenge": { name: "Daily Challenge", emoji: "🌞", body: "One prompt each day.", href: "/app/daily-challenge" },
   "memory-challenge": { name: "Memory Challenge", emoji: "📸", body: "Photo prompts together.", href: "/app/memory-challenge" },
