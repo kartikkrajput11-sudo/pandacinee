@@ -654,6 +654,51 @@ function WaitingCard({ title, body }: { title: string; body: string }) {
   );
 }
 
+/* ── Shared 2D room frame ── */
+function RoomFrame({
+  scene,
+  children,
+  compact,
+}: { scene: Scene; children: React.ReactNode; compact?: boolean }) {
+  return (
+    <div
+      className={`relative w-full ${compact ? "aspect-[4/3]" : "aspect-[3/4] sm:aspect-[4/3]"} rounded-3xl border border-border overflow-hidden select-none shadow-inner`}
+      style={{
+        background: `linear-gradient(to bottom, ${scene.sky} 0%, ${scene.sky} 55%, ${scene.floor} 55%, ${scene.floor} 100%)`,
+      }}
+    >
+      {/* soft vignette */}
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{ background: "radial-gradient(ellipse at 50% 30%, transparent 40%, rgba(0,0,0,0.55) 100%)" }}
+      />
+      {/* floor shine */}
+      <div
+        className="pointer-events-none absolute left-0 right-0"
+        style={{ top: "55%", height: "6%", background: "linear-gradient(to bottom, rgba(255,255,255,0.10), transparent)" }}
+      />
+      {/* decorative, non-clickable props */}
+      {scene.props.map((p, i) => (
+        <span
+          key={`p-${i}`}
+          className="pointer-events-none absolute select-none"
+          style={{
+            left: `${p.x}%`,
+            top: `${p.y}%`,
+            fontSize: `${p.size}px`,
+            transform: `translate(-50%, -50%) rotate(${p.rotate ?? 0}deg)`,
+            opacity: p.opacity ?? 1,
+            filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.4))",
+          }}
+        >
+          {p.emoji}
+        </span>
+      ))}
+      {children}
+    </div>
+  );
+}
+
 function PickScene({ onPick }: { onPick: (id: string) => void }) {
   return (
     <div className="space-y-4">
@@ -663,13 +708,20 @@ function PickScene({ onPick }: { onPick: (id: string) => void }) {
           <button
             key={s.id}
             onClick={() => onPick(s.id)}
-            className="p-4 rounded-3xl border border-border bg-surface text-left hover:border-petal/60 transition-colors relative overflow-hidden"
+            className="rounded-3xl border border-border bg-surface text-left hover:border-petal/60 transition-colors overflow-hidden"
           >
-            <div className="absolute inset-0 opacity-70 pointer-events-none" style={{ background: `radial-gradient(circle at 30% 20%, ${s.hue}, transparent 70%)` }} />
-            <div className="relative">
-              <div className="text-3xl mb-2">{s.emoji}</div>
-              <p className="font-serif italic text-base leading-tight">{s.name}</p>
-              <p className="text-[10px] uppercase tracking-widest text-candle-muted mt-1">6 hiding spots</p>
+            <div
+              className="relative w-full aspect-[5/3]"
+              style={{ background: `linear-gradient(to bottom, ${s.sky} 0%, ${s.sky} 55%, ${s.floor} 55%, ${s.floor} 100%)` }}
+            >
+              <div className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(ellipse at 50% 30%, transparent 40%, rgba(0,0,0,0.5) 100%)" }} />
+              {s.props.slice(0, 3).map((p, i) => (
+                <span key={i} className="absolute" style={{ left: `${p.x}%`, top: `${p.y}%`, fontSize: `${Math.max(10, p.size * 0.7)}px`, transform: "translate(-50%,-50%)", opacity: p.opacity ?? 1 }}>{p.emoji}</span>
+              ))}
+              <span className="absolute inset-x-0 bottom-1 text-center text-[10px] uppercase tracking-widest text-candle/80">{s.emoji} {s.name}</span>
+            </div>
+            <div className="px-3 py-2">
+              <p className="text-[10px] uppercase tracking-widest text-candle-muted">6 hiding spots</p>
             </div>
           </button>
         ))}
@@ -680,24 +732,29 @@ function PickScene({ onPick }: { onPick: (id: string) => void }) {
 
 function PickSpot({ scene, onPick, onBack }: { scene: Scene; onPick: (i: number) => void; onBack: () => void }) {
   return (
-    <div className="space-y-4">
-      <button onClick={onBack} className="text-[11px] uppercase tracking-widest text-candle-muted hover:text-candle">← Different room</button>
-      <div className="rounded-3xl p-5 border border-border relative overflow-hidden" style={{ background: `linear-gradient(135deg, ${scene.hue}, transparent), var(--surface, #1a1420)` }}>
-        <p className="font-serif italic text-xl mb-1">{scene.name}</p>
-        <p className="text-xs text-candle-muted mb-4">Tap the spot you'll hide in. Only you will see it.</p>
-        <div className="grid grid-cols-3 gap-2">
-          {scene.spots.map((sp, i) => (
-            <button
-              key={i}
-              onClick={() => onPick(i)}
-              className="aspect-square rounded-2xl border border-candle/10 bg-velvet/60 backdrop-blur flex flex-col items-center justify-center gap-1 hover:border-petal/60 hover:bg-velvet/80 transition"
-            >
-              <span className="text-2xl">{sp.emoji}</span>
-              <span className="text-[10px] text-candle-muted text-center px-1">{sp.name}</span>
-            </button>
-          ))}
-        </div>
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <button onClick={onBack} className="text-[11px] uppercase tracking-widest text-candle-muted hover:text-candle">← Different room</button>
+        <p className="font-serif italic text-lg">{scene.name}</p>
+        <span />
       </div>
+      <p className="text-center text-xs text-candle-muted">Tap the spot you'll hide in. Only you will see it.</p>
+      <RoomFrame scene={scene}>
+        {scene.spots.map((sp, i) => (
+          <button
+            key={i}
+            onClick={() => onPick(i)}
+            className="absolute -translate-x-1/2 -translate-y-1/2 group focus:outline-none"
+            style={{ left: `${sp.x}%`, top: `${sp.y}%` }}
+            aria-label={sp.name}
+          >
+            <span className="relative flex items-center justify-center size-14 sm:size-16 rounded-full bg-velvet/40 backdrop-blur border border-candle/20 group-hover:border-petal group-hover:bg-velvet/70 transition shadow-lg">
+              <span className="text-3xl drop-shadow" style={{ filter: "drop-shadow(0 2px 3px rgba(0,0,0,0.5))" }}>{sp.emoji}</span>
+              <span className="absolute -bottom-5 whitespace-nowrap text-[10px] uppercase tracking-widest text-candle-muted opacity-0 group-hover:opacity-100 transition">{sp.name}</span>
+            </span>
+          </button>
+        ))}
+      </RoomFrame>
     </div>
   );
 }
@@ -716,35 +773,38 @@ function Handoff({ hiderName, seekerName, onReady }: { hiderName: string; seeker
 }
 
 function HiderWatch({ scene, spot, attempts, seekerName }: { scene: Scene; spot: number; attempts: number[]; seekerName: string }) {
+  const mySpot = scene.spots[spot];
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <div className="text-center">
-        <p className="text-[10px] uppercase tracking-[0.28em] text-petal">You are hiding in</p>
-        <p className="font-serif italic text-xl">{scene.name} · {scene.spots[spot].name} {scene.spots[spot].emoji}</p>
-        <p className="text-xs text-candle-muted mt-1">{seekerName} has {MAX_ATTEMPTS - attempts.length} guesses left.</p>
+        <p className="text-[10px] uppercase tracking-[0.28em] text-petal">You are hiding at</p>
+        <p className="font-serif italic text-xl">{mySpot.emoji} {mySpot.name}</p>
+        <p className="text-xs text-candle-muted mt-1">{seekerName} has {MAX_ATTEMPTS - attempts.length} of {MAX_ATTEMPTS} guesses left.</p>
       </div>
 
-      <div className="rounded-3xl p-5 border border-border relative overflow-hidden" style={{ background: `linear-gradient(135deg, ${scene.hue}, transparent), var(--surface, #1a1420)` }}>
-        <div className="grid grid-cols-3 gap-2">
-          {scene.spots.map((sp, i) => {
-            const guessed = attempts.includes(i);
-            const isMe = i === spot;
-            return (
-              <div
-                key={i}
-                className={`aspect-square rounded-2xl border flex flex-col items-center justify-center gap-1 relative transition ${
-                  isMe ? "border-petal bg-petal-soft/40 ring-2 ring-petal/50" : "border-candle/10 bg-velvet/60"
-                } ${guessed ? "opacity-60" : ""}`}
+      <RoomFrame scene={scene}>
+        {scene.spots.map((sp, i) => {
+          const guessed = attempts.includes(i);
+          const isMe = i === spot;
+          return (
+            <div
+              key={i}
+              className="absolute -translate-x-1/2 -translate-y-1/2 flex items-center justify-center"
+              style={{ left: `${sp.x}%`, top: `${sp.y}%` }}
+            >
+              <span
+                className={`relative flex items-center justify-center size-14 sm:size-16 rounded-full border transition ${
+                  isMe ? "border-petal bg-petal-soft/50 ring-2 ring-petal/60 animate-pulse" : "border-candle/20 bg-velvet/40 backdrop-blur"
+                } ${guessed && !isMe ? "opacity-40" : ""}`}
               >
-                <span className="text-2xl">{sp.emoji}</span>
-                <span className="text-[10px] text-candle-muted text-center px-1">{sp.name}</span>
-                {guessed && !isMe && <span className="absolute top-1 right-1 text-[10px]">❌</span>}
-                {isMe && <span className="absolute top-1 right-1 text-[10px]">🫣</span>}
-              </div>
-            );
-          })}
-        </div>
-      </div>
+                <span className="text-3xl">{sp.emoji}</span>
+                {isMe && <span className="absolute -top-2 -right-2 text-lg">🫣</span>}
+                {guessed && !isMe && <span className="absolute -top-2 -right-2 text-base">❌</span>}
+              </span>
+            </div>
+          );
+        })}
+      </RoomFrame>
 
       <div className="rounded-2xl border border-border bg-surface p-4">
         <p className="text-[10px] uppercase tracking-widest text-candle-muted mb-2">Search log</p>
@@ -753,7 +813,7 @@ function HiderWatch({ scene, spot, attempts, seekerName }: { scene: Scene; spot:
         ) : (
           <ul className="space-y-1.5 text-sm">
             {attempts.map((a, i) => {
-              const heat = heatFor(a, spot);
+              const heat = heatFor(scene.spots[a], mySpot);
               return (
                 <li key={i} className="flex items-center justify-between">
                   <span className="text-candle">Guess {i + 1}: {scene.spots[a].emoji} {scene.spots[a].name}</span>
@@ -771,12 +831,13 @@ function HiderWatch({ scene, spot, attempts, seekerName }: { scene: Scene; spot:
 function SeekerBoard({ scene, spot, attempts, onGuess, hiderName }: {
   scene: Scene; spot: number; attempts: number[]; onGuess: (i: number) => void; hiderName: string;
 }) {
+  const mySpot = scene.spots[spot];
   const lastAttempt = attempts.length > 0 ? attempts[attempts.length - 1] : null;
-  const lastHeat = lastAttempt != null ? heatFor(lastAttempt, spot) : null;
+  const lastHeat = lastAttempt != null ? heatFor(scene.spots[lastAttempt], mySpot) : null;
   const remaining = MAX_ATTEMPTS - attempts.length;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <div className="text-center">
         <p className="text-[10px] uppercase tracking-[0.28em] text-petal">Seeking {hiderName} in</p>
         <p className="font-serif italic text-xl">{scene.name}</p>
@@ -790,33 +851,41 @@ function SeekerBoard({ scene, spot, attempts, onGuess, hiderName }: {
         </div>
       )}
 
-      <div className="rounded-3xl p-5 border border-border relative overflow-hidden" style={{ background: `linear-gradient(135deg, ${scene.hue}, transparent), var(--surface, #1a1420)` }}>
-        <div className="grid grid-cols-3 gap-2">
-          {scene.spots.map((sp, i) => {
-            const tried = attempts.includes(i);
-            return (
-              <button
-                key={i}
-                onClick={() => onGuess(i)}
-                disabled={tried}
-                className={`aspect-square rounded-2xl border flex flex-col items-center justify-center gap-1 transition relative ${
+      <RoomFrame scene={scene}>
+        {scene.spots.map((sp, i) => {
+          const tried = attempts.includes(i);
+          return (
+            <button
+              key={i}
+              onClick={() => onGuess(i)}
+              disabled={tried}
+              className="absolute -translate-x-1/2 -translate-y-1/2 group focus:outline-none disabled:cursor-not-allowed"
+              style={{ left: `${sp.x}%`, top: `${sp.y}%` }}
+              aria-label={tried ? "Already searched" : sp.name}
+            >
+              <span
+                className={`relative flex items-center justify-center size-14 sm:size-16 rounded-full border transition shadow-lg ${
                   tried
-                    ? "border-candle/5 bg-velvet/30 opacity-50 cursor-not-allowed"
-                    : "border-candle/10 bg-velvet/60 hover:border-petal/60 hover:bg-velvet/80 active:scale-95"
+                    ? "border-candle/10 bg-velvet/20 opacity-40"
+                    : "border-candle/25 bg-velvet/40 backdrop-blur group-hover:border-petal group-hover:bg-velvet/70 group-active:scale-90"
                 }`}
               >
-                <span className="text-2xl">{tried ? "❌" : sp.emoji}</span>
-                <span className="text-[10px] text-candle-muted text-center px-1">{sp.name}</span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
+                <span className="text-3xl" style={{ filter: "drop-shadow(0 2px 3px rgba(0,0,0,0.5))" }}>{tried ? "❌" : "❓"}</span>
+                {!tried && (
+                  <span className="pointer-events-none absolute inset-0 rounded-full ring-2 ring-petal/0 group-hover:ring-petal/60 transition" />
+                )}
+              </span>
+            </button>
+          );
+        })}
+      </RoomFrame>
 
-      <p className="text-center text-[11px] text-candle-muted italic">Warmer means one room-tile away · burning means dead-on.</p>
+      <p className="text-center text-[11px] text-candle-muted italic">Tap any hotspot to search it. Warmer means close, burning means dead-on.</p>
     </div>
   );
 }
+
+
 
 function RoundResult({ scene, spot, attempts, foundAt, hiderName, seekerName, onNext, isFinal }: {
   scene: Scene; spot: number; attempts: number[]; foundAt: number | null;
