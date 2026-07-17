@@ -380,9 +380,9 @@ function HideSeekPage() {
     }
 
     if (msg.t === "hide") {
-      // I'm the seeker — receive scene, start seeking
+      // I'm the seeker — receive scene + hider's point
       setSceneId(msg.sceneId);
-      setSpot(msg.spot);
+      setSpot({ x: msg.x, y: msg.y });
       setAttempts([]);
       setFoundAt(null);
       setPhase("seeker");
@@ -390,14 +390,14 @@ function HideSeekPage() {
     }
 
     if (msg.t === "guess") {
-      // I'm the hider — record the seeker's attempt so I can watch
+      // I'm the hider — record the seeker's attempt
       setAttempts((prev) => {
         const next = [...prev];
-        next[msg.attempt] = msg.spot;
+        next[msg.attempt] = { x: msg.x, y: msg.y };
         return next;
       });
       const truth = stateRef.current.spot;
-      if (truth != null && msg.spot === truth) sfxKiss();
+      if (truth && distance({ x: msg.x, y: msg.y }, truth) <= HIT_RADIUS) sfxKiss();
       else sfxReaction();
       return;
     }
