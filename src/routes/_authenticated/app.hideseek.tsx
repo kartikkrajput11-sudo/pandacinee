@@ -713,7 +713,94 @@ function WaitingCard({ title, body }: { title: string; body: string }) {
   );
 }
 
-/* ── Shared 2D room frame ── */
+/* ── Shared top-down 2D floor plan ── */
+
+function toneColor(tone?: Furn["tone"]): { fill: string; stroke: string } {
+  switch (tone) {
+    case "wood":  return { fill: "oklch(0.42 0.06 55)",  stroke: "oklch(0.72 0.10 68)" };
+    case "stone": return { fill: "oklch(0.55 0.02 260)", stroke: "oklch(0.80 0.03 260)" };
+    case "cloth": return { fill: "oklch(0.42 0.10 340)", stroke: "oklch(0.82 0.14 15)" };
+    case "glass": return { fill: "oklch(0.55 0.06 220)", stroke: "oklch(0.90 0.08 220)" };
+    case "gold":  return { fill: "oklch(0.62 0.14 80)",  stroke: "oklch(0.92 0.14 90)" };
+    default:      return { fill: "oklch(0.42 0.04 300)", stroke: "oklch(0.80 0.04 300)" };
+  }
+}
+
+function FloorPlan({ scene, mini = false }: { scene: Scene; mini?: boolean }) {
+  return (
+    <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 w-full h-full">
+      <defs>
+        <pattern id={`grid-${scene.id}${mini ? "-m" : ""}`} width="6" height="6" patternUnits="userSpaceOnUse">
+          <path d="M 6 0 L 0 0 0 6" fill="none" stroke={scene.accent} strokeOpacity={mini ? 0.06 : 0.10} strokeWidth="0.15" />
+        </pattern>
+        <radialGradient id={`vig-${scene.id}${mini ? "-m" : ""}`} cx="50%" cy="50%" r="70%">
+          <stop offset="55%" stopColor="rgba(0,0,0,0)" />
+          <stop offset="100%" stopColor="rgba(0,0,0,0.65)" />
+        </radialGradient>
+      </defs>
+
+      {/* floor base */}
+      <rect x="0" y="0" width="100" height="100" fill={scene.floor} />
+      <rect x="0" y="0" width="100" height="100" fill={`url(#grid-${scene.id}${mini ? "-m" : ""})`} />
+
+      {/* zones — subtle labelled parquet blocks */}
+      {scene.zones.map((z, i) => (
+        <g key={i}>
+          <rect x={z.x} y={z.y} width={z.w} height={z.h} fill={scene.accent} fillOpacity={0.04} />
+          {!mini && (
+            <text
+              x={z.x + z.w / 2} y={z.y + 4.5}
+              textAnchor="middle"
+              fontSize="2.2"
+              fill={scene.accent}
+              fillOpacity={0.55}
+              style={{ letterSpacing: "0.25em", textTransform: "uppercase" as const }}
+            >
+              {z.label}
+            </text>
+          )}
+        </g>
+      ))}
+
+      {/* furniture — top-down rounded rects */}
+      {scene.furniture.map((f, i) => {
+        const c = toneColor(f.tone);
+        return (
+          <g key={i}>
+            <rect
+              x={f.x} y={f.y} width={f.w} height={f.h}
+              rx={1.4} ry={1.4}
+              fill={c.fill}
+              stroke={c.stroke} strokeOpacity={0.55} strokeWidth={0.3}
+            />
+            {/* highlight */}
+            <rect
+              x={f.x + 0.4} y={f.y + 0.4}
+              width={Math.max(0, f.w - 0.8)} height={Math.max(0, Math.min(1.4, f.h * 0.25))}
+              rx={0.8} fill="white" fillOpacity={0.08}
+            />
+          </g>
+        );
+      })}
+
+      {/* walls — gilded top-down */}
+      {scene.walls.map((w, i) => (
+        <line
+          key={i}
+          x1={w.x1} y1={w.y1} x2={w.x2} y2={w.y2}
+          stroke={scene.accent}
+          strokeOpacity={mini ? 0.6 : 0.85}
+          strokeWidth={mini ? 0.8 : 1.2}
+          strokeLinecap="round"
+        />
+      ))}
+
+      {/* vignette */}
+      <rect x="0" y="0" width="100" height="100" fill={`url(#vig-${scene.id}${mini ? "-m" : ""})`} />
+    </svg>
+  );
+}
+
 function RoomFrame({
   scene,
   children,
@@ -721,38 +808,16 @@ function RoomFrame({
 }: { scene: Scene; children: ReactNode; compact?: boolean }) {
   return (
     <div
-      className={`relative w-full ${compact ? "aspect-[4/3]" : "aspect-[3/4] sm:aspect-[4/3]"} rounded-3xl border border-border overflow-hidden select-none shadow-inner`}
-      style={{
-        background: `linear-gradient(to bottom, ${scene.sky} 0%, ${scene.sky} 55%, ${scene.floor} 55%, ${scene.floor} 100%)`,
-      }}
+      className={`relative w-full ${compact ? "aspect-[4/3]" : "aspect-[3/4] sm:aspect-[4/3]"} rounded-3xl border border-border overflow-hidden select-none shadow-[inset_0_0_60px_rgba(0,0,0,0.55)]`}
+      style={{ background: scene.floor }}
     >
-      {/* soft vignette */}
-      <div
-        className="pointer-events-none absolute inset-0"
-        style={{ background: "radial-gradient(ellipse at 50% 30%, transparent 40%, rgba(0,0,0,0.55) 100%)" }}
-      />
-      {/* floor shine */}
-      <div
-        className="pointer-events-none absolute left-0 right-0"
-        style={{ top: "55%", height: "6%", background: "linear-gradient(to bottom, rgba(255,255,255,0.10), transparent)" }}
-      />
-      {/* decorative, non-clickable props */}
-      {scene.props.map((p, i) => (
-        <span
-          key={`p-${i}`}
-          className="pointer-events-none absolute select-none"
-          style={{
-            left: `${p.x}%`,
-            top: `${p.y}%`,
-            fontSize: `${p.size}px`,
-            transform: `translate(-50%, -50%) rotate(${p.rotate ?? 0}deg)`,
-            opacity: p.opacity ?? 1,
-            filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.4))",
-          }}
-        >
-          {p.emoji}
-        </span>
-      ))}
+      <FloorPlan scene={scene} />
+      {/* corner compass label */}
+      <div className="absolute top-2 left-2 text-[9px] uppercase tracking-[0.28em] text-candle/60 flex items-center gap-1">
+        <span className="opacity-70">↑ N</span>
+        <span className="mx-1 opacity-40">·</span>
+        <span>{scene.emoji} {scene.name}</span>
+      </div>
       {children}
     </div>
   );
@@ -769,18 +834,12 @@ function PickScene({ onPick }: { onPick: (id: string) => void }) {
             onClick={() => onPick(s.id)}
             className="rounded-3xl border border-border bg-surface text-left hover:border-petal/60 transition-colors overflow-hidden"
           >
-            <div
-              className="relative w-full aspect-[5/3]"
-              style={{ background: `linear-gradient(to bottom, ${s.sky} 0%, ${s.sky} 55%, ${s.floor} 55%, ${s.floor} 100%)` }}
-            >
-              <div className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(ellipse at 50% 30%, transparent 40%, rgba(0,0,0,0.5) 100%)" }} />
-              {s.props.slice(0, 3).map((p, i) => (
-                <span key={i} className="absolute" style={{ left: `${p.x}%`, top: `${p.y}%`, fontSize: `${Math.max(10, p.size * 0.7)}px`, transform: "translate(-50%,-50%)", opacity: p.opacity ?? 1 }}>{p.emoji}</span>
-              ))}
-              <span className="absolute inset-x-0 bottom-1 text-center text-[10px] uppercase tracking-widest text-candle/80">{s.emoji} {s.name}</span>
+            <div className="relative w-full aspect-[5/3]" style={{ background: s.floor }}>
+              <FloorPlan scene={s} mini />
             </div>
-            <div className="px-3 py-2">
-              <p className="text-[10px] uppercase tracking-widest text-candle-muted">6 hiding spots</p>
+            <div className="px-3 py-2 flex items-center justify-between">
+              <p className="text-[11px] tracking-wide text-candle">{s.emoji} {s.name}</p>
+              <p className="text-[9px] uppercase tracking-widest text-candle-muted">6 spots</p>
             </div>
           </button>
         ))}
