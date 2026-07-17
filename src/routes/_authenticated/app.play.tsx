@@ -1,7 +1,44 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
-import { GAMES, GAME_KINDS } from "@/lib/games";
+import { GAMES, GAME_KINDS, type GameKind } from "@/lib/games";
 import { useProfile } from "@/hooks/useProfile";
+import pandaPaint from "@/assets/pandas/panda-paint.png";
+import pandaChess from "@/assets/pandas/panda-chess.png";
+import pandaLudo from "@/assets/pandas/panda-ludo.png";
+import pandaUno from "@/assets/pandas/panda-uno.png";
+import pandaKnowme from "@/assets/pandas/panda-knowme.png";
+import pandaScribble from "@/assets/pandas/panda-scribble.png";
+import pandaTwoTruths from "@/assets/pandas/panda-twotruths.png";
+import pandaHotTakes from "@/assets/pandas/panda-hottakes.png";
+import pandaEmoji from "@/assets/pandas/panda-emoji.png";
+import pandaDaily from "@/assets/pandas/panda-daily.png";
+import pandaMemory from "@/assets/pandas/panda-memory.png";
+import pandaLoveQuiz from "@/assets/pandas/panda-lovequiz.png";
+import pandaTruthDare from "@/assets/pandas/panda-truthdare.png";
+import pandaWyr from "@/assets/pandas/panda-wyr.png";
+import pandaNhie from "@/assets/pandas/panda-nhie.png";
+import pandaThisOrThat from "@/assets/pandas/panda-thisorthat.png";
+import pandaGuessMe from "@/assets/pandas/panda-guessme.png";
+
+const PANDA_STICKERS: Partial<Record<GameKind, string>> = {
+  "paint-together": pandaPaint,
+  "chess": pandaChess,
+  "ludo": pandaLudo,
+  "uno": pandaUno,
+  "know-me": pandaKnowme,
+  "scribble-guess": pandaScribble,
+  "two-truths-lie": pandaTwoTruths,
+  "hot-takes": pandaHotTakes,
+  "emoji-riddle": pandaEmoji,
+  "daily-challenge": pandaDaily,
+  "memory-challenge": pandaMemory,
+  "love-quiz": pandaLoveQuiz,
+  "truth-or-dare": pandaTruthDare,
+  "would-you-rather": pandaWyr,
+  "never-have-i-ever": pandaNhie,
+  "this-or-that": pandaThisOrThat,
+  "guess-me": pandaGuessMe,
+};
 
 export const Route = createFileRoute("/_authenticated/app/play")({
   component: Play,
@@ -36,11 +73,21 @@ function Play() {
 
         {GAME_KINDS.map((kind) => {
           const g = GAMES[kind];
+          const sticker = PANDA_STICKERS[kind];
           const cardCls =
             "aspect-square p-4 bg-surface rounded-3xl border border-border flex flex-col justify-between hover:border-petal/40 transition-colors relative overflow-hidden";
           const inner = (
             <>
-              <span className="text-3xl">{g.emoji}</span>
+              {sticker ? (
+                <img
+                  src={sticker}
+                  alt=""
+                  loading="lazy"
+                  className="w-14 h-14 object-contain -mt-1 -ml-1 drop-shadow-[0_4px_10px_rgba(0,0,0,0.25)]"
+                />
+              ) : (
+                <span className="text-3xl">{g.emoji}</span>
+              )}
               <div>
                 <p className="font-serif italic text-lg leading-tight">{g.name}</p>
                 <p className="text-[11px] text-candle-muted mt-1">{g.body}</p>
