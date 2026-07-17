@@ -51,6 +51,7 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
   const [pandaOpen, setPandaOpen] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
   const [whisper, setWhisper] = useState(false);
+  const [viewOnce, setViewOnce] = useState(false);
   const [recording, setRecording] = useState(false);
 
   const fileRef = useRef<HTMLInputElement>(null);
@@ -254,10 +255,11 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
     await uploadAndSend(file, "image", (path) => ({
       type: "image",
       media_url: path,
-      media_meta: { name: file.name, size: file.size, mime: file.type },
+      media_meta: { name: file.name, size: file.size, mime: file.type, view_once: viewOnce || undefined },
       reply_to_id: replyTo?.id ?? null,
       disappear_seconds: disappearSecs,
-    }), "photo");
+    }), viewOnce ? "view-once photo" : "photo");
+    if (viewOnce) setViewOnce(false);
   }
 
   async function handleVideo(e: React.ChangeEvent<HTMLInputElement>) {
@@ -271,10 +273,11 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
     await uploadAndSend(file, "video", (path) => ({
       type: "video",
       media_url: path,
-      media_meta: { name: file.name, size: file.size, mime: file.type },
+      media_meta: { name: file.name, size: file.size, mime: file.type, view_once: viewOnce || undefined },
       reply_to_id: replyTo?.id ?? null,
       disappear_seconds: disappearSecs,
-    }), "video");
+    }), viewOnce ? "view-once video" : "video");
+    if (viewOnce) setViewOnce(false);
   }
 
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
@@ -369,6 +372,17 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
             <div className="grid grid-cols-5 gap-1.5">
               <StudioTile icon={<ImageIcon className="size-4" />} label="Photo" onClick={() => imgRef.current?.click()} />
               <StudioTile icon={<VideoIcon className="size-4" />} label="Video" onClick={() => vidRef.current?.click()} />
+              <StudioTile
+                icon={<Eye className="size-4" />}
+                label={viewOnce ? "Once ✓" : "View once"}
+                onClick={() => {
+                  const next = !viewOnce;
+                  setViewOnce(next);
+                  toast[next ? "success" : "message"](next ? "Next photo/video will vanish after one view" : "View-once turned off");
+                }}
+                accent={viewOnce}
+                glow={viewOnce}
+              />
               <StudioTile icon={<Paperclip className="size-4" />} label="File" onClick={() => fileRef.current?.click()} />
               <StudioTile icon={<span className="text-base leading-none">🐼</span>} label="Panda" onClick={() => { setPandaOpen(true); setMenuOpen(false); }} accent />
               <StudioTile icon={<Sparkles className="size-4" />} label="AI ✨" onClick={() => { setAiOpen(true); setMenuOpen(false); }} accent glow />
