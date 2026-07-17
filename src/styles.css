@@ -101,18 +101,19 @@
 }
 
 .light {
-  /* Soft lavender-blush daylight — purple melting into pink, with baby-pink accents */
+  /* Soft lavender-blush daylight — purple melting into pink, with baby-pink accents.
+     Petal/muted deepened for legible contrast on pale pink surfaces. */
   --velvet: #f9c9e0;
   --background: #f4e4ef;
   --surface: #faecf3;
   --surface-elevated: #f6e6f1;
-  --foreground: #4a2547;
-  --candle: #5a2f57;
-  --candle-muted: #a06a99;
-  --petal: #e85a9b;
-  --petal-soft: #fbdcec;
-  --lavender: #d4b3f0;
-  --border: #ecd4e4;
+  --foreground: #3a1a3a;
+  --candle: #3a1a3a;
+  --candle-muted: #7a3f75;
+  --petal: #b8266f;
+  --petal-soft: #f4c4dc;
+  --lavender: #8a5cc2;
+  --border: #e6c8dc;
   --input: #f3dfec;
 }
 
