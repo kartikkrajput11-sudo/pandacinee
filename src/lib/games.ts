@@ -4,6 +4,7 @@ export type GameKind =
   | "would-you-rather"
   | "never-have-i-ever"
   | "guess-me"
+  | "know-me"
   | "two-truths-lie"
   | "hot-takes"
   | "emoji-riddle"
