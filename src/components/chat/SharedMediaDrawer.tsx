@@ -116,6 +116,7 @@ export function SharedMediaDrawer({
     if (!preview?.media_url) return;
     try {
       const url = await signMedia(preview.media_url);
+      if (!url) return;
       const res = await fetch(url);
       const blob = await res.blob();
       const href = URL.createObjectURL(blob);
