@@ -19,109 +19,168 @@ export const Route = createFileRoute("/_authenticated/app/hideseek")({
 /* ────────────────────────  Data  ──────────────────────── */
 
 type Spot = { emoji: string; name: string; x: number; y: number };
+/** Top-down furniture footprint (rectangle) */
+type Furn = { x: number; y: number; w: number; h: number; label?: string; tone?: "wood" | "stone" | "cloth" | "glass" | "gold" };
+/** Wall segment as a line on the map (percent coords) */
+type Wall = { x1: number; y1: number; x2: number; y2: number };
+/** Optional labelled sub-room */
+type Zone = { x: number; y: number; w: number; h: number; label: string };
+
 type Scene = {
   id: string;
   name: string;
   emoji: string;
-  sky: string;        // top of the scene
-  floor: string;      // bottom of the scene
-  props: { emoji: string; x: number; y: number; size: number; rotate?: number; opacity?: number }[]; // decorative, non-clickable
-  spots: Spot[];      // exactly 6 clickable hiding hotspots
+  floor: string;
+  accent: string;
+  walls: Wall[];
+  zones: Zone[];
+  furniture: Furn[];
+  spots: Spot[];
 };
 
 /**
- * Each scene renders as a 2D room. Positions are percentages of the room
- * frame (0-100). Spots are the ONLY clickable hotspots; props are decor.
+ * Top-down floor plans. All coords are % (0-100). Walls render as SVG
+ * lines; furniture as rounded rectangles from above; spots are the only
+ * clickable hiding hotspots, placed on/near their furniture footprint.
  */
 const SCENES: Scene[] = [
   {
     id: "ballroom", name: "Velvet Ballroom", emoji: "🕯️",
-    sky: "oklch(0.32 0.08 340)", floor: "oklch(0.22 0.05 340)",
-    props: [
-      { emoji: "✨", x: 15, y: 18, size: 18, opacity: 0.7 },
-      { emoji: "✨", x: 78, y: 22, size: 14, opacity: 0.6 },
-      { emoji: "💫", x: 50, y: 10, size: 22, opacity: 0.7 },
-      { emoji: "🕯️", x: 8, y: 55, size: 26 },
-      { emoji: "🕯️", x: 92, y: 55, size: 26 },
+    floor: "oklch(0.24 0.05 340)", accent: "oklch(0.82 0.14 68)",
+    walls: [
+      { x1: 4, y1: 6, x2: 96, y2: 6 }, { x1: 96, y1: 6, x2: 96, y2: 94 },
+      { x1: 96, y1: 94, x2: 4, y2: 94 }, { x1: 4, y1: 94, x2: 4, y2: 6 },
+      { x1: 4, y1: 26, x2: 40, y2: 26 }, { x1: 60, y1: 26, x2: 96, y2: 26 },
+    ],
+    zones: [
+      { x: 4, y: 6, w: 92, h: 20, label: "Stage" },
+      { x: 4, y: 26, w: 92, h: 68, label: "Dance floor" },
+    ],
+    furniture: [
+      { x: 10, y: 34, w: 14, h: 22, tone: "cloth", label: "Curtain" },
+      { x: 26, y: 66, w: 20, h: 12, tone: "wood",  label: "Piano" },
+      { x: 44, y: 26, w: 12, h: 4,  tone: "glass", label: "Mirror" },
+      { x: 82, y: 32, w: 8,  h: 14, tone: "wood",  label: "Clock" },
+      { x: 60, y: 66, w: 18, h: 12, tone: "glass", label: "Champagne" },
+      { x: 82, y: 72, w: 10, h: 10, tone: "cloth", label: "Rose urn" },
     ],
     spots: [
-      { emoji: "🎭", name: "Velvet Curtain", x: 12, y: 32 },
-      { emoji: "🎹", name: "Grand Piano",    x: 32, y: 72 },
+      { emoji: "🎭", name: "Velvet Curtain",  x: 17, y: 45 },
+      { emoji: "🎹", name: "Grand Piano",     x: 36, y: 72 },
       { emoji: "🪞", name: "Gilded Mirror",   x: 50, y: 30 },
-      { emoji: "🕰️", name: "Longcase Clock",  x: 88, y: 38 },
-      { emoji: "🥂", name: "Champagne Tower", x: 68, y: 72 },
-      { emoji: "💐", name: "Rose Urn",        x: 88, y: 78 },
+      { emoji: "🕰️", name: "Longcase Clock",  x: 86, y: 39 },
+      { emoji: "🥂", name: "Champagne Tower", x: 69, y: 72 },
+      { emoji: "💐", name: "Rose Urn",        x: 87, y: 77 },
     ],
   },
   {
     id: "library", name: "Moonlit Library", emoji: "📚",
-    sky: "oklch(0.28 0.09 260)", floor: "oklch(0.18 0.05 260)",
-    props: [
-      { emoji: "🌙", x: 82, y: 14, size: 28 },
-      { emoji: "✨", x: 24, y: 12, size: 14, opacity: 0.7 },
-      { emoji: "✨", x: 60, y: 22, size: 12, opacity: 0.6 },
-      { emoji: "📕", x: 18, y: 82, size: 18, rotate: -8, opacity: 0.6 },
-      { emoji: "📗", x: 26, y: 84, size: 18, rotate: 4, opacity: 0.6 },
+    floor: "oklch(0.20 0.05 260)", accent: "oklch(0.78 0.12 260)",
+    walls: [
+      { x1: 4, y1: 6, x2: 96, y2: 6 }, { x1: 96, y1: 6, x2: 96, y2: 94 },
+      { x1: 96, y1: 94, x2: 4, y2: 94 }, { x1: 4, y1: 94, x2: 4, y2: 6 },
+      { x1: 44, y1: 6, x2: 44, y2: 40 },
+    ],
+    zones: [
+      { x: 4, y: 6, w: 40, h: 34, label: "Study" },
+      { x: 44, y: 6, w: 52, h: 34, label: "Reading nook" },
+      { x: 4, y: 40, w: 92, h: 54, label: "Stacks" },
+    ],
+    furniture: [
+      { x: 8,  y: 40, w: 6,  h: 40, tone: "wood",  label: "Ladder rail" },
+      { x: 26, y: 66, w: 22, h: 14, tone: "wood",  label: "Desk" },
+      { x: 46, y: 18, w: 12, h: 12, tone: "wood",  label: "Owl perch" },
+      { x: 66, y: 52, w: 18, h: 14, tone: "cloth", label: "Nook sofa" },
+      { x: 82, y: 72, w: 12, h: 10, tone: "wood",  label: "Drawer" },
+      { x: 22, y: 12, w: 18, h: 12, tone: "glass", label: "Skylight" },
     ],
     spots: [
-      { emoji: "🪜", name: "Sliding Ladder", x: 14, y: 45 },
-      { emoji: "📖", name: "Open Tome",       x: 36, y: 74 },
-      { emoji: "🦉", name: "Owl Perch",       x: 52, y: 24 },
-      { emoji: "🕯️", name: "Reading Nook",    x: 72, y: 60 },
-      { emoji: "🗝️", name: "Locked Drawer",   x: 88, y: 78 },
-      { emoji: "🪟", name: "Skylight Sill",   x: 30, y: 20 },
+      { emoji: "🪜", name: "Sliding Ladder", x: 11, y: 55 },
+      { emoji: "📖", name: "Study Desk",     x: 37, y: 72 },
+      { emoji: "🦉", name: "Owl Perch",      x: 52, y: 24 },
+      { emoji: "🛋️", name: "Reading Nook",   x: 75, y: 58 },
+      { emoji: "🗝️", name: "Locked Drawer",  x: 88, y: 77 },
+      { emoji: "🪟", name: "Skylight Sill",  x: 31, y: 18 },
     ],
   },
   {
     id: "conservatory", name: "Glass Conservatory", emoji: "🌿",
-    sky: "oklch(0.42 0.10 170)", floor: "oklch(0.25 0.07 150)",
-    props: [
-      { emoji: "☀️", x: 82, y: 12, size: 26, opacity: 0.85 },
-      { emoji: "🌤️", x: 20, y: 14, size: 22, opacity: 0.6 },
-      { emoji: "🍃", x: 46, y: 18, size: 16, rotate: 12, opacity: 0.7 },
+    floor: "oklch(0.30 0.06 150)", accent: "oklch(0.85 0.10 150)",
+    walls: [
+      { x1: 4, y1: 6, x2: 96, y2: 6 }, { x1: 96, y1: 6, x2: 96, y2: 94 },
+      { x1: 96, y1: 94, x2: 4, y2: 94 }, { x1: 4, y1: 94, x2: 4, y2: 6 },
+    ],
+    zones: [{ x: 4, y: 6, w: 92, h: 88, label: "Glass house" }],
+    furniture: [
+      { x: 8,  y: 42, w: 12, h: 18, tone: "cloth", label: "Palm" },
+      { x: 24, y: 70, w: 14, h: 14, tone: "wood",  label: "Fig pot" },
+      { x: 44, y: 28, w: 14, h: 12, tone: "glass", label: "Butterfly" },
+      { x: 62, y: 64, w: 18, h: 18, tone: "stone", label: "Fountain" },
+      { x: 82, y: 52, w: 12, h: 18, tone: "cloth", label: "Orchid" },
+      { x: 52, y: 14, w: 18, h: 12, tone: "glass", label: "Pane" },
     ],
     spots: [
-      { emoji: "🌴", name: "Fan Palm",         x: 12, y: 50 },
-      { emoji: "🪴", name: "Fig Pot",          x: 30, y: 78 },
-      { emoji: "🦋", name: "Butterfly Cage",   x: 50, y: 34 },
-      { emoji: "⛲", name: "Marble Fountain",  x: 70, y: 72 },
-      { emoji: "🌸", name: "Orchid Bench",     x: 88, y: 60 },
-      { emoji: "🪟", name: "Foggy Pane",       x: 60, y: 22 },
+      { emoji: "🌴", name: "Fan Palm",        x: 14, y: 51 },
+      { emoji: "🪴", name: "Fig Pot",         x: 31, y: 77 },
+      { emoji: "🦋", name: "Butterfly Cage",  x: 51, y: 34 },
+      { emoji: "⛲", name: "Marble Fountain", x: 71, y: 73 },
+      { emoji: "🌸", name: "Orchid Bench",    x: 88, y: 61 },
+      { emoji: "🪟", name: "Foggy Pane",      x: 61, y: 20 },
     ],
   },
   {
     id: "cellar", name: "Wine Cellar", emoji: "🍷",
-    sky: "oklch(0.22 0.08 30)", floor: "oklch(0.14 0.05 25)",
-    props: [
-      { emoji: "🔦", x: 50, y: 10, size: 22, opacity: 0.75 },
-      { emoji: "🕸️", x: 8, y: 12, size: 20, opacity: 0.6 },
-      { emoji: "🕸️", x: 90, y: 14, size: 20, opacity: 0.6 },
+    floor: "oklch(0.14 0.04 30)", accent: "oklch(0.55 0.14 30)",
+    walls: [
+      { x1: 4, y1: 6, x2: 96, y2: 6 }, { x1: 96, y1: 6, x2: 96, y2: 94 },
+      { x1: 96, y1: 94, x2: 4, y2: 94 }, { x1: 4, y1: 94, x2: 4, y2: 6 },
+      { x1: 50, y1: 6, x2: 50, y2: 46 },
+    ],
+    zones: [
+      { x: 4, y: 6, w: 46, h: 40, label: "Barrels" },
+      { x: 50, y: 6, w: 46, h: 40, label: "Racks" },
+      { x: 4, y: 46, w: 92, h: 48, label: "Vault floor" },
+    ],
+    furniture: [
+      { x: 10, y: 62, w: 14, h: 14, tone: "wood",  label: "Barrel" },
+      { x: 30, y: 34, w: 16, h: 12, tone: "wood",  label: "Rack" },
+      { x: 50, y: 68, w: 16, h: 12, tone: "wood",  label: "Crates" },
+      { x: 68, y: 28, w: 14, h: 12, tone: "gold",  label: "Lantern" },
+      { x: 82, y: 56, w: 10, h: 14, tone: "stone", label: "Gate" },
+      { x: 14, y: 18, w: 14, h: 12, tone: "cloth", label: "Cobwebs" },
     ],
     spots: [
-      { emoji: "🛢️", name: "Oak Barrel",       x: 16, y: 68 },
-      { emoji: "🍾", name: "Bottle Rack",      x: 36, y: 40 },
-      { emoji: "🪵", name: "Stacked Crates",   x: 56, y: 74 },
-      { emoji: "🕯️", name: "Lantern Hook",     x: 74, y: 34 },
-      { emoji: "🗝️", name: "Iron Gate",        x: 88, y: 62 },
-      { emoji: "🕸️", name: "Cobweb Corner",    x: 20, y: 24 },
+      { emoji: "🛢️", name: "Oak Barrel",     x: 17, y: 69 },
+      { emoji: "🍾", name: "Bottle Rack",    x: 38, y: 40 },
+      { emoji: "🪵", name: "Stacked Crates", x: 58, y: 74 },
+      { emoji: "🕯️", name: "Lantern Hook",   x: 75, y: 34 },
+      { emoji: "🗝️", name: "Iron Gate",      x: 87, y: 63 },
+      { emoji: "🕸️", name: "Cobweb Corner",  x: 21, y: 24 },
     ],
   },
   {
     id: "garden", name: "Rose Garden", emoji: "🌹",
-    sky: "oklch(0.55 0.12 340)", floor: "oklch(0.30 0.10 150)",
-    props: [
-      { emoji: "🌙", x: 82, y: 14, size: 22, opacity: 0.7 },
-      { emoji: "✨", x: 20, y: 20, size: 12, opacity: 0.7 },
-      { emoji: "🌿", x: 8, y: 80, size: 22, opacity: 0.7 },
-      { emoji: "🌿", x: 92, y: 82, size: 22, opacity: 0.7 },
+    floor: "oklch(0.28 0.08 150)", accent: "oklch(0.75 0.14 340)",
+    walls: [
+      { x1: 4, y1: 6, x2: 96, y2: 6 }, { x1: 96, y1: 6, x2: 96, y2: 94 },
+      { x1: 96, y1: 94, x2: 4, y2: 94 }, { x1: 4, y1: 94, x2: 4, y2: 6 },
+    ],
+    zones: [{ x: 4, y: 6, w: 92, h: 88, label: "Rose garden" }],
+    furniture: [
+      { x: 8,  y: 38, w: 12, h: 18, tone: "cloth", label: "Trellis" },
+      { x: 26, y: 68, w: 18, h: 16, tone: "glass", label: "Pond" },
+      { x: 46, y: 32, w: 12, h: 16, tone: "stone", label: "Cupid" },
+      { x: 66, y: 42, w: 16, h: 18, tone: "cloth", label: "Willow" },
+      { x: 60, y: 72, w: 16, h: 10, tone: "wood",  label: "Bench" },
+      { x: 82, y: 22, w: 12, h: 12, tone: "wood",  label: "Dovecote" },
     ],
     spots: [
-      { emoji: "🌹", name: "Rose Trellis",    x: 14, y: 46 },
-      { emoji: "🦢", name: "Swan Pond",       x: 34, y: 76 },
-      { emoji: "🗿", name: "Cupid Statue",    x: 52, y: 40 },
-      { emoji: "🌳", name: "Willow Curtain",  x: 74, y: 50 },
-      { emoji: "🪑", name: "Wrought Bench",   x: 68, y: 78 },
-      { emoji: "🕊️", name: "Dovecote",        x: 88, y: 28 },
+      { emoji: "🌹", name: "Rose Trellis",   x: 14, y: 47 },
+      { emoji: "🦢", name: "Swan Pond",      x: 35, y: 76 },
+      { emoji: "🗿", name: "Cupid Statue",   x: 52, y: 40 },
+      { emoji: "🌳", name: "Willow Curtain", x: 74, y: 51 },
+      { emoji: "🪑", name: "Wrought Bench",  x: 68, y: 77 },
+      { emoji: "🕊️", name: "Dovecote",       x: 88, y: 28 },
     ],
   },
 ];
