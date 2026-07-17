@@ -157,6 +157,11 @@ export function useEquippedItems(): EquippedItems {
     broadcast();
   }, [load]);
 
+  // Shop is currently admin-gated — every user gets every perk and AI pack
+  // mood unlocked for free. When the shop opens, return `ownedPerks` and
+  // `ownedPackMoods` from state again.
+  const unlockAll = { has: () => true, add: () => unlockAll, delete: () => false, size: Infinity } as unknown as Set<string>;
+
   return {
     chatTheme,
     siteTheme,
@@ -165,8 +170,8 @@ export function useEquippedItems(): EquippedItems {
     flairBadge,
     chessBoard,
     chessPieces,
-    ownedPerks,
-    ownedPackMoods,
+    ownedPerks: unlockAll,
+    ownedPackMoods: unlockAll,
     loaded,
     refresh,
   };
