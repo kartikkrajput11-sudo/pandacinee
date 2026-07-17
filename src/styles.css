@@ -431,13 +431,13 @@ html.theme-anim * {
 
 
 /* --- Ludo: luxurious dice --- */
-@keyframes ludo-cube-tumble {
-  0%   { transform: translateY(0)    rotateX(var(--rx0)) rotateY(var(--ry0)); }
-  25%  { transform: translateY(-18px) rotateX(calc(var(--rx0) + 360deg)) rotateY(calc(var(--ry0) + 270deg)); }
-  55%  { transform: translateY(-22px) rotateX(calc(var(--rx0) + 720deg)) rotateY(calc(var(--ry0) + 540deg)); }
-  80%  { transform: translateY(-6px)  rotateX(calc(var(--rxF) - 40deg)) rotateY(calc(var(--ryF) + 30deg)); }
-  100% { transform: translateY(0)    rotateX(var(--rxF)) rotateY(var(--ryF)); }
+@keyframes ludo-dice-tumble {
+  0%   { transform: translateY(0) rotate(0deg) scale(1); }
+  30%  { transform: translateY(-14px) rotate(180deg) scale(1.05); }
+  60%  { transform: translateY(-6px) rotate(360deg) scale(1.02); }
+  100% { transform: translateY(0) rotate(540deg) scale(1); }
 }
+
 @keyframes ludo-dice-sheen {
   0%   { transform: translateX(-160%) skewX(-22deg); opacity: 0; }
   40%  { opacity: 0.9; }
