@@ -83,6 +83,16 @@ export default function OwnersMonthiversary() {
             100% { transform: translateX(500%); }
           }
         `}</style>
+        <span
+          role="button"
+          tabIndex={0}
+          onClick={(e) => { e.stopPropagation(); setDismissed(true); }}
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.stopPropagation(); setDismissed(true); } }}
+          className="relative ml-1 size-5 rounded-full flex items-center justify-center text-candle/60 hover:text-candle hover:bg-white/10 transition-colors"
+          aria-label="Dismiss banner"
+        >
+          <X className="size-3" />
+        </span>
       </button>
 
       {/* Spacer so page content isn't hidden behind the fixed banner */}
