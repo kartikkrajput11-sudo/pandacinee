@@ -255,10 +255,11 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
     await uploadAndSend(file, "image", (path) => ({
       type: "image",
       media_url: path,
-      media_meta: { name: file.name, size: file.size, mime: file.type },
+      media_meta: { name: file.name, size: file.size, mime: file.type, view_once: viewOnce || undefined },
       reply_to_id: replyTo?.id ?? null,
       disappear_seconds: disappearSecs,
-    }), "photo");
+    }), viewOnce ? "view-once photo" : "photo");
+    if (viewOnce) setViewOnce(false);
   }
 
   async function handleVideo(e: React.ChangeEvent<HTMLInputElement>) {
@@ -272,10 +273,11 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
     await uploadAndSend(file, "video", (path) => ({
       type: "video",
       media_url: path,
-      media_meta: { name: file.name, size: file.size, mime: file.type },
+      media_meta: { name: file.name, size: file.size, mime: file.type, view_once: viewOnce || undefined },
       reply_to_id: replyTo?.id ?? null,
       disappear_seconds: disappearSecs,
-    }), "video");
+    }), viewOnce ? "view-once video" : "video");
+    if (viewOnce) setViewOnce(false);
   }
 
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
