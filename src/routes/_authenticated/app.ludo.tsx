@@ -11,6 +11,8 @@ import {
   legalMoves,
   cellOf,
   rollDie,
+  pathOf,
+  destinationOf,
   PLAYER_META,
   PLAYERS,
   TRACK,
@@ -103,10 +105,20 @@ function LudoPage() {
     }, 550);
   };
 
-  const handleMove = (t: Token) => {
-    if (!canAct || state.dice == null) return;
+  // Walk override: while animating, this token renders at `pos` instead of state.
+  const [walking, setWalking] = useState<{ player: Player; idx: number; pos: number } | null>(null);
+
+  const handleMove = async (t: Token) => {
+    if (!canAct || state.dice == null || walking) return;
     const legal = legalMoves(state).some((m) => m.player === t.player && m.idx === t.idx);
     if (!legal) return;
+    const path = pathOf(t, state.dice);
+    // Freeze state during walk so board doesn't jump; animate through each square.
+    for (const p of path) {
+      setWalking({ player: t.player, idx: t.idx, pos: p });
+      await new Promise((r) => window.setTimeout(r, 170));
+    }
+    setWalking(null);
     const next = applyMove(state, t.player, t.idx);
     setState(next);
     broadcast(next);
@@ -173,6 +185,18 @@ function LudoPage() {
     legalMoves(state).map((m) => `${m.player}:${m.idx}`),
   );
 
+  // Destination previews (only when it's my turn and no walk in progress).
+  const destinations = state.dice != null && !walking && canAct
+    ? legalMoves(state)
+        .map((t) => {
+          const d = destinationOf(t, state.dice!);
+          if (d == null || d === 200) return null;
+          const [c, r] = cellOf(d, t.player);
+          return { key: `${t.player}:${t.idx}`, c, r, color: PLAYER_META[t.player].color };
+        })
+        .filter((x): x is NonNullable<typeof x> => x !== null)
+    : [];
+
   return (
     <div className="pt-10 px-4 max-w-xl mx-auto pb-10">
       <header className="flex items-center gap-3 mb-4">
@@ -197,7 +221,7 @@ function LudoPage() {
         </p>
       )}
 
-      <LudoBoard state={state} legalIds={legalIds} onMoveToken={handleMove} canAct={canAct} />
+      <LudoBoard state={state} legalIds={legalIds} onMoveToken={handleMove} canAct={canAct} walking={walking} destinations={destinations} />
 
       <div className="mt-5 flex items-center justify-center gap-4">
         <Die value={state.dice ?? lastRoll} rolling={rolling} active={state.dice != null} />
@@ -256,34 +280,41 @@ function LudoBoard({
   legalIds,
   onMoveToken,
   canAct,
+  walking,
+  destinations,
 }: {
   state: State;
   legalIds: Set<string>;
   onMoveToken: (t: Token) => void;
   canAct: boolean;
+  walking: { player: Player; idx: number; pos: number } | null;
+  destinations: { key: string; c: number; r: number; color: string }[];
 }) {
   const CELL = 26;
   const SIZE = 15 * CELL;
 
-  // Group tokens by their rendered cell so we can offset when overlapping.
+  // Group tokens by their rendered cell (using walk-override) so we can offset overlaps.
   const positions = state.tokens.map((t) => {
+    const effectivePos =
+      walking && walking.player === t.player && walking.idx === t.idx ? walking.pos : t.pos;
     let cx: number, cy: number;
-    if (t.pos === -1) {
+    if (effectivePos === -1) {
       const [c, r] = YARD[t.player][t.idx];
       cx = c * CELL;
       cy = r * CELL;
     } else {
-      const [c, r] = cellOf(t.pos, t.player);
+      const [c, r] = cellOf(effectivePos, t.player);
       cx = c * CELL + CELL / 2;
       cy = r * CELL + CELL / 2;
     }
-    return { t, cx, cy };
+    const isWalking = !!(walking && walking.player === t.player && walking.idx === t.idx);
+    return { t, cx, cy, isWalking, effectivePos };
   });
   // Detect overlaps and offset.
   const cellCounts = new Map<string, number>();
   const cellIndex = new Map<string, number>();
   for (const p of positions) {
-    if (p.t.pos === -1) continue;
+    if (p.effectivePos === -1) continue;
     const k = `${Math.round(p.cx)},${Math.round(p.cy)}`;
     cellCounts.set(k, (cellCounts.get(k) ?? 0) + 1);
   }
@@ -395,21 +426,57 @@ function LudoBoard({
           fill="oklch(0.35 0.04 320)"
         />
 
+        {/* Destination previews for the current dice roll */}
+        {destinations.map((d) => (
+          <g key={`dest-${d.key}`}>
+            <circle
+              cx={d.c * CELL + CELL / 2}
+              cy={d.r * CELL + CELL / 2}
+              r={CELL * 0.44}
+              fill="none"
+              stroke={d.color}
+              strokeWidth={1.6}
+              strokeDasharray="3 3"
+              opacity={0.9}
+            >
+              <animate attributeName="opacity" values="0.4;1;0.4" dur="1.1s" repeatCount="indefinite" />
+              <animateTransform
+                attributeName="transform"
+                type="rotate"
+                from={`0 ${d.c * CELL + CELL / 2} ${d.r * CELL + CELL / 2}`}
+                to={`360 ${d.c * CELL + CELL / 2} ${d.r * CELL + CELL / 2}`}
+                dur="6s"
+                repeatCount="indefinite"
+              />
+            </circle>
+            <circle
+              cx={d.c * CELL + CELL / 2}
+              cy={d.r * CELL + CELL / 2}
+              r={2.5}
+              fill={d.color}
+              opacity={0.9}
+            />
+          </g>
+        ))}
+
         {/* Tokens */}
-        {positions.map(({ t, cx, cy }) => {
+        {positions.map(({ t, cx, cy, isWalking, effectivePos }) => {
           const k = `${Math.round(cx)},${Math.round(cy)}`;
           const count = cellCounts.get(k) ?? 1;
           const idx = (cellIndex.get(k) ?? 0);
           cellIndex.set(k, idx + 1);
-          const offset = count > 1 ? 6 : 0;
-          const angle = count > 1 ? (idx / count) * Math.PI * 2 : 0;
+          const offset = count > 1 && !isWalking ? 6 : 0;
+          const angle = count > 1 && !isWalking ? (idx / count) * Math.PI * 2 : 0;
           const ox = Math.cos(angle) * offset;
           const oy = Math.sin(angle) * offset;
-          const isLegal = legalIds.has(`${t.player}:${t.idx}`);
+          const isLegal = legalIds.has(`${t.player}:${t.idx}`) && !walking;
           const tokenId = `${t.player}-${t.idx}`;
-          if (t.pos === 200) return null; // hidden at finish
+          if (effectivePos === 200) return null; // hidden at finish
           const tx = cx + ox;
           const ty = cy + oy;
+          const walkTransition = "cx 170ms cubic-bezier(0.34,1.56,0.64,1), cy 170ms cubic-bezier(0.34,1.56,0.64,1)";
+          const idleTransition = "cx 450ms cubic-bezier(0.4,0,0.2,1), cy 450ms cubic-bezier(0.4,0,0.2,1)";
+          const trans = isWalking ? walkTransition : idleTransition;
           return (
             <g
               key={tokenId}
@@ -417,9 +484,19 @@ function LudoBoard({
               style={{ cursor: canAct && isLegal ? "pointer" : "default" }}
             >
               {isLegal && canAct && (
-                <circle cx={tx} cy={ty} r={CELL * 0.5} fill="none" stroke={PLAYER_META[t.player].color} strokeWidth={2} opacity={0.7} style={{ transition: "cx 450ms cubic-bezier(0.4,0,0.2,1), cy 450ms cubic-bezier(0.4,0,0.2,1)" }}>
+                <circle cx={tx} cy={ty} r={CELL * 0.5} fill="none" stroke={PLAYER_META[t.player].color} strokeWidth={2} opacity={0.7} style={{ transition: trans }}>
                   <animate attributeName="r" values={`${CELL * 0.45};${CELL * 0.6};${CELL * 0.45}`} dur="1.2s" repeatCount="indefinite" />
                 </circle>
+              )}
+              {isWalking && (
+                <circle
+                  cx={tx}
+                  cy={ty}
+                  r={CELL * 0.55}
+                  fill={PLAYER_META[t.player].color}
+                  opacity={0.25}
+                  style={{ transition: trans, filter: "blur(4px)" }}
+                />
               )}
               <circle
                 cx={tx}
@@ -428,9 +505,21 @@ function LudoBoard({
                 fill={PLAYER_META[t.player].color}
                 stroke="white"
                 strokeWidth={2}
-                style={{ transition: "cx 450ms cubic-bezier(0.4,0,0.2,1), cy 450ms cubic-bezier(0.4,0,0.2,1)" }}
+                style={{
+                  transition: trans,
+                  transformBox: "fill-box",
+                  transformOrigin: "center",
+                  animation: isWalking ? "ludo-token-hop 170ms ease-in-out" : undefined,
+                }}
               />
-              <circle cx={tx - 3} cy={ty - 3} r={CELL * 0.12} fill="white" opacity={0.6} style={{ transition: "cx 450ms cubic-bezier(0.4,0,0.2,1), cy 450ms cubic-bezier(0.4,0,0.2,1)" }} />
+              <circle
+                cx={tx - 3}
+                cy={ty - 3}
+                r={CELL * 0.12}
+                fill="white"
+                opacity={0.6}
+                style={{ transition: trans }}
+              />
             </g>
           );
         })}

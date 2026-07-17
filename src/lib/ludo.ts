@@ -93,6 +93,36 @@ export function destinationOf(t: Token, dice: number): Pos | null {
   return 100 + extra;
 }
 
+// Full step-by-step path a token walks for a given dice value. Empty if illegal.
+export function pathOf(t: Token, dice: number): Pos[] {
+  const meta = PLAYER_META[t.player];
+  const path: Pos[] = [];
+  if (t.pos === -1) {
+    if (dice !== 6) return [];
+    return [meta.start];
+  }
+  if (t.pos === 200) return [];
+  if (t.pos >= 100) {
+    for (let s = 1; s <= dice; s++) {
+      const step = (t.pos - 100) + s;
+      if (step > 6) return [];
+      path.push(step === 6 ? 200 : 100 + step);
+    }
+    return path;
+  }
+  const distToEntry = (meta.homeEntry - t.pos + 52) % 52;
+  for (let s = 1; s <= dice; s++) {
+    if (s <= distToEntry) {
+      path.push((t.pos + s) % 52);
+    } else {
+      const extra = s - distToEntry - 1;
+      if (extra > 6) return [];
+      path.push(extra === 6 ? 200 : 100 + extra);
+    }
+  }
+  return path;
+}
+
 export function legalMoves(state: State): Token[] {
   if (state.dice == null) return [];
   const moves: Token[] = [];
