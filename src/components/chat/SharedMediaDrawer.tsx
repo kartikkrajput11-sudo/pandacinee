@@ -51,7 +51,7 @@ export function SharedMediaDrawer({
           side="right"
           className="w-full sm:max-w-md bg-velvet/95 backdrop-blur-xl border-l border-petal/15 text-candle p-0"
         >
-          <SheetHeader className="px-6 pt-6 pb-3 border-b border-white/5">
+          <SheetHeader className="px-6 pt-6 pb-3 border-b border-border">
             <SheetTitle className="text-candle text-base tracking-wide flex items-center gap-2">
               <Images className="h-4 w-4 text-petal" />
               Shared Media

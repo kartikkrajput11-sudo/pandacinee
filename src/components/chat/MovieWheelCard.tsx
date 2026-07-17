@@ -74,7 +74,7 @@ export function MovieWheelCard({ m, mine }: { m: MessageRow; mine: boolean }) {
       } shadow-[0_20px_60px_-30px_rgba(236,72,153,0.55)]`}
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-4 pt-3 pb-2 border-b border-white/5">
+      <div className="flex items-center justify-between px-4 pt-3 pb-2 border-b border-border">
         <div className="flex items-center gap-1.5">
           <Disc3 className={`size-3.5 ${mine ? "text-velvet/70" : "text-petal"}`} />
           <span className={`text-[9px] uppercase tracking-[0.32em] font-medium ${mine ? "text-velvet/70" : "text-petal"}`}>
