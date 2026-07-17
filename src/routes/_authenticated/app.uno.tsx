@@ -55,6 +55,8 @@ function UnoPage() {
   const [mode, setMode] = useState<Mode | null>(null);
   const [state, setState] = useState<UnoState>(() => initialState());
   const [flashId, setFlashId] = useState<string | null>(null);
+  const [deckPulse, setDeckPulse] = useState(0);
+  const [dealNonce, setDealNonce] = useState(0);
 
   // In partner mode: lower UUID plays "you", partner plays "them".
   const mySeat: UnoPlayer = useMemo(() => {
@@ -111,6 +113,7 @@ function UnoPage() {
   function handleDraw() {
     if (!isMyTurn) { toast("Not your turn"); return; }
     sfxReaction();
+    setDeckPulse((n) => n + 1);
     sync(drawTurn(state, mySeat));
   }
 
@@ -124,6 +127,7 @@ function UnoPage() {
 
   function reset() {
     const s = initialState();
+    setDealNonce((n) => n + 1);
     sync(s);
   }
 
@@ -237,10 +241,11 @@ function UnoPage() {
             {theirHand.slice(0, 10).map((c, i) => (
               <div
                 key={c.id}
-                className="w-11 h-16 rounded-lg border border-petal/30 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.6)]"
+                className="uno-oppo-card w-11 h-16 rounded-lg border border-petal/30 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.6)]"
                 style={{
                   background: "linear-gradient(135deg, oklch(0.22 0.06 340), oklch(0.14 0.04 340))",
                   transform: `rotate(${(i - Math.min(theirHand.length,10)/2) * 3}deg)`,
+                  animationDelay: `${i * 40}ms`,
                 }}
               >
                 <div className="w-full h-full rounded-lg flex items-center justify-center">
@@ -262,17 +267,18 @@ function UnoPage() {
           <div className="relative flex items-center justify-center gap-4">
             {/* Deck */}
             <button
+              key={`deck-${deckPulse}`}
               type="button"
               onClick={handleDraw}
               disabled={!isMyTurn || !!state.awaitingWildFrom}
-              className="relative w-20 h-28 rounded-xl border border-petal/40 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.7)] disabled:opacity-50 transition-transform hover:-translate-y-1 active:translate-y-0"
+              className="uno-deck-draw relative w-20 h-28 rounded-xl border border-petal/40 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.7)] disabled:opacity-50 transition-transform hover:-translate-y-1 active:translate-y-0"
               style={{ background: "linear-gradient(135deg, oklch(0.22 0.06 340), oklch(0.12 0.04 340))" }}
             >
               <div className="absolute inset-1 rounded-lg border border-petal/30 flex items-center justify-center">
                 <span className="font-serif italic text-petal text-lg">Uno</span>
               </div>
               {state.pendingDraw > 0 && (
-                <span className="absolute -top-2 -right-2 bg-petal text-velvet text-[10px] font-bold px-2 py-0.5 rounded-full shadow-lg">
+                <span className="uno-pending-badge absolute -top-2 -right-2 bg-petal text-velvet text-[10px] font-bold px-2 py-0.5 rounded-full shadow-lg">
                   +{state.pendingDraw}
                 </span>
               )}
@@ -280,7 +286,9 @@ function UnoPage() {
 
             {/* Discard top */}
             <div className="relative">
-              <UnoCardVisual card={topCard} activeColor={state.activeColor} large />
+              <div key={topCard.id} className="uno-discard">
+                <UnoCardVisual card={topCard} activeColor={state.activeColor} large />
+              </div>
               <div
                 className="absolute -inset-3 rounded-2xl pointer-events-none"
                 style={{
@@ -295,7 +303,8 @@ function UnoPage() {
             <div className="flex flex-col items-center gap-1">
               <span className="text-[9px] uppercase tracking-widest text-candle-muted">Color</span>
               <div
-                className="w-8 h-8 rounded-full border border-white/20 shadow-[0_10px_20px_-10px_rgba(0,0,0,0.7)]"
+                key={`chip-${state.activeColor}`}
+                className="uno-color-chip w-8 h-8 rounded-full border border-white/20 shadow-[0_10px_20px_-10px_rgba(0,0,0,0.7)]"
                 style={{ background: COLOR_SWATCH[state.activeColor] }}
               />
             </div>
@@ -310,16 +319,16 @@ function UnoPage() {
 
         {/* Wild color picker */}
         {state.awaitingWildFrom === mySeat && (
-          <div className="mb-5 rounded-2xl p-4 border border-petal/40 bg-surface/80 backdrop-blur-xl">
+          <div className="uno-wild-picker mb-5 rounded-2xl p-4 border border-petal/40 bg-surface/80 backdrop-blur-xl">
             <p className="text-[10px] uppercase tracking-widest text-petal mb-2">Declare a color</p>
             <div className="grid grid-cols-4 gap-2">
-              {COLORS.map((c) => (
+              {COLORS.map((c, i) => (
                 <button
                   key={c}
                   type="button"
                   onClick={() => handleColor(c)}
-                  className="aspect-square rounded-xl border border-white/10 hover:scale-105 transition-transform shadow-[0_10px_30px_-10px_rgba(0,0,0,0.7)]"
-                  style={{ background: COLOR_GRAD[c] }}
+                  className="uno-wild-swatch aspect-square rounded-xl border border-white/10 hover:scale-105 transition-transform shadow-[0_10px_30px_-10px_rgba(0,0,0,0.7)]"
+                  style={{ background: COLOR_GRAD[c], animationDelay: `${i * 70}ms` }}
                 />
               ))}
             </div>
@@ -334,14 +343,13 @@ function UnoPage() {
           <div className="flex justify-center overflow-x-auto no-scrollbar py-6 -mx-4 px-4">
             <div className="flex items-end" style={{ paddingLeft: 24, paddingRight: 24 }}>
               {myHand.map((c, i) => {
-                const spread = Math.min(myHand.length, 9);
                 const mid = (myHand.length - 1) / 2;
                 const rot = ((i - mid) / Math.max(mid, 1)) * 10;
                 const y = Math.abs((i - mid) / Math.max(mid, 1)) * 6;
                 const playable = isMyTurn && canPlay(state, c);
                 return (
                   <button
-                    key={c.id}
+                    key={`${dealNonce}-${c.id}`}
                     type="button"
                     onClick={() => handlePlay(c)}
                     className="uno-hand-card"
@@ -349,9 +357,11 @@ function UnoPage() {
                       marginLeft: i === 0 ? 0 : -22,
                       transform: `rotate(${rot}deg) translateY(${y}px)`,
                       opacity: playable ? 1 : 0.55,
-                      filter: playable ? "drop-shadow(0 0 10px color-mix(in oklab, var(--petal) 40%, transparent))" : "none",
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      ["--deal-delay" as any]: `${i * 55}ms`,
                     }}
                     data-flash={flashId === c.id ? "1" : undefined}
+                    data-playable={playable ? "1" : undefined}
                   >
                     <UnoCardVisual card={c} activeColor={state.activeColor} />
                   </button>
