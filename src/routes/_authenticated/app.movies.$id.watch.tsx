@@ -521,9 +521,11 @@ function CatalogWatch({ id }: { id: string }) {
     if (typeof peer.episode === "number" && peer.episode !== episode) setEpisode(peer.episode);
   }, [partnerIsHost, peer, isTv, season, episode]);
 
-  // Follower auto-sync: when partner is host, mirror their play/pause/seek
+  // Follower auto-sync: when partner is host, mirror their play/pause/seek.
+  // Only runs when BOTH partners loaded the movie from storage (Pandacine).
   useEffect(() => {
     if (!peer || !partnerIsHost || !me) return;
+    if (!isPandacine || peerSourceKind !== "pandacine") return;
     if (peer.updatedAt <= lastAppliedPeerEventRef.current) return;
     const evt = peer.event;
     // Only react to discrete transport events
