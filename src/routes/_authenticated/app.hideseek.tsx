@@ -898,7 +898,7 @@ function PickScene({ onPick }: { onPick: (id: string) => void }) {
             </div>
             <div className="px-3 py-2 flex items-center justify-between">
               <p className="text-[11px] tracking-wide text-candle">{s.emoji} {s.name}</p>
-              <p className="text-[9px] uppercase tracking-widest text-candle-muted">6 spots</p>
+              <p className="text-[9px] uppercase tracking-widest text-candle-muted">Hide anywhere</p>
             </div>
           </button>
         ))}
