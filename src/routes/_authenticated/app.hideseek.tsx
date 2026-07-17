@@ -659,7 +659,7 @@ function RoomFrame({
   scene,
   children,
   compact,
-}: { scene: Scene; children: React.ReactNode; compact?: boolean }) {
+}: { scene: Scene; children: ReactNode; compact?: boolean }) {
   return (
     <div
       className={`relative w-full ${compact ? "aspect-[4/3]" : "aspect-[3/4] sm:aspect-[4/3]"} rounded-3xl border border-border overflow-hidden select-none shadow-inner`}
