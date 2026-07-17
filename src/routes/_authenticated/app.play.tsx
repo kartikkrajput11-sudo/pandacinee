@@ -49,6 +49,7 @@ export const Route = createFileRoute("/_authenticated/app/play")({
 function Play() {
   const { data } = useProfile();
   const partner = data?.partner;
+  const partnerGame = useGamePresence(data?.profile?.id, partner?.id, { subscribe: true });
 
   return (
     <div className="pt-10 px-5">
