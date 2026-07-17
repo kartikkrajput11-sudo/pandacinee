@@ -219,6 +219,7 @@ function ChatPeer() {
         loadOlder();
       }
       const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+      stickToBottomRef.current = distanceFromBottom < 120;
       setShowScrollFab(distanceFromBottom > 240);
     };
     el.addEventListener("scroll", onScroll, { passive: true });
