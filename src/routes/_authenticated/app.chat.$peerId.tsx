@@ -612,6 +612,8 @@ function ChatPeer() {
       <KissOverlay trigger={kissTick} />
       <HugOverlay trigger={hugTick} />
       <HeadpatOverlay trigger={headpatTick} />
+      <HandholdOverlay trigger={handholdTick} />
+      <BoopOverlay trigger={boopTick} />
       <UnlockCelebration trigger={unlockTick || null} />
 
       {activeLock && iAmLocked && !isVerifyMode && (
