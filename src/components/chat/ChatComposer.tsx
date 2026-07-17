@@ -30,7 +30,7 @@ type Props = {
 
   onSend: (input: {
     content?: string;
-    type?: "text" | "voice" | "image" | "video" | "file" | "sticker" | "watch_invite" | "game_invite" | "kiss" | "hug" | "headpat" | "nudge" | "whisper" | "movie_wheel";
+    type?: "text" | "voice" | "image" | "video" | "file" | "sticker" | "watch_invite" | "game_invite" | "kiss" | "hug" | "headpat" | "handhold" | "boop" | "nudge" | "whisper" | "movie_wheel";
     media_url?: string | null;
     media_meta?: Record<string, unknown> | null;
     reply_to_id?: string | null;
@@ -112,6 +112,26 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
     try {
       await onSend({ type: "headpat", content: `✋ A gentle headpat for ${partnerName}`, disappear_seconds: disappearSecs });
       toast.success(`You patted ${partnerName} ✋`);
+    } catch (err: any) {
+      toast.error(err?.message ?? "Couldn't send");
+    }
+  }
+
+  async function sendHandhold() {
+    setMenuOpen(false);
+    try {
+      await onSend({ type: "handhold", content: `🤝 Holding hands with ${partnerName}`, disappear_seconds: disappearSecs });
+      toast.success(`Fingers laced with ${partnerName} 🤝`);
+    } catch (err: any) {
+      toast.error(err?.message ?? "Couldn't send");
+    }
+  }
+
+  async function sendBoop() {
+    setMenuOpen(false);
+    try {
+      await onSend({ type: "boop", content: `👉 Booped ${partnerName}'s nose`, disappear_seconds: disappearSecs });
+      toast.success(`Booped ${partnerName} 👉`);
     } catch (err: any) {
       toast.error(err?.message ?? "Couldn't send");
     }
