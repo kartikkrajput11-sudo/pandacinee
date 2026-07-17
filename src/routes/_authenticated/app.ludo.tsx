@@ -102,7 +102,7 @@ function LudoPage() {
         const stuckInYard = v !== 6 && state.tokens.filter((t) => t.player === state.turn).every((t) => t.pos === -1);
         toast(`Rolled ${v}${stuckInYard ? " — need a 6 to leave home" : " — no legal move"}`);
       }
-    }, 550);
+    }, 900);
   };
 
   // Walk override: while animating, this token renders at `pos` instead of state.
