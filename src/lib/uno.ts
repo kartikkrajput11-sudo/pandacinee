@@ -283,6 +283,7 @@ export function drawTurn(s: UnoState, who: UnoPlayer): UnoState {
     ns.pendingDraw = 0;
     ns.lastAction = `Drew ${s.pendingDraw || ""} penalty cards.`;
     ns.turn = other(who);
+    resetUnoFlags(ns);
     return ns;
   }
   // Voluntary draw one; auto-pass if unplayable.
@@ -290,10 +291,12 @@ export function drawTurn(s: UnoState, who: UnoPlayer): UnoState {
   const drawn = ns.hands[who][ns.hands[who].length - 1];
   if (drawn && canPlay(ns, drawn)) {
     ns.lastAction = "Drew a card.";
+    resetUnoFlags(ns);
     return ns; // stays on player, they may play it
   }
   ns.lastAction = "Drew a card and passed.";
   ns.turn = other(who);
+  resetUnoFlags(ns);
   return ns;
 }
 
