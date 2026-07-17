@@ -53,7 +53,7 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
   const [whisper, setWhisper] = useState(false);
   const [viewOnce, setViewOnce] = useState(false);
   const [recording, setRecording] = useState(false);
-  const [stickerChooser, setStickerChooser] = useState(false);
+  const [openGroup, setOpenGroup] = useState<null | "media" | "sticker" | "together" | "affection">(null);
 
   const fileRef = useRef<HTMLInputElement>(null);
   const imgRef = useRef<HTMLInputElement>(null);
@@ -370,54 +370,76 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
             <p className="text-[8px] uppercase tracking-[0.32em] text-candle-muted/70 font-medium text-center mb-2">
               Studio
             </p>
-            <div className="grid grid-cols-6 gap-px rounded-2xl overflow-hidden border border-white/[0.06] bg-white/[0.04]">
-              <StudioTile icon={<ImageIcon className="size-4" />} label="Photo" onClick={() => imgRef.current?.click()} />
-              <StudioTile icon={<VideoIcon className="size-4" />} label="Video" onClick={() => vidRef.current?.click()} />
+            <div className="grid grid-cols-4 gap-px rounded-2xl overflow-hidden border border-white/[0.06] bg-white/[0.04]">
               <StudioTile
-                icon={<Eye className="size-4" />}
-                label={viewOnce ? "Once ✓" : "Once"}
-                onClick={() => {
-                  const next = !viewOnce;
-                  setViewOnce(next);
-                  toast[next ? "success" : "message"](next ? "Next photo/video will vanish after one view" : "View-once turned off");
-                }}
-                accent={viewOnce}
-                glow={viewOnce}
+                icon={<ImageIcon className="size-4" />}
+                label="Media"
+                onClick={() => setOpenGroup((g) => (g === "media" ? null : "media"))}
+                accent={openGroup === "media"}
+                glow={openGroup === "media"}
               />
-              <StudioTile icon={<Paperclip className="size-4" />} label="File" onClick={() => fileRef.current?.click()} />
-              <StudioTile icon={<Sparkles className="size-4" />} label="Sticker" onClick={() => setStickerChooser((v) => !v)} accent glow />
-              <StudioTile icon={<Film className="size-4" />} label="Watch" onClick={() => { setWatchPickerOpen(true); setMenuOpen(false); }} accent />
-              <StudioTile icon={<Gamepad2 className="size-4" />} label="Game" onClick={() => { setGamePickerOpen(true); setMenuOpen(false); }} accent />
-              <StudioTile icon={<Disc3 className="size-4" />} label="Wheel" onClick={() => { setWheelOpen(true); setMenuOpen(false); }} accent />
-              <StudioTile icon={<Heart className="size-4 fill-current" />} label="Kiss" onClick={sendKiss} accent glow />
-              <StudioTile icon={<HeartHandshake className="size-4" />} label="Hug" onClick={sendHug} accent glow />
-              <StudioTile icon={<Zap className="size-4" />} label="Nudge" onClick={sendNudge} />
+              <StudioTile
+                icon={<Sparkles className="size-4" />}
+                label="Sticker"
+                onClick={() => setOpenGroup((g) => (g === "sticker" ? null : "sticker"))}
+                accent={openGroup === "sticker"}
+                glow={openGroup === "sticker"}
+              />
+              <StudioTile
+                icon={<Film className="size-4" />}
+                label="Together"
+                onClick={() => setOpenGroup((g) => (g === "together" ? null : "together"))}
+                accent={openGroup === "together"}
+                glow={openGroup === "together"}
+              />
+              <StudioTile
+                icon={<Heart className="size-4 fill-current" />}
+                label="Affection"
+                onClick={() => setOpenGroup((g) => (g === "affection" ? null : "affection"))}
+                accent={openGroup === "affection"}
+                glow={openGroup === "affection"}
+              />
             </div>
 
-            {stickerChooser && (
+            {openGroup === "media" && (
+              <div className="mt-2 grid grid-cols-4 gap-2 animate-fade-in">
+                <GroupChoice icon={<ImageIcon className="size-4" />} label="Photo" hint="From gallery" onClick={() => { imgRef.current?.click(); setOpenGroup(null); }} />
+                <GroupChoice icon={<VideoIcon className="size-4" />} label="Video" hint="Up to 60 MB" onClick={() => { vidRef.current?.click(); setOpenGroup(null); }} />
+                <GroupChoice
+                  icon={<Eye className="size-4" />}
+                  label={viewOnce ? "Once ✓" : "Once"}
+                  hint={viewOnce ? "Armed" : "One view"}
+                  active={viewOnce}
+                  onClick={() => {
+                    const next = !viewOnce;
+                    setViewOnce(next);
+                    toast[next ? "success" : "message"](next ? "Next photo/video will vanish after one view" : "View-once turned off");
+                  }}
+                />
+                <GroupChoice icon={<Paperclip className="size-4" />} label="File" hint="Any document" onClick={() => { fileRef.current?.click(); setOpenGroup(null); }} />
+              </div>
+            )}
+
+            {openGroup === "sticker" && (
               <div className="mt-2 grid grid-cols-2 gap-2 animate-fade-in">
-                <button
-                  type="button"
-                  onClick={() => { setStickerChooser(false); setPandaOpen(true); setMenuOpen(false); }}
-                  className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-gradient-to-br from-petal/15 to-transparent border border-petal/25 hover:border-petal/60 transition-colors"
-                >
-                  <span className="text-lg leading-none">🐼</span>
-                  <div className="text-left leading-tight">
-                    <p className="text-[11px] font-medium text-candle">Panda</p>
-                    <p className="text-[9px] uppercase tracking-widest text-candle-muted">Curated set</p>
-                  </div>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { setStickerChooser(false); setAiOpen(true); setMenuOpen(false); }}
-                  className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-gradient-to-br from-petal/15 to-transparent border border-petal/25 hover:border-petal/60 transition-colors"
-                >
-                  <Sparkles className="size-4 text-petal shrink-0" />
-                  <div className="text-left leading-tight">
-                    <p className="text-[11px] font-medium text-candle">AI ✨</p>
-                    <p className="text-[9px] uppercase tracking-widest text-candle-muted">Made for you</p>
-                  </div>
-                </button>
+                <GroupChoice icon={<span className="text-base leading-none">🐼</span>} label="Panda" hint="Curated set" onClick={() => { setOpenGroup(null); setPandaOpen(true); setMenuOpen(false); }} />
+                <GroupChoice icon={<Sparkles className="size-4 text-petal" />} label="AI ✨" hint="Made for you" onClick={() => { setOpenGroup(null); setAiOpen(true); setMenuOpen(false); }} />
+              </div>
+            )}
+
+            {openGroup === "together" && (
+              <div className="mt-2 grid grid-cols-3 gap-2 animate-fade-in">
+                <GroupChoice icon={<Film className="size-4" />} label="Watch" hint="A movie together" onClick={() => { setWatchPickerOpen(true); setMenuOpen(false); setOpenGroup(null); }} />
+                <GroupChoice icon={<Gamepad2 className="size-4" />} label="Game" hint="Play a round" onClick={() => { setGamePickerOpen(true); setMenuOpen(false); setOpenGroup(null); }} />
+                <GroupChoice icon={<Disc3 className="size-4" />} label="Wheel" hint="Spin to pick" onClick={() => { setWheelOpen(true); setMenuOpen(false); setOpenGroup(null); }} />
+              </div>
+            )}
+
+            {openGroup === "affection" && (
+              <div className="mt-2 grid grid-cols-3 gap-2 animate-fade-in">
+                <GroupChoice icon={<Heart className="size-4 fill-current" />} label="Kiss" hint="A soft press" onClick={() => { setOpenGroup(null); sendKiss(); }} />
+                <GroupChoice icon={<HeartHandshake className="size-4" />} label="Hug" hint="Warm & close" onClick={() => { setOpenGroup(null); sendHug(); }} />
+                <GroupChoice icon={<Zap className="size-4" />} label="Nudge" hint="Get attention" onClick={() => { setOpenGroup(null); sendNudge(); }} />
               </div>
             )}
           </div>
@@ -562,21 +584,37 @@ function StudioTile({
   );
 }
 
-function StudioGroup({ label, children }: { label: string; children: React.ReactNode }) {
-  const count = Array.isArray(children) ? children.length : 1;
+function GroupChoice({
+  icon,
+  label,
+  hint,
+  onClick,
+  active,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  hint?: string;
+  onClick: () => void;
+  active?: boolean;
+}) {
   return (
-    <div className="rounded-2xl overflow-hidden border border-white/[0.06] bg-white/[0.02]">
-      <div className="px-3 pt-1.5 pb-1 flex items-center gap-1.5">
-        <span className="h-px flex-1 bg-gradient-to-r from-transparent to-white/10" />
-        <span className="text-[8px] uppercase tracking-[0.3em] text-candle-muted/70 font-medium">{label}</span>
-        <span className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent" />
-      </div>
-      <div
-        className="grid gap-px bg-white/[0.04]"
-        style={{ gridTemplateColumns: `repeat(${count}, minmax(0, 1fr))` }}
-      >
-        {children}
-      </div>
-    </div>
+    <button
+      type="button"
+      onClick={onClick}
+      className={`flex items-center gap-2 px-2.5 py-2 rounded-xl border transition-all active:scale-[0.97] ${
+        active
+          ? "bg-gradient-to-br from-petal/25 to-petal/[0.04] border-petal/60 shadow-[inset_0_0_18px_-8px_rgba(236,72,153,0.55)]"
+          : "bg-gradient-to-br from-white/[0.05] to-transparent border-white/10 hover:border-petal/50 hover:from-petal/15"
+      }`}
+    >
+      <span className="shrink-0 flex items-center justify-center size-6 rounded-lg bg-white/[0.04] text-petal">
+        {icon}
+      </span>
+      <span className="text-left leading-tight min-w-0">
+        <span className="block text-[11px] font-medium text-candle truncate">{label}</span>
+        {hint && <span className="block text-[9px] uppercase tracking-widest text-candle-muted truncate">{hint}</span>}
+      </span>
+    </button>
   );
 }
+
