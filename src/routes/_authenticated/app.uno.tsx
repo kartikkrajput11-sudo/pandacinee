@@ -170,6 +170,25 @@ function UnoPage() {
     sync(ns);
   }
 
+  function handleCallUno() {
+    if (state.hands[mySeat].length !== 1 || state.unoCalled[mySeat] || state.winner) return;
+    const ns = callUno(state, mySeat);
+    sfxKiss();
+    setUnoBurst({ n: Date.now(), from: mySeat });
+    sync(ns);
+    if (mode === "partner" && chRef.current) {
+      chRef.current.send({ type: "broadcast", event: "uno-call", payload: { from: mySeat } });
+    }
+  }
+
+  function handleCatch() {
+    const opp: UnoPlayer = mySeat === "you" ? "them" : "you";
+    if (state.hands[opp].length !== 1 || state.unoCalled[opp] || state.winner) return;
+    sfxReaction();
+    toast("Caught silent!", { description: "+2 penalty cards dealt." });
+    sync(catchUno(state, mySeat));
+  }
+
   function reset() {
     const s = initialState();
     setDealNonce((n) => n + 1);
