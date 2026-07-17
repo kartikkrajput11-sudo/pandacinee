@@ -77,9 +77,17 @@ export function BroadcastListener() {
     // Supabase realtime channel for live broadcasts
     const channel = supabase
       .channel("admin-broadcast", { config: { broadcast: { self: false } } })
-      .on("broadcast", { event: "push" }, ({ payload }) => {
+      .on("broadcast", { event: "push" }, async ({ payload }) => {
         if (!payload || typeof payload !== "object") return;
-        showBroadcast(payload as BroadcastPayload);
+        const p = payload as BroadcastPayload;
+        if (Array.isArray(p.target_user_ids) && p.target_user_ids.length > 0) {
+          try {
+            const { data } = await supabase.auth.getUser();
+            const uid = data?.user?.id;
+            if (!uid || !p.target_user_ids.includes(uid)) return;
+          } catch { return; }
+        }
+        showBroadcast(p);
       })
       .subscribe();
 
