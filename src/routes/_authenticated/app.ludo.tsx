@@ -363,6 +363,8 @@ function LudoBoard({
           const isLegal = legalIds.has(`${t.player}:${t.idx}`);
           const tokenId = `${t.player}-${t.idx}`;
           if (t.pos === 200) return null; // hidden at finish
+          const tx = cx + ox;
+          const ty = cy + oy;
           return (
             <g
               key={tokenId}
@@ -370,19 +372,20 @@ function LudoBoard({
               style={{ cursor: canAct && isLegal ? "pointer" : "default" }}
             >
               {isLegal && canAct && (
-                <circle cx={cx + ox} cy={cy + oy} r={CELL * 0.5} fill="none" stroke={PLAYER_META[t.player].color} strokeWidth={2} opacity={0.7}>
+                <circle cx={tx} cy={ty} r={CELL * 0.5} fill="none" stroke={PLAYER_META[t.player].color} strokeWidth={2} opacity={0.7} style={{ transition: "cx 450ms cubic-bezier(0.4,0,0.2,1), cy 450ms cubic-bezier(0.4,0,0.2,1)" }}>
                   <animate attributeName="r" values={`${CELL * 0.45};${CELL * 0.6};${CELL * 0.45}`} dur="1.2s" repeatCount="indefinite" />
                 </circle>
               )}
               <circle
-                cx={cx + ox}
-                cy={cy + oy}
+                cx={tx}
+                cy={ty}
                 r={CELL * 0.38}
                 fill={PLAYER_META[t.player].color}
                 stroke="white"
                 strokeWidth={2}
+                style={{ transition: "cx 450ms cubic-bezier(0.4,0,0.2,1), cy 450ms cubic-bezier(0.4,0,0.2,1)" }}
               />
-              <circle cx={cx + ox - 3} cy={cy + oy - 3} r={CELL * 0.12} fill="white" opacity={0.6} />
+              <circle cx={tx - 3} cy={ty - 3} r={CELL * 0.12} fill="white" opacity={0.6} style={{ transition: "cx 450ms cubic-bezier(0.4,0,0.2,1), cy 450ms cubic-bezier(0.4,0,0.2,1)" }} />
             </g>
           );
         })}
