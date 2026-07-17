@@ -53,6 +53,7 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
   const [whisper, setWhisper] = useState(false);
   const [viewOnce, setViewOnce] = useState(false);
   const [recording, setRecording] = useState(false);
+  const [stickerChooser, setStickerChooser] = useState(false);
 
   const fileRef = useRef<HTMLInputElement>(null);
   const imgRef = useRef<HTMLInputElement>(null);
