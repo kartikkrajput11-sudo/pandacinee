@@ -509,7 +509,7 @@ function LudoBoard({
                   transition: trans,
                   transformBox: "fill-box",
                   transformOrigin: "center",
-                  animation: isWalking ? "ludo-token-hop 170ms ease-in-out" : undefined,
+                  animation: isWalking ? "ludo-token-hop 220ms cubic-bezier(0.34,1.56,0.64,1)" : undefined,
                 }}
               />
               <circle
