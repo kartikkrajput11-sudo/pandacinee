@@ -68,12 +68,12 @@ export default function OwnersMonthiversary() {
           <span className="text-[9px] uppercase tracking-[0.28em] text-[#f5d6a4] shrink-0">
             {monthName} 18
           </span>
-          <span className="font-serif italic text-[12px] text-candle truncate">
+          <span className="font-serif italic text-[12px] text-[#fdf6ec] truncate">
             Founders' monthiversary — tap to relive their story
           </span>
         </span>
 
-        <span className="relative ml-1 text-[9px] uppercase tracking-[0.24em] text-petal opacity-80 group-hover:opacity-100 transition-opacity hidden sm:inline">
+        <span className="relative ml-1 text-[9px] uppercase tracking-[0.24em] text-[#f5c9dd] opacity-90 group-hover:opacity-100 transition-opacity hidden sm:inline">
           Open ✨
         </span>
 
@@ -88,7 +88,7 @@ export default function OwnersMonthiversary() {
           tabIndex={0}
           onClick={(e) => { e.stopPropagation(); setDismissed(true); }}
           onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.stopPropagation(); setDismissed(true); } }}
-          className="relative ml-1 size-5 rounded-full flex items-center justify-center text-candle/60 hover:text-candle hover:bg-white/10 transition-colors"
+          className="relative ml-1 size-5 rounded-full flex items-center justify-center text-[#fdf6ec]/70 hover:text-[#fdf6ec] hover:bg-white/10 transition-colors"
           aria-label="Dismiss banner"
         >
           <X className="size-3" />
