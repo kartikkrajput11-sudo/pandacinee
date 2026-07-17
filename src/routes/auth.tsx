@@ -63,7 +63,51 @@ function AuthPage() {
         if (error) throw error;
         toast.success("Welcome back");
         navigate({ to: "/app" });
+  }
+
+  function normalizePhone(v: string) {
+    const t = v.trim();
+    return t.startsWith("+") ? "+" + t.slice(1).replace(/\D/g, "") : "+" + t.replace(/\D/g, "");
+  }
+
+  async function handlePhoneSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const p = normalizePhone(phone);
+    if (p.length < 8) {
+      toast.error("Enter a valid phone number with country code");
+      return;
+    }
+    if (mode === "signup" && !acceptedTerms) {
+      toast.error("Please accept the Terms & Privacy to continue");
+      return;
+    }
+    setLoading(true);
+    try {
+      if (!otpSent) {
+        if (mode === "signup") {
+          const { error } = await supabase.auth.signInWithOtp({
+            phone: p,
+            options: { data: { display_name: displayName || "panda" } },
+          });
+          if (error) throw error;
+        } else {
+          const { error } = await supabase.auth.signInWithOtp({ phone: p });
+          if (error) throw error;
+        }
+        setOtpSent(true);
+        toast.success("Code sent — check your messages 🐼");
+      } else {
+        const { error } = await supabase.auth.verifyOtp({ phone: p, token: otp.trim(), type: "sms" });
+        if (error) throw error;
+        toast.success(mode === "signup" ? "Welcome to PANDACINE 🐼" : "Welcome back");
+        navigate({ to: "/app" });
       }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Something went wrong");
     } finally {
