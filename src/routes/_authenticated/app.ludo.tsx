@@ -285,90 +285,110 @@ function DiePips({ n }: { n: number | null }) {
   );
 }
 
-function Die({ value, rolling, active }: { value: number | null; rolling: boolean; active: boolean }) {
-  const [face, setFace] = useState<number | null>(value);
-  useEffect(() => {
-    if (!rolling) { setFace(value); return; }
-    const iv = window.setInterval(() => {
-      setFace(1 + Math.floor(Math.random() * 6));
-    }, 75);
-    return () => window.clearInterval(iv);
-  }, [rolling, value]);
+// Rotation (rx, ry) that brings each face value to the front
+const FACE_ROT: Record<number, [number, number]> = {
+  1: [0, 0],
+  2: [-90, 0],
+  3: [0, -90],
+  4: [0, 90],
+  5: [90, 0],
+  6: [0, 180],
+};
+
+function CubeFace({ n, transform }: { n: number; transform: string }) {
   return (
-    <div className="relative w-20 h-20" style={{ perspective: "520px" }}>
-      {/* cast shadow on the table */}
+    <div
+      className="absolute inset-0 flex items-center justify-center rounded-[16px]"
+      style={{
+        transform,
+        backfaceVisibility: "hidden",
+        background:
+          "radial-gradient(120% 90% at 30% 20%, oklch(0.44 0.08 320) 0%, oklch(0.28 0.06 320) 45%, oklch(0.15 0.04 320) 100%)",
+        border: "1px solid color-mix(in oklab, oklch(0.82 0.14 68) 55%, transparent)",
+        boxShadow:
+          "inset 0 2px 0 rgba(255,255,255,0.28), inset 0 -10px 18px rgba(0,0,0,0.55), inset 6px 0 14px rgba(0,0,0,0.30), inset -6px 0 14px rgba(0,0,0,0.30)",
+      }}
+    >
+      {/* gilded inner frame */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-[4px] rounded-[12px]"
+        style={{
+          border: "1px solid color-mix(in oklab, oklch(0.85 0.14 68) 60%, transparent)",
+          boxShadow: "inset 0 0 12px oklch(0.78 0.14 62 / 0.20), inset 0 0 0 1px rgba(0,0,0,0.35)",
+        }}
+      />
+      {/* glossy top highlight */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-x-2 top-1.5 h-4 rounded-full"
+        style={{
+          background: "linear-gradient(180deg, rgba(255,255,255,0.32), rgba(255,255,255,0))",
+          filter: "blur(2px)",
+        }}
+      />
+      <DiePips n={n} />
+    </div>
+  );
+}
+
+function Die({ value, rolling, active }: { value: number | null; rolling: boolean; active: boolean }) {
+  const SIZE = 76;
+  const HALF = SIZE / 2;
+  const shown = value ?? 1;
+  const [rxF, ryF] = FACE_ROT[shown] ?? [0, 0];
+  // Previous resting rotation for the roll animation start
+  const prevRef = useRef<[number, number]>([rxF, ryF]);
+  const [rx0, ry0] = prevRef.current;
+  useEffect(() => {
+    if (!rolling) prevRef.current = [rxF, ryF];
+  }, [rolling, rxF, ryF]);
+
+  const faces: { n: number; transform: string }[] = [
+    { n: 1, transform: `translateZ(${HALF}px)` },
+    { n: 6, transform: `rotateY(180deg) translateZ(${HALF}px)` },
+    { n: 3, transform: `rotateY(90deg)  translateZ(${HALF}px)` },
+    { n: 4, transform: `rotateY(-90deg) translateZ(${HALF}px)` },
+    { n: 2, transform: `rotateX(90deg)  translateZ(${HALF}px)` },
+    { n: 5, transform: `rotateX(-90deg) translateZ(${HALF}px)` },
+  ];
+
+  const restTransform = `rotateX(${rxF}deg) rotateY(${ryF}deg)`;
+
+  return (
+    <div className="relative" style={{ width: SIZE, height: SIZE, perspective: 640 }}>
+      {/* cast shadow */}
       <span
         aria-hidden
         className="absolute left-1/2 -translate-x-1/2 rounded-[50%]"
         style={{
-          bottom: -6,
-          width: "70%",
-          height: 10,
+          bottom: -10,
+          width: "78%",
+          height: 12,
           background:
-            "radial-gradient(ellipse at center, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.15) 55%, transparent 75%)",
-          filter: "blur(4px)",
+            "radial-gradient(ellipse at center, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.15) 55%, transparent 75%)",
+          filter: "blur(5px)",
           animation: rolling ? "ludo-dice-shadow 0.9s cubic-bezier(0.22,1,0.36,1)" : undefined,
         }}
       />
       <div
-        className={`relative w-20 h-20 rounded-[18px] overflow-hidden flex items-center justify-center ${active ? "" : "opacity-90"}`}
+        className="relative w-full h-full"
         style={{
-          background:
-            "radial-gradient(120% 90% at 30% 20%, oklch(0.42 0.08 320) 0%, oklch(0.28 0.06 320) 40%, oklch(0.16 0.04 320) 100%)",
-          border: "1px solid color-mix(in oklab, oklch(0.82 0.14 68) 55%, transparent)",
-          boxShadow:
-            "inset 0 2px 0 rgba(255,255,255,0.28), inset 0 -10px 18px rgba(0,0,0,0.55), inset 6px 0 14px rgba(0,0,0,0.35), inset -6px 0 14px rgba(0,0,0,0.35), 0 12px 28px -10px rgba(0,0,0,0.7)",
           transformStyle: "preserve-3d",
-          animation: rolling
-            ? "ludo-dice-tumble 0.9s cubic-bezier(0.22,1,0.36,1)"
-            : active
-              ? "ludo-dice-idle-glow 2.6s ease-in-out infinite"
-              : undefined,
+          transform: rolling ? undefined : restTransform,
+          transition: rolling ? undefined : "transform 500ms cubic-bezier(0.22,1,0.36,1)",
+          animation: rolling ? "ludo-cube-tumble 0.9s cubic-bezier(0.22,1,0.36,1) forwards" : undefined,
+          // custom props consumed by the keyframes
+          ["--rx0" as any]: `${rx0}deg`,
+          ["--ry0" as any]: `${ry0}deg`,
+          ["--rxF" as any]: `${rxF + 720}deg`,
+          ["--ryF" as any]: `${ryF + 540}deg`,
+          filter: active && !rolling ? "drop-shadow(0 10px 22px rgba(0,0,0,0.5))" : "drop-shadow(0 8px 18px rgba(0,0,0,0.45))",
         }}
       >
-        {/* top glossy highlight */}
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-x-2 top-1.5 h-4 rounded-full"
-          style={{
-            background: "linear-gradient(180deg, rgba(255,255,255,0.35), rgba(255,255,255,0))",
-            filter: "blur(2px)",
-          }}
-        />
-        {/* gilded inner frame */}
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-[4px] rounded-[14px]"
-          style={{
-            border: "1px solid color-mix(in oklab, oklch(0.85 0.14 68) 60%, transparent)",
-            boxShadow:
-              "inset 0 0 12px oklch(0.78 0.14 62 / 0.22), inset 0 0 0 1px rgba(0,0,0,0.35)",
-          }}
-        />
-        {/* corner sparkle */}
-        <span
-          aria-hidden
-          className="pointer-events-none absolute -top-1 -left-1 w-6 h-6"
-          style={{
-            background:
-              "radial-gradient(circle at center, oklch(0.98 0.08 82 / 0.9), transparent 60%)",
-            animation: active && !rolling ? "ludo-dice-sparkle 3.2s ease-in-out infinite" : undefined,
-            opacity: rolling ? 0 : undefined,
-          }}
-        />
-        <DiePips n={face} />
-        {/* champagne sheen sweep on roll */}
-        {rolling && (
-          <span
-            aria-hidden
-            className="pointer-events-none absolute top-0 left-0 h-full w-3/5"
-            style={{
-              background:
-                "linear-gradient(90deg, transparent, oklch(0.96 0.09 78 / 0.65), transparent)",
-              animation: "ludo-dice-sheen 0.9s ease-out",
-            }}
-          />
-        )}
+        {faces.map((f) => (
+          <CubeFace key={f.n} n={f.n} transform={f.transform} />
+        ))}
       </div>
     </div>
   );
