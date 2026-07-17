@@ -1043,7 +1043,18 @@ function CatalogWatch({ id }: { id: string }) {
               )
             ) : (
               <button
-                onClick={() => { setStarted(true); setPlayerLoading(true); }}
+                onClick={() => {
+                  // If partner is online and this is a Pandacine source, use the
+                  // ready-check flow: broadcast "prepare" so both sides preload,
+                  // then host can hit Play once both are loaded.
+                  if (gateActive && !partnerIsHost) {
+                    if (!hostId) claimHost();
+                    sendPrepare(startAt ?? 0);
+                    setPausedByHost(true);
+                  }
+                  setStarted(true);
+                  setPlayerLoading(true);
+                }}
                 className="absolute inset-0 w-full h-full flex flex-col items-center justify-center gap-3 group overflow-hidden"
                 style={
                   backdropUrl
