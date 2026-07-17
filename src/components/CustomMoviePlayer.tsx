@@ -155,9 +155,26 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
         v.play()
           .then(() => stopBuffering())
           .catch(() => {
-            stopBuffering();
-            setPlaying(false);
-            setShowControls(true);
+            // Autoplay was blocked (no user gesture yet). Retry muted so the
+            // follower still stays in sync — they can tap the speaker to unmute.
+            try {
+              v.muted = true;
+              setMuted(true);
+              v.play()
+                .then(() => {
+                  stopBuffering();
+                  setShowControls(true);
+                })
+                .catch(() => {
+                  stopBuffering();
+                  setPlaying(false);
+                  setShowControls(true);
+                });
+            } catch {
+              stopBuffering();
+              setPlaying(false);
+              setShowControls(true);
+            }
           });
       },
       pause: () => { v.pause(); stopBuffering(); },
