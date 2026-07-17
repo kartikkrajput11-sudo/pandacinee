@@ -92,6 +92,10 @@ function UnoPage() {
       setChat((prev) => [...prev, payload as { id: string; from: UnoPlayer; text: string; at: number }]);
       sfxReaction();
     });
+    ch.on("broadcast", { event: "uno-call" }, ({ payload }) => {
+      setUnoBurst({ n: Date.now(), from: (payload as { from: UnoPlayer }).from });
+      sfxKiss();
+    });
     ch.subscribe((status) => {
       if (status === "SUBSCRIBED") {
         // Announce presence — host will echo the current state so both sides match.
