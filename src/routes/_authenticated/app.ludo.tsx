@@ -262,7 +262,14 @@ function LudoPage() {
           <p className="text-xs text-candle-muted">Your turn — roll the dice.</p>
         )}
       </div>
+
+      <LudoWinAnimation
+        trigger={winTrigger}
+        winner={winWho ?? null}
+        onDone={() => setDemoWin(null)}
+      />
     </div>
+
   );
 }
 
