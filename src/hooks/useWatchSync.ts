@@ -57,12 +57,14 @@ export function useWatchSync(
   const [drift, setDrift] = useState(0);
   const [myReady, setMyReadyState] = useState(false);
   const [peerReady, setPeerReady] = useState(false);
+  const [peerSourceKind, setPeerSourceKind] = useState<SourceKind>("unknown");
   const [peerPreparing, setPeerPreparing] = useState<{ time: number; ts: number } | null>(null);
 
   const mineRef = useRef<Mine>(emptyMine());
   const channelRef = useRef<RealtimeChannel | null>(null);
   const joinedAtRef = useRef<number>(0);
   const myReadyRef = useRef(false);
+  const mySourceKindRef = useRef<SourceKind>("unknown");
 
   // Deterministic channel name from sorted user IDs + room, so only the couple share it.
   const channelName = useMemo(() => {
