@@ -432,7 +432,7 @@ function UnoPage() {
           <button
             type="button"
             onClick={handleCallUno}
-            className="uno-call-btn fixed left-1/2 -translate-x-1/2 bottom-24 z-40 select-none"
+            className="uno-call-btn fixed left-4 bottom-24 z-40 select-none"
             aria-label="Call Uno"
           >
             <span className="uno-call-halo" aria-hidden />
