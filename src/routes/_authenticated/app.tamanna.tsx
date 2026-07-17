@@ -151,6 +151,7 @@ function AdminDashboard() {
           ["users", Users, "Users"],
           ["library", Film, "Library"],
           ["animations", Wand2, "Animations"],
+          ["broadcast", Megaphone, "Broadcast"],
         ] as const).map(([k, Icon, label]) => {
           const active = tab === k;
           return (
