@@ -27,21 +27,15 @@ function GroupInfo() {
   const { data: profileData } = useProfile();
   const { data: friendsData } = useFriendships();
   const { data: groupData } = useGroup(groupId);
-  const update = useUpdateGroup();
   const setRole = useSetMemberRole();
   const removeMember = useRemoveMember();
   const addMembers = useAddMembers();
   const leave = useLeaveGroup();
   const regenCode = useRegenerateGroupCode();
 
-  const [renaming, setRenaming] = useState(false);
-  const [nameDraft, setNameDraft] = useState("");
   const [addingOpen, setAddingOpen] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [muted, setMutedState] = useState<boolean>(() => isGroupMuted(groupId));
-  const [uploadingBg, setUploadingBg] = useState(false);
-  const [bgPreview, setBgPreview] = useState<string | null>(null);
-  const fileRef = useRef<HTMLInputElement>(null);
 
   const me = profileData?.profile;
   const group = groupData?.group;
