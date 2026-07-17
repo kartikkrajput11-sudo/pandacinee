@@ -297,6 +297,8 @@ function ChatBubbleImpl({
                  replyTo.type === "kiss" ? "💜 kiss" :
                  replyTo.type === "hug" ? "🫂 hug" :
                  replyTo.type === "headpat" ? "✋ headpat" :
+                 replyTo.type === "handhold" ? "🤝 handhold" :
+                 replyTo.type === "boop" ? "👉 boop" :
                  replyTo.type === "whisper" ? "🤫 whisper" :
                  replyTo.type === "sticker" && isPandaStickerContent(replyTo.content) ? "🐼 Sticker" :
                  replyTo.content}
