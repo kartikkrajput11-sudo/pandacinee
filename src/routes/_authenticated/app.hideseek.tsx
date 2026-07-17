@@ -460,32 +460,29 @@ function HideSeekPage() {
     setPhase("hider_pick_spot");
   }
 
-  function pickSpot(i: number) {
+  function pickSpot(pt: Pt) {
     sfxPollVote();
-    setSpot(i);
+    setSpot(pt);
     if (mode === "online" && me && sceneId != null) {
-      send({ t: "hide", from: me.id, sceneId, spot: i });
+      send({ t: "hide", from: me.id, sceneId, x: pt.x, y: pt.y });
       setPhase("hider_watch");
     } else {
-      // local hand-off
       setPhase("handoff");
     }
   }
 
-  function seekerGuess(i: number) {
-    if (attempts.includes(i)) return;
+  function seekerGuess(pt: Pt) {
     const attemptIdx = attempts.length;
-    const next = [...attempts, i];
+    const next = [...attempts, pt];
     setAttempts(next);
-    const correct = i === spot;
+    const correct = !!spot && distance(pt, spot) <= HIT_RADIUS;
 
     if (mode === "online" && me) {
-      send({ t: "guess", from: me.id, attempt: attemptIdx, spot: i });
+      send({ t: "guess", from: me.id, attempt: attemptIdx, x: pt.x, y: pt.y });
     }
 
     if (correct) {
       sfxKiss();
-      // Score: MAX_ATTEMPTS - attempts_used_so_far. Higher is better.
       const gained = MAX_ATTEMPTS - attemptIdx;
       finishRound(attemptIdx, gained);
     } else {
