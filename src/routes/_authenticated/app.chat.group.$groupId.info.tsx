@@ -9,9 +9,11 @@ import { useFriendships } from "@/hooks/useFriends";
 import { useGroup, useLeaveGroup } from "@/hooks/useGroups";
 import {
   useUpdateGroup, useSetMemberRole, useRemoveMember, useAddMembers,
+  useRegenerateGroupCode,
   isGroupMuted, setGroupMuted, GROUP_THEMES, type GroupTheme,
 } from "@/hooks/useGroupAdmin";
 import { UserAvatar } from "@/components/UserAvatar";
+import { Copy, RefreshCw } from "lucide-react";
 
 const AVATAR_EMOJIS = ["💜", "🐼", "🌸", "🌙", "🍿", "🎬", "🦋", "🍓", "🌈", "🪐"];
 
