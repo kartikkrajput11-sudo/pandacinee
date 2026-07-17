@@ -106,31 +106,44 @@ function AuthPage() {
   }
 
   return (
-    <div className="relative min-h-screen velvet-bg flex flex-col">
-      <Petals count={6} />
-      <header className="relative z-10 px-6 py-6">
+    <div className="relative min-h-screen velvet-bg flex flex-col overflow-hidden">
+      {/* Ambient aurora bloom */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 z-0">
+        <div className="absolute -top-40 -left-32 h-[520px] w-[520px] rounded-full bg-petal/25 blur-3xl animate-auth-bloom-a" />
+        <div className="absolute -bottom-48 -right-24 h-[560px] w-[560px] rounded-full bg-primary/20 blur-3xl animate-auth-bloom-b" />
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 h-[300px] w-[300px] rounded-full bg-accent/15 blur-2xl animate-auth-bloom-c" />
+      </div>
+      {/* Gilded filigree rings */}
+      <div aria-hidden className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-0 h-[720px] w-[720px] rounded-full border border-petal/10 animate-auth-ring-slow" />
+      <div aria-hidden className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-0 h-[520px] w-[520px] rounded-full border border-petal/15 animate-auth-ring-fast" />
+      <Petals count={8} />
+      <header className="relative z-10 px-6 py-6 animate-fade-in">
         <Link to="/">
           <PandaLogo />
         </Link>
       </header>
 
       <main className="relative z-10 flex-1 flex items-center justify-center px-6 pb-12">
-        <div className="w-full max-w-sm animate-fade-up">
-          <div className="text-center mb-8">
-            <h1 className="font-serif text-4xl italic mb-2">
-              {mode === "signin" ? "Welcome back" : "Begin your story"}
-            </h1>
-            <p className="text-sm text-candle-muted">
-              {mode === "signin"
-                ? "Your panda has been waiting."
-                : "Two pandas, one cozy living room."}
-            </p>
-          </div>
+        <div key={mode} className="w-full max-w-sm animate-auth-card">
+          <div className="relative rounded-3xl p-[1px] bg-gradient-to-b from-petal/40 via-petal/10 to-transparent shadow-[0_30px_80px_-40px_rgba(0,0,0,0.6)]">
+            <div className="relative rounded-3xl bg-surface/70 backdrop-blur-xl border border-border/60 p-7 overflow-hidden">
+              <div aria-hidden className="pointer-events-none absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-petal/70 to-transparent animate-auth-shimmer" />
+              <div className="text-center mb-8" style={{ animation: "auth-rise 0.7s ease-out both", animationDelay: "80ms" }}>
+                <h1 className="font-serif text-4xl italic mb-2 bg-gradient-to-b from-candle to-candle-muted bg-clip-text text-transparent">
+                  {mode === "signin" ? "Welcome back" : "Begin your story"}
+                </h1>
+                <p className="text-sm text-candle-muted">
+                  {mode === "signin"
+                    ? "Your panda has been waiting."
+                    : "Two pandas, one cozy living room."}
+                </p>
+              </div>
 
           <button
             onClick={() => handleOAuth("google")}
             disabled={loading}
-            className="w-full mb-3 py-3 bg-candle text-velvet rounded-full font-medium text-sm hover:brightness-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+            style={{ animation: "auth-rise 0.6s ease-out both", animationDelay: "160ms" }}
+            className="w-full mb-3 py-3 bg-candle text-velvet rounded-full font-medium text-sm hover:brightness-95 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-[0_10px_30px_-15px_rgba(0,0,0,0.5)]"
           >
             <svg width="18" height="18" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -144,7 +157,8 @@ function AuthPage() {
           <button
             onClick={() => handleOAuth("apple")}
             disabled={loading}
-            className="w-full mb-5 py-3 bg-black text-white rounded-full font-medium text-sm hover:brightness-110 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+            style={{ animation: "auth-rise 0.6s ease-out both", animationDelay: "220ms" }}
+            className="w-full mb-5 py-3 bg-black text-white rounded-full font-medium text-sm hover:brightness-110 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-[0_10px_30px_-15px_rgba(0,0,0,0.7)]"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
               <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.53 4.08zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
@@ -152,13 +166,13 @@ function AuthPage() {
             Continue with Apple
           </button>
 
-          <div className="flex items-center gap-3 mb-5">
-            <span className="flex-1 h-px bg-border" />
-            <span className="text-[10px] uppercase tracking-widest text-candle-muted">or</span>
-            <span className="flex-1 h-px bg-border" />
+          <div className="flex items-center gap-3 mb-5" style={{ animation: "auth-rise 0.6s ease-out both", animationDelay: "280ms" }}>
+            <span className="flex-1 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+            <span className="text-[10px] uppercase tracking-[0.3em] text-candle-muted">or</span>
+            <span className="flex-1 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-3">
+          <form onSubmit={handleSubmit} className="space-y-3" style={{ animation: "auth-rise 0.6s ease-out both", animationDelay: "340ms" }}>
             {mode === "signup" && (
               <Input
                 placeholder="Your name"
@@ -200,13 +214,16 @@ function AuthPage() {
             <button
               type="submit"
               disabled={loading || (mode === "signup" && !acceptedTerms)}
-              className="w-full py-3.5 bg-petal text-velvet rounded-full font-semibold text-sm petal-glow hover:brightness-110 transition-all disabled:opacity-50"
+              className="group relative w-full py-3.5 bg-petal text-velvet rounded-full font-semibold text-sm petal-glow hover:brightness-110 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:hover:scale-100 overflow-hidden"
             >
-              {loading
-                ? "One moment…"
-                : mode === "signin"
-                  ? "Sign in"
-                  : "Create my PANDACINE"}
+              <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/40 to-transparent" aria-hidden />
+              <span className="relative">
+                {loading
+                  ? "One moment…"
+                  : mode === "signin"
+                    ? "Sign in"
+                    : "Create my PANDACINE"}
+              </span>
             </button>
 
             {mode === "signin" && (
@@ -230,6 +247,8 @@ function AuthPage() {
               {mode === "signin" ? "Create an account" : "Sign in"}
             </button>
           </p>
+            </div>
+          </div>
         </div>
       </main>
     </div>
