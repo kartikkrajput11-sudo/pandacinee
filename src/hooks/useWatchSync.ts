@@ -156,7 +156,7 @@ export function useWatchSync(
     const electedHost = rows
       .slice()
       .sort((a, b) => Date.parse(a.joined_at) - Date.parse(b.joined_at) || a.user_id.localeCompare(b.user_id))[0];
-    setHostId((current) => current ?? claimedHost?.user_id ?? electedHost?.user_id ?? null);
+    setHostId(claimedHost?.user_id ?? electedHost?.user_id ?? null);
 
     if (!other || !other.event_at) return;
     const updatedAt = Date.parse(other.event_at);
