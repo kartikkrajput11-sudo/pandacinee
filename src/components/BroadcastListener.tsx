@@ -10,6 +10,8 @@ type BroadcastPayload = {
   tone: "info" | "success" | "warning" | "love" | "sparkle";
   sent_at: number;
   preview?: boolean;
+  /** When null/absent the broadcast is for everyone; otherwise only these users. */
+  target_user_ids?: string[] | null;
 };
 
 const TONE_EMOJI: Record<BroadcastPayload["tone"], string> = {
