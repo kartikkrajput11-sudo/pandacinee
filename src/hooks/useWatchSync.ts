@@ -88,7 +88,9 @@ export function useWatchSync(
       entries.sort((a, b) => a.joinedAt - b.joinedAt || a.userId.localeCompare(b.userId));
       const host = entries[0]?.userId ?? null;
       setHostId(host);
-      setPartnerOnline(entries.some((e) => e.userId !== meId));
+      const others = entries.filter((e) => e.userId !== meId);
+      setPartnerOnline(others.length > 0);
+      setPeerReady(others.length > 0 && others.every((e) => !!e.ready));
     };
 
     ch
