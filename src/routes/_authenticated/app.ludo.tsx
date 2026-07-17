@@ -185,6 +185,18 @@ function LudoPage() {
     legalMoves(state).map((m) => `${m.player}:${m.idx}`),
   );
 
+  // Destination previews (only when it's my turn and no walk in progress).
+  const destinations = state.dice != null && !walking && canAct
+    ? legalMoves(state)
+        .map((t) => {
+          const d = destinationOf(t, state.dice!);
+          if (d == null || d === 200) return null;
+          const [c, r] = cellOf(d, t.player);
+          return { key: `${t.player}:${t.idx}`, c, r, color: PLAYER_META[t.player].color };
+        })
+        .filter((x): x is NonNullable<typeof x> => x !== null)
+    : [];
+
   return (
     <div className="pt-10 px-4 max-w-xl mx-auto pb-10">
       <header className="flex items-center gap-3 mb-4">
@@ -209,7 +221,7 @@ function LudoPage() {
         </p>
       )}
 
-      <LudoBoard state={state} legalIds={legalIds} onMoveToken={handleMove} canAct={canAct} />
+      <LudoBoard state={state} legalIds={legalIds} onMoveToken={handleMove} canAct={canAct} walking={walking} destinations={destinations} />
 
       <div className="mt-5 flex items-center justify-center gap-4">
         <Die value={state.dice ?? lastRoll} rolling={rolling} active={state.dice != null} />
