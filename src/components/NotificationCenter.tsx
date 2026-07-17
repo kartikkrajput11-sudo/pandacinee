@@ -78,6 +78,8 @@ export default function NotificationCenter() {
     };
   }, [open]);
 
+  const unread = useMemo(() => items.filter((x) => !x.read).length, [items]);
+
   // Only show on authenticated app routes
   if (!pathname.startsWith("/app")) return null;
   // Hide inside chat/call/game full-screen surfaces to avoid clutter
@@ -86,8 +88,6 @@ export default function NotificationCenter() {
     pathname.startsWith("/app/call/") ||
     pathname.startsWith("/app/tamanna")
   ) return null;
-
-  const unread = useMemo(() => items.filter((x) => !x.read).length, [items]);
 
   const openItem = (n: NotifItem) => {
     markRead(n.id);
