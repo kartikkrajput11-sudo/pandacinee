@@ -14,6 +14,15 @@ export function usePresenceHeartbeat() {
     const ping = async () => {
       if (cancelled || !uid) return;
       try {
+        // Respect the user's activity-visible preference: if they've turned
+        // off "Show my activity", stop refreshing last_seen_at so partners
+        // only see a stale/hidden state.
+        const { data: prof } = await supabase
+          .from("profiles")
+          .select("activity_visible")
+          .eq("id", uid)
+          .maybeSingle();
+        if ((prof as any)?.activity_visible === false) return;
         await supabase
           .from("profiles")
           .update({ last_seen_at: new Date().toISOString() })
