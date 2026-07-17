@@ -1231,6 +1231,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          activity_visible: boolean
           anniversary_date: string | null
           avatar_url: string | null
           bio: string | null
@@ -1266,6 +1267,7 @@ export type Database = {
           username: string
         }
         Insert: {
+          activity_visible?: boolean
           anniversary_date?: string | null
           avatar_url?: string | null
           bio?: string | null
@@ -1301,6 +1303,7 @@ export type Database = {
           username: string
         }
         Update: {
+          activity_visible?: boolean
           anniversary_date?: string | null
           avatar_url?: string | null
           bio?: string | null
@@ -2086,6 +2089,7 @@ export type Database = {
       pair_with_invite_code: {
         Args: { _code: string }
         Returns: {
+          activity_visible: boolean
           anniversary_date: string | null
           avatar_url: string | null
           bio: string | null
