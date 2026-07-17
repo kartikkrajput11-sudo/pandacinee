@@ -150,6 +150,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <Outlet />
+        <PartnerMessageNotifier />
         <Toaster
           theme="dark"
           position="top-center"
