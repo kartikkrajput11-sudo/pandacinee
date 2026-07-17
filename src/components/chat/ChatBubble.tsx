@@ -468,10 +468,14 @@ function ChatBubbleImpl({
             <VoicePlayer path={m.media_url} durationMs={(m.media_meta as any)?.duration_ms} />
           )}
           {m.type === "image" && m.media_url && (
-            <SignedImage path={m.media_url} className="rounded-xl max-w-[240px] max-h-[320px] object-cover" />
+            (m.media_meta as any)?.view_once
+              ? <ViewOnceMedia m={m} mine={mine} />
+              : <SignedImage path={m.media_url} className="rounded-xl max-w-[240px] max-h-[320px] object-cover" />
           )}
           {m.type === "video" && m.media_url && (
-            <SignedVideo path={m.media_url} />
+            (m.media_meta as any)?.view_once
+              ? <ViewOnceMedia m={m} mine={mine} />
+              : <SignedVideo path={m.media_url} />
           )}
           {m.type === "file" && (
             <div className="flex items-center gap-2" onClick={(e) => { e.stopPropagation(); downloadFile(); }}>
