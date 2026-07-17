@@ -113,7 +113,7 @@ export function AiStickerPicker({ open, onClose, onPick }: Props) {
       return;
     }
     if (!isMoodUnlocked(mood)) {
-      toast.info("This mood is part of an AI Pack — unlock it in the shop.");
+      toast.info("This mood is part of an AI Pack — locked.");
       return;
     }
     if (isCoupleTab && !partner) {
