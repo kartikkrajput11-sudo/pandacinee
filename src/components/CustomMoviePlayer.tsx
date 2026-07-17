@@ -87,7 +87,7 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
       const ctx = new Ctx();
       const src = ctx.createMediaElementSource(v);
       const gain = ctx.createGain();
-      gain.gain.value = 1;
+      gain.gain.value = 2;
       src.connect(gain).connect(ctx.destination);
       audioCtxRef.current = ctx;
       gainNodeRef.current = gain;
