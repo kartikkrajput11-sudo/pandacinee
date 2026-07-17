@@ -1,0 +1,840 @@
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ArrowLeft, RotateCcw, Eye, EyeOff, Sparkles, Users, Wifi } from "lucide-react";
+import { useProfile } from "@/hooks/useProfile";
+import { supabase } from "@/integrations/supabase/client";
+import { sfxKiss, sfxPollVote, sfxReaction } from "@/lib/sfx";
+import { GameChat } from "@/components/games/GameChat";
+
+export const Route = createFileRoute("/_authenticated/app/hideseek")({
+  component: HideSeekPage,
+  head: () => ({
+    meta: [
+      { title: "Hide & Seek — PandaCine" },
+      { name: "description", content: "A luxury panda hide-and-seek for two. Hide, hint, and hunt across velvet rooms." },
+    ],
+  }),
+});
+
+/* ────────────────────────  Data  ──────────────────────── */
+
+type Scene = {
+  id: string;
+  name: string;
+  emoji: string;
+  hue: string; // css color for scene tint
+  spots: { emoji: string; name: string }[]; // 6 spots per scene
+};
+
+const SCENES: Scene[] = [
+  {
+    id: "ballroom", name: "Velvet Ballroom", emoji: "🕯️", hue: "oklch(0.72 0.18 15 / 0.45)",
+    spots: [
+      { emoji: "🪞", name: "Gilded Mirror" },
+      { emoji: "🎹", name: "Grand Piano" },
+      { emoji: "🕰️", name: "Longcase Clock" },
+      { emoji: "🥂", name: "Champagne Tower" },
+      { emoji: "🎭", name: "Curtain Fold" },
+      { emoji: "💐", name: "Rose Urn" },
+    ],
+  },
+  {
+    id: "library", name: "Moonlit Library", emoji: "📚", hue: "oklch(0.62 0.14 260 / 0.45)",
+    spots: [
+      { emoji: "📖", name: "Open Tome" },
+      { emoji: "🪜", name: "Sliding Ladder" },
+      { emoji: "🦉", name: "Owl Perch" },
+      { emoji: "🕯️", name: "Reading Nook" },
+      { emoji: "🗝️", name: "Locked Drawer" },
+      { emoji: "🌙", name: "Skylight Sill" },
+    ],
+  },
+  {
+    id: "conservatory", name: "Glass Conservatory", emoji: "🌿", hue: "oklch(0.75 0.14 150 / 0.45)",
+    spots: [
+      { emoji: "🌴", name: "Fan Palm" },
+      { emoji: "🪴", name: "Fig Pot" },
+      { emoji: "🦋", name: "Butterfly Cage" },
+      { emoji: "⛲", name: "Marble Fountain" },
+      { emoji: "🌸", name: "Orchid Bench" },
+      { emoji: "🪟", name: "Foggy Pane" },
+    ],
+  },
+  {
+    id: "cellar", name: "Wine Cellar", emoji: "🍷", hue: "oklch(0.55 0.16 25 / 0.45)",
+    spots: [
+      { emoji: "🛢️", name: "Oak Barrel" },
+      { emoji: "🍾", name: "Bottle Rack" },
+      { emoji: "🕸️", name: "Cobweb Corner" },
+      { emoji: "🪵", name: "Stacked Crates" },
+      { emoji: "🔦", name: "Lantern Hook" },
+      { emoji: "🗝️", name: "Iron Gate" },
+    ],
+  },
+  {
+    id: "garden", name: "Rose Garden", emoji: "🌹", hue: "oklch(0.78 0.15 350 / 0.45)",
+    spots: [
+      { emoji: "🌹", name: "Rose Trellis" },
+      { emoji: "🦢", name: "Swan Pond" },
+      { emoji: "🗿", name: "Cupid Statue" },
+      { emoji: "🌳", name: "Willow Curtain" },
+      { emoji: "🪑", name: "Wrought Bench" },
+      { emoji: "🕊️", name: "Dovecote" },
+    ],
+  },
+];
+
+const TOTAL_ROUNDS = 4; // two per player
+const MAX_ATTEMPTS = 4;
+
+/** Distance in a 3x2 grid: rows [0,1,2] cols [0,1] */
+function distance(a: number, b: number): number {
+  const [ax, ay] = [a % 3, Math.floor(a / 3)];
+  const [bx, by] = [b % 3, Math.floor(b / 3)];
+  return Math.max(Math.abs(ax - bx), Math.abs(ay - by));
+}
+function heatFor(a: number, b: number): { label: string; emoji: string; cls: string } {
+  const d = distance(a, b);
+  if (d === 0) return { label: "Burning!", emoji: "🔥", cls: "text-rose-300" };
+  if (d === 1) return { label: "Warm", emoji: "🌡️", cls: "text-amber-300" };
+  return { label: "Cold", emoji: "❄️", cls: "text-sky-300" };
+}
+
+/* ────────────────────────  Types  ──────────────────────── */
+
+type Mode = "local" | "online";
+type Phase =
+  | "intro"
+  | "lobby"
+  | "waiting"          // guesser side: hider is choosing
+  | "hider_pick_scene" // hider chooses scene
+  | "hider_pick_spot"  // hider chooses spot in that scene
+  | "hider_watch"      // hider watching seeker search
+  | "handoff"          // local: pass phone
+  | "seeker"           // seeker searching
+  | "round_result"     // between-round summary
+  | "final";
+
+type PeerMsg =
+  | { t: "hello"; from: string }
+  | { t: "start"; from: string; hiderId: string; round: number }
+  | { t: "hide"; from: string; sceneId: string; spot: number } // sent to seeker on start
+  | { t: "guess"; from: string; attempt: number; spot: number }
+  | { t: "round_end"; from: string; scores: [number, number]; foundAt: number | null }
+  | { t: "next_round"; from: string; hiderId: string; round: number }
+  | { t: "finish"; from: string; scores: [number, number] };
+
+/* ────────────────────────  Component  ──────────────────────── */
+
+function HideSeekPage() {
+  const { data } = useProfile();
+  const me = data?.profile;
+  const partner = data?.partner;
+  const navigate = useNavigate();
+
+  const [mode, setMode] = useState<Mode>("local");
+  const [phase, setPhase] = useState<Phase>("intro");
+  const [round, setRound] = useState(1);
+  const [hiderId, setHiderId] = useState<string | null>(null); // for local: "me"/"partner"; for online: user id
+  const [sceneId, setSceneId] = useState<string | null>(null);
+  const [spot, setSpot] = useState<number | null>(null);
+  const [attempts, setAttempts] = useState<number[]>([]); // spot indexes tried
+  const [scores, setScores] = useState<[number, number]>([0, 0]); // [me, partner]
+  const [foundAt, setFoundAt] = useState<number | null>(null); // attempts index (0-based) or null
+
+  const scene = useMemo(() => SCENES.find((s) => s.id === sceneId) ?? null, [sceneId]);
+
+  const iAmHider = mode === "local"
+    ? hiderId === "me"
+    : !!(me && hiderId && me.id === hiderId);
+  const iAmSeeker = mode === "local"
+    ? hiderId === "partner"
+    : !!(me && hiderId && me.id !== hiderId);
+
+  const hiderName = iAmHider
+    ? (me?.display_name ?? "You")
+    : (mode === "local" ? "Partner" : (partner?.display_name ?? "your panda"));
+  const seekerName = iAmSeeker
+    ? (me?.display_name ?? "You")
+    : (mode === "local" ? "Partner" : (partner?.display_name ?? "your panda"));
+
+  /* ── realtime ── */
+  const chanRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const [peerOnline, setPeerOnline] = useState(false);
+
+  useEffect(() => {
+    if (mode !== "online" || !me || !partner) return;
+    const key = [me.id, partner.id].sort().join(":");
+    const channel = supabase.channel(`hideseek:${key}`, {
+      config: { broadcast: { self: false }, presence: { key: me.id } },
+    });
+    chanRef.current = channel;
+
+    channel
+      .on("presence", { event: "sync" }, () => {
+        const state = channel.presenceState();
+        setPeerOnline(Object.keys(state).some((k) => k === partner.id));
+      })
+      .on("broadcast", { event: "msg" }, ({ payload }) => handlePeer(payload as PeerMsg))
+      .subscribe(async (status) => {
+        if (status === "SUBSCRIBED") {
+          await channel.track({ at: Date.now() });
+          send({ t: "hello", from: me.id });
+        }
+      });
+
+    return () => {
+      supabase.removeChannel(channel);
+      chanRef.current = null;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, me?.id, partner?.id]);
+
+  function send(msg: PeerMsg) {
+    chanRef.current?.send({ type: "broadcast", event: "msg", payload: msg });
+  }
+
+  // refs for latest state inside broadcast handlers
+  const stateRef = useRef({ sceneId, spot, attempts, scores, round, hiderId });
+  useEffect(() => {
+    stateRef.current = { sceneId, spot, attempts, scores, round, hiderId };
+  }, [sceneId, spot, attempts, scores, round, hiderId]);
+
+  function handlePeer(msg: PeerMsg) {
+    if (!me) return;
+    if (msg.from === me.id) return;
+    if (msg.t === "hello") return;
+
+    if (msg.t === "start" || msg.t === "next_round") {
+      setHiderId(msg.hiderId);
+      setRound(msg.round);
+      setSceneId(null);
+      setSpot(null);
+      setAttempts([]);
+      setFoundAt(null);
+      const iHide = msg.hiderId === me.id;
+      setPhase(iHide ? "hider_pick_scene" : "waiting");
+      return;
+    }
+
+    if (msg.t === "hide") {
+      // I'm the seeker — receive scene, start seeking
+      setSceneId(msg.sceneId);
+      setSpot(msg.spot);
+      setAttempts([]);
+      setFoundAt(null);
+      setPhase("seeker");
+      return;
+    }
+
+    if (msg.t === "guess") {
+      // I'm the hider — record the seeker's attempt so I can watch
+      setAttempts((prev) => {
+        const next = [...prev];
+        next[msg.attempt] = msg.spot;
+        return next;
+      });
+      const truth = stateRef.current.spot;
+      if (truth != null && msg.spot === truth) sfxKiss();
+      else sfxReaction();
+      return;
+    }
+
+    if (msg.t === "round_end") {
+      setScores(msg.scores);
+      setFoundAt(msg.foundAt);
+      setPhase("round_result");
+      return;
+    }
+
+    if (msg.t === "finish") {
+      setScores(msg.scores);
+      setPhase("final");
+      return;
+    }
+  }
+
+  /* ── flow control ── */
+
+  function resetAll() {
+    setPhase("intro");
+    setRound(1);
+    setHiderId(null);
+    setSceneId(null);
+    setSpot(null);
+    setAttempts([]);
+    setFoundAt(null);
+    setScores([0, 0]);
+  }
+
+  function startLocal() {
+    setRound(1);
+    setScores([0, 0]);
+    setHiderId("me");
+    setSceneId(null);
+    setSpot(null);
+    setAttempts([]);
+    setFoundAt(null);
+    setPhase("hider_pick_scene");
+  }
+
+  function startOnline(iHideFirst: boolean) {
+    if (!me || !partner) return;
+    const hider = iHideFirst ? me.id : partner.id;
+    setRound(1);
+    setScores([0, 0]);
+    setHiderId(hider);
+    setSceneId(null);
+    setSpot(null);
+    setAttempts([]);
+    setFoundAt(null);
+    send({ t: "start", from: me.id, hiderId: hider, round: 1 });
+    setPhase(iHideFirst ? "hider_pick_scene" : "waiting");
+  }
+
+  function pickScene(id: string) {
+    sfxReaction();
+    setSceneId(id);
+    setPhase("hider_pick_spot");
+  }
+
+  function pickSpot(i: number) {
+    sfxPollVote();
+    setSpot(i);
+    if (mode === "online" && me && sceneId != null) {
+      send({ t: "hide", from: me.id, sceneId, spot: i });
+      setPhase("hider_watch");
+    } else {
+      // local hand-off
+      setPhase("handoff");
+    }
+  }
+
+  function seekerGuess(i: number) {
+    if (attempts.includes(i)) return;
+    const attemptIdx = attempts.length;
+    const next = [...attempts, i];
+    setAttempts(next);
+    const correct = i === spot;
+
+    if (mode === "online" && me) {
+      send({ t: "guess", from: me.id, attempt: attemptIdx, spot: i });
+    }
+
+    if (correct) {
+      sfxKiss();
+      // Score: MAX_ATTEMPTS - attempts_used_so_far. Higher is better.
+      const gained = MAX_ATTEMPTS - attemptIdx;
+      finishRound(attemptIdx, gained);
+    } else {
+      sfxPollVote();
+      if (next.length >= MAX_ATTEMPTS) {
+        finishRound(null, 0);
+      }
+    }
+  }
+
+  function finishRound(foundAtIdx: number | null, seekerGained: number) {
+    // Scoring: [me, partner]
+    const meIsSeeker = iAmSeeker;
+    const nextScores: [number, number] = [scores[0], scores[1]];
+    // Hider gains points equal to (MAX_ATTEMPTS - seekerGained) capped — reward for hiding well
+    const hiderGained = MAX_ATTEMPTS - seekerGained;
+    if (meIsSeeker) {
+      nextScores[0] += seekerGained;
+      nextScores[1] += hiderGained;
+    } else {
+      nextScores[0] += hiderGained;
+      nextScores[1] += seekerGained;
+    }
+    setScores(nextScores);
+    setFoundAt(foundAtIdx);
+    if (mode === "online" && me) {
+      send({ t: "round_end", from: me.id, scores: nextScores, foundAt: foundAtIdx });
+    }
+    setPhase("round_result");
+  }
+
+  function nextRound() {
+    if (round >= TOTAL_ROUNDS) {
+      if (mode === "online" && me) send({ t: "finish", from: me.id, scores });
+      setPhase("final");
+      return;
+    }
+    const r = round + 1;
+    setRound(r);
+    // Swap hider
+    let nextHider: string;
+    if (mode === "local") {
+      nextHider = hiderId === "me" ? "partner" : "me";
+    } else {
+      nextHider = hiderId === me?.id ? (partner?.id ?? me.id) : (me?.id ?? "");
+    }
+    setHiderId(nextHider);
+    setSceneId(null);
+    setSpot(null);
+    setAttempts([]);
+    setFoundAt(null);
+    if (mode === "online" && me) {
+      send({ t: "next_round", from: me.id, hiderId: nextHider, round: r });
+      setPhase(nextHider === me.id ? "hider_pick_scene" : "waiting");
+    } else {
+      setPhase("hider_pick_scene");
+    }
+  }
+
+  /* ── UI ── */
+
+  return (
+    <div className="min-h-dvh bg-gradient-to-b from-velvet via-surface to-velvet">
+      <div className="pointer-events-none fixed inset-0 overflow-hidden">
+        <div className="absolute -top-24 -left-16 size-72 rounded-full blur-3xl opacity-40"
+          style={{ background: "radial-gradient(circle, oklch(0.72 0.18 15 / 0.55), transparent 70%)" }} />
+        <div className="absolute -bottom-24 -right-10 size-80 rounded-full blur-3xl opacity-35"
+          style={{ background: "radial-gradient(circle, oklch(0.82 0.14 68 / 0.5), transparent 70%)" }} />
+      </div>
+
+      <div className="relative pt-10 px-5 pb-24 max-w-xl mx-auto">
+        <header className="flex items-center justify-between mb-6">
+          <Link to="/app/play" className="text-candle-muted hover:text-candle transition-colors">
+            <ArrowLeft className="size-5" />
+          </Link>
+          <div className="text-center">
+            <p className="text-[10px] uppercase tracking-[0.28em] text-petal">Panda parlour game</p>
+            <h1 className="font-serif text-2xl italic mt-0.5">Hide &amp; Seek</h1>
+          </div>
+          <button
+            onClick={resetAll}
+            className="p-2 rounded-full bg-surface border border-border text-candle-muted hover:text-candle"
+            aria-label="Reset"
+          >
+            <RotateCcw className="size-4" />
+          </button>
+        </header>
+
+        {mode === "online" && phase !== "intro" && (
+          <div className="mb-4 flex items-center justify-center gap-2 text-[10px] uppercase tracking-widest">
+            <span className={`size-1.5 rounded-full ${peerOnline ? "bg-emerald-400" : "bg-rose-400"} animate-pulse`} />
+            <span className="text-candle-muted">
+              {peerOnline ? `${partner?.display_name ?? "Partner"} is here` : `Waiting for ${partner?.display_name ?? "partner"}…`}
+            </span>
+          </div>
+        )}
+
+        {phase !== "intro" && phase !== "lobby" && phase !== "final" && (
+          <div className="mb-5 flex items-center justify-between text-[11px] uppercase tracking-widest text-candle-muted">
+            <span>Round {round} / {TOTAL_ROUNDS}</span>
+            <span className="flex items-center gap-2">
+              <ScorePill label={me?.display_name ?? "You"} value={scores[0]} highlight />
+              <ScorePill label={(mode === "local" ? "Partner" : partner?.display_name) ?? "Partner"} value={scores[1]} />
+            </span>
+          </div>
+        )}
+
+        {phase === "intro" && (
+          <Intro
+            mode={mode}
+            setMode={setMode}
+            hasPartner={!!partner}
+            onStartLocal={startLocal}
+            onEnterOnline={() => setPhase("lobby")}
+          />
+        )}
+
+        {phase === "lobby" && (
+          <Lobby
+            partnerName={partner?.display_name ?? "your panda"}
+            peerOnline={peerOnline}
+            onIHide={() => startOnline(true)}
+            onTheyHide={() => startOnline(false)}
+          />
+        )}
+
+        {phase === "waiting" && (
+          <WaitingCard
+            title={`${hiderName} is choosing a room…`}
+            body="They're picking a hiding spot in secret. Keep your eyes closed."
+          />
+        )}
+
+        {phase === "hider_pick_scene" && (
+          <PickScene onPick={pickScene} />
+        )}
+
+        {phase === "hider_pick_spot" && scene && (
+          <PickSpot scene={scene} onPick={pickSpot} onBack={() => setPhase("hider_pick_scene")} />
+        )}
+
+        {phase === "handoff" && (
+          <Handoff
+            hiderName={hiderName}
+            seekerName={seekerName}
+            onReady={() => {
+              setHiderId((h) => (h === "me" ? "partner" : "me"));
+              setPhase("seeker");
+            }}
+          />
+        )}
+
+        {phase === "hider_watch" && scene && spot != null && (
+          <HiderWatch scene={scene} spot={spot} attempts={attempts} seekerName={seekerName} />
+        )}
+
+        {phase === "seeker" && scene && spot != null && (
+          <SeekerBoard
+            scene={scene}
+            spot={spot}
+            attempts={attempts}
+            onGuess={seekerGuess}
+            hiderName={hiderName}
+          />
+        )}
+
+        {phase === "round_result" && scene && spot != null && (
+          <RoundResult
+            scene={scene}
+            spot={spot}
+            attempts={attempts}
+            foundAt={foundAt}
+            hiderName={hiderName}
+            seekerName={seekerName}
+            onNext={nextRound}
+            isFinal={round >= TOTAL_ROUNDS}
+          />
+        )}
+
+        {phase === "final" && (
+          <Final
+            scores={scores}
+            meName={me?.display_name ?? "You"}
+            partnerName={(mode === "local" ? "Partner" : partner?.display_name) ?? "Partner"}
+            onRematch={() => { mode === "online" ? setPhase("lobby") : startLocal(); }}
+            onExit={() => navigate({ to: "/app/play" })}
+          />
+        )}
+      </div>
+
+      {mode === "online" && me && partner && (
+        <GameChat
+          roomKey={`hideseek:${[me.id, partner.id].sort().join(":")}`}
+          me={me}
+          partnerName={partner.display_name}
+          title="Whisper"
+        />
+      )}
+    </div>
+  );
+}
+
+/* ────────────────────────  Sub-components  ──────────────────────── */
+
+function ScorePill({ label, value, highlight }: { label: string; value: number; highlight?: boolean }) {
+  return (
+    <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full border ${highlight ? "border-petal/50 bg-petal-soft text-petal" : "border-border bg-surface text-candle"}`}>
+      <span className="normal-case tracking-normal text-[10px] opacity-80">{label}</span>
+      <span className="font-serif text-sm">{value}</span>
+    </span>
+  );
+}
+
+function Intro({
+  mode, setMode, hasPartner, onStartLocal, onEnterOnline,
+}: { mode: Mode; setMode: (m: Mode) => void; hasPartner: boolean; onStartLocal: () => void; onEnterOnline: () => void }) {
+  return (
+    <div className="rounded-3xl border border-border bg-surface/80 backdrop-blur p-6 space-y-5">
+      <p className="text-candle-muted text-sm leading-relaxed">
+        One panda hides in one of six velvet spots. The other has <span className="text-candle font-medium">{MAX_ATTEMPTS} guesses</span> to find them — with warm/cold hints after every miss.
+      </p>
+
+      <div className="grid grid-cols-2 gap-2 text-[11px] uppercase tracking-widest">
+        <button
+          onClick={() => setMode("local")}
+          className={`p-3 rounded-2xl border ${mode === "local" ? "border-petal bg-petal-soft text-petal" : "border-border text-candle-muted"}`}
+        >
+          <Users className="size-4 inline mr-1.5 -mt-0.5" /> Pass phone
+        </button>
+        <button
+          onClick={() => setMode("online")}
+          disabled={!hasPartner}
+          className={`p-3 rounded-2xl border ${mode === "online" ? "border-petal bg-petal-soft text-petal" : "border-border text-candle-muted"} disabled:opacity-40`}
+        >
+          <Wifi className="size-4 inline mr-1.5 -mt-0.5" /> Long distance
+        </button>
+      </div>
+
+      {!hasPartner && (
+        <p className="text-[11px] text-candle-muted">Pair with a partner to play across any distance.</p>
+      )}
+
+      <button
+        onClick={mode === "local" ? onStartLocal : onEnterOnline}
+        className="w-full py-3 rounded-2xl bg-gradient-to-br from-petal to-rose-500 text-velvet font-medium tracking-wide shadow-lg shadow-petal/20"
+      >
+        Begin the hunt
+      </button>
+    </div>
+  );
+}
+
+function Lobby({ partnerName, peerOnline, onIHide, onTheyHide }: {
+  partnerName: string; peerOnline: boolean; onIHide: () => void; onTheyHide: () => void;
+}) {
+  return (
+    <div className="rounded-3xl border border-border bg-surface/80 backdrop-blur p-6 space-y-4">
+      <p className="text-candle-muted text-sm">Who hides first?</p>
+      <div className="grid grid-cols-1 gap-2">
+        <button onClick={onIHide} className="p-4 rounded-2xl border border-petal/40 bg-petal-soft/50 text-left hover:border-petal transition">
+          <p className="font-serif italic text-lg">I'll hide</p>
+          <p className="text-xs text-candle-muted">{partnerName} will search for me.</p>
+        </button>
+        <button onClick={onTheyHide} disabled={!peerOnline} className="p-4 rounded-2xl border border-border bg-surface text-left hover:border-petal/40 transition disabled:opacity-40">
+          <p className="font-serif italic text-lg">{partnerName} hides</p>
+          <p className="text-xs text-candle-muted">I'll be the seeker.</p>
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function WaitingCard({ title, body }: { title: string; body: string }) {
+  return (
+    <div className="rounded-3xl border border-border bg-surface/80 backdrop-blur p-8 text-center space-y-3">
+      <div className="mx-auto size-14 rounded-full bg-petal-soft flex items-center justify-center">
+        <EyeOff className="size-6 text-petal" />
+      </div>
+      <p className="font-serif italic text-xl">{title}</p>
+      <p className="text-sm text-candle-muted">{body}</p>
+      <div className="flex justify-center gap-1 pt-2">
+        {[0, 1, 2].map((i) => (
+          <span key={i} className="size-1.5 rounded-full bg-petal/60 animate-pulse" style={{ animationDelay: `${i * 150}ms` }} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function PickScene({ onPick }: { onPick: (id: string) => void }) {
+  return (
+    <div className="space-y-4">
+      <p className="text-center text-sm text-candle-muted">Choose a room to hide in.</p>
+      <div className="grid grid-cols-2 gap-3">
+        {SCENES.map((s) => (
+          <button
+            key={s.id}
+            onClick={() => onPick(s.id)}
+            className="p-4 rounded-3xl border border-border bg-surface text-left hover:border-petal/60 transition-colors relative overflow-hidden"
+          >
+            <div className="absolute inset-0 opacity-70 pointer-events-none" style={{ background: `radial-gradient(circle at 30% 20%, ${s.hue}, transparent 70%)` }} />
+            <div className="relative">
+              <div className="text-3xl mb-2">{s.emoji}</div>
+              <p className="font-serif italic text-base leading-tight">{s.name}</p>
+              <p className="text-[10px] uppercase tracking-widest text-candle-muted mt-1">6 hiding spots</p>
+            </div>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function PickSpot({ scene, onPick, onBack }: { scene: Scene; onPick: (i: number) => void; onBack: () => void }) {
+  return (
+    <div className="space-y-4">
+      <button onClick={onBack} className="text-[11px] uppercase tracking-widest text-candle-muted hover:text-candle">← Different room</button>
+      <div className="rounded-3xl p-5 border border-border relative overflow-hidden" style={{ background: `linear-gradient(135deg, ${scene.hue}, transparent), var(--surface, #1a1420)` }}>
+        <p className="font-serif italic text-xl mb-1">{scene.name}</p>
+        <p className="text-xs text-candle-muted mb-4">Tap the spot you'll hide in. Only you will see it.</p>
+        <div className="grid grid-cols-3 gap-2">
+          {scene.spots.map((sp, i) => (
+            <button
+              key={i}
+              onClick={() => onPick(i)}
+              className="aspect-square rounded-2xl border border-candle/10 bg-velvet/60 backdrop-blur flex flex-col items-center justify-center gap-1 hover:border-petal/60 hover:bg-velvet/80 transition"
+            >
+              <span className="text-2xl">{sp.emoji}</span>
+              <span className="text-[10px] text-candle-muted text-center px-1">{sp.name}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Handoff({ hiderName, seekerName, onReady }: { hiderName: string; seekerName: string; onReady: () => void }) {
+  return (
+    <div className="rounded-3xl border border-petal/40 bg-petal-soft/40 p-8 text-center space-y-4">
+      <p className="text-[10px] uppercase tracking-[0.3em] text-petal">Hush</p>
+      <p className="font-serif italic text-2xl">Pass to {seekerName}</p>
+      <p className="text-sm text-candle-muted">{hiderName} has hidden. No peeking at the spot.</p>
+      <button onClick={onReady} className="px-6 py-3 rounded-2xl bg-petal text-velvet font-medium tracking-wide shadow-lg shadow-petal/30">
+        I'm ready to seek
+      </button>
+    </div>
+  );
+}
+
+function HiderWatch({ scene, spot, attempts, seekerName }: { scene: Scene; spot: number; attempts: number[]; seekerName: string }) {
+  return (
+    <div className="space-y-4">
+      <div className="text-center">
+        <p className="text-[10px] uppercase tracking-[0.28em] text-petal">You are hiding in</p>
+        <p className="font-serif italic text-xl">{scene.name} · {scene.spots[spot].name} {scene.spots[spot].emoji}</p>
+        <p className="text-xs text-candle-muted mt-1">{seekerName} has {MAX_ATTEMPTS - attempts.length} guesses left.</p>
+      </div>
+
+      <div className="rounded-3xl p-5 border border-border relative overflow-hidden" style={{ background: `linear-gradient(135deg, ${scene.hue}, transparent), var(--surface, #1a1420)` }}>
+        <div className="grid grid-cols-3 gap-2">
+          {scene.spots.map((sp, i) => {
+            const guessed = attempts.includes(i);
+            const isMe = i === spot;
+            return (
+              <div
+                key={i}
+                className={`aspect-square rounded-2xl border flex flex-col items-center justify-center gap-1 relative transition ${
+                  isMe ? "border-petal bg-petal-soft/40 ring-2 ring-petal/50" : "border-candle/10 bg-velvet/60"
+                } ${guessed ? "opacity-60" : ""}`}
+              >
+                <span className="text-2xl">{sp.emoji}</span>
+                <span className="text-[10px] text-candle-muted text-center px-1">{sp.name}</span>
+                {guessed && !isMe && <span className="absolute top-1 right-1 text-[10px]">❌</span>}
+                {isMe && <span className="absolute top-1 right-1 text-[10px]">🫣</span>}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-border bg-surface p-4">
+        <p className="text-[10px] uppercase tracking-widest text-candle-muted mb-2">Search log</p>
+        {attempts.length === 0 ? (
+          <p className="text-sm text-candle-muted italic">Not a peep yet…</p>
+        ) : (
+          <ul className="space-y-1.5 text-sm">
+            {attempts.map((a, i) => {
+              const heat = heatFor(a, spot);
+              return (
+                <li key={i} className="flex items-center justify-between">
+                  <span className="text-candle">Guess {i + 1}: {scene.spots[a].emoji} {scene.spots[a].name}</span>
+                  <span className={`text-[11px] uppercase tracking-widest ${heat.cls}`}>{heat.emoji} {heat.label}</span>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function SeekerBoard({ scene, spot, attempts, onGuess, hiderName }: {
+  scene: Scene; spot: number; attempts: number[]; onGuess: (i: number) => void; hiderName: string;
+}) {
+  const lastAttempt = attempts.length > 0 ? attempts[attempts.length - 1] : null;
+  const lastHeat = lastAttempt != null ? heatFor(lastAttempt, spot) : null;
+  const remaining = MAX_ATTEMPTS - attempts.length;
+
+  return (
+    <div className="space-y-4">
+      <div className="text-center">
+        <p className="text-[10px] uppercase tracking-[0.28em] text-petal">Seeking {hiderName} in</p>
+        <p className="font-serif italic text-xl">{scene.name}</p>
+        <p className="text-xs text-candle-muted mt-1">{remaining} {remaining === 1 ? "guess" : "guesses"} left</p>
+      </div>
+
+      {lastHeat && (
+        <div className={`text-center rounded-2xl border border-border bg-surface/60 backdrop-blur p-3 ${lastHeat.cls}`}>
+          <p className="text-[10px] uppercase tracking-widest opacity-80">Last guess</p>
+          <p className="font-serif italic text-lg">{lastHeat.emoji} {lastHeat.label}</p>
+        </div>
+      )}
+
+      <div className="rounded-3xl p-5 border border-border relative overflow-hidden" style={{ background: `linear-gradient(135deg, ${scene.hue}, transparent), var(--surface, #1a1420)` }}>
+        <div className="grid grid-cols-3 gap-2">
+          {scene.spots.map((sp, i) => {
+            const tried = attempts.includes(i);
+            return (
+              <button
+                key={i}
+                onClick={() => onGuess(i)}
+                disabled={tried}
+                className={`aspect-square rounded-2xl border flex flex-col items-center justify-center gap-1 transition relative ${
+                  tried
+                    ? "border-candle/5 bg-velvet/30 opacity-50 cursor-not-allowed"
+                    : "border-candle/10 bg-velvet/60 hover:border-petal/60 hover:bg-velvet/80 active:scale-95"
+                }`}
+              >
+                <span className="text-2xl">{tried ? "❌" : sp.emoji}</span>
+                <span className="text-[10px] text-candle-muted text-center px-1">{sp.name}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <p className="text-center text-[11px] text-candle-muted italic">Warmer means one room-tile away · burning means dead-on.</p>
+    </div>
+  );
+}
+
+function RoundResult({ scene, spot, attempts, foundAt, hiderName, seekerName, onNext, isFinal }: {
+  scene: Scene; spot: number; attempts: number[]; foundAt: number | null;
+  hiderName: string; seekerName: string; onNext: () => void; isFinal: boolean;
+}) {
+  const found = foundAt != null;
+  return (
+    <div className="rounded-3xl border border-border bg-surface/80 backdrop-blur p-6 text-center space-y-4">
+      <div className={`mx-auto size-14 rounded-full flex items-center justify-center ${found ? "bg-petal-soft" : "bg-velvet/60"}`}>
+        {found ? <Eye className="size-6 text-petal" /> : <Sparkles className="size-6 text-candle-muted" />}
+      </div>
+      <div>
+        <p className="font-serif italic text-2xl">
+          {found ? `Found in ${(foundAt ?? 0) + 1} ${(foundAt ?? 0) + 1 === 1 ? "guess" : "guesses"}!` : `${hiderName} slipped away.`}
+        </p>
+        <p className="text-sm text-candle-muted mt-1">
+          Hidden at <span className="text-candle">{scene.spots[spot].emoji} {scene.spots[spot].name}</span> in {scene.name}.
+        </p>
+      </div>
+      {attempts.length > 0 && (
+        <div className="flex flex-wrap justify-center gap-1.5">
+          {attempts.map((a, i) => (
+            <span key={i} className={`text-[10px] uppercase tracking-widest px-2 py-1 rounded-full border ${a === spot ? "border-petal text-petal bg-petal-soft" : "border-border text-candle-muted"}`}>
+              {i + 1}. {scene.spots[a].emoji}
+            </span>
+          ))}
+        </div>
+      )}
+      <button onClick={onNext} className="w-full py-3 rounded-2xl bg-gradient-to-br from-petal to-rose-500 text-velvet font-medium tracking-wide shadow-lg shadow-petal/20">
+        {isFinal ? "See final score" : "Swap and continue"}
+      </button>
+    </div>
+  );
+}
+
+function Final({ scores, meName, partnerName, onRematch, onExit }: {
+  scores: [number, number]; meName: string; partnerName: string; onRematch: () => void; onExit: () => void;
+}) {
+  const [mine, theirs] = scores;
+  const verdict = mine === theirs ? "A perfect tie" : mine > theirs ? `${meName} wins` : `${partnerName} wins`;
+  return (
+    <div className="rounded-3xl border border-petal/40 bg-gradient-to-br from-petal-soft to-surface backdrop-blur p-6 text-center space-y-4">
+      <p className="text-[10px] uppercase tracking-[0.3em] text-petal">Final curtain</p>
+      <p className="font-serif italic text-3xl">{verdict}</p>
+      <div className="flex justify-center gap-6 py-2">
+        <div>
+          <p className="text-[10px] uppercase tracking-widest text-candle-muted">{meName}</p>
+          <p className="font-serif text-4xl text-candle">{mine}</p>
+        </div>
+        <div className="w-px bg-border" />
+        <div>
+          <p className="text-[10px] uppercase tracking-widest text-candle-muted">{partnerName}</p>
+          <p className="font-serif text-4xl text-candle">{theirs}</p>
+        </div>
+      </div>
+      <div className="flex gap-2 pt-2">
+        <button onClick={onRematch} className="flex-1 py-3 rounded-2xl bg-petal text-velvet font-medium">Rematch</button>
+        <button onClick={onExit} className="flex-1 py-3 rounded-2xl border border-border text-candle">Back to games</button>
+      </div>
+    </div>
+  );
+}

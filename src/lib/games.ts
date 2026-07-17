@@ -18,7 +18,8 @@ export type GameKind =
   | "love-quiz"
   | "chess"
   | "ludo"
-  | "uno";
+  | "uno"
+  | "hide-seek";
 
 // Games shown in the picker. Rock-Paper-Scissors is retired but the route
 // still handles it for any deep-link, so it stays in GameKind above.
@@ -27,6 +28,7 @@ export const GAME_KINDS: GameKind[] = [
   "chess",
   "ludo",
   "uno",
+  "hide-seek",
   "know-me",
   "scribble-guess",
   "two-truths-lie",
@@ -47,6 +49,7 @@ export const GAMES: Record<GameKind, { name: string; emoji: string; body: string
   "chess": { name: "Chess", emoji: "♟️", body: "Play with your panda, live.", href: "/app/chess" },
   "ludo": { name: "Ludo", emoji: "🎲", body: "Roll, race, capture — 2-player.", href: "/app/ludo" },
   "uno": { name: "Uno", emoji: "🃏", body: "Velvet card salon, live.", href: "/app/uno" },
+  "hide-seek": { name: "Hide & Seek", emoji: "🫣", body: "Hide in a velvet room. Hunt with hints.", href: "/app/hideseek" },
   "know-me": { name: "How Well Do You Know Me?", emoji: "💌", body: "Pass-and-play couple quiz.", href: "/app/knowme" },
   "scribble-guess": { name: "Scribble & Guess", emoji: "✏️", body: "Draw. Guess. Win.", href: "/app/scribble" },
   "daily-challenge": { name: "Daily Challenge", emoji: "🌞", body: "One prompt each day.", href: "/app/daily-challenge" },

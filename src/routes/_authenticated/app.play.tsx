@@ -21,12 +21,14 @@ import pandaWyr from "@/assets/pandas/panda-wyr.png";
 import pandaNhie from "@/assets/pandas/panda-nhie.png";
 import pandaThisOrThat from "@/assets/pandas/panda-thisorthat.png";
 import pandaGuessMe from "@/assets/pandas/panda-guessme.png";
+import pandaHideSeek from "@/assets/pandas/panda-hideseek.png";
 
 const PANDA_STICKERS: Partial<Record<GameKind, string>> = {
   "paint-together": pandaPaint,
   "chess": pandaChess,
   "ludo": pandaLudo,
   "uno": pandaUno,
+  "hide-seek": pandaHideSeek,
   "know-me": pandaKnowme,
   "scribble-guess": pandaScribble,
   "two-truths-lie": pandaTwoTruths,
