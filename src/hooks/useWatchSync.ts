@@ -28,7 +28,8 @@ export type Mine = {
   episode: number | null;
 };
 
-type PresenceMeta = { userId: string; joinedAt: number; ready?: boolean };
+type SourceKind = "pandacine" | "iframe" | "unknown";
+type PresenceMeta = { userId: string; joinedAt: number; ready?: boolean; sourceKind?: SourceKind };
 
 const emptyMine = (): Mine => ({
   currentTime: 0,
