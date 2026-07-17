@@ -19,6 +19,8 @@ import { tmdbSearch, tmdbMovie, tmdbTvDetail, tmdbTvSeason, type TmdbMovie } fro
 
 import { getAdminStats, getRecentActivity, getAdminUsers, deleteAdminUser, adminSendCoins, type ActivityItem, type AdminUserRow } from "@/lib/admin-stats.functions";
 import { AvatarImg } from "@/components/AvatarImg";
+import AnimationsTab from "@/components/admin/AnimationsTab";
+import { Wand2 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/app/tamanna")({
   component: AdminPage,
@@ -124,7 +126,7 @@ function AdminPage() {
   return <AdminDashboard />;
 }
 
-type Tab = "overview" | "activity" | "users" | "library";
+type Tab = "overview" | "activity" | "users" | "library" | "animations";
 
 function AdminDashboard() {
   const [tab, setTab] = useState<Tab>("overview");
@@ -147,6 +149,7 @@ function AdminDashboard() {
           ["activity", ActivityIcon, "Activity"],
           ["users", Users, "Users"],
           ["library", Film, "Library"],
+          ["animations", Wand2, "Animations"],
         ] as const).map(([k, Icon, label]) => {
           const active = tab === k;
           return (
@@ -170,6 +173,7 @@ function AdminDashboard() {
       {tab === "activity" && <ActivityTab />}
       {tab === "users" && <UsersTab />}
       {tab === "library" && <LibraryTab />}
+      {tab === "animations" && <AnimationsTab />}
     </div>
   );
 }
