@@ -214,13 +214,16 @@ function AuthPage() {
             <button
               type="submit"
               disabled={loading || (mode === "signup" && !acceptedTerms)}
-              className="w-full py-3.5 bg-petal text-velvet rounded-full font-semibold text-sm petal-glow hover:brightness-110 transition-all disabled:opacity-50"
+              className="group relative w-full py-3.5 bg-petal text-velvet rounded-full font-semibold text-sm petal-glow hover:brightness-110 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:hover:scale-100 overflow-hidden"
             >
-              {loading
-                ? "One moment…"
-                : mode === "signin"
-                  ? "Sign in"
-                  : "Create my PANDACINE"}
+              <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/40 to-transparent" aria-hidden />
+              <span className="relative">
+                {loading
+                  ? "One moment…"
+                  : mode === "signin"
+                    ? "Sign in"
+                    : "Create my PANDACINE"}
+              </span>
             </button>
 
             {mode === "signin" && (
