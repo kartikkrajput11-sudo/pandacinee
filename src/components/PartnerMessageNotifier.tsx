@@ -157,7 +157,7 @@ export default function PartnerMessageNotifier() {
               push({
                 id: row.id,
                 peerId: row.sender_id,
-                name: `${peer.display_name || peer.username} · ${g?.name ?? "Group"}`,
+                name: `${peer.display_name || peer.username} · ${gName}`,
                 avatar: peer.avatar_url,
                 preview: previewFor(row.type, row.content),
                 kind: "group",
