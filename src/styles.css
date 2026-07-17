@@ -954,3 +954,149 @@ html.theme-anim * {
   100% { transform: translateY(-110vh) rotate(360deg) scale(1); opacity: 0; }
 }
 .animate-anniv-float { animation: anniv-float linear infinite; }
+
+/* ============================================================
+ * Luxury Toasts — velvet card, gilded rim, candle glow
+ * ============================================================ */
+@keyframes lux-toast-in {
+  0% { opacity: 0; transform: translateY(-14px) scale(0.96); filter: blur(6px); }
+  60% { filter: blur(0); }
+  100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+}
+@keyframes lux-toast-shimmer {
+  0% { background-position: -220% 0; }
+  100% { background-position: 220% 0; }
+}
+@keyframes lux-toast-glow {
+  0%, 100% { box-shadow:
+    0 20px 60px -20px oklch(0 0 0 / 0.55),
+    0 0 0 1px color-mix(in oklab, #f4d58a 55%, transparent),
+    inset 0 1px 0 color-mix(in oklab, #ffe9b8 40%, transparent),
+    inset 0 -1px 0 color-mix(in oklab, #000 20%, transparent),
+    0 0 30px -8px color-mix(in oklab, #f4d58a 30%, transparent); }
+  50% { box-shadow:
+    0 26px 70px -20px oklch(0 0 0 / 0.6),
+    0 0 0 1px color-mix(in oklab, #f6dfa0 70%, transparent),
+    inset 0 1px 0 color-mix(in oklab, #ffe9b8 55%, transparent),
+    inset 0 -1px 0 color-mix(in oklab, #000 20%, transparent),
+    0 0 46px -6px color-mix(in oklab, #f4d58a 45%, transparent); }
+}
+
+[data-sonner-toaster] { --lux-gold: #f4d58a; --lux-gold-soft: #ffe9b8; }
+
+[data-sonner-toast].lux-toast {
+  position: relative;
+  overflow: hidden;
+  border: none !important;
+  border-radius: 16px !important;
+  padding: 14px 16px 14px 18px !important;
+  background:
+    linear-gradient(135deg,
+      color-mix(in oklab, var(--surface-elevated) 96%, #000 0%) 0%,
+      color-mix(in oklab, var(--surface) 92%, #000 4%) 100%) !important;
+  color: var(--candle) !important;
+  font-family: var(--font-sans);
+  letter-spacing: 0.01em;
+  backdrop-filter: blur(14px) saturate(1.1);
+  -webkit-backdrop-filter: blur(14px) saturate(1.1);
+  animation: lux-toast-in 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both,
+             lux-toast-glow 4.5s ease-in-out 0.5s infinite;
+}
+[data-sonner-toast].lux-toast::before {
+  content: "";
+  position: absolute; inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg,
+    color-mix(in oklab, var(--lux-gold-soft) 90%, transparent) 0%,
+    color-mix(in oklab, var(--lux-gold) 60%, transparent) 35%,
+    color-mix(in oklab, var(--lux-gold) 10%, transparent) 60%,
+    color-mix(in oklab, var(--lux-gold-soft) 85%, transparent) 100%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  pointer-events: none;
+}
+[data-sonner-toast].lux-toast::after {
+  content: "";
+  position: absolute; inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(115deg,
+    transparent 30%,
+    color-mix(in oklab, var(--lux-gold-soft) 22%, transparent) 48%,
+    color-mix(in oklab, var(--lux-gold-soft) 40%, transparent) 50%,
+    color-mix(in oklab, var(--lux-gold-soft) 22%, transparent) 52%,
+    transparent 70%);
+  background-size: 220% 100%;
+  animation: lux-toast-shimmer 3.6s linear infinite;
+  mix-blend-mode: screen;
+  opacity: 0.55;
+  pointer-events: none;
+}
+[data-sonner-toast].lux-toast [data-title] {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  font-size: 1.02rem;
+  letter-spacing: 0.015em;
+  background: linear-gradient(90deg, var(--candle), color-mix(in oklab, var(--lux-gold-soft) 85%, var(--candle)));
+  -webkit-background-clip: text;
+          background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+[data-sonner-toast].lux-toast [data-description] {
+  color: color-mix(in oklab, var(--candle) 78%, transparent) !important;
+  font-size: 0.86rem;
+  margin-top: 2px;
+}
+[data-sonner-toast].lux-toast [data-icon] {
+  color: var(--lux-gold);
+  filter: drop-shadow(0 0 6px color-mix(in oklab, var(--lux-gold) 60%, transparent));
+}
+[data-sonner-toast].lux-toast [data-button] {
+  background: linear-gradient(135deg, var(--lux-gold), color-mix(in oklab, var(--lux-gold) 60%, #b8860b)) !important;
+  color: #2a1b05 !important;
+  border-radius: 10px !important;
+  font-weight: 600;
+  padding: 6px 12px !important;
+  box-shadow: 0 6px 18px -8px color-mix(in oklab, var(--lux-gold) 70%, transparent);
+}
+[data-sonner-toast].lux-toast [data-cancel] {
+  background: color-mix(in oklab, var(--surface-elevated) 90%, transparent) !important;
+  color: var(--candle-muted) !important;
+  border-radius: 10px !important;
+}
+
+/* Variants */
+[data-sonner-toast].lux-toast[data-type="success"] [data-icon] {
+  color: #a7f0c1;
+  filter: drop-shadow(0 0 8px color-mix(in oklab, #a7f0c1 60%, transparent));
+}
+[data-sonner-toast].lux-toast[data-type="error"] [data-icon] {
+  color: #ffb4a8;
+  filter: drop-shadow(0 0 8px color-mix(in oklab, #ffb4a8 60%, transparent));
+}
+[data-sonner-toast].lux-toast[data-type="error"]::before {
+  background: linear-gradient(135deg,
+    color-mix(in oklab, #ffd0c6 90%, transparent) 0%,
+    color-mix(in oklab, #ff8672 60%, transparent) 50%,
+    color-mix(in oklab, var(--lux-gold-soft) 80%, transparent) 100%);
+}
+[data-sonner-toast].lux-toast[data-type="warning"] [data-icon] { color: var(--lux-gold-soft); }
+[data-sonner-toast].lux-toast[data-type="info"] [data-icon] {
+  color: #cdb6ff;
+  filter: drop-shadow(0 0 8px color-mix(in oklab, #cdb6ff 60%, transparent));
+}
+
+/* Light theme adjustments */
+.light [data-sonner-toast].lux-toast {
+  background:
+    linear-gradient(135deg,
+      color-mix(in oklab, var(--surface-elevated) 96%, #fff 0%) 0%,
+      color-mix(in oklab, var(--surface) 92%, #fff 3%) 100%) !important;
+}
+.light [data-sonner-toast].lux-toast [data-title] {
+  background: linear-gradient(90deg, var(--candle), color-mix(in oklab, #8a6a1c 90%, var(--candle)));
+  -webkit-background-clip: text;
+          background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
