@@ -19,8 +19,12 @@ export const Route = createFileRoute("/auth")({
 function AuthPage() {
   const navigate = useNavigate();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [channel, setChannel] = useState<"email" | "phone">("email");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [phone, setPhone] = useState("");
+  const [otp, setOtp] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
   const [displayName, setDisplayName] = useState("");
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -58,6 +62,50 @@ function AuthPage() {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         toast.success("Welcome back");
+        navigate({ to: "/app" });
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function normalizePhone(v: string) {
+    const t = v.trim();
+    return t.startsWith("+") ? "+" + t.slice(1).replace(/\D/g, "") : "+" + t.replace(/\D/g, "");
+  }
+
+  async function handlePhoneSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const p = normalizePhone(phone);
+    if (p.length < 8) {
+      toast.error("Enter a valid phone number with country code");
+      return;
+    }
+    if (mode === "signup" && !acceptedTerms) {
+      toast.error("Please accept the Terms & Privacy to continue");
+      return;
+    }
+    setLoading(true);
+    try {
+      if (!otpSent) {
+        if (mode === "signup") {
+          const { error } = await supabase.auth.signInWithOtp({
+            phone: p,
+            options: { data: { display_name: displayName || "panda" } },
+          });
+          if (error) throw error;
+        } else {
+          const { error } = await supabase.auth.signInWithOtp({ phone: p });
+          if (error) throw error;
+        }
+        setOtpSent(true);
+        toast.success("Code sent — check your messages 🐼");
+      } else {
+        const { error } = await supabase.auth.verifyOtp({ phone: p, token: otp.trim(), type: "sms" });
+        if (error) throw error;
+        toast.success(mode === "signup" ? "Welcome to PANDACINE 🐼" : "Welcome back");
         navigate({ to: "/app" });
       }
     } catch (err) {
@@ -172,71 +220,129 @@ function AuthPage() {
             <span className="flex-1 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-3" style={{ animation: "auth-rise 0.6s ease-out both", animationDelay: "340ms" }}>
-            {mode === "signup" && (
-              <Input
-                placeholder="Your name"
-                value={displayName}
-                onChange={(v) => setDisplayName(v)}
-              />
-            )}
-            <Input
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(v) => setEmail(v)}
-              required
+          {/* Channel toggle: Email / Phone */}
+          <div
+            className="relative flex mb-4 p-1 rounded-full bg-surface border border-border/60 text-xs font-medium"
+            style={{ animation: "auth-rise 0.6s ease-out both", animationDelay: "310ms" }}
+          >
+            <span
+              className="absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-full bg-petal/90 shadow-[0_6px_20px_-8px_rgba(0,0,0,0.4)] transition-all duration-300 ease-out"
+              style={{ left: channel === "email" ? "4px" : "calc(50% + 0px)" }}
+              aria-hidden
             />
-            <Input
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(v) => setPassword(v)}
-              required
-              minLength={6}
-            />
-            {mode === "signup" && (
-              <label className="flex items-start gap-2.5 pt-1 text-[11px] leading-snug text-candle-muted select-none cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={acceptedTerms}
-                  onChange={(e) => setAcceptedTerms(e.target.checked)}
-                  className="mt-0.5 h-3.5 w-3.5 accent-petal shrink-0"
-                />
-                <span>
-                  I agree to PANDACINE's{" "}
-                  <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-petal hover:underline">Terms &amp; Conditions</a>
-                  {" "}and{" "}
-                  <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-petal hover:underline">Privacy Policy</a>.
-                </span>
-              </label>
-            )}
             <button
-              type="submit"
-              disabled={loading || (mode === "signup" && !acceptedTerms)}
-              className="group relative w-full py-3.5 bg-petal text-velvet rounded-full font-semibold text-sm petal-glow hover:brightness-110 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:hover:scale-100 overflow-hidden"
+              type="button"
+              onClick={() => { setChannel("email"); setOtpSent(false); }}
+              className={`relative flex-1 py-2 rounded-full transition-colors ${channel === "email" ? "text-velvet" : "text-candle-muted"}`}
             >
-              <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/40 to-transparent" aria-hidden />
-              <span className="relative">
-                {loading
-                  ? "One moment…"
-                  : mode === "signin"
-                    ? "Sign in"
-                    : "Create my PANDACINE"}
-              </span>
+              Email
             </button>
+            <button
+              type="button"
+              onClick={() => { setChannel("phone"); setOtpSent(false); }}
+              className={`relative flex-1 py-2 rounded-full transition-colors ${channel === "phone" ? "text-velvet" : "text-candle-muted"}`}
+            >
+              Phone
+            </button>
+          </div>
 
-            {mode === "signin" && (
+          {channel === "email" ? (
+            <form onSubmit={handleSubmit} className="space-y-3" style={{ animation: "auth-rise 0.6s ease-out both", animationDelay: "340ms" }}>
+              {mode === "signup" && (
+                <Input placeholder="Your name" value={displayName} onChange={(v) => setDisplayName(v)} />
+              )}
+              <Input type="email" placeholder="Email" value={email} onChange={(v) => setEmail(v)} required />
+              <Input type="password" placeholder="Password" value={password} onChange={(v) => setPassword(v)} required minLength={6} />
+              {mode === "signup" && (
+                <label className="flex items-start gap-2.5 pt-1 text-[11px] leading-snug text-candle-muted select-none cursor-pointer">
+                  <input type="checkbox" checked={acceptedTerms} onChange={(e) => setAcceptedTerms(e.target.checked)} className="mt-0.5 h-3.5 w-3.5 accent-petal shrink-0" />
+                  <span>
+                    I agree to PANDACINE's{" "}
+                    <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-petal hover:underline">Terms &amp; Conditions</a>
+                    {" "}and{" "}
+                    <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-petal hover:underline">Privacy Policy</a>.
+                  </span>
+                </label>
+              )}
               <button
-                type="button"
-                onClick={handleForgotPassword}
-                disabled={loading}
-                className="w-full text-center text-xs text-candle-muted hover:text-petal transition-colors mt-1"
+                type="submit"
+                disabled={loading || (mode === "signup" && !acceptedTerms)}
+                className="group relative w-full py-3.5 bg-petal text-velvet rounded-full font-semibold text-sm petal-glow hover:brightness-110 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:hover:scale-100 overflow-hidden"
               >
-                Forgot password?
+                <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/40 to-transparent" aria-hidden />
+                <span className="relative">
+                  {loading ? "One moment…" : mode === "signin" ? "Sign in" : "Create my PANDACINE"}
+                </span>
               </button>
-            )}
-          </form>
+
+              {mode === "signin" && (
+                <button
+                  type="button"
+                  onClick={handleForgotPassword}
+                  disabled={loading}
+                  className="w-full text-center text-xs text-candle-muted hover:text-petal transition-colors mt-1"
+                >
+                  Forgot password?
+                </button>
+              )}
+            </form>
+          ) : (
+            <form onSubmit={handlePhoneSubmit} className="space-y-3" style={{ animation: "auth-rise 0.6s ease-out both", animationDelay: "340ms" }}>
+              {mode === "signup" && !otpSent && (
+                <Input placeholder="Your name" value={displayName} onChange={(v) => setDisplayName(v)} />
+              )}
+              <Input
+                type="tel"
+                placeholder="+1 555 123 4567"
+                value={phone}
+                onChange={(v) => setPhone(v)}
+                required
+                disabled={otpSent}
+              />
+              {otpSent && (
+                <Input
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="6-digit code"
+                  value={otp}
+                  onChange={(v) => setOtp(v)}
+                  required
+                  maxLength={8}
+                />
+              )}
+              {mode === "signup" && !otpSent && (
+                <label className="flex items-start gap-2.5 pt-1 text-[11px] leading-snug text-candle-muted select-none cursor-pointer">
+                  <input type="checkbox" checked={acceptedTerms} onChange={(e) => setAcceptedTerms(e.target.checked)} className="mt-0.5 h-3.5 w-3.5 accent-petal shrink-0" />
+                  <span>
+                    I agree to PANDACINE's{" "}
+                    <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-petal hover:underline">Terms &amp; Conditions</a>
+                    {" "}and{" "}
+                    <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-petal hover:underline">Privacy Policy</a>.
+                  </span>
+                </label>
+              )}
+              <button
+                type="submit"
+                disabled={loading || (mode === "signup" && !otpSent && !acceptedTerms)}
+                className="group relative w-full py-3.5 bg-petal text-velvet rounded-full font-semibold text-sm petal-glow hover:brightness-110 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:hover:scale-100 overflow-hidden"
+              >
+                <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/40 to-transparent" aria-hidden />
+                <span className="relative">
+                  {loading ? "One moment…" : otpSent ? "Verify & continue" : "Send code"}
+                </span>
+              </button>
+              {otpSent && (
+                <button
+                  type="button"
+                  onClick={() => { setOtpSent(false); setOtp(""); }}
+                  disabled={loading}
+                  className="w-full text-center text-xs text-candle-muted hover:text-petal transition-colors mt-1"
+                >
+                  Use a different number
+                </button>
+              )}
+            </form>
+          )}
 
           <p className="text-center text-sm text-candle-muted mt-6">
             {mode === "signin" ? "New to PANDACINE? " : "Already have a panda? "}
