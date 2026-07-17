@@ -66,6 +66,7 @@ function ChatPeer() {
   const [clearConfirmOpen, setClearConfirmOpen] = useState(false);
   const [verifyOpen, setVerifyOpen] = useState(false);
   const [forwardMsg, setForwardMsg] = useState<MessageRow | null>(null);
+  const [mediaDrawerOpen, setMediaDrawerOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const bubbleRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
