@@ -238,12 +238,6 @@ function ActiveRitual({ ritual, me, onEnd }: { ritual: Ritual; me: string; onEnd
           </span>
         </div>
         <div className="flex gap-2 justify-center">
-          <Link
-            to="/app/shop"
-            className="px-5 py-3 bg-petal text-velvet rounded-full font-semibold inline-flex items-center gap-2"
-          >
-            <Sparkles className="size-4" /> Spend on tags
-          </Link>
           <button onClick={onEnd} className="px-5 py-3 rounded-full font-semibold border border-border text-candle">
             Close
           </button>
