@@ -280,28 +280,35 @@ function LudoBoard({
   legalIds,
   onMoveToken,
   canAct,
+  walking,
+  destinations,
 }: {
   state: State;
   legalIds: Set<string>;
   onMoveToken: (t: Token) => void;
   canAct: boolean;
+  walking: { player: Player; idx: number; pos: number } | null;
+  destinations: { key: string; c: number; r: number; color: string }[];
 }) {
   const CELL = 26;
   const SIZE = 15 * CELL;
 
-  // Group tokens by their rendered cell so we can offset when overlapping.
+  // Group tokens by their rendered cell (using walk-override) so we can offset overlaps.
   const positions = state.tokens.map((t) => {
+    const effectivePos =
+      walking && walking.player === t.player && walking.idx === t.idx ? walking.pos : t.pos;
     let cx: number, cy: number;
-    if (t.pos === -1) {
+    if (effectivePos === -1) {
       const [c, r] = YARD[t.player][t.idx];
       cx = c * CELL;
       cy = r * CELL;
     } else {
-      const [c, r] = cellOf(t.pos, t.player);
+      const [c, r] = cellOf(effectivePos, t.player);
       cx = c * CELL + CELL / 2;
       cy = r * CELL + CELL / 2;
     }
-    return { t, cx, cy };
+    const isWalking = !!(walking && walking.player === t.player && walking.idx === t.idx);
+    return { t, cx, cy, isWalking, effectivePos };
   });
   // Detect overlaps and offset.
   const cellCounts = new Map<string, number>();
