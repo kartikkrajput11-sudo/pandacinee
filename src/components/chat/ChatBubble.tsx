@@ -101,13 +101,14 @@ function ChatBubbleImpl({
   const isMovieWheel = m.type === "movie_wheel";
   const isKiss = m.type === "kiss";
   const isHug = m.type === "hug";
+  const isHeadpat = m.type === "headpat";
   const isNudge = m.type === "nudge";
   const isWhisper = m.type === "whisper";
   const isCall = m.type === "call";
   const [whisperRevealed, setWhisperRevealed] = useState(false);
   useSharedTick(isLast);
 
-  const bare = isSticker || isWatchInvite || isGameInvite || isMovieWheel || isKiss || isHug || isNudge || isCall;
+  const bare = isSticker || isWatchInvite || isGameInvite || isMovieWheel || isKiss || isHug || isHeadpat || isNudge || isCall;
 
   // ---- Gestures: long-press for actions, swipe for reply, double-tap for heart ----
   const [dragX, setDragX] = useState(0);
