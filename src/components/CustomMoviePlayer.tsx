@@ -64,7 +64,7 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
   const [time, setTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [muted, setMuted] = useState(false);
-  const [volume, setVolume] = useState(1);
+  const [volume, setVolume] = useState(2);
   const [rate, setRate] = useState(1);
   const [rateOpen, setRateOpen] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
