@@ -176,6 +176,7 @@ function AdminDashboard() {
       {tab === "users" && <UsersTab />}
       {tab === "library" && <LibraryTab />}
       {tab === "animations" && <AnimationsTab />}
+      {tab === "broadcast" && <BroadcastTab />}
     </div>
   );
 }
