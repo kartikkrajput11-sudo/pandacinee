@@ -10,8 +10,39 @@ type Props = {
   onMove: (from: Square, to: Square) => void;
 };
 
+type Capture = {
+  id: number;
+  sq: Square;
+  color: Color;
+  type: PieceSymbol;
+  dx: number; // % offset from destination toward source
+  dy: number;
+};
+
 export function ChessBoard({ chess, orientation, canMoveColor, lastMove, onMove }: Props) {
   const [selected, setSelected] = useState<Square | null>(null);
+  const [capture, setCapture] = useState<Capture | null>(null);
+  const lastKeyRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!lastMove) return;
+    const key = `${lastMove.from}-${lastMove.to}`;
+    if (lastKeyRef.current === key) return;
+    lastKeyRef.current = key;
+    const hist = chess.history({ verbose: true });
+    const last = hist[hist.length - 1];
+    if (!last || !last.captured) return;
+    const dir = orientation === "w" ? 1 : -1;
+    const dx = (FILES.indexOf(lastMove.from[0] as typeof FILES[number]) - FILES.indexOf(lastMove.to[0] as typeof FILES[number])) * dir * 100;
+    const dy = (parseInt(lastMove.to[1]) - parseInt(lastMove.from[1])) * dir * 100;
+    const victimColor: Color = last.color === "w" ? "b" : "w";
+    const cap: Capture = { id: Date.now(), sq: lastMove.to, color: victimColor, type: last.captured as PieceSymbol, dx, dy };
+    setCapture(cap);
+    const t = window.setTimeout(() => {
+      setCapture((c) => (c && c.id === cap.id ? null : c));
+    }, 3000);
+    return () => window.clearTimeout(t);
+  }, [lastMove, chess, orientation]);
 
   const targets = useMemo(() => {
     if (!selected) return new Map<Square, boolean>();
