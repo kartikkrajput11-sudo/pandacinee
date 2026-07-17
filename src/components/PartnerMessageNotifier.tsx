@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { AvatarImg } from "@/components/AvatarImg";
+import { pushNotification } from "@/lib/notifications";
 
 type Notice = {
   id: string;
@@ -46,6 +47,18 @@ export default function PartnerMessageNotifier() {
     setTimeout(() => {
       setNotices((cur) => cur.filter((x) => x.id !== n.id));
     }, 3000);
+    // Persist to notification center
+    pushNotification({
+      id: `msg-${n.id}`,
+      kind: n.kind === "group" ? "group" : "dm",
+      title: n.name,
+      body: n.preview,
+      icon: n.avatar,
+      href:
+        n.kind === "group" && n.groupId
+          ? `/app/chat/group/${n.groupId}`
+          : `/app/chat/${n.peerId}`,
+    });
   };
 
   useEffect(() => {

@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { pushNotification } from "@/lib/notifications";
 
 type BroadcastPayload = {
   id: string;
@@ -33,6 +34,15 @@ function showBroadcast(payload: BroadcastPayload) {
   toastFn(`${emoji}  ${payload.title}`, {
     description: payload.body,
     duration: 7000,
+  });
+
+  // Persist to notification center inbox
+  pushNotification({
+    id: `bc-${payload.id}`,
+    kind: "broadcast",
+    title: payload.title,
+    body: payload.body,
+    icon: emoji,
   });
 
   // Native browser notification
