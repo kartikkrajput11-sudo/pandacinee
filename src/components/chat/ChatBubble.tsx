@@ -4,6 +4,7 @@ import { signMedia, type MessageRow } from "@/lib/chat";
 import { VoicePlayer } from "./VoicePlayer";
 import { SignedImage } from "./SignedImage";
 import { SignedVideo } from "./SignedVideo";
+import { ViewOnceMedia } from "./ViewOnceMedia";
 import { WatchInviteCard } from "./WatchInviteCard";
 import { GameInviteCard } from "./GameInviteCard";
 import { MovieWheelCard } from "./MovieWheelCard";
