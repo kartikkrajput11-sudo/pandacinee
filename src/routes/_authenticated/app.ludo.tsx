@@ -250,27 +250,87 @@ function LudoPage() {
   );
 }
 
+function DiePips({ n }: { n: number | null }) {
+  // pip positions on a 3x3 grid, values 1..6
+  const map: Record<number, [number, number][]> = {
+    1: [[1,1]],
+    2: [[0,0],[2,2]],
+    3: [[0,0],[1,1],[2,2]],
+    4: [[0,0],[0,2],[2,0],[2,2]],
+    5: [[0,0],[0,2],[1,1],[2,0],[2,2]],
+    6: [[0,0],[0,2],[1,0],[1,2],[2,0],[2,2]],
+  };
+  if (n == null) return <span className="font-serif text-2xl italic opacity-60">·</span>;
+  const dots = map[n] ?? [];
+  return (
+    <div className="grid grid-cols-3 grid-rows-3 gap-[3px] w-[38px] h-[38px]">
+      {Array.from({ length: 9 }).map((_, i) => {
+        const r = Math.floor(i / 3), c = i % 3;
+        const on = dots.some(([dr, dc]) => dr === r && dc === c);
+        return (
+          <span
+            key={i}
+            className="rounded-full"
+            style={{
+              background: on
+                ? "radial-gradient(circle at 30% 30%, oklch(0.96 0.08 78), oklch(0.72 0.14 60) 70%)"
+                : "transparent",
+              boxShadow: on ? "inset 0 -1px 1px rgba(0,0,0,0.35), 0 0 6px oklch(0.85 0.14 70 / 0.55)" : "none",
+            }}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
 function Die({ value, rolling, active }: { value: number | null; rolling: boolean; active: boolean }) {
   const [face, setFace] = useState<number | null>(value);
   useEffect(() => {
     if (!rolling) { setFace(value); return; }
     const iv = window.setInterval(() => {
       setFace(1 + Math.floor(Math.random() * 6));
-    }, 70);
+    }, 65);
     return () => window.clearInterval(iv);
   }, [rolling, value]);
   return (
     <div
-      className={`w-16 h-16 rounded-2xl border flex items-center justify-center text-3xl font-serif shadow-inner ${active ? "border-petal shadow-[0_0_20px_-4px_var(--petal)]" : "border-petal/30 opacity-80"}`}
+      className={`relative w-16 h-16 rounded-2xl border overflow-hidden flex items-center justify-center ${active ? "border-petal/70" : "border-petal/25 opacity-85"}`}
       style={{
         background:
-          "linear-gradient(145deg, oklch(0.28 0.05 320), oklch(0.18 0.03 320))",
-        color: "oklch(0.92 0.08 75)",
-        animation: rolling ? "ludo-dice-tumble 0.55s ease-out" : undefined,
-        transition: "border-color 200ms, box-shadow 200ms",
+          "linear-gradient(155deg, oklch(0.32 0.06 320) 0%, oklch(0.22 0.04 320) 45%, oklch(0.14 0.03 320) 100%)",
+        boxShadow:
+          "inset 0 1px 0 rgba(255,255,255,0.18), inset 0 -6px 10px rgba(0,0,0,0.35), 0 8px 22px -8px rgba(0,0,0,0.55)",
+        animation: rolling
+          ? "ludo-dice-tumble 0.55s cubic-bezier(0.22,1,0.36,1)"
+          : active
+            ? "ludo-dice-idle-glow 2.4s ease-in-out infinite"
+            : undefined,
+        transformStyle: "preserve-3d",
       }}
     >
-      {face ?? "·"}
+      {/* gilded inner border */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-[3px] rounded-[14px]"
+        style={{
+          border: "1px solid color-mix(in oklab, oklch(0.82 0.12 70) 55%, transparent)",
+          boxShadow: "inset 0 0 12px oklch(0.75 0.14 65 / 0.18)",
+        }}
+      />
+      <DiePips n={face} />
+      {/* champagne sheen sweep on roll */}
+      {rolling && (
+        <span
+          aria-hidden
+          className="pointer-events-none absolute top-0 left-0 h-full w-1/2"
+          style={{
+            background:
+              "linear-gradient(90deg, transparent, oklch(0.95 0.09 78 / 0.55), transparent)",
+            animation: "ludo-dice-sheen 0.55s ease-out",
+          }}
+        />
+      )}
     </div>
   );
 }
