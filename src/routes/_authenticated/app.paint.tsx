@@ -613,7 +613,7 @@ function PaintTogether() {
 
       {/* Canvas + remote cursor overlay */}
       <div
-        className="relative rounded-3xl overflow-hidden border border-border h-[58vh] touch-none"
+        className="relative rounded-3xl overflow-hidden border border-border h-[78vh] min-h-[520px] touch-none"
         style={{ background: bgCss }}
       >
         <canvas
