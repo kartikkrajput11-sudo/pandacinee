@@ -343,14 +343,13 @@ function UnoPage() {
           <div className="flex justify-center overflow-x-auto no-scrollbar py-6 -mx-4 px-4">
             <div className="flex items-end" style={{ paddingLeft: 24, paddingRight: 24 }}>
               {myHand.map((c, i) => {
-                const spread = Math.min(myHand.length, 9);
                 const mid = (myHand.length - 1) / 2;
                 const rot = ((i - mid) / Math.max(mid, 1)) * 10;
                 const y = Math.abs((i - mid) / Math.max(mid, 1)) * 6;
                 const playable = isMyTurn && canPlay(state, c);
                 return (
                   <button
-                    key={c.id}
+                    key={`${dealNonce}-${c.id}`}
                     type="button"
                     onClick={() => handlePlay(c)}
                     className="uno-hand-card"
@@ -358,9 +357,11 @@ function UnoPage() {
                       marginLeft: i === 0 ? 0 : -22,
                       transform: `rotate(${rot}deg) translateY(${y}px)`,
                       opacity: playable ? 1 : 0.55,
-                      filter: playable ? "drop-shadow(0 0 10px color-mix(in oklab, var(--petal) 40%, transparent))" : "none",
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      ["--deal-delay" as any]: `${i * 55}ms`,
                     }}
                     data-flash={flashId === c.id ? "1" : undefined}
+                    data-playable={playable ? "1" : undefined}
                   >
                     <UnoCardVisual card={c} activeColor={state.activeColor} />
                   </button>
