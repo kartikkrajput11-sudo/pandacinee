@@ -35,7 +35,7 @@ const CHAPTERS: Chapter[] = [
   { act: "III", numeral: "X",    kicker: "Fate",              title: "She saw their forever",           body: "And she — she started seeing pictures of a future only the two of them lived in. A home, a life, small ordinary mornings. She wasn't dreaming anymore; she was remembering something that hadn't happened yet.", sticker: "🔮" },
   { act: "IV",  numeral: "XI",   kicker: "18 · April · 2026", title: "The day they said yes",           body: "On 18 April 2026, they stopped being two healing souls and became one quiet promise. He gave her a name only he was allowed to use — panda. That single word would one day name a whole little world.", sticker: "💍" },
   { act: "IV",  numeral: "XII",  kicker: "Pandacine",         title: "A home for couples like them",    body: "He wanted a place where couples — especially the long-distance ones, the healing ones, the ones rebuilding — could chat, play, watch, and love without the miles in the way. So he built it. This site. Pandacine. Named after her.", sticker: "🐼" },
-  { act: "IV",  numeral: "XIII", kicker: "Every 18th, forever", title: "The world lights up for them", body: "And that is why every 18th of every month, Pandacine wears gold — a small, quiet celebration of the two people whose story became the reason this place exists at all.", sticker: "💛" },
+  { act: "IV",  numeral: "XIII", kicker: "Every 18th, forever", title: "Pandacine celebrates them", body: "And that is why every 18th of every month, Pandacine celebrates them in gold — a small, quiet tribute to the two people whose story became the reason this place exists at all.", sticker: "💛" },
 ];
 
 const GOLD = "#e6c98a";
@@ -407,7 +407,7 @@ function EndSlide({ onClose }: { onClose: () => void }) {
       >
         And every 18th since,
         <br />
-        the world stops for a breath
+        Pandacine stops for a breath
         <br />
         to remember them.
       </p>
