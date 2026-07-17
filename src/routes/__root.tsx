@@ -158,14 +158,17 @@ function RootComponent() {
         <Toaster
           theme="dark"
           position="top-center"
+          expand
+          visibleToasts={4}
+          gap={12}
+          offset={20}
           toastOptions={{
-            style: {
-              background: "var(--surface-elevated)",
-              color: "var(--candle)",
-              border: "1px solid var(--border)",
-            },
+            duration: 4200,
+            className: "lux-toast",
+            unstyled: false,
           }}
         />
+
       </ThemeProvider>
     </QueryClientProvider>
   );
