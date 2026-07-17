@@ -241,10 +241,11 @@ function UnoPage() {
             {theirHand.slice(0, 10).map((c, i) => (
               <div
                 key={c.id}
-                className="w-11 h-16 rounded-lg border border-petal/30 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.6)]"
+                className="uno-oppo-card w-11 h-16 rounded-lg border border-petal/30 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.6)]"
                 style={{
                   background: "linear-gradient(135deg, oklch(0.22 0.06 340), oklch(0.14 0.04 340))",
                   transform: `rotate(${(i - Math.min(theirHand.length,10)/2) * 3}deg)`,
+                  animationDelay: `${i * 40}ms`,
                 }}
               >
                 <div className="w-full h-full rounded-lg flex items-center justify-center">
