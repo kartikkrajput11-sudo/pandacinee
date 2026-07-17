@@ -251,7 +251,6 @@ function LudoPage() {
 }
 
 function DiePips({ n }: { n: number | null }) {
-  // pip positions on a 3x3 grid, values 1..6
   const map: Record<number, [number, number][]> = {
     1: [[1,1]],
     2: [[0,0],[2,2]],
@@ -260,10 +259,10 @@ function DiePips({ n }: { n: number | null }) {
     5: [[0,0],[0,2],[1,1],[2,0],[2,2]],
     6: [[0,0],[0,2],[1,0],[1,2],[2,0],[2,2]],
   };
-  if (n == null) return <span className="font-serif text-2xl italic opacity-60">·</span>;
+  if (n == null) return <span className="font-serif text-3xl italic opacity-50 text-[oklch(0.9_0.1_78)]">·</span>;
   const dots = map[n] ?? [];
   return (
-    <div className="grid grid-cols-3 grid-rows-3 gap-[3px] w-[38px] h-[38px]">
+    <div className="grid grid-cols-3 grid-rows-3 gap-[4px] w-[40px] h-[40px]">
       {Array.from({ length: 9 }).map((_, i) => {
         const r = Math.floor(i / 3), c = i % 3;
         const on = dots.some(([dr, dc]) => dr === r && dc === c);
@@ -273,9 +272,11 @@ function DiePips({ n }: { n: number | null }) {
             className="rounded-full"
             style={{
               background: on
-                ? "radial-gradient(circle at 30% 30%, oklch(0.96 0.08 78), oklch(0.72 0.14 60) 70%)"
+                ? "radial-gradient(circle at 32% 30%, oklch(0.98 0.08 82) 0%, oklch(0.86 0.16 72) 40%, oklch(0.58 0.15 55) 100%)"
                 : "transparent",
-              boxShadow: on ? "inset 0 -1px 1px rgba(0,0,0,0.35), 0 0 6px oklch(0.85 0.14 70 / 0.55)" : "none",
+              boxShadow: on
+                ? "inset 0 -1.5px 1.5px rgba(0,0,0,0.55), inset 0 1px 1px rgba(255,255,255,0.6), 0 0 8px oklch(0.85 0.16 68 / 0.7)"
+                : "none",
             }}
           />
         );
@@ -290,47 +291,85 @@ function Die({ value, rolling, active }: { value: number | null; rolling: boolea
     if (!rolling) { setFace(value); return; }
     const iv = window.setInterval(() => {
       setFace(1 + Math.floor(Math.random() * 6));
-    }, 65);
+    }, 75);
     return () => window.clearInterval(iv);
   }, [rolling, value]);
   return (
-    <div
-      className={`relative w-16 h-16 rounded-2xl border overflow-hidden flex items-center justify-center ${active ? "border-petal/70" : "border-petal/25 opacity-85"}`}
-      style={{
-        background:
-          "linear-gradient(155deg, oklch(0.32 0.06 320) 0%, oklch(0.22 0.04 320) 45%, oklch(0.14 0.03 320) 100%)",
-        boxShadow:
-          "inset 0 1px 0 rgba(255,255,255,0.18), inset 0 -6px 10px rgba(0,0,0,0.35), 0 8px 22px -8px rgba(0,0,0,0.55)",
-        animation: rolling
-          ? "ludo-dice-tumble 0.55s cubic-bezier(0.22,1,0.36,1)"
-          : active
-            ? "ludo-dice-idle-glow 2.4s ease-in-out infinite"
-            : undefined,
-        transformStyle: "preserve-3d",
-      }}
-    >
-      {/* gilded inner border */}
+    <div className="relative w-20 h-20" style={{ perspective: "520px" }}>
+      {/* cast shadow on the table */}
       <span
         aria-hidden
-        className="pointer-events-none absolute inset-[3px] rounded-[14px]"
+        className="absolute left-1/2 -translate-x-1/2 rounded-[50%]"
         style={{
-          border: "1px solid color-mix(in oklab, oklch(0.82 0.12 70) 55%, transparent)",
-          boxShadow: "inset 0 0 12px oklch(0.75 0.14 65 / 0.18)",
+          bottom: -6,
+          width: "70%",
+          height: 10,
+          background:
+            "radial-gradient(ellipse at center, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.15) 55%, transparent 75%)",
+          filter: "blur(4px)",
+          animation: rolling ? "ludo-dice-shadow 0.9s cubic-bezier(0.22,1,0.36,1)" : undefined,
         }}
       />
-      <DiePips n={face} />
-      {/* champagne sheen sweep on roll */}
-      {rolling && (
+      <div
+        className={`relative w-20 h-20 rounded-[18px] overflow-hidden flex items-center justify-center ${active ? "" : "opacity-90"}`}
+        style={{
+          background:
+            "radial-gradient(120% 90% at 30% 20%, oklch(0.42 0.08 320) 0%, oklch(0.28 0.06 320) 40%, oklch(0.16 0.04 320) 100%)",
+          border: "1px solid color-mix(in oklab, oklch(0.82 0.14 68) 55%, transparent)",
+          boxShadow:
+            "inset 0 2px 0 rgba(255,255,255,0.28), inset 0 -10px 18px rgba(0,0,0,0.55), inset 6px 0 14px rgba(0,0,0,0.35), inset -6px 0 14px rgba(0,0,0,0.35), 0 12px 28px -10px rgba(0,0,0,0.7)",
+          transformStyle: "preserve-3d",
+          animation: rolling
+            ? "ludo-dice-tumble 0.9s cubic-bezier(0.22,1,0.36,1)"
+            : active
+              ? "ludo-dice-idle-glow 2.6s ease-in-out infinite"
+              : undefined,
+        }}
+      >
+        {/* top glossy highlight */}
         <span
           aria-hidden
-          className="pointer-events-none absolute top-0 left-0 h-full w-1/2"
+          className="pointer-events-none absolute inset-x-2 top-1.5 h-4 rounded-full"
           style={{
-            background:
-              "linear-gradient(90deg, transparent, oklch(0.95 0.09 78 / 0.55), transparent)",
-            animation: "ludo-dice-sheen 0.55s ease-out",
+            background: "linear-gradient(180deg, rgba(255,255,255,0.35), rgba(255,255,255,0))",
+            filter: "blur(2px)",
           }}
         />
-      )}
+        {/* gilded inner frame */}
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-[4px] rounded-[14px]"
+          style={{
+            border: "1px solid color-mix(in oklab, oklch(0.85 0.14 68) 60%, transparent)",
+            boxShadow:
+              "inset 0 0 12px oklch(0.78 0.14 62 / 0.22), inset 0 0 0 1px rgba(0,0,0,0.35)",
+          }}
+        />
+        {/* corner sparkle */}
+        <span
+          aria-hidden
+          className="pointer-events-none absolute -top-1 -left-1 w-6 h-6"
+          style={{
+            background:
+              "radial-gradient(circle at center, oklch(0.98 0.08 82 / 0.9), transparent 60%)",
+            animation: active && !rolling ? "ludo-dice-sparkle 3.2s ease-in-out infinite" : undefined,
+            opacity: rolling ? 0 : undefined,
+          }}
+        />
+        <DiePips n={face} />
+        {/* champagne sheen sweep on roll */}
+        {rolling && (
+          <span
+            aria-hidden
+            className="pointer-events-none absolute top-0 left-0 h-full w-3/5"
+            style={{
+              background:
+                "linear-gradient(90deg, transparent, oklch(0.96 0.09 78 / 0.65), transparent)",
+              animation: "ludo-dice-sheen 0.9s ease-out",
+            }}
+          />
+        )}
+      </div>
     </div>
   );
 }
