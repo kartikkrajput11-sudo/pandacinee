@@ -75,6 +75,12 @@ function ChatList() {
                 >
                   <UsersRound className="size-4 text-petal" /> New group
                 </button>
+                <button
+                  onClick={() => { setMenuOpen(false); setJoinOpen(true); }}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-sm hover:bg-surface border-t border-border"
+                >
+                  <KeyRound className="size-4 text-petal" /> Join by code
+                </button>
                 <Link
                   to="/app/friends"
                   onClick={() => setMenuOpen(false)}
