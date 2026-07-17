@@ -83,12 +83,17 @@ function LudoPage() {
 
   const canAct = mode === "local" || state.turn === mySeat;
 
+  const [rolling, setRolling] = useState(false);
   const handleRoll = () => {
-    if (!canAct || state.winner || state.dice != null) return;
+    if (!canAct || state.winner || state.dice != null || rolling) return;
+    setRolling(true);
     const v = rollDie();
-    const next = applyRoll(state, v);
-    setState(next);
-    broadcast(next);
+    window.setTimeout(() => {
+      const next = applyRoll(state, v);
+      setState(next);
+      broadcast(next);
+      setRolling(false);
+    }, 550);
   };
 
   const handleMove = (t: Token) => {
@@ -188,28 +193,43 @@ function LudoPage() {
       <LudoBoard state={state} legalIds={legalIds} onMoveToken={handleMove} canAct={canAct} />
 
       <div className="mt-5 flex items-center justify-center gap-4">
-        <Die value={state.dice} />
+        <Die value={state.dice} rolling={rolling} />
         <button
           onClick={handleRoll}
-          disabled={!canAct || state.dice != null || !!state.winner}
-          className="px-6 py-3 rounded-2xl bg-petal text-white font-medium disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg"
+          disabled={!canAct || state.dice != null || !!state.winner || rolling}
+          className="px-6 py-3 rounded-2xl bg-petal text-white font-serif italic text-lg disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 shadow-[0_10px_30px_-8px_rgba(225,29,116,0.6)] hover:shadow-[0_14px_36px_-8px_rgba(225,29,116,0.75)] transition-shadow"
         >
           <Dice5 className="size-4" />
-          Roll
+          {rolling ? "Rolling…" : "Roll dice"}
         </button>
       </div>
 
-      {state.dice != null && legalIds.size === 0 && !state.winner && (
-        <p className="text-center text-xs text-candle-muted mt-3">No legal move — passing turn…</p>
-      )}
+      <div className="text-center mt-3 min-h-[1.25rem]">
+        {state.winner ? null : state.dice != null && legalIds.size > 0 ? (
+          <p className="text-xs text-petal">Tap a glowing token to move it {state.dice} step{state.dice === 1 ? "" : "s"}.</p>
+        ) : state.dice != null ? (
+          <p className="text-xs text-candle-muted">No legal move — passing turn…</p>
+        ) : !canAct && mode === "partner" ? (
+          <p className="text-xs text-candle-muted">Waiting for opponent to roll…</p>
+        ) : (
+          <p className="text-xs text-candle-muted">Your turn — roll the dice.</p>
+        )}
+      </div>
     </div>
   );
 }
 
-function Die({ value }: { value: number | null }) {
+function Die({ value, rolling }: { value: number | null; rolling: boolean }) {
   return (
-    <div className="w-14 h-14 rounded-2xl bg-surface border-2 border-border flex items-center justify-center text-2xl font-bold shadow-inner">
-      {value ?? "–"}
+    <div
+      className={`w-16 h-16 rounded-2xl border border-petal/40 flex items-center justify-center text-3xl font-serif shadow-inner ${rolling ? "animate-pulse" : ""}`}
+      style={{
+        background:
+          "linear-gradient(145deg, oklch(0.28 0.05 320), oklch(0.18 0.03 320))",
+        color: "oklch(0.92 0.08 75)",
+      }}
+    >
+      {rolling ? "🎲" : value ?? "·"}
     </div>
   );
 }
@@ -253,41 +273,49 @@ function LudoBoard({
 
   return (
     <div className="w-full flex justify-center">
-      <svg viewBox={`0 0 ${SIZE} ${SIZE}`} className="w-full max-w-[440px] rounded-2xl shadow-2xl bg-white" style={{ aspectRatio: "1 / 1" }}>
+      <svg
+        viewBox={`0 0 ${SIZE} ${SIZE}`}
+        className="w-full max-w-[440px] rounded-3xl shadow-2xl border border-petal/25"
+        style={{
+          aspectRatio: "1 / 1",
+          background:
+            "radial-gradient(120% 90% at 50% 0%, oklch(0.24 0.05 320) 0%, oklch(0.16 0.03 320) 60%, oklch(0.12 0.02 320) 100%)",
+        }}
+      >
         {/* Yards */}
-        <rect x={0} y={9 * CELL} width={6 * CELL} height={6 * CELL} fill={PLAYER_META.red.light} stroke={PLAYER_META.red.color} strokeWidth={2} />
-        <rect x={9 * CELL} y={0} width={6 * CELL} height={6 * CELL} fill={PLAYER_META.yellow.light} stroke={PLAYER_META.yellow.color} strokeWidth={2} />
-        {/* Empty (unused) yards for visual symmetry */}
-        <rect x={0} y={0} width={6 * CELL} height={6 * CELL} fill="#f3f4f6" stroke="#e5e7eb" strokeWidth={2} />
-        <rect x={9 * CELL} y={9 * CELL} width={6 * CELL} height={6 * CELL} fill="#f3f4f6" stroke="#e5e7eb" strokeWidth={2} />
+        <rect x={0} y={9 * CELL} width={6 * CELL} height={6 * CELL} fill={PLAYER_META.red.light} stroke={PLAYER_META.red.color} strokeWidth={2} rx={8} />
+        <rect x={9 * CELL} y={0} width={6 * CELL} height={6 * CELL} fill={PLAYER_META.yellow.light} stroke={PLAYER_META.yellow.color} strokeWidth={2} rx={8} />
+        {/* Decorative (unused) corners */}
+        <rect x={0} y={0} width={6 * CELL} height={6 * CELL} fill="oklch(0.20 0.03 320)" stroke="oklch(0.30 0.04 320)" strokeWidth={2} rx={8} />
+        <rect x={9 * CELL} y={9 * CELL} width={6 * CELL} height={6 * CELL} fill="oklch(0.20 0.03 320)" stroke="oklch(0.30 0.04 320)" strokeWidth={2} rx={8} />
         {/* Yard inner circles */}
         {(["red", "yellow"] as Player[]).map((p) =>
           YARD[p].map(([c, r], i) => (
-            <circle key={`${p}-yard-${i}`} cx={c * CELL} cy={r * CELL} r={CELL * 0.55} fill="white" stroke={PLAYER_META[p].color} strokeWidth={2} />
+            <circle key={`${p}-yard-${i}`} cx={c * CELL} cy={r * CELL} r={CELL * 0.55} fill="oklch(0.14 0.02 320)" stroke={PLAYER_META[p].color} strokeWidth={2} />
           )),
         )}
         {/* Main track cells */}
         {TRACK.map(([c, r], i) => {
-          let fill = "#ffffff";
+          let fill = "oklch(0.22 0.02 320)";
           if (i === PLAYER_META.red.start) fill = PLAYER_META.red.light;
           if (i === PLAYER_META.yellow.start) fill = PLAYER_META.yellow.light;
           return (
             <g key={`t-${i}`}>
-              <rect x={c * CELL} y={r * CELL} width={CELL} height={CELL} fill={fill} stroke="#d1d5db" strokeWidth={1} />
+              <rect x={c * CELL + 1} y={r * CELL + 1} width={CELL - 2} height={CELL - 2} fill={fill} stroke="oklch(0.35 0.04 320)" strokeWidth={0.8} rx={3} />
               {SAFE.has(i) && (
-                <text x={c * CELL + CELL / 2} y={r * CELL + CELL / 2 + 4} textAnchor="middle" fontSize={12} fill="#9ca3af">★</text>
+                <text x={c * CELL + CELL / 2} y={r * CELL + CELL / 2 + 4} textAnchor="middle" fontSize={12} fill="oklch(0.75 0.08 75)">★</text>
               )}
             </g>
           );
         })}
         {/* Home columns */}
         {HOME_COL.red.map(([c, r], i) => (
-          <rect key={`hr-${i}`} x={c * CELL} y={r * CELL} width={CELL} height={CELL} fill={PLAYER_META.red.light} stroke={PLAYER_META.red.color} strokeWidth={1} />
+          <rect key={`hr-${i}`} x={c * CELL + 1} y={r * CELL + 1} width={CELL - 2} height={CELL - 2} fill={PLAYER_META.red.light} stroke={PLAYER_META.red.color} strokeWidth={1} rx={3} />
         ))}
         {HOME_COL.yellow.map(([c, r], i) => (
-          <rect key={`hy-${i}`} x={c * CELL} y={r * CELL} width={CELL} height={CELL} fill={PLAYER_META.yellow.light} stroke={PLAYER_META.yellow.color} strokeWidth={1} />
+          <rect key={`hy-${i}`} x={c * CELL + 1} y={r * CELL + 1} width={CELL - 2} height={CELL - 2} fill={PLAYER_META.yellow.light} stroke={PLAYER_META.yellow.color} strokeWidth={1} rx={3} />
         ))}
-        {/* Center triangle */}
+        {/* Center diamond */}
         <polygon
           points={`${7 * CELL},${7 * CELL} ${8 * CELL},${7 * CELL} ${7.5 * CELL},${7.5 * CELL}`}
           fill={PLAYER_META.red.color}
@@ -298,11 +326,11 @@ function LudoBoard({
         />
         <polygon
           points={`${7 * CELL},${7 * CELL} ${7 * CELL},${8 * CELL} ${7.5 * CELL},${7.5 * CELL}`}
-          fill="#a3a3a3"
+          fill="oklch(0.35 0.04 320)"
         />
         <polygon
           points={`${8 * CELL},${7 * CELL} ${8 * CELL},${8 * CELL} ${7.5 * CELL},${7.5 * CELL}`}
-          fill="#a3a3a3"
+          fill="oklch(0.35 0.04 320)"
         />
 
         {/* Tokens */}
