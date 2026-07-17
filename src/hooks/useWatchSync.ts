@@ -1,6 +1,6 @@
-// Couple watch sync — Supabase Realtime (presence + broadcast).
-// Two-person private sync: partner presence, host election, playback state
-// mirroring, seek/countdown/reaction events, and drift tracking.
+// Couple watch sync — realtime first, database-backed as the source of truth.
+// Realtime broadcast keeps controls instant; the backend heartbeat keeps ready,
+// host, and playback state from getting stuck when presence packets are missed.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -31,6 +31,25 @@ export type Mine = {
 type SourceKind = "pandacine" | "iframe" | "unknown";
 type PresenceMeta = { userId: string; joinedAt: number; ready?: boolean; sourceKind?: SourceKind };
 
+type WatchSyncRow = {
+  room_key: string;
+  user_id: string;
+  partner_id: string | null;
+  joined_at: string;
+  last_seen_at: string;
+  ready: boolean;
+  source_kind: SourceKind;
+  current_time: number;
+  duration: number;
+  playback_rate: number;
+  source_idx: number;
+  season: number | null;
+  episode: number | null;
+  event: string | null;
+  event_at: string | null;
+  is_host: boolean;
+};
+
 const emptyMine = (): Mine => ({
   currentTime: 0,
   duration: 0,
@@ -49,15 +68,18 @@ export function useWatchSync(
   _kind: "movie" | "tv",
 ) {
   const [peer, setPeer] = useState<Mine | null>(null);
-  const [partnerOnline, setPartnerOnline] = useState(false);
+  const [presencePartnerOnline, setPresencePartnerOnline] = useState(false);
+  const [backendPartnerOnline, setBackendPartnerOnline] = useState(false);
   const [hostId, setHostId] = useState<string | null>(null);
   const [countdown, setCountdown] = useState<{ time: number; startAt: number } | null>(null);
   const [incomingSeek, setIncomingSeek] = useState<{ time: number; startAt?: number } | null>(null);
   const [incomingReaction, setIncomingReaction] = useState<{ id: number; emoji: string } | null>(null);
   const [drift, setDrift] = useState(0);
   const [myReady, setMyReadyState] = useState(false);
-  const [peerReady, setPeerReady] = useState(false);
-  const [peerSourceKind, setPeerSourceKind] = useState<SourceKind>("unknown");
+  const [presencePeerReady, setPresencePeerReady] = useState(false);
+  const [backendPeerReady, setBackendPeerReady] = useState(false);
+  const [presencePeerSourceKind, setPresencePeerSourceKind] = useState<SourceKind>("unknown");
+  const [backendPeerSourceKind, setBackendPeerSourceKind] = useState<SourceKind>("unknown");
   const [peerPreparing, setPeerPreparing] = useState<{ time: number; ts: number } | null>(null);
 
   const mineRef = useRef<Mine>(emptyMine());
@@ -65,6 +87,7 @@ export function useWatchSync(
   const joinedAtRef = useRef<number>(0);
   const myReadyRef = useRef(false);
   const mySourceKindRef = useRef<SourceKind>("unknown");
+  const lastBackendWriteRef = useRef(0);
 
   // Deterministic channel name from sorted user IDs + room, so only the couple share it.
   const channelName = useMemo(() => {
@@ -72,6 +95,87 @@ export function useWatchSync(
     const pair = [meId, partnerId].sort().join("~");
     return `watchsync:${pair}:${roomId}`;
   }, [meId, partnerId, roomId]);
+
+  const writeBackendState = useCallback((patch: Partial<WatchSyncRow> = {}) => {
+    if (!channelName || !meId) return;
+    const now = new Date().toISOString();
+    const mine = mineRef.current;
+    const row = {
+      room_key: channelName,
+      user_id: meId,
+      partner_id: partnerId,
+      joined_at: new Date(joinedAtRef.current || Date.now()).toISOString(),
+      last_seen_at: now,
+      ready: myReadyRef.current,
+      source_kind: mySourceKindRef.current,
+      current_time: mine.currentTime,
+      duration: mine.duration,
+      playback_rate: mine.playbackRate,
+      source_idx: mine.sourceIdx,
+      season: mine.season,
+      episode: mine.episode,
+      event: mine.event,
+      event_at: mine.updatedAt ? new Date(mine.updatedAt).toISOString() : null,
+      ...patch,
+    };
+    (supabase as any)
+      .from("watch_sync_members")
+      .upsert(row, { onConflict: "room_key,user_id" })
+      .then(({ error }: { error: Error | null }) => {
+        if (error) console.warn("watch sync backend write failed", error.message);
+      });
+  }, [channelName, meId, partnerId]);
+
+  const refreshBackendState = useCallback(async () => {
+    if (!channelName || !meId) return;
+    const cutoff = new Date(Date.now() - 45_000).toISOString();
+    const { data, error } = await (supabase as any)
+      .from("watch_sync_members")
+      .select("room_key,user_id,partner_id,joined_at,last_seen_at,ready,source_kind,current_time,duration,playback_rate,source_idx,season,episode,event,event_at,is_host")
+      .eq("room_key", channelName)
+      .gte("last_seen_at", cutoff);
+
+    if (error) {
+      console.warn("watch sync backend read failed", error.message);
+      return;
+    }
+
+    const rows = ((data ?? []) as WatchSyncRow[]).filter((row) => row.user_id);
+    const others = rows.filter((row) => row.user_id !== meId);
+    setBackendPartnerOnline(others.length > 0);
+    setBackendPeerReady(others.some((row) => row.ready));
+
+    const other = others
+      .slice()
+      .sort((a, b) => Date.parse(b.last_seen_at) - Date.parse(a.last_seen_at))[0];
+    setBackendPeerSourceKind(other?.source_kind ?? "unknown");
+
+    const claimedHost = rows
+      .filter((row) => row.is_host)
+      .sort((a, b) => Date.parse(b.last_seen_at) - Date.parse(a.last_seen_at))[0];
+    const electedHost = rows
+      .slice()
+      .sort((a, b) => Date.parse(a.joined_at) - Date.parse(b.joined_at) || a.user_id.localeCompare(b.user_id))[0];
+    setHostId((current) => current ?? claimedHost?.user_id ?? electedHost?.user_id ?? null);
+
+    if (!other || !other.event_at) return;
+    const updatedAt = Date.parse(other.event_at);
+    if (!Number.isFinite(updatedAt)) return;
+    setPeer((prev) => {
+      if (prev && prev.updatedAt >= updatedAt) return prev;
+      return {
+        currentTime: Number(other.current_time ?? 0),
+        duration: Number(other.duration ?? 0),
+        playbackRate: Number(other.playback_rate ?? 1),
+        updatedAt,
+        event: other.event,
+        sourceIdx: Number(other.source_idx ?? 0),
+        season: other.season,
+        episode: other.episode,
+      };
+    });
+    setDrift(mineRef.current.currentTime - Number(other.current_time ?? 0));
+  }, [channelName, meId]);
 
   useEffect(() => {
     if (!channelName || !meId) return;
@@ -92,10 +196,10 @@ export function useWatchSync(
       const host = entries[0]?.userId ?? null;
       setHostId(host);
       const others = entries.filter((e) => e.userId !== meId);
-      setPartnerOnline(others.length > 0);
-      setPeerReady(others.length > 0 && others.every((e) => !!e.ready));
+      setPresencePartnerOnline(others.length > 0);
+      setPresencePeerReady(others.length > 0 && others.every((e) => !!e.ready));
       const firstOther = others[0];
-      setPeerSourceKind(firstOther?.sourceKind ?? "unknown");
+      setPresencePeerSourceKind(firstOther?.sourceKind ?? "unknown");
     };
 
     ch
@@ -148,39 +252,51 @@ export function useWatchSync(
       .subscribe(async (status) => {
         if (status === "SUBSCRIBED") {
           await ch.track({ userId: meId, joinedAt: joinedAtRef.current, ready: myReadyRef.current, sourceKind: mySourceKindRef.current });
+          writeBackendState({ is_host: false });
+          refreshBackendState();
         }
       });
 
+    const heartbeat = window.setInterval(() => {
+      writeBackendState();
+      refreshBackendState();
+    }, 1500);
+
     return () => {
+      window.clearInterval(heartbeat);
+      writeBackendState({ ready: false, is_host: false, last_seen_at: new Date(0).toISOString() });
       try { ch.untrack(); } catch { /* ignore */ }
       supabase.removeChannel(ch);
       channelRef.current = null;
       setPeer(null);
-      setPartnerOnline(false);
+      setPresencePartnerOnline(false);
+      setBackendPartnerOnline(false);
       setHostId(null);
-      setPeerReady(false);
-      setPeerSourceKind("unknown");
+      setPresencePeerReady(false);
+      setBackendPeerReady(false);
+      setPresencePeerSourceKind("unknown");
+      setBackendPeerSourceKind("unknown");
       setPeerPreparing(null);
       myReadyRef.current = false;
       mySourceKindRef.current = "unknown";
       setMyReadyState(false);
     };
-  }, [channelName, meId]);
+  }, [channelName, meId, refreshBackendState, writeBackendState]);
 
   const setReady = useCallback((ready: boolean) => {
     myReadyRef.current = ready;
     setMyReadyState(ready);
     const ch = channelRef.current;
-    if (!ch || !meId) return;
-    ch.track({ userId: meId, joinedAt: joinedAtRef.current, ready, sourceKind: mySourceKindRef.current }).catch(() => {});
-  }, [meId]);
+    ch?.track({ userId: meId, joinedAt: joinedAtRef.current, ready, sourceKind: mySourceKindRef.current }).catch(() => {});
+    writeBackendState({ ready });
+  }, [meId, writeBackendState]);
 
   const setSourceKind = useCallback((kind: SourceKind) => {
     mySourceKindRef.current = kind;
     const ch = channelRef.current;
-    if (!ch || !meId) return;
-    ch.track({ userId: meId, joinedAt: joinedAtRef.current, ready: myReadyRef.current, sourceKind: kind }).catch(() => {});
-  }, [meId]);
+    ch?.track({ userId: meId, joinedAt: joinedAtRef.current, ready: myReadyRef.current, sourceKind: kind }).catch(() => {});
+    writeBackendState({ source_kind: kind });
+  }, [meId, writeBackendState]);
 
   const sendPrepare = useCallback((time: number) => {
     const ch = channelRef.current;
@@ -195,9 +311,22 @@ export function useWatchSync(
     const next: Mine = { ...mineRef.current, ...patch, updatedAt: now };
     mineRef.current = next;
     const ch = channelRef.current;
-    if (!ch || !meId) return;
-    ch.send({ type: "broadcast", event: "state", payload: { ...next, from: meId } });
-  }, [meId]);
+    ch?.send({ type: "broadcast", event: "state", payload: { ...next, from: meId } });
+    const discrete = patch.event === "play" || patch.event === "pause" || patch.event === "seeked" || patch.event === "ended" || patch.event === "ratechange";
+    if (discrete || now - lastBackendWriteRef.current > 1000) {
+      lastBackendWriteRef.current = now;
+      writeBackendState({
+        current_time: next.currentTime,
+        duration: next.duration,
+        playback_rate: next.playbackRate,
+        source_idx: next.sourceIdx,
+        season: next.season,
+        episode: next.episode,
+        event: next.event,
+        event_at: new Date(now).toISOString(),
+      });
+    }
+  }, [meId, writeBackendState]);
 
   const sendSeek = useCallback((time: number, startAt?: number) => {
     const ch = channelRef.current;
@@ -225,17 +354,23 @@ export function useWatchSync(
     setHostId(meId);
     const ch = channelRef.current;
     ch?.send({ type: "broadcast", event: "host", payload: { userId: meId } });
-  }, [meId]);
+    writeBackendState({ is_host: true });
+  }, [meId, writeBackendState]);
 
   const releaseHost = useCallback(() => {
     setHostId(null);
     const ch = channelRef.current;
     ch?.send({ type: "broadcast", event: "host", payload: { userId: null } });
-  }, []);
+    writeBackendState({ is_host: false });
+  }, [writeBackendState]);
 
   const clearCountdown = useCallback(() => setCountdown(null), []);
   const clearIncomingSeek = useCallback(() => setIncomingSeek(null), []);
   const clearIncomingReaction = useCallback(() => setIncomingReaction(null), []);
+
+  const partnerOnline = presencePartnerOnline || backendPartnerOnline;
+  const peerReady = presencePeerReady || backendPeerReady;
+  const peerSourceKind = backendPeerSourceKind !== "unknown" ? backendPeerSourceKind : presencePeerSourceKind;
 
   return {
     mine: mineRef.current,
