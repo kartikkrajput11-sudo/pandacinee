@@ -763,38 +763,38 @@ html.theme-anim * {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 96px;
-  height: 96px;
+  padding: 0 18px;
+  height: 34px;
   border-radius: 999px;
   background:
-    radial-gradient(circle at 30% 25%, rgba(255,255,255,0.55), transparent 55%),
-    conic-gradient(from 200deg,
-      oklch(0.62 0.22 25),
-      oklch(0.82 0.17 88),
-      oklch(0.62 0.17 155),
-      oklch(0.60 0.17 250),
-      oklch(0.62 0.22 25));
+    linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0) 55%),
+    linear-gradient(180deg, oklch(0.28 0.03 30), oklch(0.20 0.02 30));
   box-shadow:
-    0 25px 60px -15px rgba(0,0,0,0.7),
-    inset 0 2px 0 rgba(255,255,255,0.5),
-    inset 0 -6px 20px rgba(0,0,0,0.35);
-  border: 2px solid rgba(255,255,255,0.7);
+    0 10px 24px -12px rgba(0,0,0,0.7),
+    inset 0 1px 0 rgba(255,255,255,0.14),
+    inset 0 -1px 0 rgba(0,0,0,0.5),
+    0 0 0 1px rgba(212, 175, 100, 0.55);
+  border: none;
 }
 .uno-call-text {
   font-family: ui-serif, Georgia, serif;
   font-style: italic;
-  font-weight: 900;
-  color: #fff;
-  font-size: 26px;
-  letter-spacing: 0.06em;
-  text-shadow: 0 2px 0 rgba(0,0,0,0.35), 0 0 18px rgba(255,255,255,0.55);
+  font-weight: 700;
+  background: linear-gradient(180deg, #f5e6b8 0%, #d4af64 55%, #a97f3a 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-size: 12px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  text-shadow: 0 1px 0 rgba(0,0,0,0.25);
 }
 .uno-call-halo {
   position: absolute;
-  inset: -14px;
+  inset: -6px;
   border-radius: 999px;
-  background: radial-gradient(circle, rgba(255,255,255,0.35), transparent 65%);
-  animation: uno-call-halo 1.6s ease-in-out infinite;
+  background: radial-gradient(ellipse at center, rgba(212,175,100,0.28), transparent 70%);
+  animation: uno-call-halo 2.4s ease-in-out infinite;
   pointer-events: none;
 }
 @keyframes uno-call-emerge {
