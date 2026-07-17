@@ -355,6 +355,7 @@ function AuthPage() {
                   />
                 </div>
               </div>
+              {otpSent && (
                 <Input
                   type="text"
                   inputMode="numeric"
