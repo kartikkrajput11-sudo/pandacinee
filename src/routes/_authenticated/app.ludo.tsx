@@ -474,8 +474,8 @@ function LudoBoard({
           if (effectivePos === 200) return null; // hidden at finish
           const tx = cx + ox;
           const ty = cy + oy;
-          const walkTransition = "cx 170ms cubic-bezier(0.34,1.56,0.64,1), cy 170ms cubic-bezier(0.34,1.56,0.64,1)";
-          const idleTransition = "cx 450ms cubic-bezier(0.4,0,0.2,1), cy 450ms cubic-bezier(0.4,0,0.2,1)";
+          const walkTransition = "cx 220ms cubic-bezier(0.34,1.56,0.64,1), cy 220ms cubic-bezier(0.34,1.56,0.64,1)";
+          const idleTransition = "cx 500ms cubic-bezier(0.4,0,0.2,1), cy 500ms cubic-bezier(0.4,0,0.2,1)";
           const trans = isWalking ? walkTransition : idleTransition;
           return (
             <g
