@@ -63,6 +63,12 @@ function AuthPage() {
         if (error) throw error;
         toast.success("Welcome back");
         navigate({ to: "/app" });
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
   }
 
   function normalizePhone(v: string) {
@@ -102,12 +108,6 @@ function AuthPage() {
         toast.success(mode === "signup" ? "Welcome to PANDACINE 🐼" : "Welcome back");
         navigate({ to: "/app" });
       }
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Something went wrong");
-    } finally {
-      setLoading(false);
-    }
-  }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Something went wrong");
     } finally {
