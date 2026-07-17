@@ -23,6 +23,7 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [phone, setPhone] = useState("");
+  const [countryCode, setCountryCode] = useState("+91");
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [displayName, setDisplayName] = useState("");
@@ -78,7 +79,8 @@ function AuthPage() {
 
   async function handlePhoneSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const p = normalizePhone(phone);
+    const localDigits = phone.replace(/\D/g, "");
+    const p = `${countryCode}${localDigits}`;
     if (p.length < 8) {
       toast.error("Enter a valid phone number with country code");
       return;
@@ -291,14 +293,68 @@ function AuthPage() {
               {mode === "signup" && !otpSent && (
                 <Input placeholder="Your name" value={displayName} onChange={(v) => setDisplayName(v)} />
               )}
-              <Input
-                type="tel"
-                placeholder="+1 555 123 4567"
-                value={phone}
-                onChange={(v) => setPhone(v)}
-                required
-                disabled={otpSent}
-              />
+              <div className="flex gap-2">
+                <select
+                  value={countryCode}
+                  onChange={(e) => setCountryCode(e.target.value)}
+                  disabled={otpSent}
+                  className="rounded-xl bg-velvet/40 border border-gilt/25 text-candle px-2.5 py-2 text-sm focus:outline-none focus:border-gilt/60 disabled:opacity-60"
+                  style={{ minWidth: 96 }}
+                >
+                  {[
+                    { c: "+91", n: "IN" },
+                    { c: "+1", n: "US" },
+                    { c: "+44", n: "UK" },
+                    { c: "+61", n: "AU" },
+                    { c: "+971", n: "AE" },
+                    { c: "+65", n: "SG" },
+                    { c: "+81", n: "JP" },
+                    { c: "+49", n: "DE" },
+                    { c: "+33", n: "FR" },
+                    { c: "+34", n: "ES" },
+                    { c: "+39", n: "IT" },
+                    { c: "+55", n: "BR" },
+                    { c: "+52", n: "MX" },
+                    { c: "+27", n: "ZA" },
+                    { c: "+86", n: "CN" },
+                    { c: "+82", n: "KR" },
+                    { c: "+92", n: "PK" },
+                    { c: "+880", n: "BD" },
+                    { c: "+63", n: "PH" },
+                    { c: "+62", n: "ID" },
+                    { c: "+60", n: "MY" },
+                    { c: "+66", n: "TH" },
+                    { c: "+84", n: "VN" },
+                    { c: "+7", n: "RU" },
+                    { c: "+90", n: "TR" },
+                    { c: "+20", n: "EG" },
+                    { c: "+234", n: "NG" },
+                    { c: "+254", n: "KE" },
+                    { c: "+64", n: "NZ" },
+                    { c: "+31", n: "NL" },
+                    { c: "+46", n: "SE" },
+                    { c: "+47", n: "NO" },
+                    { c: "+45", n: "DK" },
+                    { c: "+41", n: "CH" },
+                    { c: "+353", n: "IE" },
+                    { c: "+972", n: "IL" },
+                    { c: "+966", n: "SA" },
+                  ].map((o) => (
+                    <option key={o.c} value={o.c}>{o.n} {o.c}</option>
+                  ))}
+                </select>
+                <div className="flex-1">
+                  <Input
+                    type="tel"
+                    inputMode="numeric"
+                    placeholder="Phone number"
+                    value={phone}
+                    onChange={(v) => setPhone(v.replace(/\D/g, ""))}
+                    required
+                    disabled={otpSent}
+                  />
+                </div>
+              </div>
               {otpSent && (
                 <Input
                   type="text"
