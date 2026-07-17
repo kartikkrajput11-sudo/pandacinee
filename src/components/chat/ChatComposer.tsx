@@ -372,6 +372,17 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
             <div className="grid grid-cols-5 gap-1.5">
               <StudioTile icon={<ImageIcon className="size-4" />} label="Photo" onClick={() => imgRef.current?.click()} />
               <StudioTile icon={<VideoIcon className="size-4" />} label="Video" onClick={() => vidRef.current?.click()} />
+              <StudioTile
+                icon={<Eye className="size-4" />}
+                label={viewOnce ? "Once ✓" : "View once"}
+                onClick={() => {
+                  const next = !viewOnce;
+                  setViewOnce(next);
+                  toast[next ? "success" : "message"](next ? "Next photo/video will vanish after one view" : "View-once turned off");
+                }}
+                accent={viewOnce}
+                glow={viewOnce}
+              />
               <StudioTile icon={<Paperclip className="size-4" />} label="File" onClick={() => fileRef.current?.click()} />
               <StudioTile icon={<span className="text-base leading-none">🐼</span>} label="Panda" onClick={() => { setPandaOpen(true); setMenuOpen(false); }} accent />
               <StudioTile icon={<Sparkles className="size-4" />} label="AI ✨" onClick={() => { setAiOpen(true); setMenuOpen(false); }} accent glow />
