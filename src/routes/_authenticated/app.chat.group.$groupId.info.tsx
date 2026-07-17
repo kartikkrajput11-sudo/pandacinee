@@ -32,6 +32,7 @@ function GroupInfo() {
   const removeMember = useRemoveMember();
   const addMembers = useAddMembers();
   const leave = useLeaveGroup();
+  const regenCode = useRegenerateGroupCode();
 
   const [renaming, setRenaming] = useState(false);
   const [nameDraft, setNameDraft] = useState("");
