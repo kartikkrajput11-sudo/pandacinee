@@ -1,21 +1,40 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
-import { ArrowLeft, Check, Lock, Sparkles, RotateCcw, Heart } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ArrowLeft, Check, Lock, Sparkles, RotateCcw, Heart, Wifi, Users } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
 import { pickQuestions, type KnowMeQuestion } from "@/lib/knowme";
 import { sfxReaction, sfxPollVote, sfxKiss } from "@/lib/sfx";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/app/knowme")({
   component: KnowMePage,
   head: () => ({
     meta: [
       { title: "How Well Do You Know Me? — PandaCine" },
-      { name: "description", content: "A pass-and-play quiz to see how deeply your panda knows you." },
+      { name: "description", content: "A luxury couple quiz — play side-by-side or across any distance." },
     ],
   }),
 });
 
-type Phase = "intro" | "setter" | "handoff" | "guesser" | "result";
+type Mode = "local" | "online";
+type Phase =
+  | "intro"
+  | "lobby"          // online only — pick who answers
+  | "waiting"       // online — waiting for partner to pick / connect
+  | "setter"        // I am setter, answering privately
+  | "handoff"       // local only — hand phone over
+  | "setter_wait"   // online setter, guesser is guessing
+  | "guesser"       // I am guesser, picking
+  | "guesser_wait"  // online guesser waiting for truth
+  | "result";
+
+type PeerMsg =
+  | { t: "hello"; from: string }
+  | { t: "start"; from: string; seed: number; count: number; setterId: string }
+  | { t: "answers_done"; from: string }
+  | { t: "guess"; from: string; idx: number; guess: number }
+  | { t: "reveal"; from: string; idx: number; truth: number }
+  | { t: "finish"; from: string; guesses: number[]; answers: number[] };
 
 function KnowMePage() {
   const { data } = useProfile();
@@ -23,18 +42,132 @@ function KnowMePage() {
   const partner = data?.partner;
   const navigate = useNavigate();
 
+  const [mode, setMode] = useState<Mode>("local");
   const [phase, setPhase] = useState<Phase>("intro");
   const [count, setCount] = useState(8);
   const [seed, setSeed] = useState(() => Date.now());
   const questions = useMemo<KnowMeQuestion[]>(() => pickQuestions(count, seed), [count, seed]);
 
-  const [answers, setAnswers] = useState<number[]>([]); // setter's truthful picks
-  const [guesses, setGuesses] = useState<number[]>([]); // guesser's picks
+  const [answers, setAnswers] = useState<number[]>([]);
+  const [guesses, setGuesses] = useState<number[]>([]);
   const [idx, setIdx] = useState(0);
   const [revealIdx, setRevealIdx] = useState<number | null>(null);
 
-  const setterName = me?.display_name ?? "You";
-  const guesserName = partner?.display_name ?? "your panda";
+  // Online role state
+  const [setterId, setSetterId] = useState<string | null>(null);
+  const iAmSetter = !!(me && setterId && me.id === setterId);
+  const iAmGuesser = !!(me && setterId && me.id !== setterId);
+
+  const setterName = iAmGuesser ? (partner?.display_name ?? "your panda") : (me?.display_name ?? "You");
+  const guesserName = iAmGuesser ? (me?.display_name ?? "You") : (partner?.display_name ?? "your panda");
+
+  // Realtime channel
+  const chanRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const peerOnlineRef = useRef(false);
+  const [peerOnline, setPeerOnline] = useState(false);
+
+  useEffect(() => {
+    if (mode !== "online" || !me || !partner) return;
+    const key = [me.id, partner.id].sort().join(":");
+    const channel = supabase.channel(`knowme:${key}`, {
+      config: { broadcast: { self: false }, presence: { key: me.id } },
+    });
+    chanRef.current = channel;
+
+    channel
+      .on("presence", { event: "sync" }, () => {
+        const state = channel.presenceState();
+        const has = Object.keys(state).some((k) => k === partner.id);
+        peerOnlineRef.current = has;
+        setPeerOnline(has);
+      })
+      .on("broadcast", { event: "msg" }, ({ payload }) => handlePeer(payload as PeerMsg))
+      .subscribe(async (status) => {
+        if (status === "SUBSCRIBED") {
+          await channel.track({ at: Date.now() });
+          send({ t: "hello", from: me.id });
+        }
+      });
+
+    return () => {
+      supabase.removeChannel(channel);
+      chanRef.current = null;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, me?.id, partner?.id]);
+
+  function send(msg: PeerMsg) {
+    chanRef.current?.send({ type: "broadcast", event: "msg", payload: msg });
+  }
+
+  function handlePeer(msg: PeerMsg) {
+    if (!me) return;
+    if (msg.from === me.id) return;
+    if (msg.t === "hello") {
+      // Re-announce role if already set
+      if (setterId) send({ t: "start", from: me.id, seed, count, setterId });
+      return;
+    }
+    if (msg.t === "start") {
+      setSeed(msg.seed);
+      setCount(msg.count);
+      setSetterId(msg.setterId);
+      setAnswers([]);
+      setGuesses([]);
+      setIdx(0);
+      setRevealIdx(null);
+      // If I am setter, go answer; else wait
+      setPhase(msg.setterId === me.id ? "setter" : "waiting");
+      return;
+    }
+    if (msg.t === "answers_done") {
+      // I'm the guesser — start guessing
+      setIdx(0);
+      setRevealIdx(null);
+      setPhase("guesser");
+      return;
+    }
+    if (msg.t === "guess") {
+      // I'm setter — reveal truth for that idx
+      setIdx(msg.idx);
+      setGuesses((g) => {
+        const n = [...g];
+        n[msg.idx] = msg.guess;
+        return n;
+      });
+      const truth = answersRef.current[msg.idx];
+      if (typeof truth === "number") {
+        send({ t: "reveal", from: me.id, idx: msg.idx, truth });
+        if (msg.guess === truth) sfxKiss(); else sfxPollVote();
+      }
+      return;
+    }
+    if (msg.t === "reveal") {
+      // I'm guesser — got the truth
+      setAnswers((a) => {
+        const n = [...a];
+        n[msg.idx] = msg.truth;
+        return n;
+      });
+      setRevealIdx(msg.idx);
+      setPhase("guesser");
+      const my = guessesRef.current[msg.idx];
+      if (my === msg.truth) sfxKiss(); else sfxPollVote();
+      return;
+    }
+    if (msg.t === "finish") {
+      setGuesses(msg.guesses);
+      setAnswers(msg.answers);
+      setPhase("result");
+      return;
+    }
+  }
+
+  // Refs to read latest state inside channel handlers
+  const answersRef = useRef<number[]>([]);
+  const guessesRef = useRef<number[]>([]);
+  useEffect(() => { answersRef.current = answers; }, [answers]);
+  useEffect(() => { guessesRef.current = guesses; }, [guesses]);
 
   function resetAll() {
     setPhase("intro");
@@ -42,10 +175,11 @@ function KnowMePage() {
     setGuesses([]);
     setIdx(0);
     setRevealIdx(null);
+    setSetterId(null);
     setSeed(Date.now());
   }
 
-  function startMatch() {
+  function startLocal() {
     setAnswers([]);
     setGuesses([]);
     setIdx(0);
@@ -53,30 +187,68 @@ function KnowMePage() {
     setPhase("setter");
   }
 
+  function startOnlineAsSetter() {
+    if (!me) return;
+    const newSeed = Date.now();
+    setSeed(newSeed);
+    setSetterId(me.id);
+    setAnswers([]);
+    setGuesses([]);
+    setIdx(0);
+    setRevealIdx(null);
+    send({ t: "start", from: me.id, seed: newSeed, count, setterId: me.id });
+    setPhase("setter");
+  }
+
+  function startOnlineAsGuesser() {
+    if (!me || !partner) return;
+    const newSeed = Date.now();
+    setSeed(newSeed);
+    setSetterId(partner.id);
+    send({ t: "start", from: me.id, seed: newSeed, count, setterId: partner.id });
+    setPhase("waiting");
+  }
+
+  // Setter picks — local or online
   function pickSetter(optIdx: number) {
     sfxReaction();
     const next = [...answers, optIdx];
     setAnswers(next);
     if (next.length >= questions.length) {
       setIdx(0);
-      setPhase("handoff");
+      if (mode === "online" && me) {
+        send({ t: "answers_done", from: me.id });
+        setPhase("setter_wait");
+      } else {
+        setPhase("handoff");
+      }
     } else {
       setIdx(next.length);
     }
   }
 
+  // Guesser picks
   function pickGuess(optIdx: number) {
     if (revealIdx === idx) return;
     const next = [...guesses];
     next[idx] = optIdx;
     setGuesses(next);
-    setRevealIdx(idx);
-    if (optIdx === answers[idx]) sfxKiss();
-    else sfxPollVote();
+    if (mode === "online" && me) {
+      // Wait for setter to send reveal
+      send({ t: "guess", from: me.id, idx, guess: optIdx });
+      setPhase("guesser_wait");
+    } else {
+      setRevealIdx(idx);
+      if (optIdx === answers[idx]) sfxKiss();
+      else sfxPollVote();
+    }
   }
 
   function nextGuess() {
     if (idx + 1 >= questions.length) {
+      if (mode === "online" && me) {
+        send({ t: "finish", from: me.id, guesses: guessesRef.current, answers: answersRef.current });
+      }
       setPhase("result");
     } else {
       setIdx(idx + 1);
@@ -87,10 +259,8 @@ function KnowMePage() {
   const score = guesses.reduce((acc, g, i) => (g === answers[i] ? acc + 1 : acc), 0);
   const pct = questions.length ? Math.round((score / questions.length) * 100) : 0;
 
-  // ---- Shared shell ----
   return (
     <div className="min-h-dvh bg-gradient-to-b from-velvet via-surface to-velvet">
-      {/* Ambient blooms */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
         <div className="absolute -top-24 -left-16 size-72 rounded-full blur-3xl opacity-40"
              style={{ background: "radial-gradient(circle, oklch(0.72 0.18 15 / 0.55), transparent 70%)" }} />
@@ -116,13 +286,58 @@ function KnowMePage() {
           </button>
         </header>
 
+        {mode === "online" && phase !== "intro" && (
+          <div className="mb-4 flex items-center justify-center gap-2 text-[10px] uppercase tracking-widest">
+            <span className={`size-1.5 rounded-full ${peerOnline ? "bg-emerald-400" : "bg-rose-400"} animate-pulse`} />
+            <span className="text-candle-muted">
+              {peerOnline ? `${partner?.display_name ?? "Partner"} is here` : `Waiting for ${partner?.display_name ?? "partner"}…`}
+            </span>
+          </div>
+        )}
+
         {phase === "intro" && (
           <Intro
             count={count}
             setCount={setCount}
-            onStart={startMatch}
-            setterName={setterName}
-            guesserName={guesserName}
+            mode={mode}
+            setMode={setMode}
+            hasPartner={!!partner}
+            setterName={me?.display_name ?? "You"}
+            guesserName={partner?.display_name ?? "your panda"}
+            onStartLocal={startLocal}
+            onEnterOnline={() => setPhase("lobby")}
+          />
+        )}
+
+        {phase === "lobby" && (
+          <Lobby
+            partnerName={partner?.display_name ?? "your panda"}
+            peerOnline={peerOnline}
+            onIAnswer={startOnlineAsSetter}
+            onTheyAnswer={startOnlineAsGuesser}
+          />
+        )}
+
+        {phase === "waiting" && (
+          <WaitingCard
+            title={`${setterName} is answering in secret…`}
+            body="Their answers stay sealed until you make each guess. Sit tight."
+          />
+        )}
+
+        {phase === "setter_wait" && (
+          <WaitingCard
+            title={`${guesserName} is guessing now.`}
+            body={`Round ${Math.min(idx + 1, questions.length)} of ${questions.length}. You'll see the verdict together.`}
+            progress={{ idx, total: questions.length }}
+          />
+        )}
+
+        {phase === "guesser_wait" && (
+          <WaitingCard
+            title="Sending your guess…"
+            body="Revealing the truth."
+            progress={{ idx, total: questions.length }}
           />
         )}
 
@@ -164,12 +379,9 @@ function KnowMePage() {
             score={score}
             total={questions.length}
             pct={pct}
-            questions={questions}
-            answers={answers}
-            guesses={guesses}
             setterName={setterName}
             guesserName={guesserName}
-            onRematch={() => { setSeed(Date.now()); startMatch(); }}
+            onRematch={() => { setSeed(Date.now()); if (mode === "online") setPhase("lobby"); else startLocal(); }}
             onExit={() => navigate({ to: "/app/play" })}
           />
         )}
@@ -181,8 +393,14 @@ function KnowMePage() {
 // ---------- Phases ----------
 
 function Intro({
-  count, setCount, onStart, setterName, guesserName,
-}: { count: number; setCount: (n: number) => void; onStart: () => void; setterName: string; guesserName: string }) {
+  count, setCount, mode, setMode, hasPartner, setterName, guesserName, onStartLocal, onEnterOnline,
+}: {
+  count: number; setCount: (n: number) => void;
+  mode: Mode; setMode: (m: Mode) => void;
+  hasPartner: boolean;
+  setterName: string; guesserName: string;
+  onStartLocal: () => void; onEnterOnline: () => void;
+}) {
   return (
     <div className="animate-fade-in">
       <div className="relative rounded-[2rem] border border-petal/25 bg-gradient-to-br from-surface via-velvet to-surface p-6 shadow-[0_30px_80px_-40px_rgba(225,29,116,0.55)]">
@@ -194,11 +412,34 @@ function Intro({
         </div>
         <h2 className="font-serif italic text-xl text-center">A private little test of us.</h2>
         <p className="text-sm text-candle-muted text-center mt-2 leading-relaxed">
-          <span className="text-candle">{setterName}</span> answers truthfully in secret,
-          then hands the phone to <span className="text-candle">{guesserName}</span> to guess each one.
+          One answers truthfully in secret. The other tries to know them by heart.
         </p>
 
-        <div className="mt-6 p-4 rounded-2xl bg-surface/60 border border-border">
+        {/* Mode toggle */}
+        <div className="mt-6 grid grid-cols-2 gap-2 p-1 rounded-2xl bg-surface/60 border border-border">
+          <button
+            onClick={() => setMode("local")}
+            className={`py-2.5 rounded-xl text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${
+              mode === "local" ? "bg-petal text-white shadow-[0_8px_20px_-8px_rgba(225,29,116,0.7)]" : "text-candle-muted"
+            }`}
+          >
+            <Users className="size-3.5" /> Side-by-side
+          </button>
+          <button
+            onClick={() => setMode("online")}
+            disabled={!hasPartner}
+            className={`py-2.5 rounded-xl text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${
+              mode === "online" ? "bg-petal text-white shadow-[0_8px_20px_-8px_rgba(225,29,116,0.7)]" : "text-candle-muted"
+            } ${!hasPartner ? "opacity-40 cursor-not-allowed" : ""}`}
+          >
+            <Wifi className="size-3.5" /> Long distance
+          </button>
+        </div>
+        {mode === "online" && !hasPartner && (
+          <p className="text-[11px] text-rose-300/80 text-center mt-2">Pair with a partner first to play online.</p>
+        )}
+
+        <div className="mt-5 p-4 rounded-2xl bg-surface/60 border border-border">
           <div className="flex items-center justify-between mb-3">
             <span className="text-[10px] uppercase tracking-widest text-candle-muted">Rounds</span>
             <span className="font-serif italic text-lg">{count}</span>
@@ -217,16 +458,88 @@ function Intro({
         </div>
 
         <button
-          onClick={onStart}
-          className="mt-6 w-full py-4 rounded-2xl bg-petal text-white font-serif italic text-lg shadow-[0_14px_36px_-10px_rgba(225,29,116,0.7)] hover:shadow-[0_18px_44px_-10px_rgba(225,29,116,0.85)] transition-shadow flex items-center justify-center gap-2"
+          onClick={mode === "online" ? onEnterOnline : onStartLocal}
+          disabled={mode === "online" && !hasPartner}
+          className="mt-6 w-full py-4 rounded-2xl bg-petal text-white font-serif italic text-lg shadow-[0_14px_36px_-10px_rgba(225,29,116,0.7)] hover:shadow-[0_18px_44px_-10px_rgba(225,29,116,0.85)] transition-shadow flex items-center justify-center gap-2 disabled:opacity-40"
         >
-          <Sparkles className="size-4" /> Begin the test
+          <Sparkles className="size-4" /> {mode === "online" ? "Enter the room" : "Begin the test"}
         </button>
       </div>
 
       <p className="text-center text-[11px] text-candle-muted mt-4">
-        Best played side-by-side. Nothing is stored — this stays between you two.
+        {mode === "online"
+          ? `${setterName} & ${guesserName} — synced live across any distance.`
+          : "Best played side-by-side. Nothing is stored — this stays between you two."}
       </p>
+    </div>
+  );
+}
+
+function Lobby({
+  partnerName, peerOnline, onIAnswer, onTheyAnswer,
+}: { partnerName: string; peerOnline: boolean; onIAnswer: () => void; onTheyAnswer: () => void }) {
+  return (
+    <div className="animate-fade-in">
+      <div className="relative rounded-[2rem] border border-petal/25 bg-gradient-to-br from-surface via-velvet to-surface p-6 shadow-[0_30px_80px_-40px_rgba(225,29,116,0.55)]">
+        <p className="text-[10px] uppercase tracking-[0.3em] text-petal text-center">Choose your role</p>
+        <h2 className="font-serif italic text-xl text-center mt-2">Who answers first?</h2>
+        <p className="text-sm text-candle-muted text-center mt-2">
+          The other guesses each answer live. You'll swap next round.
+        </p>
+
+        <div className="grid gap-3 mt-6">
+          <button
+            onClick={onIAnswer}
+            className="w-full p-5 rounded-2xl border border-petal/40 bg-petal/10 hover:bg-petal/15 text-left transition-all"
+          >
+            <p className="text-[10px] uppercase tracking-widest text-petal">Setter</p>
+            <p className="font-serif italic text-lg mt-1">I'll answer about myself.</p>
+            <p className="text-xs text-candle-muted mt-1">{partnerName} will try to guess me.</p>
+          </button>
+          <button
+            onClick={onTheyAnswer}
+            className="w-full p-5 rounded-2xl border border-border bg-surface/60 hover:bg-surface text-left transition-all"
+          >
+            <p className="text-[10px] uppercase tracking-widest text-candle-muted">Guesser</p>
+            <p className="font-serif italic text-lg mt-1">{partnerName} answers.</p>
+            <p className="text-xs text-candle-muted mt-1">I'll guess how well I know them.</p>
+          </button>
+        </div>
+
+        {!peerOnline && (
+          <p className="text-[11px] text-candle-muted text-center mt-4">
+            Waiting for {partnerName} to open the game… you can pick anyway; they'll join automatically.
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function WaitingCard({ title, body, progress }: { title: string; body: string; progress?: { idx: number; total: number } }) {
+  return (
+    <div className="animate-fade-in">
+      <div className="relative rounded-[2rem] border border-petal/25 bg-gradient-to-br from-surface via-velvet to-surface p-8 text-center shadow-[0_30px_80px_-40px_rgba(225,29,116,0.55)]">
+        <div className="mx-auto size-16 rounded-full grid place-items-center border border-petal/40 bg-petal/10 mb-4 relative">
+          <Sparkles className="size-6 text-petal" />
+          <span className="absolute inset-0 rounded-full border border-petal/30 animate-ping" />
+        </div>
+        <h2 className="font-serif italic text-2xl">{title}</h2>
+        <p className="text-sm text-candle-muted mt-3 leading-relaxed">{body}</p>
+        {progress && (
+          <div className="mt-6">
+            <div className="h-1 rounded-full bg-border overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-petal to-[oklch(0.82_0.14_68)] transition-all duration-500"
+                style={{ width: `${((progress.idx + 1) / progress.total) * 100}%` }}
+              />
+            </div>
+            <p className="text-[10px] uppercase tracking-widest text-candle-muted mt-2">
+              Round {Math.min(progress.idx + 1, progress.total)} of {progress.total}
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -313,7 +626,7 @@ function Handoff({ setterName, guesserName, onReady }: { setterName: string; gue
         <p className="text-[10px] uppercase tracking-[0.3em] text-candle-muted">Sealed</p>
         <h2 className="font-serif italic text-2xl mt-2">{setterName}'s answers are locked.</h2>
         <p className="text-sm text-candle-muted mt-3 leading-relaxed">
-          Hand the phone to <span className="text-candle">{guesserName}</span> — it's their turn to see how well they know you.
+          Hand the phone to <span className="text-candle">{guesserName}</span> — it's their turn.
         </p>
         <button
           onClick={onReady}
@@ -331,7 +644,7 @@ function GuesserPhase({
 }: {
   q: KnowMeQuestion; idx: number; total: number;
   guesserName: string; setterName: string;
-  answer: number; guess: number | undefined; revealed: boolean;
+  answer: number | undefined; guess: number | undefined; revealed: boolean;
   onPick: (i: number) => void; onNext: () => void;
 }) {
   const isLast = idx + 1 >= total;
@@ -362,7 +675,7 @@ function GuesserPhase({
         })}
       </div>
 
-      {revealed && (
+      {revealed && typeof answer === "number" && (
         <div className={`mt-6 p-4 rounded-2xl border animate-fade-in text-center ${
           gotIt ? "border-emerald-400/50 bg-emerald-500/10" : "border-rose-400/40 bg-rose-500/10"
         }`}>
@@ -393,10 +706,9 @@ function verdictFor(pct: number, guesser: string, setter: string) {
 }
 
 function Result({
-  score, total, pct, questions, answers, guesses, setterName, guesserName, onRematch, onExit,
+  score, total, pct, setterName, guesserName, onRematch, onExit,
 }: {
   score: number; total: number; pct: number;
-  questions: KnowMeQuestion[]; answers: number[]; guesses: number[];
   setterName: string; guesserName: string;
   onRematch: () => void; onExit: () => void;
 }) {
@@ -422,45 +734,20 @@ function Result({
         <h2 className="font-serif italic text-2xl mt-6 relative">{v.title}</h2>
         <p className="text-sm text-candle-muted mt-2 relative">{v.body}</p>
 
-        <div className="mt-6 flex gap-3 relative">
+        <div className="grid grid-cols-2 gap-3 mt-6 relative">
+          <button
+            onClick={onExit}
+            className="py-3 rounded-2xl border border-border text-candle-muted hover:text-candle hover:border-petal/40 transition-all text-sm"
+          >
+            Exit
+          </button>
           <button
             onClick={onRematch}
-            className="flex-1 py-3 rounded-2xl bg-petal text-white font-serif italic shadow-[0_10px_30px_-10px_rgba(225,29,116,0.7)] hover:shadow-[0_14px_36px_-10px_rgba(225,29,116,0.85)] transition-shadow"
+            className="py-3 rounded-2xl bg-petal text-white font-serif italic shadow-[0_10px_30px_-10px_rgba(225,29,116,0.7)] hover:shadow-[0_14px_36px_-10px_rgba(225,29,116,0.85)] transition-shadow text-sm"
           >
             Play again
           </button>
-          <button
-            onClick={onExit}
-            className="flex-1 py-3 rounded-2xl border border-border bg-surface/60 text-candle font-serif italic hover:border-petal/40 transition-colors"
-          >
-            Back to games
-          </button>
         </div>
-      </div>
-
-      {/* Detail scroll */}
-      <div className="mt-6 space-y-3">
-        <p className="text-[10px] uppercase tracking-widest text-candle-muted px-1">The answers</p>
-        {questions.map((q, i) => {
-          const right = guesses[i] === answers[i];
-          return (
-            <div key={q.id} className="p-4 rounded-2xl border border-border bg-surface/60">
-              <p className="text-sm text-candle-muted mb-2">{q.prompt}</p>
-              <div className="flex flex-wrap items-center gap-2 text-xs">
-                <span className="px-2 py-1 rounded-full bg-emerald-500/15 border border-emerald-400/40 text-emerald-200">
-                  {setterName}: {q.options[answers[i]]}
-                </span>
-                <span className={`px-2 py-1 rounded-full border ${
-                  right
-                    ? "bg-emerald-500/15 border-emerald-400/40 text-emerald-200"
-                    : "bg-rose-500/15 border-rose-400/40 text-rose-200"
-                }`}>
-                  {guesserName}: {q.options[guesses[i]] ?? "—"}
-                </span>
-              </div>
-            </div>
-          );
-        })}
       </div>
     </div>
   );
