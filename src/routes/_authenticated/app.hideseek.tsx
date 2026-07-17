@@ -57,12 +57,22 @@ const SCENES: Scene[] = [
       { x: 4, y: 26, w: 92, h: 68, label: "Dance floor" },
     ],
     furniture: [
+      // hiding-spot furniture
       { x: 10, y: 34, w: 14, h: 22, tone: "cloth", label: "Curtain" },
       { x: 26, y: 66, w: 20, h: 12, tone: "wood",  label: "Piano" },
       { x: 44, y: 26, w: 12, h: 4,  tone: "glass", label: "Mirror" },
       { x: 82, y: 32, w: 8,  h: 14, tone: "wood",  label: "Clock" },
       { x: 60, y: 66, w: 18, h: 12, tone: "glass", label: "Champagne" },
       { x: 82, y: 72, w: 10, h: 10, tone: "cloth", label: "Rose urn" },
+      // decoy furniture (not clickable)
+      { x: 76, y: 34, w: 14, h: 22, tone: "cloth", label: "Drape" },
+      { x: 48, y: 44, w: 12, h: 12, tone: "gold",  label: "Chandelier" },
+      { x: 30, y: 44, w: 6,  h: 6,  tone: "wood",  label: "Stool" },
+      { x: 64, y: 44, w: 6,  h: 6,  tone: "wood",  label: "Stool" },
+      { x: 14, y: 82, w: 10, h: 8,  tone: "cloth", label: "Divan" },
+      { x: 50, y: 84, w: 14, h: 8,  tone: "cloth", label: "Chaise" },
+      { x: 68, y: 84, w: 6,  h: 6,  tone: "gold",  label: "Candelabra" },
+      { x: 42, y: 12, w: 16, h: 8,  tone: "wood",  label: "Podium" },
     ],
     spots: [
       { emoji: "🎭", name: "Velvet Curtain",  x: 17, y: 45 },
