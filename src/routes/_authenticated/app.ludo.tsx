@@ -285,122 +285,41 @@ function DiePips({ n }: { n: number | null }) {
   );
 }
 
-// Rotation (rx, ry) that brings each face value to the front
-const FACE_ROT: Record<number, [number, number]> = {
-  1: [0, 0],
-  2: [-90, 0],
-  3: [0, -90],
-  4: [0, 90],
-  5: [90, 0],
-  6: [0, 180],
-};
+function Die({ value, rolling, active }: { value: number | null; rolling: boolean; active: boolean }) {
+  const [face, setFace] = useState<number | null>(value);
+  useEffect(() => {
+    if (!rolling) {
+      setFace(value);
+      return;
+    }
+    let n = 0;
+    const id = window.setInterval(() => {
+      n++;
+      setFace(1 + Math.floor(Math.random() * 6));
+    }, 80);
+    return () => window.clearInterval(id);
+  }, [rolling, value]);
 
-function CubeFace({ n, transform }: { n: number; transform: string }) {
   return (
     <div
-      className="absolute inset-0 flex items-center justify-center rounded-[16px]"
+      className="relative flex items-center justify-center rounded-2xl"
       style={{
-        transform,
-        backfaceVisibility: "hidden",
+        width: 72,
+        height: 72,
         background:
           "radial-gradient(120% 90% at 30% 20%, oklch(0.44 0.08 320) 0%, oklch(0.28 0.06 320) 45%, oklch(0.15 0.04 320) 100%)",
         border: "1px solid color-mix(in oklab, oklch(0.82 0.14 68) 55%, transparent)",
         boxShadow:
-          "inset 0 2px 0 rgba(255,255,255,0.28), inset 0 -10px 18px rgba(0,0,0,0.55), inset 6px 0 14px rgba(0,0,0,0.30), inset -6px 0 14px rgba(0,0,0,0.30)",
+          "inset 0 2px 0 rgba(255,255,255,0.22), inset 0 -8px 16px rgba(0,0,0,0.5), 0 10px 20px rgba(0,0,0,0.45)" +
+          (active && !rolling ? ", 0 0 22px oklch(0.85 0.16 68 / 0.35)" : ""),
+        animation: rolling ? "ludo-dice-tumble 0.6s cubic-bezier(0.22,1,0.36,1)" : undefined,
       }}
     >
-      {/* gilded inner frame */}
-      <span
-        aria-hidden
-        className="pointer-events-none absolute inset-[4px] rounded-[12px]"
-        style={{
-          border: "1px solid color-mix(in oklab, oklch(0.85 0.14 68) 60%, transparent)",
-          boxShadow: "inset 0 0 12px oklch(0.78 0.14 62 / 0.20), inset 0 0 0 1px rgba(0,0,0,0.35)",
-        }}
-      />
-      {/* glossy top highlight */}
-      <span
-        aria-hidden
-        className="pointer-events-none absolute inset-x-2 top-1.5 h-4 rounded-full"
-        style={{
-          background: "linear-gradient(180deg, rgba(255,255,255,0.32), rgba(255,255,255,0))",
-          filter: "blur(2px)",
-        }}
-      />
-      <DiePips n={n} />
+      <DiePips n={face} />
     </div>
   );
 }
 
-function Die({ value, rolling, active }: { value: number | null; rolling: boolean; active: boolean }) {
-  const SIZE = 76;
-  const HALF = SIZE / 2;
-  const shown = value ?? 1;
-  const [rxF, ryF] = FACE_ROT[shown] ?? [0, 0];
-  // Previous resting rotation for the roll animation start
-  const prevRef = useRef<[number, number]>([rxF, ryF]);
-  const [rx0, ry0] = prevRef.current;
-  useEffect(() => {
-    if (!rolling) prevRef.current = [rxF, ryF];
-  }, [rolling, rxF, ryF]);
-
-  const faces: { n: number; transform: string }[] = [
-    { n: 1, transform: `translateZ(${HALF}px)` },
-    { n: 6, transform: `rotateY(180deg) translateZ(${HALF}px)` },
-    { n: 3, transform: `rotateY(90deg)  translateZ(${HALF}px)` },
-    { n: 4, transform: `rotateY(-90deg) translateZ(${HALF}px)` },
-    { n: 2, transform: `rotateX(90deg)  translateZ(${HALF}px)` },
-    { n: 5, transform: `rotateX(-90deg) translateZ(${HALF}px)` },
-  ];
-
-  const restTransform = `rotateX(${rxF}deg) rotateY(${ryF}deg)`;
-
-  return (
-    <div className="relative" style={{ width: SIZE, height: SIZE, perspective: 320, perspectiveOrigin: "50% 40%" }}>
-      {/* cast shadow */}
-      <span
-        aria-hidden
-        className="absolute left-1/2 -translate-x-1/2 rounded-[50%]"
-        style={{
-          bottom: -10,
-          width: "78%",
-          height: 12,
-          background:
-            "radial-gradient(ellipse at center, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.15) 55%, transparent 75%)",
-          filter: "blur(5px)",
-          animation: rolling ? "ludo-dice-shadow 0.9s cubic-bezier(0.22,1,0.36,1)" : undefined,
-        }}
-      />
-      {/* Persistent isometric tilt so 3 faces are always visible */}
-      <div
-        className="relative w-full h-full"
-        style={{
-          transformStyle: "preserve-3d",
-          transform: "rotateX(-22deg) rotateY(-28deg)",
-        }}
-      >
-        <div
-          className="relative w-full h-full"
-          style={{
-            transformStyle: "preserve-3d",
-            transform: rolling ? undefined : restTransform,
-            transition: rolling ? undefined : "transform 500ms cubic-bezier(0.22,1,0.36,1)",
-            animation: rolling ? "ludo-cube-tumble 0.9s cubic-bezier(0.22,1,0.36,1) forwards" : undefined,
-            ["--rx0" as any]: `${rx0}deg`,
-            ["--ry0" as any]: `${ry0}deg`,
-            ["--rxF" as any]: `${rxF + 720}deg`,
-            ["--ryF" as any]: `${ryF + 540}deg`,
-            filter: active && !rolling ? "drop-shadow(0 12px 24px rgba(0,0,0,0.55))" : "drop-shadow(0 10px 20px rgba(0,0,0,0.45))",
-          }}
-        >
-          {faces.map((f) => (
-            <CubeFace key={f.n} n={f.n} transform={f.transform} />
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 
 function LudoBoard({
