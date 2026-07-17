@@ -411,12 +411,12 @@ function UnoPage() {
 
         {/* Table-side chat */}
         {mode === "partner" && (
-          <div className="mt-6 rounded-2xl border border-petal/25 bg-surface/70 backdrop-blur-xl overflow-hidden">
+          <div className="mt-6 rounded-2xl border border-petal/25 bg-surface/80 backdrop-blur-xl overflow-hidden lg:fixed lg:top-24 lg:right-4 lg:w-72 lg:mt-0 lg:z-30 lg:shadow-[0_20px_60px_-20px_rgba(0,0,0,0.7)]">
             <div className="px-4 py-2 border-b border-petal/15 flex items-center justify-between">
               <p className="text-[10px] uppercase tracking-[0.3em] text-petal">Table talk</p>
               <p className="text-[10px] text-candle-muted">{chat.length} whispers</p>
             </div>
-            <div ref={chatScrollRef} className="max-h-40 overflow-y-auto px-3 py-2 space-y-1.5">
+            <div ref={chatScrollRef} className="max-h-40 lg:max-h-[60vh] overflow-y-auto px-3 py-2 space-y-1.5">
               {chat.length === 0 ? (
                 <p className="text-xs italic text-candle-muted text-center py-3 font-serif">Say something velvet…</p>
               ) : chat.map((m) => {
