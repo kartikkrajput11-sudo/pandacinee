@@ -162,6 +162,47 @@ function ChatList() {
       )}
 
       <NewGroupDialog open={showNewGroup} onClose={() => setShowNewGroup(false)} />
+
+      {joinOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-black/60 flex items-end sm:items-center justify-center"
+          onClick={() => setJoinOpen(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-sm bg-velvet border border-border rounded-t-3xl sm:rounded-3xl p-6"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <p className="text-[10px] uppercase tracking-widest text-petal">Circles</p>
+                <h2 className="font-serif italic text-2xl">Join a group</h2>
+              </div>
+              <button
+                onClick={() => setJoinOpen(false)}
+                className="size-9 rounded-full bg-surface border border-border text-candle-muted flex items-center justify-center"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+            <p className="text-xs text-candle-muted mb-3">Paste the 8-character invite code shared with you.</p>
+            <input
+              autoFocus
+              value={joinCode}
+              onChange={(e) => setJoinCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8))}
+              maxLength={8}
+              placeholder="ABCD2345"
+              className="w-full bg-surface border border-border rounded-2xl px-4 py-3 text-center font-mono tracking-[0.4em] text-lg text-candle placeholder:text-candle/25 uppercase"
+            />
+            <button
+              onClick={doJoin}
+              disabled={joinCode.length < 4 || joinGroup.isPending}
+              className="w-full mt-4 py-3 bg-petal text-velvet rounded-full font-semibold disabled:opacity-50"
+            >
+              {joinGroup.isPending ? "Joining…" : "Join group"}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
