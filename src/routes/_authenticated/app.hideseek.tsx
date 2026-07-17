@@ -702,7 +702,7 @@ function Intro({
   return (
     <div className="rounded-3xl border border-border bg-surface/80 backdrop-blur p-6 space-y-5">
       <p className="text-candle-muted text-sm leading-relaxed">
-        One panda hides in one of six velvet spots. The other has <span className="text-candle font-medium">{MAX_ATTEMPTS} guesses</span> to find them — with warm/cold hints after every miss.
+        One panda hides <em>anywhere</em> on the room's map. The other has <span className="text-candle font-medium">{MAX_ATTEMPTS} taps</span> to find them — with warm/cold hints after every miss.
       </p>
 
       <div className="grid grid-cols-2 gap-2 text-[11px] uppercase tracking-widest">
