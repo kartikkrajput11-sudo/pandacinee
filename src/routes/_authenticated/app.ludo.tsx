@@ -116,7 +116,7 @@ function LudoPage() {
     // Freeze state during walk so board doesn't jump; animate through each square.
     for (const p of path) {
       setWalking({ player: t.player, idx: t.idx, pos: p });
-      await new Promise((r) => window.setTimeout(r, 170));
+      await new Promise((r) => window.setTimeout(r, 220));
     }
     setWalking(null);
     const next = applyMove(state, t.player, t.idx);
