@@ -80,8 +80,8 @@ export default function NotificationCenter() {
 
   const unread = useMemo(() => items.filter((x) => !x.read).length, [items]);
 
-  // Only show on authenticated app routes; keep it permanent everywhere else in /app.
-  if (!pathname.startsWith("/app")) return null;
+  // Only render on the homepage (/app). Placed inline in the home header.
+  if (pathname !== "/app") return null;
 
   const openItem = (n: NotifItem) => {
     markRead(n.id);
@@ -90,7 +90,8 @@ export default function NotificationCenter() {
   };
 
   return (
-    <div ref={panelRef} className="fixed right-3 top-3 z-[95]">
+    <div ref={panelRef} className="relative z-[95]">
+
       <button
         onClick={() => setOpen((v) => !v)}
         aria-label="Notifications"
