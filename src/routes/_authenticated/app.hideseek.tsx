@@ -18,68 +18,110 @@ export const Route = createFileRoute("/_authenticated/app/hideseek")({
 
 /* ────────────────────────  Data  ──────────────────────── */
 
+type Spot = { emoji: string; name: string; x: number; y: number };
 type Scene = {
   id: string;
   name: string;
   emoji: string;
-  hue: string; // css color for scene tint
-  spots: { emoji: string; name: string }[]; // 6 spots per scene
+  sky: string;        // top of the scene
+  floor: string;      // bottom of the scene
+  props: { emoji: string; x: number; y: number; size: number; rotate?: number; opacity?: number }[]; // decorative, non-clickable
+  spots: Spot[];      // exactly 6 clickable hiding hotspots
 };
 
+/**
+ * Each scene renders as a 2D room. Positions are percentages of the room
+ * frame (0-100). Spots are the ONLY clickable hotspots; props are decor.
+ */
 const SCENES: Scene[] = [
   {
-    id: "ballroom", name: "Velvet Ballroom", emoji: "🕯️", hue: "oklch(0.72 0.18 15 / 0.45)",
+    id: "ballroom", name: "Velvet Ballroom", emoji: "🕯️",
+    sky: "oklch(0.32 0.08 340)", floor: "oklch(0.22 0.05 340)",
+    props: [
+      { emoji: "✨", x: 15, y: 18, size: 18, opacity: 0.7 },
+      { emoji: "✨", x: 78, y: 22, size: 14, opacity: 0.6 },
+      { emoji: "💫", x: 50, y: 10, size: 22, opacity: 0.7 },
+      { emoji: "🕯️", x: 8, y: 55, size: 26 },
+      { emoji: "🕯️", x: 92, y: 55, size: 26 },
+    ],
     spots: [
-      { emoji: "🪞", name: "Gilded Mirror" },
-      { emoji: "🎹", name: "Grand Piano" },
-      { emoji: "🕰️", name: "Longcase Clock" },
-      { emoji: "🥂", name: "Champagne Tower" },
-      { emoji: "🎭", name: "Curtain Fold" },
-      { emoji: "💐", name: "Rose Urn" },
+      { emoji: "🎭", name: "Velvet Curtain", x: 12, y: 32 },
+      { emoji: "🎹", name: "Grand Piano",    x: 32, y: 72 },
+      { emoji: "🪞", name: "Gilded Mirror",   x: 50, y: 30 },
+      { emoji: "🕰️", name: "Longcase Clock",  x: 88, y: 38 },
+      { emoji: "🥂", name: "Champagne Tower", x: 68, y: 72 },
+      { emoji: "💐", name: "Rose Urn",        x: 88, y: 78 },
     ],
   },
   {
-    id: "library", name: "Moonlit Library", emoji: "📚", hue: "oklch(0.62 0.14 260 / 0.45)",
+    id: "library", name: "Moonlit Library", emoji: "📚",
+    sky: "oklch(0.28 0.09 260)", floor: "oklch(0.18 0.05 260)",
+    props: [
+      { emoji: "🌙", x: 82, y: 14, size: 28 },
+      { emoji: "✨", x: 24, y: 12, size: 14, opacity: 0.7 },
+      { emoji: "✨", x: 60, y: 22, size: 12, opacity: 0.6 },
+      { emoji: "📕", x: 18, y: 82, size: 18, rotate: -8, opacity: 0.6 },
+      { emoji: "📗", x: 26, y: 84, size: 18, rotate: 4, opacity: 0.6 },
+    ],
     spots: [
-      { emoji: "📖", name: "Open Tome" },
-      { emoji: "🪜", name: "Sliding Ladder" },
-      { emoji: "🦉", name: "Owl Perch" },
-      { emoji: "🕯️", name: "Reading Nook" },
-      { emoji: "🗝️", name: "Locked Drawer" },
-      { emoji: "🌙", name: "Skylight Sill" },
+      { emoji: "🪜", name: "Sliding Ladder", x: 14, y: 45 },
+      { emoji: "📖", name: "Open Tome",       x: 36, y: 74 },
+      { emoji: "🦉", name: "Owl Perch",       x: 52, y: 24 },
+      { emoji: "🕯️", name: "Reading Nook",    x: 72, y: 60 },
+      { emoji: "🗝️", name: "Locked Drawer",   x: 88, y: 78 },
+      { emoji: "🪟", name: "Skylight Sill",   x: 30, y: 20 },
     ],
   },
   {
-    id: "conservatory", name: "Glass Conservatory", emoji: "🌿", hue: "oklch(0.75 0.14 150 / 0.45)",
+    id: "conservatory", name: "Glass Conservatory", emoji: "🌿",
+    sky: "oklch(0.42 0.10 170)", floor: "oklch(0.25 0.07 150)",
+    props: [
+      { emoji: "☀️", x: 82, y: 12, size: 26, opacity: 0.85 },
+      { emoji: "🌤️", x: 20, y: 14, size: 22, opacity: 0.6 },
+      { emoji: "🍃", x: 46, y: 18, size: 16, rotate: 12, opacity: 0.7 },
+    ],
     spots: [
-      { emoji: "🌴", name: "Fan Palm" },
-      { emoji: "🪴", name: "Fig Pot" },
-      { emoji: "🦋", name: "Butterfly Cage" },
-      { emoji: "⛲", name: "Marble Fountain" },
-      { emoji: "🌸", name: "Orchid Bench" },
-      { emoji: "🪟", name: "Foggy Pane" },
+      { emoji: "🌴", name: "Fan Palm",         x: 12, y: 50 },
+      { emoji: "🪴", name: "Fig Pot",          x: 30, y: 78 },
+      { emoji: "🦋", name: "Butterfly Cage",   x: 50, y: 34 },
+      { emoji: "⛲", name: "Marble Fountain",  x: 70, y: 72 },
+      { emoji: "🌸", name: "Orchid Bench",     x: 88, y: 60 },
+      { emoji: "🪟", name: "Foggy Pane",       x: 60, y: 22 },
     ],
   },
   {
-    id: "cellar", name: "Wine Cellar", emoji: "🍷", hue: "oklch(0.55 0.16 25 / 0.45)",
+    id: "cellar", name: "Wine Cellar", emoji: "🍷",
+    sky: "oklch(0.22 0.08 30)", floor: "oklch(0.14 0.05 25)",
+    props: [
+      { emoji: "🔦", x: 50, y: 10, size: 22, opacity: 0.75 },
+      { emoji: "🕸️", x: 8, y: 12, size: 20, opacity: 0.6 },
+      { emoji: "🕸️", x: 90, y: 14, size: 20, opacity: 0.6 },
+    ],
     spots: [
-      { emoji: "🛢️", name: "Oak Barrel" },
-      { emoji: "🍾", name: "Bottle Rack" },
-      { emoji: "🕸️", name: "Cobweb Corner" },
-      { emoji: "🪵", name: "Stacked Crates" },
-      { emoji: "🔦", name: "Lantern Hook" },
-      { emoji: "🗝️", name: "Iron Gate" },
+      { emoji: "🛢️", name: "Oak Barrel",       x: 16, y: 68 },
+      { emoji: "🍾", name: "Bottle Rack",      x: 36, y: 40 },
+      { emoji: "🪵", name: "Stacked Crates",   x: 56, y: 74 },
+      { emoji: "🕯️", name: "Lantern Hook",     x: 74, y: 34 },
+      { emoji: "🗝️", name: "Iron Gate",        x: 88, y: 62 },
+      { emoji: "🕸️", name: "Cobweb Corner",    x: 20, y: 24 },
     ],
   },
   {
-    id: "garden", name: "Rose Garden", emoji: "🌹", hue: "oklch(0.78 0.15 350 / 0.45)",
+    id: "garden", name: "Rose Garden", emoji: "🌹",
+    sky: "oklch(0.55 0.12 340)", floor: "oklch(0.30 0.10 150)",
+    props: [
+      { emoji: "🌙", x: 82, y: 14, size: 22, opacity: 0.7 },
+      { emoji: "✨", x: 20, y: 20, size: 12, opacity: 0.7 },
+      { emoji: "🌿", x: 8, y: 80, size: 22, opacity: 0.7 },
+      { emoji: "🌿", x: 92, y: 82, size: 22, opacity: 0.7 },
+    ],
     spots: [
-      { emoji: "🌹", name: "Rose Trellis" },
-      { emoji: "🦢", name: "Swan Pond" },
-      { emoji: "🗿", name: "Cupid Statue" },
-      { emoji: "🌳", name: "Willow Curtain" },
-      { emoji: "🪑", name: "Wrought Bench" },
-      { emoji: "🕊️", name: "Dovecote" },
+      { emoji: "🌹", name: "Rose Trellis",    x: 14, y: 46 },
+      { emoji: "🦢", name: "Swan Pond",       x: 34, y: 76 },
+      { emoji: "🗿", name: "Cupid Statue",    x: 52, y: 40 },
+      { emoji: "🌳", name: "Willow Curtain",  x: 74, y: 50 },
+      { emoji: "🪑", name: "Wrought Bench",   x: 68, y: 78 },
+      { emoji: "🕊️", name: "Dovecote",        x: 88, y: 28 },
     ],
   },
 ];
@@ -87,18 +129,17 @@ const SCENES: Scene[] = [
 const TOTAL_ROUNDS = 4; // two per player
 const MAX_ATTEMPTS = 4;
 
-/** Distance in a 3x2 grid: rows [0,1,2] cols [0,1] */
-function distance(a: number, b: number): number {
-  const [ax, ay] = [a % 3, Math.floor(a / 3)];
-  const [bx, by] = [b % 3, Math.floor(b / 3)];
-  return Math.max(Math.abs(ax - bx), Math.abs(ay - by));
+/** Euclidean distance in scene space (0-100 units). */
+function distance(a: Spot, b: Spot): number {
+  return Math.hypot(a.x - b.x, a.y - b.y);
 }
-function heatFor(a: number, b: number): { label: string; emoji: string; cls: string } {
+function heatFor(a: Spot, b: Spot): { label: string; emoji: string; cls: string } {
   const d = distance(a, b);
   if (d === 0) return { label: "Burning!", emoji: "🔥", cls: "text-rose-300" };
-  if (d === 1) return { label: "Warm", emoji: "🌡️", cls: "text-amber-300" };
+  if (d < 30)  return { label: "Warm",     emoji: "🌡️", cls: "text-amber-300" };
   return { label: "Cold", emoji: "❄️", cls: "text-sky-300" };
 }
+
 
 /* ────────────────────────  Types  ──────────────────────── */
 
