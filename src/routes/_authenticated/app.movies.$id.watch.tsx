@@ -640,13 +640,20 @@ function CatalogWatch({ id }: { id: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pandacine?.videoSrc, season, episode, sourceIdx]);
 
-  // Follower auto-mounts (paused) as soon as host broadcasts "prepare".
+  // Follower auto-mounts (paused, muted) as soon as host broadcasts "prepare".
+  // Muting is critical: browsers block programmatic play() without a user gesture,
+  // so if the follower never tapped the screen, the host's later "play" event
+  // would silently fail. Muted autoplay is always permitted; the follower can
+  // unmute with a single tap once sync is running.
   useEffect(() => {
     if (!peerPreparing || started || !isPandacine) return;
     setStartAt(peerPreparing.time ?? 0);
     setPausedByHost(true);
     setStarted(true);
     setPlayerLoading(true);
+    // Pre-mute so the upcoming h.play() from host's play event isn't blocked.
+    const h = customPlayerRef.current;
+    if (h) h.setMuted(true);
     clearPeerPreparing();
   }, [peerPreparing, started, isPandacine, clearPeerPreparing]);
 
