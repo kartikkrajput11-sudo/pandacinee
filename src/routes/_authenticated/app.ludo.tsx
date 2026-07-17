@@ -314,7 +314,7 @@ function LudoBoard({
   const cellCounts = new Map<string, number>();
   const cellIndex = new Map<string, number>();
   for (const p of positions) {
-    if (p.t.pos === -1) continue;
+    if (p.effectivePos === -1) continue;
     const k = `${Math.round(p.cx)},${Math.round(p.cy)}`;
     cellCounts.set(k, (cellCounts.get(k) ?? 0) + 1);
   }
