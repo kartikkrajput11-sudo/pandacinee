@@ -57,6 +57,7 @@ import { Route as AuthenticatedAppGamesGameRouteImport } from './routes/_authent
 import { Route as AuthenticatedAppChatPeerIdRouteImport } from './routes/_authenticated/app.chat.$peerId'
 import { Route as AuthenticatedAppCallPeerIdRouteImport } from './routes/_authenticated/app.call.$peerId'
 import { Route as AuthenticatedAppMoviesIdWatchRouteImport } from './routes/_authenticated/app.movies.$id.watch'
+import { Route as AuthenticatedAppMoviesIdPartyRouteImport } from './routes/_authenticated/app.movies.$id.party'
 import { Route as AuthenticatedAppChatGroupGroupIdRouteImport } from './routes/_authenticated/app.chat.group.$groupId'
 import { Route as AuthenticatedAppCallGroupGroupIdRouteImport } from './routes/_authenticated/app.call.group.$groupId'
 import { Route as AuthenticatedAppChatGroupGroupIdInfoRouteImport } from './routes/_authenticated/app.chat.group.$groupId.info'
@@ -324,6 +325,12 @@ const AuthenticatedAppMoviesIdWatchRoute =
     path: '/watch',
     getParentRoute: () => AuthenticatedAppMoviesIdRoute,
   } as any)
+const AuthenticatedAppMoviesIdPartyRoute =
+  AuthenticatedAppMoviesIdPartyRouteImport.update({
+    id: '/party',
+    path: '/party',
+    getParentRoute: () => AuthenticatedAppMoviesIdRoute,
+  } as any)
 const AuthenticatedAppChatGroupGroupIdRoute =
   AuthenticatedAppChatGroupGroupIdRouteImport.update({
     id: '/chat/group/$groupId',
@@ -398,6 +405,7 @@ export interface FileRoutesByFullPath {
   '/app/movies/': typeof AuthenticatedAppMoviesIndexRoute
   '/app/call/group/$groupId': typeof AuthenticatedAppCallGroupGroupIdRoute
   '/app/chat/group/$groupId': typeof AuthenticatedAppChatGroupGroupIdRouteWithChildren
+  '/app/movies/$id/party': typeof AuthenticatedAppMoviesIdPartyRoute
   '/app/movies/$id/watch': typeof AuthenticatedAppMoviesIdWatchRoute
   '/app/chat/group/$groupId/info': typeof AuthenticatedAppChatGroupGroupIdInfoRoute
   '/app/movies/$id/episode/$season/$episode': typeof AuthenticatedAppMoviesIdEpisodeSeasonEpisodeRoute
@@ -449,6 +457,7 @@ export interface FileRoutesByTo {
   '/app/movies': typeof AuthenticatedAppMoviesIndexRoute
   '/app/call/group/$groupId': typeof AuthenticatedAppCallGroupGroupIdRoute
   '/app/chat/group/$groupId': typeof AuthenticatedAppChatGroupGroupIdRouteWithChildren
+  '/app/movies/$id/party': typeof AuthenticatedAppMoviesIdPartyRoute
   '/app/movies/$id/watch': typeof AuthenticatedAppMoviesIdWatchRoute
   '/app/chat/group/$groupId/info': typeof AuthenticatedAppChatGroupGroupIdInfoRoute
   '/app/movies/$id/episode/$season/$episode': typeof AuthenticatedAppMoviesIdEpisodeSeasonEpisodeRoute
@@ -504,6 +513,7 @@ export interface FileRoutesById {
   '/_authenticated/app/movies/': typeof AuthenticatedAppMoviesIndexRoute
   '/_authenticated/app/call/group/$groupId': typeof AuthenticatedAppCallGroupGroupIdRoute
   '/_authenticated/app/chat/group/$groupId': typeof AuthenticatedAppChatGroupGroupIdRouteWithChildren
+  '/_authenticated/app/movies/$id/party': typeof AuthenticatedAppMoviesIdPartyRoute
   '/_authenticated/app/movies/$id/watch': typeof AuthenticatedAppMoviesIdWatchRoute
   '/_authenticated/app/chat/group/$groupId/info': typeof AuthenticatedAppChatGroupGroupIdInfoRoute
   '/_authenticated/app/movies/$id/episode/$season/$episode': typeof AuthenticatedAppMoviesIdEpisodeSeasonEpisodeRoute
@@ -559,6 +569,7 @@ export interface FileRouteTypes {
     | '/app/movies/'
     | '/app/call/group/$groupId'
     | '/app/chat/group/$groupId'
+    | '/app/movies/$id/party'
     | '/app/movies/$id/watch'
     | '/app/chat/group/$groupId/info'
     | '/app/movies/$id/episode/$season/$episode'
@@ -610,6 +621,7 @@ export interface FileRouteTypes {
     | '/app/movies'
     | '/app/call/group/$groupId'
     | '/app/chat/group/$groupId'
+    | '/app/movies/$id/party'
     | '/app/movies/$id/watch'
     | '/app/chat/group/$groupId/info'
     | '/app/movies/$id/episode/$season/$episode'
@@ -664,6 +676,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/movies/'
     | '/_authenticated/app/call/group/$groupId'
     | '/_authenticated/app/chat/group/$groupId'
+    | '/_authenticated/app/movies/$id/party'
     | '/_authenticated/app/movies/$id/watch'
     | '/_authenticated/app/chat/group/$groupId/info'
     | '/_authenticated/app/movies/$id/episode/$season/$episode'
@@ -1015,6 +1028,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppMoviesIdWatchRouteImport
       parentRoute: typeof AuthenticatedAppMoviesIdRoute
     }
+    '/_authenticated/app/movies/$id/party': {
+      id: '/_authenticated/app/movies/$id/party'
+      path: '/party'
+      fullPath: '/app/movies/$id/party'
+      preLoaderRoute: typeof AuthenticatedAppMoviesIdPartyRouteImport
+      parentRoute: typeof AuthenticatedAppMoviesIdRoute
+    }
     '/_authenticated/app/chat/group/$groupId': {
       id: '/_authenticated/app/chat/group/$groupId'
       path: '/chat/group/$groupId'
@@ -1047,12 +1067,14 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedAppMoviesIdRouteChildren {
+  AuthenticatedAppMoviesIdPartyRoute: typeof AuthenticatedAppMoviesIdPartyRoute
   AuthenticatedAppMoviesIdWatchRoute: typeof AuthenticatedAppMoviesIdWatchRoute
   AuthenticatedAppMoviesIdEpisodeSeasonEpisodeRoute: typeof AuthenticatedAppMoviesIdEpisodeSeasonEpisodeRoute
 }
 
 const AuthenticatedAppMoviesIdRouteChildren: AuthenticatedAppMoviesIdRouteChildren =
   {
+    AuthenticatedAppMoviesIdPartyRoute: AuthenticatedAppMoviesIdPartyRoute,
     AuthenticatedAppMoviesIdWatchRoute: AuthenticatedAppMoviesIdWatchRoute,
     AuthenticatedAppMoviesIdEpisodeSeasonEpisodeRoute:
       AuthenticatedAppMoviesIdEpisodeSeasonEpisodeRoute,
@@ -1207,13 +1229,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
