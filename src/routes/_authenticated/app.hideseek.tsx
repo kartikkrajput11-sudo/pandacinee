@@ -103,6 +103,17 @@ const SCENES: Scene[] = [
       { x: 66, y: 52, w: 18, h: 14, tone: "cloth", label: "Nook sofa" },
       { x: 82, y: 72, w: 12, h: 10, tone: "wood",  label: "Drawer" },
       { x: 22, y: 12, w: 18, h: 12, tone: "glass", label: "Skylight" },
+      // decoys
+      { x: 16, y: 42, w: 10, h: 10, tone: "wood",  label: "Armchair" },
+      { x: 32, y: 44, w: 8,  h: 8,  tone: "cloth", label: "Ottoman" },
+      { x: 58, y: 12, w: 8,  h: 8,  tone: "wood",  label: "Bust" },
+      { x: 74, y: 20, w: 12, h: 8,  tone: "wood",  label: "Cabinet" },
+      { x: 52, y: 68, w: 10, h: 8,  tone: "wood",  label: "Trolley" },
+      { x: 82, y: 44, w: 12, h: 6,  tone: "wood",  label: "Shelf" },
+      { x: 6,  y: 84, w: 14, h: 8,  tone: "cloth", label: "Rug" },
+      { x: 40, y: 82, w: 10, h: 8,  tone: "wood",  label: "Chess table" },
+      { x: 64, y: 84, w: 14, h: 8,  tone: "wood",  label: "Globe" },
+      { x: 88, y: 12, w: 6,  h: 20, tone: "cloth", label: "Curtain" },
     ],
     spots: [
       { emoji: "🪜", name: "Sliding Ladder", x: 11, y: 55 },
