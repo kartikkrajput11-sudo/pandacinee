@@ -39,7 +39,11 @@ function Home() {
             </p>
           )}
         </div>
-        <Avatar profile={profile} />
+        <div className="flex items-center gap-3">
+          <NotificationCenter />
+          <Avatar profile={profile} />
+        </div>
+
       </header>
 
       {/* Invite banner (no partner) */}
