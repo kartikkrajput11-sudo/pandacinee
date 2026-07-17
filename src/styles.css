@@ -1100,3 +1100,42 @@ html.theme-anim * {
           background-clip: text;
   -webkit-text-fill-color: transparent;
 }
+
+/* ============ Auth page luxury animations ============ */
+@keyframes auth-rise {
+  0% { opacity: 0; transform: translateY(14px); filter: blur(4px); }
+  60% { filter: blur(0); }
+  100% { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+@keyframes auth-card-in {
+  0% { opacity: 0; transform: translateY(24px) scale(0.96); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes auth-bloom-a {
+  0%,100% { transform: translate(0,0) scale(1); opacity: 0.55; }
+  50% { transform: translate(40px,30px) scale(1.15); opacity: 0.75; }
+}
+@keyframes auth-bloom-b {
+  0%,100% { transform: translate(0,0) scale(1); opacity: 0.5; }
+  50% { transform: translate(-30px,-40px) scale(1.1); opacity: 0.7; }
+}
+@keyframes auth-bloom-c {
+  0%,100% { transform: translate(-50%,0) scale(1); opacity: 0.45; }
+  50% { transform: translate(-50%,-20px) scale(1.2); opacity: 0.65; }
+}
+@keyframes auth-ring-spin {
+  from { transform: translate(-50%,-50%) rotate(0deg); }
+  to { transform: translate(-50%,-50%) rotate(360deg); }
+}
+@keyframes auth-shimmer-sweep {
+  0% { opacity: 0; transform: translateX(-100%); }
+  50% { opacity: 1; }
+  100% { opacity: 0; transform: translateX(100%); }
+}
+.animate-auth-card { animation: auth-card-in 0.8s cubic-bezier(0.16,1,0.3,1) both; }
+.animate-auth-bloom-a { animation: auth-bloom-a 12s ease-in-out infinite; }
+.animate-auth-bloom-b { animation: auth-bloom-b 14s ease-in-out infinite; }
+.animate-auth-bloom-c { animation: auth-bloom-c 10s ease-in-out infinite; }
+.animate-auth-ring-slow { animation: auth-ring-spin 60s linear infinite; }
+.animate-auth-ring-fast { animation: auth-ring-spin 40s linear infinite reverse; }
+.animate-auth-shimmer { animation: auth-shimmer-sweep 4s ease-in-out infinite; }
