@@ -80,14 +80,8 @@ export default function NotificationCenter() {
 
   const unread = useMemo(() => items.filter((x) => !x.read).length, [items]);
 
-  // Only show on authenticated app routes
+  // Only show on authenticated app routes; keep it permanent everywhere else in /app.
   if (!pathname.startsWith("/app")) return null;
-  // Hide inside chat/call/game full-screen surfaces to avoid clutter
-  if (
-    pathname.startsWith("/app/chat/") ||
-    pathname.startsWith("/app/call/") ||
-    pathname.startsWith("/app/tamanna")
-  ) return null;
 
   const openItem = (n: NotifItem) => {
     markRead(n.id);
@@ -96,22 +90,22 @@ export default function NotificationCenter() {
   };
 
   return (
-    <div ref={panelRef} className="fixed right-3 top-3 z-[95]">
+    <div ref={panelRef} className="fixed left-2 top-1/2 -translate-y-1/2 z-[95]">
       <button
         onClick={() => setOpen((v) => !v)}
         aria-label="Notifications"
-        className="group relative flex h-11 w-11 items-center justify-center rounded-full border border-petal/40 bg-[var(--surface-elevated)]/90 shadow-[0_8px_30px_-10px_rgba(230,180,120,0.45)] backdrop-blur-md transition hover:border-petal/70 hover:shadow-[0_12px_36px_-8px_rgba(230,180,120,0.6)]"
+        title={unread > 0 ? `${unread} new` : "Notifications"}
+        className="group relative flex h-7 w-7 items-center justify-center rounded-full border border-petal/40 bg-[var(--surface-elevated)]/85 shadow-[0_4px_14px_-6px_rgba(230,180,120,0.5)] backdrop-blur-md transition hover:h-8 hover:w-8 hover:border-petal/70"
       >
-        <Bell className="h-5 w-5 text-candle" />
+        <Bell className="h-3.5 w-3.5 text-candle" />
         {unread > 0 && (
-          <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-gradient-to-br from-rose-500 to-petal px-1 text-[10px] font-bold text-white shadow-[0_0_10px_rgba(255,120,150,0.6)] ring-2 ring-[var(--surface-elevated)]">
-            {unread > 99 ? "99+" : unread}
-          </span>
+          <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-rose-500 shadow-[0_0_6px_rgba(244,63,94,0.85)] ring-2 ring-[var(--surface-elevated)] animate-pulse" />
         )}
       </button>
 
       {open && (
-        <div className="absolute right-0 top-14 w-[min(22rem,calc(100vw-1.5rem))] overflow-hidden rounded-2xl border border-petal/30 bg-[var(--surface-elevated)]/98 shadow-[0_30px_60px_-20px_rgba(0,0,0,0.55)] backdrop-blur-xl">
+        <div className="absolute left-10 top-0 w-[min(22rem,calc(100vw-3rem))] overflow-hidden rounded-2xl border border-petal/30 bg-[var(--surface-elevated)]/98 shadow-[0_30px_60px_-20px_rgba(0,0,0,0.55)] backdrop-blur-xl">
+
           {/* header */}
           <div className="flex items-center justify-between border-b border-petal/20 bg-gradient-to-r from-petal/10 via-transparent to-petal/10 px-4 py-3">
             <div className="flex items-center gap-2">
