@@ -57,78 +57,8 @@ function GroupInfo() {
 
   if (!group) return <div className="p-6 text-candle-muted">Loading…</div>;
 
-  async function saveName() {
-    if (!nameDraft.trim()) return;
-    try {
-      await update.mutateAsync({ groupId, name: nameDraft });
-      toast.success("Renamed");
-      setRenaming(false);
-    } catch (e: any) {
-      toast.error(e.message ?? "Rename failed");
-    }
-  }
+  async function toggleAdmin_placeholder() {} // removed helpers below still use setRole
 
-  async function pickEmoji(em: string) {
-    try {
-      await update.mutateAsync({ groupId, avatar_url: em });
-    } catch (e: any) {
-      toast.error(e.message ?? "Update failed");
-    }
-  }
-
-  async function pickTheme(theme: GroupTheme) {
-    try {
-      await update.mutateAsync({ groupId, theme });
-    } catch (e: any) {
-      toast.error(e.message ?? "Update failed");
-    }
-  }
-
-  const bgPath = (group as any)?.background_url as string | null | undefined;
-  useEffect(() => {
-    let alive = true;
-    if (!bgPath) { setBgPreview(null); return; }
-    supabase.storage.from("group-backgrounds").createSignedUrl(bgPath, 60 * 60).then(({ data }) => {
-      if (alive) setBgPreview(data?.signedUrl ?? null);
-    });
-    return () => { alive = false; };
-  }, [bgPath]);
-
-  async function uploadBackground(file: File) {
-    if (!file.type.startsWith("image/")) { toast.error("Please pick an image"); return; }
-    if (file.size > 8 * 1024 * 1024) { toast.error("Image must be under 8 MB"); return; }
-    setUploadingBg(true);
-    try {
-      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
-      const path = `${groupId}/${Date.now()}.${ext}`;
-      const { error: upErr } = await supabase.storage
-        .from("group-backgrounds")
-        .upload(path, file, { upsert: true, contentType: file.type });
-      if (upErr) throw upErr;
-      // Clean up old background
-      if (bgPath && bgPath !== path) {
-        await supabase.storage.from("group-backgrounds").remove([bgPath]).catch(() => {});
-      }
-      await update.mutateAsync({ groupId, background_url: path });
-      toast.success("Background updated");
-    } catch (e: any) {
-      toast.error(e.message ?? "Upload failed");
-    } finally {
-      setUploadingBg(false);
-      if (fileRef.current) fileRef.current.value = "";
-    }
-  }
-
-  async function removeBackground() {
-    if (!bgPath) return;
-    try {
-      await supabase.storage.from("group-backgrounds").remove([bgPath]).catch(() => {});
-      await update.mutateAsync({ groupId, background_url: null });
-      toast.success("Background removed");
-    } catch (e: any) {
-      toast.error(e.message ?? "Failed");
-    }
-  }
 
   async function toggleAdmin(userId: string, currentRole: "admin" | "member") {
     try {
