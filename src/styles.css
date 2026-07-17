@@ -431,15 +431,32 @@ html.theme-anim * {
 
 
 @keyframes ludo-dice-tumble {
-  0%   { transform: rotate(0deg) scale(1); }
-  25%  { transform: rotate(180deg) scale(1.15); }
-  50%  { transform: rotate(360deg) scale(0.92); }
-  75%  { transform: rotate(540deg) scale(1.08); }
-  100% { transform: rotate(720deg) scale(1); }
+  0%   { transform: perspective(320px) rotateX(0deg)   rotateY(0deg)   rotateZ(0deg)   scale(1); filter: drop-shadow(0 6px 14px rgba(0,0,0,0.35)); }
+  25%  { transform: perspective(320px) rotateX(180deg) rotateY(90deg)  rotateZ(90deg)  scale(1.12); }
+  50%  { transform: perspective(320px) rotateX(360deg) rotateY(180deg) rotateZ(180deg) scale(0.94); filter: drop-shadow(0 14px 22px rgba(0,0,0,0.45)); }
+  75%  { transform: perspective(320px) rotateX(540deg) rotateY(270deg) rotateZ(270deg) scale(1.08); }
+  100% { transform: perspective(320px) rotateX(720deg) rotateY(360deg) rotateZ(360deg) scale(1); filter: drop-shadow(0 6px 14px rgba(0,0,0,0.35)); }
+}
+
+@keyframes ludo-dice-sheen {
+  0%   { transform: translateX(-140%) skewX(-18deg); opacity: 0; }
+  40%  { opacity: 0.85; }
+  100% { transform: translateX(160%)  skewX(-18deg); opacity: 0; }
+}
+
+@keyframes ludo-dice-idle-glow {
+  0%,100% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--petal) 40%, transparent), inset 0 1px 0 rgba(255,255,255,0.14); }
+  50%     { box-shadow: 0 0 26px -4px color-mix(in oklab, var(--petal) 55%, transparent), inset 0 1px 0 rgba(255,255,255,0.22); }
 }
 
 @keyframes ludo-token-hop {
-  0%   { transform: translateY(0) scale(1); }
-  45%  { transform: translateY(-6px) scale(1.12); }
-  100% { transform: translateY(0) scale(1); }
+  0%   { transform: translateY(0)    scale(1)    rotate(0deg); }
+  35%  { transform: translateY(-12px) scale(1.16) rotate(-9deg); }
+  60%  { transform: translateY(-5px)  scale(1.05) rotate(7deg); }
+  100% { transform: translateY(0)    scale(1)    rotate(0deg); }
+}
+
+@keyframes ludo-trail-pulse {
+  0%   { opacity: 0.4;  transform: scale(0.6); }
+  100% { opacity: 0;    transform: scale(1.8); }
 }
