@@ -411,7 +411,121 @@ function Scene13() { // Golden 18 with fireworks
   );
 }
 
-const SCENES = [Scene1, Scene2, Scene3, Scene4, Scene5, Scene6, Scene7, Scene8, Scene9, Scene10, Scene11, Scene12, Scene13];
+function Scene14() { // Panda · cine — two screens, one film reel, one heart
+  return (
+    <SceneFrame>
+      {/* two screens */}
+      <g className="ss-float">
+        <rect x="24" y="80" width="80" height="56" rx="6" fill="#0a0612" stroke={GOLD} strokeOpacity="0.55" />
+        <rect x="30" y="86" width="68" height="44" rx="3" fill="#1a1030" />
+        <rect x="52" y="140" width="24" height="4" fill={GOLD_DEEP} />
+      </g>
+      <g className="ss-float" style={{ animationDelay: "0.6s" }}>
+        <rect x="136" y="80" width="80" height="56" rx="6" fill="#0a0612" stroke={GOLD} strokeOpacity="0.55" />
+        <rect x="142" y="86" width="68" height="44" rx="3" fill="#1a1030" />
+        <rect x="164" y="140" width="24" height="4" fill={GOLD_DEEP} />
+      </g>
+      {/* shared heart in middle */}
+      <Heart x={120} y={108} s={1.1} className="ss-heartbeat" />
+      {/* film reel */}
+      <g transform="translate(120 175)" className="ss-swirl">
+        <circle cx="0" cy="0" r="22" fill="#1a1020" stroke="url(#ss-gold)" strokeWidth="2" />
+        {[0,60,120,180,240,300].map((a,i)=>(
+          <circle key={i} cx={Math.cos(a*Math.PI/180)*13} cy={Math.sin(a*Math.PI/180)*13} r="3" fill={GOLD} />
+        ))}
+        <circle cx="0" cy="0" r="4" fill={GOLD} />
+      </g>
+      <text x="120" y="220" textAnchor="middle" fontSize="9" fill={GOLD} opacity="0.7" fontFamily="Georgia" fontStyle="italic" letterSpacing="3">PANDA · CINE</text>
+    </SceneFrame>
+  );
+}
+
+function Scene15() { // Built in the quiet hours — laptop, moon, code lines
+  return (
+    <SceneFrame>
+      <circle cx="200" cy="45" r="16" fill="#f5e5b8" opacity="0.9" className="ss-glow" />
+      <circle cx="194" cy="41" r="13" fill="#0d0714" />
+      {/* laptop */}
+      <g transform="translate(120 140)">
+        <path d="M -60 30 L 60 30 L 70 40 L -70 40 Z" fill={GOLD_DEEP} />
+        <rect x="-55" y="-30" width="110" height="60" rx="4" fill="#0a0612" stroke={GOLD} strokeOpacity="0.5" />
+        {/* code lines */}
+        {[0,1,2,3,4].map(i=>(
+          <rect key={i} x={-48} y={-22 + i*10} width={30 + (i*7)%40} height="3" fill={GOLD} opacity="0.65"
+            style={{ animation:`ss-typing 1.2s ${i*0.2}s ease-in-out infinite` }}/>
+        ))}
+        {/* heart cursor */}
+        <g transform="translate(30 8)" className="ss-heartbeat">
+          <path d="M0 4 C -3 0 -6 -2 -6 -5 A 3 3 0 0 1 0 -6 A 3 3 0 0 1 6 -5 C 6 -2 3 0 0 4 Z" fill={ROSE} />
+        </g>
+      </g>
+      {/* steam from cup */}
+      <g transform="translate(50 140)">
+        <rect x="-8" y="0" width="16" height="18" rx="2" fill={GOLD_DEEP} />
+        <path d="M -4 -8 Q -2 -14 0 -8 Q 2 -14 4 -8" stroke={GOLD} strokeOpacity="0.6" fill="none"
+          style={{ animation:"ss-float 2.5s ease-in-out infinite" }}/>
+      </g>
+      <text x="120" y="220" textAnchor="middle" fontSize="8" fill={GOLD} opacity="0.6" fontFamily="Georgia" fontStyle="italic">3 a.m. — one line at a time</text>
+    </SceneFrame>
+  );
+}
+
+function Scene16() { // She saw it first — browser window with heart, tear of joy
+  return (
+    <SceneFrame>
+      {/* browser */}
+      <g className="ss-float">
+        <rect x="35" y="55" width="170" height="120" rx="6" fill="#0a0612" stroke={GOLD} strokeOpacity="0.55" />
+        <rect x="35" y="55" width="170" height="16" fill={GOLD_DEEP} />
+        <circle cx="45" cy="63" r="2.5" fill="#c76a83" />
+        <circle cx="54" cy="63" r="2.5" fill={GOLD} />
+        <circle cx="63" cy="63" r="2.5" fill="#7fc99a" />
+        <text x="120" y="115" textAnchor="middle" fontSize="16" fill="url(#ss-gold)" fontFamily="Georgia" fontStyle="italic" letterSpacing="4" className="ss-glow">Pandacine</text>
+        <Heart x={120} y={145} s={0.9} className="ss-heartbeat" />
+      </g>
+      {/* her face on the side */}
+      <g transform="translate(30 180)">
+        <circle cx="0" cy="0" r="10" fill={ROSE} />
+        <circle cx="-3" cy="-1" r="1.2" fill={SHADOW} />
+        <circle cx="3" cy="-1" r="1.2" fill={SHADOW} />
+        <path d="M -3 3 Q 0 6 3 3" stroke={SHADOW} strokeWidth="1.2" fill="none" />
+        {/* tear of joy */}
+        <circle cx="-4" cy="4" r="1.4" fill="#9ac9ff">
+          <animate attributeName="cy" values="4;14;4" dur="2s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="0;1;0" dur="2s" repeatCount="indefinite"/>
+        </circle>
+      </g>
+      <text x="130" y="215" textAnchor="middle" fontSize="8" fill={GOLD} opacity="0.6" fontFamily="Georgia" fontStyle="italic">"you made a whole world…"</text>
+    </SceneFrame>
+  );
+}
+
+function Scene17() { // Doors opened for couples — golden door, hearts flying out
+  return (
+    <SceneFrame>
+      {/* door frame */}
+      <rect x="80" y="55" width="80" height="130" rx="6" fill={GOLD_DEEP} />
+      <rect x="86" y="61" width="68" height="118" rx="4" fill="#1a1030" />
+      {/* door open glow */}
+      <rect x="86" y="61" width="68" height="118" rx="4" fill="url(#ss-gold)" opacity="0.25" className="ss-glow" />
+      <circle cx="148" cy="122" r="2" fill={GOLD} />
+      {/* hearts flying out */}
+      {[0,1,2,3,4].map(i=>(
+        <g key={i} style={{ animation:`ss-fall 3.5s ${i*0.6}s ease-in infinite reverse`, transformOrigin:"center", transformBox:"fill-box" }}>
+          <Heart x={120 + (i%2===0?-1:1)*(10+i*4)} y={80 + i*4} s={0.55 + (i%3)*0.15} color={i%2 ? ROSE : "#f2c98a"} />
+        </g>
+      ))}
+      {/* two little silhouettes stepping in */}
+      <g className="ss-walk">
+        <Person x={108} y={205} s={0.55} color={ROSE} />
+        <Person x={132} y={205} s={0.55} color="#e0c88a" />
+      </g>
+      <text x="120" y="230" textAnchor="middle" fontSize="8" fill={GOLD} opacity="0.65" fontFamily="Georgia" fontStyle="italic">for every long-distance heart</text>
+    </SceneFrame>
+  );
+}
+
+const SCENES = [Scene1, Scene2, Scene3, Scene4, Scene5, Scene6, Scene7, Scene8, Scene9, Scene10, Scene11, Scene12, Scene14, Scene15, Scene16, Scene17, Scene13];
 
 export default function StoryScene({ idx }: { idx: number }) {
   const S = SCENES[idx] ?? Scene1;
