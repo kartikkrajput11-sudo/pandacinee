@@ -121,18 +121,35 @@ export function ChessBoard({ chess, orientation, canMoveColor, lastMove, onMove 
                     {file}
                   </span>
                 )}
-                {piece && (
-                  <span
-                    draggable={canMove(piece)}
-                    onDragStart={(e) => onDragStart(e, sq)}
-                    className={`text-[clamp(1.8rem,7vw,3.2rem)] leading-none drop-shadow-md ${
-                      piece.color === "w" ? "text-white" : "text-black"
-                    }`}
-                    style={{ textShadow: piece.color === "w" ? "0 1px 2px rgba(0,0,0,0.6)" : "0 1px 2px rgba(255,255,255,0.35)" }}
-                  >
-                    {PIECE_GLYPH[piece.color as Color][piece.type as PieceSymbol]}
-                  </span>
-                )}
+                {piece && (() => {
+                  const gliding = lastMove && lastMove.to === sq;
+                  const dir = orientation === "w" ? 1 : -1;
+                  const dx = gliding ? (FILES.indexOf(lastMove.from[0]) - FILES.indexOf(lastMove.to[0])) * dir * 100 : 0;
+                  const dy = gliding ? (parseInt(lastMove.to[1]) - parseInt(lastMove.from[1])) * dir * 100 : 0;
+                  return (
+                    <span
+                      key={gliding ? `${lastMove.from}-${lastMove.to}` : undefined}
+                      draggable={canMove(piece)}
+                      onDragStart={(e) => onDragStart(e, sq)}
+                      className={`text-[clamp(1.8rem,7vw,3.2rem)] leading-none drop-shadow-md ${
+                        piece.color === "w" ? "text-white" : "text-black"
+                      }`}
+                      style={{
+                        textShadow: piece.color === "w" ? "0 1px 2px rgba(0,0,0,0.6)" : "0 1px 2px rgba(255,255,255,0.35)",
+                        display: "inline-block",
+                        willChange: gliding ? "transform" : undefined,
+                        zIndex: gliding ? 5 : undefined,
+                        ...(gliding ? {
+                          ["--dx" as string]: `${dx}%`,
+                          ["--dy" as string]: `${dy}%`,
+                          animation: "chess-piece-glide 460ms cubic-bezier(0.34,1.5,0.64,1) both",
+                        } : {}),
+                      }}
+                    >
+                      {PIECE_GLYPH[piece.color as Color][piece.type as PieceSymbol]}
+                    </span>
+                  );
+                })()}
                 {isTarget && !piece && (
                   <span className="absolute w-3 h-3 rounded-full bg-petal/70 shadow-[0_0_12px_var(--petal)]" />
                 )}
