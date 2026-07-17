@@ -101,6 +101,7 @@ export function initialState(seed = Date.now()): UnoState {
     lastAction: "The deck is dealt.",
     awaitingWildFrom: null,
     awaitingWildCardId: null,
+    unoCalled: { you: false, them: false },
   };
 }
 
