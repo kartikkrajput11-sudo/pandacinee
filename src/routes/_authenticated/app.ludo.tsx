@@ -105,10 +105,20 @@ function LudoPage() {
     }, 550);
   };
 
-  const handleMove = (t: Token) => {
-    if (!canAct || state.dice == null) return;
+  // Walk override: while animating, this token renders at `pos` instead of state.
+  const [walking, setWalking] = useState<{ player: Player; idx: number; pos: number } | null>(null);
+
+  const handleMove = async (t: Token) => {
+    if (!canAct || state.dice == null || walking) return;
     const legal = legalMoves(state).some((m) => m.player === t.player && m.idx === t.idx);
     if (!legal) return;
+    const path = pathOf(t, state.dice);
+    // Freeze state during walk so board doesn't jump; animate through each square.
+    for (const p of path) {
+      setWalking({ player: t.player, idx: t.idx, pos: p });
+      await new Promise((r) => window.setTimeout(r, 170));
+    }
+    setWalking(null);
     const next = applyMove(state, t.player, t.idx);
     setState(next);
     broadcast(next);
