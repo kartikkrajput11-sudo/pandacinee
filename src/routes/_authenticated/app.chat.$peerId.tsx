@@ -425,7 +425,7 @@ function ChatPeer() {
 
 
       {isPartner && daysTogether > 0 && (
-        <div className="px-6 py-2.5 border-b border-white/5 bg-petal/[0.04] flex items-center justify-center gap-5">
+        <div className="px-6 py-2.5 border-b border-border bg-petal/[0.04] flex items-center justify-center gap-5">
           <span className="text-[9px] uppercase tracking-[0.3em] text-petal/80 font-semibold">
             Together · {daysTogether}d
           </span>
