@@ -39,8 +39,8 @@ type WatchSyncRow = {
   last_seen_at: string;
   ready: boolean;
   source_kind: SourceKind;
-  current_time: number;
-  duration: number;
+  current_seconds: number;
+  duration_seconds: number;
   playback_rate: number;
   source_idx: number;
   season: number | null;
@@ -108,8 +108,8 @@ export function useWatchSync(
       last_seen_at: now,
       ready: myReadyRef.current,
       source_kind: mySourceKindRef.current,
-      current_time: mine.currentTime,
-      duration: mine.duration,
+      current_seconds: mine.currentTime,
+      duration_seconds: mine.duration,
       playback_rate: mine.playbackRate,
       source_idx: mine.sourceIdx,
       season: mine.season,
@@ -131,7 +131,7 @@ export function useWatchSync(
     const cutoff = new Date(Date.now() - 45_000).toISOString();
     const { data, error } = await (supabase as any)
       .from("watch_sync_members")
-      .select("room_key,user_id,partner_id,joined_at,last_seen_at,ready,source_kind,current_time,duration,playback_rate,source_idx,season,episode,event,event_at,is_host")
+      .select("room_key,user_id,partner_id,joined_at,last_seen_at,ready,source_kind,current_seconds,duration_seconds,playback_rate,source_idx,season,episode,event,event_at,is_host")
       .eq("room_key", channelName)
       .gte("last_seen_at", cutoff);
 
@@ -164,8 +164,8 @@ export function useWatchSync(
     setPeer((prev) => {
       if (prev && prev.updatedAt >= updatedAt) return prev;
       return {
-        currentTime: Number(other.current_time ?? 0),
-        duration: Number(other.duration ?? 0),
+        currentTime: Number(other.current_seconds ?? 0),
+        duration: Number(other.duration_seconds ?? 0),
         playbackRate: Number(other.playback_rate ?? 1),
         updatedAt,
         event: other.event,
@@ -174,7 +174,7 @@ export function useWatchSync(
         episode: other.episode,
       };
     });
-    setDrift(mineRef.current.currentTime - Number(other.current_time ?? 0));
+    setDrift(mineRef.current.currentTime - Number(other.current_seconds ?? 0));
   }, [channelName, meId]);
 
   useEffect(() => {
@@ -316,8 +316,8 @@ export function useWatchSync(
     if (discrete || now - lastBackendWriteRef.current > 1000) {
       lastBackendWriteRef.current = now;
       writeBackendState({
-        current_time: next.currentTime,
-        duration: next.duration,
+        current_seconds: next.currentTime,
+        duration_seconds: next.duration,
         playback_rate: next.playbackRate,
         source_idx: next.sourceIdx,
         season: next.season,
