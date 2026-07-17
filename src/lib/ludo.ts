@@ -5,8 +5,8 @@ export type Player = "red" | "yellow";
 export const PLAYERS: Player[] = ["red", "yellow"];
 
 export const PLAYER_META: Record<Player, { name: string; color: string; light: string; emoji: string; start: number; homeEntry: number }> = {
-  red: { name: "Red", color: "#ef4444", light: "#fecaca", emoji: "🔴", start: 0, homeEntry: 50 },
-  yellow: { name: "Yellow", color: "#facc15", light: "#fef3c7", emoji: "🟡", start: 26, homeEntry: 24 },
+  red: { name: "Rose", color: "#e11d74", light: "oklch(0.32 0.09 340)", emoji: "🌹", start: 0, homeEntry: 50 },
+  yellow: { name: "Champagne", color: "#d4a24c", light: "oklch(0.32 0.06 75)", emoji: "🥂", start: 26, homeEntry: 24 },
 };
 
 // Main-track cell coordinates (col, row) on a 15x15 grid, index 0 = Red's start.
