@@ -996,6 +996,7 @@ function CatalogWatch({ id }: { id: string }) {
                     customPlayerRef.current = h;
                     setCustomPlayerReady((n) => n + 1);
                     setPlayerLoading(false);
+                    setReady(true);
                   }}
                   onLoadIssue={fallbackFromPandacine}
                   onEvent={(evt) => {
