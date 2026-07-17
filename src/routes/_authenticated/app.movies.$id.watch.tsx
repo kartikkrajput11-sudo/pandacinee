@@ -188,6 +188,12 @@ function CatalogWatch({ id }: { id: string }) {
     claimHost,
     releaseHost,
     drift,
+    myReady,
+    peerReady,
+    setReady,
+    sendPrepare,
+    peerPreparing,
+    clearPeerPreparing,
   } = useWatchSync(me?.id ?? null, partner?.id ?? null, syncRoomId, isTv ? "tv" : "movie");
 
 
