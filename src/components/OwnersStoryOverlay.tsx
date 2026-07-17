@@ -1,5 +1,20 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { X, Play, Pause, ChevronLeft, ChevronRight } from "lucide-react";
+import ch1 from "@/assets/story/ch1.png";
+import ch2 from "@/assets/story/ch2.png";
+import ch3 from "@/assets/story/ch3.png";
+import ch4 from "@/assets/story/ch4.png";
+import ch5 from "@/assets/story/ch5.png";
+import ch6 from "@/assets/story/ch6.png";
+import ch7 from "@/assets/story/ch7.png";
+import ch8 from "@/assets/story/ch8.png";
+import ch9 from "@/assets/story/ch9.png";
+import ch10 from "@/assets/story/ch10.png";
+import ch11 from "@/assets/story/ch11.png";
+import ch12 from "@/assets/story/ch12.png";
+import ch13 from "@/assets/story/ch13.png";
+
+const CHAPTER_ART = [ch1, ch2, ch3, ch4, ch5, ch6, ch7, ch8, ch9, ch10, ch11, ch12, ch13];
 
 // Slide-based cinematic retelling: one chapter at a time, with big stickers
 // and entrance animations. Auto-advance plays through like a picture book.
