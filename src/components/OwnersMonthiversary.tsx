@@ -26,6 +26,7 @@ export default function OwnersMonthiversary() {
   // Hide inside chat threads / calls / watch rooms where a top-fixed banner
   // fights the message scroll container and constantly jumps the viewport.
   const hideOnRoute =
+    /^\/(auth|reset-password)(\/|$)/.test(pathname) ||
     /^\/app\/(chat|call|watch|movies\/[^/]+\/(watch|party)|paint|scribble|chess|ludo|uno|knowme|hideseek)/.test(
       pathname
     );
