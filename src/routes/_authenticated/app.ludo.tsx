@@ -335,7 +335,7 @@ function Die({ value, rolling, active }: { value: number | null; rolling: boolea
         boxShadow:
           "inset 0 2px 0 rgba(255,255,255,0.22), inset 0 -8px 16px rgba(0,0,0,0.5), 0 10px 20px rgba(0,0,0,0.45)" +
           (active && !rolling ? ", 0 0 22px oklch(0.85 0.16 68 / 0.35)" : ""),
-        animation: rolling ? "ludo-dice-tumble 0.6s cubic-bezier(0.22,1,0.36,1)" : undefined,
+        animation: rolling ? "ludo-dice-tumble 0.85s cubic-bezier(0.22,1.4,0.36,1)" : undefined,
       }}
     >
       <DiePips n={face} />
@@ -608,7 +608,7 @@ function LudoBoard({
                   transition: trans,
                   transformBox: "fill-box",
                   transformOrigin: "center",
-                  animation: isWalking ? "ludo-token-hop 260ms cubic-bezier(0.34,1.56,0.64,1)" : undefined,
+                  animation: isWalking ? "ludo-token-hop 320ms cubic-bezier(0.34,1.7,0.64,1)" : undefined,
                   filter: isWalking ? `drop-shadow(0 4px 6px color-mix(in oklab, ${PLAYER_META[t.player].color} 65%, transparent))` : undefined,
                 }}
               />
