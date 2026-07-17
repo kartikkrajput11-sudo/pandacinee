@@ -1106,6 +1106,69 @@ function CatalogWatch({ id }: { id: string }) {
               </div>
             )}
 
+            {/* Ready-check gate — both partners must load before host can hit play */}
+            {started && gateActive && !bothReady && (
+              <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-4 bg-velvet/85 backdrop-blur-xl">
+                <span className="relative size-16 rounded-full flex items-center justify-center bg-petal/10 border border-petal/30">
+                  <span aria-hidden className="absolute inset-0 rounded-full border-t-2 border-petal animate-spin" />
+                  <RefreshCw className="size-6 text-petal" />
+                </span>
+                <p className="text-[10px] uppercase tracking-[0.35em] text-petal">Loading together</p>
+                <div className="flex flex-col items-center gap-1.5 text-xs text-candle">
+                  <span className="flex items-center gap-2">
+                    {myReady ? <Check className="size-3.5 text-green-400" /> : <span className="size-3.5 rounded-full border-2 border-candle-muted border-t-petal animate-spin" />}
+                    You {myReady ? "ready" : "loading…"}
+                  </span>
+                  <span className="flex items-center gap-2">
+                    {peerReady ? <Check className="size-3.5 text-green-400" /> : <span className="size-3.5 rounded-full border-2 border-candle-muted border-t-petal animate-spin" />}
+                    {partnerFirst} {peerReady ? "ready" : "loading…"}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Both loaded — host taps to actually start */}
+            {started && gateActive && bothReady && iAmHost && pausedByHost && (
+              <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-4 bg-velvet/70 backdrop-blur-sm">
+                <p className="text-[10px] uppercase tracking-[0.35em] text-petal">Both ready 💞</p>
+                <button
+                  onClick={() => {
+                    const h = customPlayerRef.current;
+                    setPausedByHost(false);
+                    runSuppressedPlayerAction(() => {
+                      h?.setMuted(false);
+                      h?.seek(startAt ?? 0);
+                      h?.play();
+                    });
+                    publish({
+                      event: "play",
+                      currentTime: startAt ?? 0,
+                      duration: h?.duration() ?? mine.duration,
+                      sourceIdx,
+                      playbackRate: 1,
+                      season: isTv ? season : null,
+                      episode: isTv ? episode : null,
+                    });
+                  }}
+                  className="relative size-24 rounded-full bg-gradient-to-br from-petal to-petal/80 text-velvet flex items-center justify-center shadow-[0_20px_60px_-10px_rgba(238,130,175,0.7)] active:scale-95 transition-transform ring-4 ring-petal/20"
+                >
+                  <Play className="size-10 fill-velvet ml-1" />
+                </button>
+                <p className="text-xs text-candle-muted">Start the film together</p>
+              </div>
+            )}
+
+            {/* Follower waits for host to start */}
+            {started && gateActive && bothReady && !iAmHost && pausedByHost && (
+              <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-velvet/70 backdrop-blur-sm pointer-events-none">
+                <span className="relative size-14 rounded-full flex items-center justify-center bg-petal/10 border border-petal/30">
+                  <Crown className="size-5 text-petal animate-pulse" />
+                </span>
+                <p className="text-[10px] uppercase tracking-[0.35em] text-petal">Ready</p>
+                <p className="text-sm text-candle">Waiting for {partnerFirst} to start…</p>
+              </div>
+            )}
+
             {countdownRemaining != null && countdownRemaining > 0 && (
               <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-velvet/85 backdrop-blur-sm">
                 <p className="text-[11px] uppercase tracking-[0.3em] text-petal mb-2">Pressing play together in</p>
