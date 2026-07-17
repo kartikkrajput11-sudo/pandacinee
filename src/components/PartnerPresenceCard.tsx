@@ -16,9 +16,10 @@ export function PartnerPresenceCard({
     return () => window.clearInterval(id);
   }, []);
 
+  const activityHidden = partner.activity_visible === false;
   const lastSeenAt = partner.last_seen_at ? new Date(partner.last_seen_at).getTime() : 0;
   // Online if the partner heartbeat pinged in the last 2 minutes (heartbeat cadence is 45s)
-  const online = lastSeenAt > 0 && now - lastSeenAt < 2 * 60 * 1000;
+  const online = !activityHidden && lastSeenAt > 0 && now - lastSeenAt < 2 * 60 * 1000;
   const lastSeen = lastSeenAt ? relTime(now - lastSeenAt) : "a while ago";
 
   const localTime = new Date(now).toLocaleTimeString(undefined, {
@@ -60,7 +61,7 @@ export function PartnerPresenceCard({
           <p className="font-serif text-xl italic truncate leading-tight">{name}</p>
           <div className="flex items-center gap-2 mt-1 text-[11px] text-candle-muted">
             <Circle className={`size-2 ${online ? "fill-emerald-400 text-emerald-400" : "fill-current"}`} />
-            <span>{online ? "Online now" : `Active ${lastSeen}`}</span>
+            <span>{activityHidden ? "Activity hidden" : online ? "Online now" : `Active ${lastSeen}`}</span>
           </div>
         </div>
 

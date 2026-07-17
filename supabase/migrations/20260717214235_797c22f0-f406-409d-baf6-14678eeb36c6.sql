@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS activity_visible BOOLEAN NOT NULL DEFAULT true;
