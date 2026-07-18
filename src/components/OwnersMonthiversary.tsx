@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouterState } from "@tanstack/react-router";
 import { Sparkles, X, Heart } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import OwnersStoryOverlay from "./OwnersStoryOverlay";
 
 // Top banner visible to every user for the whole 18th of each month.
