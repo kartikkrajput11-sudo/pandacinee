@@ -227,7 +227,7 @@ export function PollComposer({
         <button
           onClick={submit}
           disabled={submitting}
-          className="w-full py-2.5 rounded-xl bg-petal text-velvet font-medium text-sm disabled:opacity-50"
+          className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground font-medium text-sm disabled:opacity-50"
         >
           {submitting ? "Creating…" : "Post poll"}
         </button>
