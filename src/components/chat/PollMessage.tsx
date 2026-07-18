@@ -3,6 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { isPollMeta, type PollMeta } from "@/lib/poll";
 import { sfxPollVote } from "@/lib/sfx";
 import { Check, Crown, Sparkles } from "lucide-react";
+import { AvatarImg } from "@/components/AvatarImg";
+
 
 type Vote = { message_id: string; user_id: string; option_id: string };
 
