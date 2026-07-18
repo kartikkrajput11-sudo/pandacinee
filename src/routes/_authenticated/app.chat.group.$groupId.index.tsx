@@ -392,7 +392,7 @@ function GroupChat() {
       {/* Composer */}
       {replyTo && (
         <div className="px-4 py-2 bg-surface/60 border-t border-border flex items-center gap-2 text-xs">
-          <Reply className="size-3 text-petal" />
+          <Reply className="size-3 text-muted-foreground" />
           <span className="truncate flex-1 text-candle-muted">
             Replying to <span className="text-candle italic">
               {memberById.get(replyTo.sender_id)?.display_name ?? "…"}
@@ -406,28 +406,28 @@ function GroupChat() {
           <>
             <button
               onClick={() => imgRef.current?.click()}
-              className="size-10 rounded-full bg-surface border border-border flex items-center justify-center text-petal shrink-0"
+              className="size-10 rounded-full bg-surface border border-border flex items-center justify-center text-foreground/80 shrink-0"
               aria-label="Attach image"
             >
               <ImageIcon className="size-4" />
             </button>
             <button
               onClick={() => setPollOpen(true)}
-              className="size-10 rounded-full bg-surface border border-border flex items-center justify-center text-petal shrink-0"
+              className="size-10 rounded-full bg-surface border border-border flex items-center justify-center text-foreground/80 shrink-0"
               aria-label="Create poll"
             >
               <BarChart3 className="size-4" />
             </button>
             <button
               onClick={() => setEventOpen(true)}
-              className="size-10 rounded-full bg-surface border border-border flex items-center justify-center text-petal shrink-0"
+              className="size-10 rounded-full bg-surface border border-border flex items-center justify-center text-foreground/80 shrink-0"
               aria-label="Plan an event"
             >
               <Calendar className="size-4" />
             </button>
             <button
               onClick={() => setDuelOpen(true)}
-              className="size-10 rounded-full bg-surface border border-border flex items-center justify-center text-petal shrink-0"
+              className="size-10 rounded-full bg-surface border border-border flex items-center justify-center text-foreground/80 shrink-0"
               aria-label="Play together"
             >
               <Swords className="size-4" />
@@ -472,7 +472,7 @@ function GroupChat() {
               <button
                 onClick={handleSend}
                 disabled={sending}
-                className="size-10 rounded-full bg-petal text-velvet flex items-center justify-center shrink-0 disabled:opacity-50"
+                className="size-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center shrink-0 disabled:opacity-50"
                 aria-label="Send"
               >
                 <Send className="size-4" />
