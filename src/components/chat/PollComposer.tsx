@@ -117,9 +117,10 @@ export function PollComposer({
               <button
                 key={k}
                 onClick={() => setKind(k)}
-                className={`flex flex-col items-center gap-1 py-2 rounded-xl border text-[10px] ${
-                  active ? "bg-petal-soft border-petal/60 text-candle" : "bg-velvet border-border text-candle-muted"
+                className={`flex flex-col items-center gap-1 py-2 rounded-xl border text-[10px] transition ${
+                  active ? "bg-primary/10 border-primary/50 text-foreground" : "bg-background/50 border-border text-muted-foreground"
                 }`}
+
               >
                 <M.icon className="size-4" />
                 {M.label}
