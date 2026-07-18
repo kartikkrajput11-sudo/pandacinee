@@ -520,7 +520,7 @@ function ChatPeer() {
         </div>
       )}
 
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-2 py-4">
+      <div ref={scrollRef} className="smooth-scroll flex-1 overflow-y-auto px-2 py-4">
         {loading && <div className="text-center py-8 text-sm text-candle-muted">Loading messages…</div>}
         {!loading && hasMore && (
           <div className="flex justify-center pb-3">
