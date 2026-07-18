@@ -194,7 +194,7 @@ function Me() {
               className="relative size-20 rounded-full bg-petal-soft border border-petal/20 flex items-center justify-center overflow-hidden group"
             >
               {avatarUrl ? (
-                <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
+                <AvatarImg src={avatarUrl} className="w-full h-full object-cover" />
               ) : (
                 <span className="font-serif text-3xl italic text-petal">
                   {me.display_name?.[0]?.toUpperCase() ?? "🐼"}
