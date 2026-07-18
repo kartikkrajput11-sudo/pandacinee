@@ -62,7 +62,7 @@ export default function OwnersMonthiversary() {
       pathname
     );
 
-  if (!is18 || dismissed || hideOnRoute) return null;
+  if (!is18 || dismissed || hideOnRoute || hiddenByAdmin) return null;
 
   return (
     <>
