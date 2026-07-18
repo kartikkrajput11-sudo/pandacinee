@@ -339,6 +339,103 @@ function GroupChat() {
         })}
       </div>
 
+      {/* Long-press action overlay */}
+      {openBubbleId && (() => {
+        const m = chat.messages.find((x) => x.id === openBubbleId);
+        if (!m) return null;
+        const mine = m.sender_id === meId;
+        const sender = memberById.get(m.sender_id);
+        const canDelete = mine || isAdmin;
+        const canPin = isAdmin;
+        const canForward = ["text","image","video","voice","file","sticker"].includes(m.type);
+        return (
+          <div
+            className="fixed inset-0 z-[200] flex flex-col items-center justify-center gap-4 px-6 animate-fade-in"
+            style={{ backdropFilter: "blur(14px) saturate(140%)", WebkitBackdropFilter: "blur(14px) saturate(140%)" as any, background: "rgba(0,0,0,0.55)" }}
+            onClick={() => setOpenBubbleId(null)}
+          >
+            <div
+              className="flex gap-1 items-center px-3 py-2 rounded-full bg-surface/95 border border-border shadow-2xl animate-scale-in"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {QUICK_REACTIONS.map((e) => (
+                <button
+                  key={e}
+                  onClick={() => { chat.toggleReaction(m.id, e); setOpenBubbleId(null); }}
+                  className="size-10 rounded-full hover:bg-muted flex items-center justify-center text-xl transition hover:scale-125"
+                >
+                  {e}
+                </button>
+              ))}
+            </div>
+
+            <div
+              className={`max-w-[80%] px-4 py-2.5 rounded-2xl text-sm animate-scale-in ${mine ? "bg-petal text-velvet" : "bg-surface border border-border"}`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {!mine && <p className="text-[10px] mb-1 opacity-70">{sender?.display_name}</p>}
+              {m.type === "image" && m.media_url ? <GroupImage path={m.media_url} /> :
+               m.type === "voice" ? <span className="opacity-80">🎙️ Voice message</span> :
+               m.type === "poll" ? <span className="opacity-80">📊 Poll</span> :
+               m.type === "event" ? <span className="opacity-80">📅 Event</span> :
+               m.type === "match_invite" ? <span className="opacity-80">⚔️ Match invite</span> :
+               <span className="break-words">{m.content}</span>}
+            </div>
+
+            <div
+              className="w-full max-w-xs rounded-2xl bg-surface/95 border border-border shadow-2xl overflow-hidden animate-scale-in"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                onClick={() => { setReplyTo(m); setOpenBubbleId(null); }}
+                className="w-full px-4 py-3 flex items-center justify-between hover:bg-muted text-sm"
+              >
+                <span>Reply</span><Reply className="size-4 text-muted-foreground" />
+              </button>
+              {canForward && (
+                <button
+                  onClick={() => { setForwardMsg(m as unknown as MessageRow); setOpenBubbleId(null); }}
+                  className="w-full px-4 py-3 flex items-center justify-between hover:bg-muted text-sm border-t border-border"
+                >
+                  <span>Forward</span><Forward className="size-4 text-muted-foreground" />
+                </button>
+              )}
+              {m.type === "text" && m.content && (
+                <button
+                  onClick={() => { navigator.clipboard.writeText(m.content ?? ""); toast.success("Copied"); setOpenBubbleId(null); }}
+                  className="w-full px-4 py-3 flex items-center justify-between hover:bg-muted text-sm border-t border-border"
+                >
+                  <span>Copy</span>
+                </button>
+              )}
+              {canPin && (
+                <button
+                  onClick={() => { chat.pin(m.id, !m.pinned_at); setOpenBubbleId(null); }}
+                  className="w-full px-4 py-3 flex items-center justify-between hover:bg-muted text-sm border-t border-border"
+                >
+                  <span>{m.pinned_at ? "Unpin" : "Pin"}</span>
+                  {m.pinned_at ? <PinOff className="size-4 text-muted-foreground" /> : <Pin className="size-4 text-muted-foreground" />}
+                </button>
+              )}
+              {canDelete && (
+                <button
+                  onClick={async () => {
+                    if (!confirm("Delete this message for everyone?")) return;
+                    try { await chat.deleteForEveryone(m.id); setOpenBubbleId(null); }
+                    catch (e: any) { toast.error(e.message ?? "Delete failed"); }
+                  }}
+                  className="w-full px-4 py-3 flex items-center justify-between hover:bg-red-500/10 text-sm text-red-400 border-t border-border"
+                >
+                  <span>Delete</span><Trash2 className="size-4" />
+                </button>
+              )}
+            </div>
+          </div>
+        );
+      })()}
+
+
+
       {/* Composer */}
       {replyTo && (
         <div className="px-4 py-2 bg-surface/60 border-t border-border flex items-center gap-2 text-xs">
