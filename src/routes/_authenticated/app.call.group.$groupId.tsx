@@ -180,7 +180,7 @@ function GroupCall() {
                 const joined = joinedUserIds.has(m.user_id);
                 return (
                   <div key={m.user_id} className="flex items-center gap-3 py-2 px-2 rounded-xl hover:bg-white/5">
-                    <UserAvatar url={m.profile?.avatar_url ?? null} name={m.profile?.display_name ?? "…"} size={36} />
+                    <UserAvatar src={m.profile?.avatar_url ?? null} name={m.profile?.display_name ?? "…"} className="size-9" />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm truncate">{m.profile?.display_name ?? "…"}</p>
                       <p className={`text-[10px] uppercase tracking-widest ${joined ? "text-emerald-300" : "text-candle-muted"}`}>
@@ -377,7 +377,7 @@ function VoiceStage({
                   }`}
                 >
                   <div className="rounded-full bg-velvet p-1">
-                    <UserAvatar url={url} name={name} size={96} />
+                    <UserAvatar src={url} name={name} className="size-24" />
                   </div>
                 </div>
                 {p.isMe && muted && (
@@ -407,7 +407,7 @@ function AvatarFallback({ name, url }: { name: string; url: string | null }) {
     <div className="w-full h-full bg-gradient-to-br from-velvet via-surface to-velvet flex items-center justify-center">
       <div className="rounded-full p-1 bg-gradient-to-br from-petal via-gold to-petal">
         <div className="rounded-full bg-velvet p-1">
-          <UserAvatar url={url} name={name} size={96} />
+          <UserAvatar src={url} name={name} className="size-24" />
         </div>
       </div>
     </div>
