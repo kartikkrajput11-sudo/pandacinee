@@ -400,20 +400,38 @@ function GroupChat() {
         </div>
       )}
       <div className="flex items-end gap-2 px-3 py-3 border-t border-border bg-surface/70">
-        <button
-          onClick={() => imgRef.current?.click()}
-          className="size-10 rounded-full bg-surface border border-border flex items-center justify-center text-petal shrink-0"
-          aria-label="Attach image"
-        >
-          <ImageIcon className="size-4" />
-        </button>
-        <button
-          onClick={() => setPollOpen(true)}
-          className="size-10 rounded-full bg-surface border border-border flex items-center justify-center text-petal shrink-0"
-          aria-label="Create poll"
-        >
-          <BarChart3 className="size-4" />
-        </button>
+        {!recording && (
+          <>
+            <button
+              onClick={() => imgRef.current?.click()}
+              className="size-10 rounded-full bg-surface border border-border flex items-center justify-center text-petal shrink-0"
+              aria-label="Attach image"
+            >
+              <ImageIcon className="size-4" />
+            </button>
+            <button
+              onClick={() => setPollOpen(true)}
+              className="size-10 rounded-full bg-surface border border-border flex items-center justify-center text-petal shrink-0"
+              aria-label="Create poll"
+            >
+              <BarChart3 className="size-4" />
+            </button>
+            <button
+              onClick={() => setEventOpen(true)}
+              className="size-10 rounded-full bg-surface border border-border flex items-center justify-center text-petal shrink-0"
+              aria-label="Plan an event"
+            >
+              <Calendar className="size-4" />
+            </button>
+            <button
+              onClick={() => setDuelOpen(true)}
+              className="size-10 rounded-full bg-surface border border-border flex items-center justify-center text-petal shrink-0"
+              aria-label="Play together"
+            >
+              <Swords className="size-4" />
+            </button>
+          </>
+        )}
         <input
           ref={imgRef}
           type="file"
@@ -425,27 +443,49 @@ function GroupChat() {
             e.target.value = "";
           }}
         />
-        <textarea
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-              void handleSend();
-            }
-          }}
-          placeholder="Message the circle…"
-          rows={1}
-          className="flex-1 resize-none bg-surface border border-border rounded-2xl px-4 py-2.5 text-sm text-candle max-h-32"
-        />
-        <button
-          onClick={handleSend}
-          disabled={!text.trim() || sending}
-          className="size-10 rounded-full bg-petal text-velvet flex items-center justify-center shrink-0 disabled:opacity-50"
-          aria-label="Send"
-        >
-          <Send className="size-4" />
-        </button>
+        {recording ? (
+          meId && (
+            <VoiceRecorder
+              userId={meId}
+              onSend={handleVoice}
+              onRecordingChange={setRecording}
+            />
+          )
+        ) : (
+          <>
+            <textarea
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  void handleSend();
+                }
+              }}
+              placeholder="Message the circle…"
+              rows={1}
+              className="flex-1 resize-none bg-surface border border-border rounded-2xl px-4 py-2.5 text-sm text-candle max-h-32"
+            />
+            {text.trim() ? (
+              <button
+                onClick={handleSend}
+                disabled={sending}
+                className="size-10 rounded-full bg-petal text-velvet flex items-center justify-center shrink-0 disabled:opacity-50"
+                aria-label="Send"
+              >
+                <Send className="size-4" />
+              </button>
+            ) : (
+              meId && (
+                <VoiceRecorder
+                  userId={meId}
+                  onSend={handleVoice}
+                  onRecordingChange={setRecording}
+                />
+              )
+            )}
+          </>
+        )}
       </div>
 
       <PollComposer
