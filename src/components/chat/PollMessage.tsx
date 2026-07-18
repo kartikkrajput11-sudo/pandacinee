@@ -3,6 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { isPollMeta, type PollMeta } from "@/lib/poll";
 import { sfxPollVote } from "@/lib/sfx";
 import { Check, Crown, Sparkles } from "lucide-react";
+import { AvatarImg } from "@/components/AvatarImg";
+
 
 type Vote = { message_id: string; user_id: string; option_id: string };
 
@@ -176,23 +178,23 @@ export function PollMessage({
                       {voters.slice(0, 6).map((uid) => {
                         const p = memberById.get(uid);
                         const initial = (p?.display_name ?? "?").charAt(0).toUpperCase();
-                        return p?.avatar_url ? (
-                          <img
-                            key={uid}
-                            src={p.avatar_url}
-                            alt=""
-                            title={p?.display_name ?? "Panda"}
-                            className="size-4 rounded-full object-cover ring-[1.5px] ring-card"
-                          />
-                        ) : (
+                        return (
                           <div
                             key={uid}
-                            className="size-4 rounded-full bg-muted ring-[1.5px] ring-card flex items-center justify-center text-[8px] text-foreground font-semibold"
                             title={p?.display_name ?? "Panda"}
+                            className="relative size-4 rounded-full ring-[1.5px] ring-card overflow-hidden bg-muted flex items-center justify-center text-[8px] text-foreground font-semibold"
                           >
-                            {initial}
+                            <span className="absolute inset-0 flex items-center justify-center">{initial}</span>
+                            {p?.avatar_url && (
+                              <AvatarImg
+                                src={p.avatar_url}
+                                alt=""
+                                className="relative size-4 rounded-full object-cover"
+                              />
+                            )}
                           </div>
                         );
+
                       })}
                     </div>
                     {voters.length > 6 && (
