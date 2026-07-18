@@ -108,8 +108,18 @@ export default function OwnersMonthiversary() {
         <span
           role="button"
           tabIndex={0}
-          onClick={(e) => { e.stopPropagation(); setDismissed(true); }}
-          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.stopPropagation(); setDismissed(true); } }}
+          onClick={(e) => {
+            e.stopPropagation();
+            try { localStorage.setItem(dismissKey, "1"); } catch {}
+            setDismissed(true);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.stopPropagation();
+              try { localStorage.setItem(dismissKey, "1"); } catch {}
+              setDismissed(true);
+            }
+          }}
           className="relative ml-1 size-5 rounded-full flex items-center justify-center text-[#fdf6ec]/70 hover:text-[#fdf6ec] hover:bg-white/10 transition-colors"
           aria-label="Dismiss banner"
         >
