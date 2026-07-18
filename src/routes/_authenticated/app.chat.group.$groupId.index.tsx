@@ -374,9 +374,11 @@ function GroupChat() {
         const canForward = ["text","image","video","voice","file","sticker"].includes(m.type);
         return (
           <div
-            className="fixed inset-0 z-[200] flex flex-col items-center justify-center gap-4 px-6 animate-fade-in"
+            className={`fixed inset-0 z-[200] flex flex-col items-center justify-center gap-4 px-6 ${bubbleClosing ? "animate-fade-out" : "animate-fade-in"}`}
             style={{ backdropFilter: "blur(14px) saturate(140%)", WebkitBackdropFilter: "blur(14px) saturate(140%)" as any, background: "rgba(0,0,0,0.55)" }}
             onClick={() => closeBubble()}
+            onMouseMove={armBubbleIdle}
+            onTouchStart={armBubbleIdle}
           >
             <div
               className="flex gap-1 items-center px-3 py-2 rounded-full bg-surface/95 border border-border shadow-2xl animate-scale-in"
