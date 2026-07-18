@@ -151,7 +151,7 @@ function Home() {
       {/* Section: Together */}
       <section className="relative z-10">
         <p className="text-[10px] uppercase tracking-[0.22em] text-candle-muted mb-3 px-1">Together</p>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
           <TileLink to="/app/movies" search={{ q: "" }} Icon={Clapperboard} label="Watch" caption="Tonight's pick" />
           <TileLink to="/app/memories" Icon={BookHeart} label="Memories" caption="Your archive" />
           <TileLink to="/app/anniversary" Icon={Heart} label="Anniversary" caption="Just for us" />
