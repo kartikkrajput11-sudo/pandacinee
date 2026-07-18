@@ -42,6 +42,7 @@ function Me() {
   useEffect(() => {
     if (!me) return;
     setDisplayName(me.display_name ?? "");
+    setUsername(me.username ?? "");
     setBio(me.bio ?? "");
     setFavoriteColor(me.favorite_color);
     setEquippedTags(Array.isArray((me as any).equipped_tags) ? ((me as any).equipped_tags as string[]) : []);
@@ -49,6 +50,59 @@ function Me() {
     setPartnerNickname(me.partner_nickname ?? "");
     setAvatarUrl(me.avatar_url);
   }, [me]);
+
+  // Debounced username availability check
+  useEffect(() => {
+    if (!me) return;
+    const trimmed = username.trim().toLowerCase();
+    if (trimmed === (me.username ?? "").toLowerCase()) {
+      setUsernameStatus("idle");
+      setUsernameSuggestions([]);
+      return;
+    }
+    if (!/^[a-z0-9_.]{3,30}$/.test(trimmed)) {
+      setUsernameStatus("invalid");
+      setUsernameSuggestions([]);
+      return;
+    }
+    setUsernameStatus("checking");
+    const t = window.setTimeout(async () => {
+      const { data: available } = await supabase.rpc("is_username_available", { _username: trimmed });
+      if (available) {
+        setUsernameStatus("available");
+        setUsernameSuggestions([]);
+      } else {
+        setUsernameStatus("taken");
+        const { data: sugg } = await supabase.rpc("suggest_usernames", { _base: trimmed, _count: 5 });
+        setUsernameSuggestions(Array.isArray(sugg) ? (sugg as string[]) : []);
+      }
+    }, 400);
+    return () => window.clearTimeout(t);
+  }, [username, me]);
+
+  async function saveUsername() {
+    if (!me) return;
+    const trimmed = username.trim().toLowerCase();
+    if (trimmed === (me.username ?? "").toLowerCase()) return;
+    if (usernameStatus !== "available") {
+      toast.error("Pick an available username first");
+      return;
+    }
+    setSavingUsername(true);
+    const { error } = await supabase.from("profiles").update({ username: trimmed }).eq("id", me.id);
+    setSavingUsername(false);
+    if (error) {
+      if (error.code === "23505") {
+        toast.error("That username was just taken");
+        setUsernameStatus("taken");
+      } else {
+        toast.error(error.message);
+      }
+      return;
+    }
+    toast.success("Username updated");
+    queryClient.invalidateQueries({ queryKey: ["profile"] });
+  }
 
   useEffect(() => {
     let active = true;
