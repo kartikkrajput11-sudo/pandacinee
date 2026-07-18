@@ -271,8 +271,19 @@ function GroupChat() {
                   </p>
                 )}
                 <div
-                  onClick={() => setOpenBubbleId(openBubbleId === m.id ? null : m.id)}
-                  className={`px-3 py-2 rounded-2xl text-sm cursor-pointer break-words ${
+                  onPointerDown={(e) => {
+                    if ((e.target as HTMLElement).closest("button, a, input, textarea")) return;
+                    if (longPressTimer.current) clearTimeout(longPressTimer.current);
+                    longPressTimer.current = setTimeout(() => {
+                      setOpenBubbleId(m.id);
+                      if (navigator.vibrate) navigator.vibrate(15);
+                    }, 550);
+                  }}
+                  onPointerUp={() => { if (longPressTimer.current) clearTimeout(longPressTimer.current); }}
+                  onPointerLeave={() => { if (longPressTimer.current) clearTimeout(longPressTimer.current); }}
+                  onPointerCancel={() => { if (longPressTimer.current) clearTimeout(longPressTimer.current); }}
+                  onContextMenu={(e) => { e.preventDefault(); setOpenBubbleId(m.id); }}
+                  className={`px-3 py-2 rounded-2xl text-sm select-none break-words transition ${
                     mine
                       ? "bg-petal text-velvet rounded-br-sm"
                       : fromPartner
@@ -319,68 +330,6 @@ function GroupChat() {
                         {emoji} {uids.length}
                       </button>
                     ))}
-                  </div>
-                )}
-
-                {/* Action row */}
-                {openBubbleId === m.id && (
-                  <div className={`mt-1 flex gap-1 items-center flex-wrap ${mine ? "justify-end" : ""}`}>
-                    {QUICK_REACTIONS.map((e) => (
-                      <button
-                        key={e}
-                        onClick={(ev) => {
-                          ev.stopPropagation();
-                          chat.toggleReaction(m.id, e);
-                          setOpenBubbleId(null);
-                        }}
-                        className="size-7 rounded-full bg-surface border border-border flex items-center justify-center text-sm"
-                      >
-                        {e}
-                      </button>
-                    ))}
-                    <button
-                      onClick={(ev) => { ev.stopPropagation(); setReplyTo(m); setOpenBubbleId(null); }}
-                      className="size-7 rounded-full bg-surface border border-border flex items-center justify-center text-candle-muted"
-                      aria-label="Reply"
-                    >
-                      <Reply className="size-3.5" />
-                    </button>
-                    {["text","image","video","voice","file","sticker"].includes(m.type) && (
-                      <button
-                        onClick={(ev) => { ev.stopPropagation(); setForwardMsg(m as unknown as MessageRow); setOpenBubbleId(null); }}
-                        className="size-7 rounded-full bg-surface border border-border flex items-center justify-center text-candle-muted"
-                        aria-label="Forward"
-                      >
-                        <Forward className="size-3.5" />
-                      </button>
-                    )}
-                    {canPin && (
-                      <button
-                        onClick={(ev) => { ev.stopPropagation(); chat.pin(m.id, !m.pinned_at); setOpenBubbleId(null); }}
-                        className="size-7 rounded-full bg-surface border border-border flex items-center justify-center text-candle-muted"
-                        aria-label={m.pinned_at ? "Unpin" : "Pin"}
-                      >
-                        {m.pinned_at ? <PinOff className="size-3.5" /> : <Pin className="size-3.5" />}
-                      </button>
-                    )}
-                    {canDelete && (
-                      <button
-                        onClick={async (ev) => {
-                          ev.stopPropagation();
-                          if (!confirm("Delete this message for everyone?")) return;
-                          try {
-                            await chat.deleteForEveryone(m.id);
-                            setOpenBubbleId(null);
-                          } catch (e: any) {
-                            toast.error(e.message ?? "Delete failed");
-                          }
-                        }}
-                        className="size-7 rounded-full bg-surface border border-border flex items-center justify-center text-red-400"
-                        aria-label="Delete"
-                      >
-                        <Trash2 className="size-3.5" />
-                      </button>
-                    )}
                   </div>
                 )}
               </div>
