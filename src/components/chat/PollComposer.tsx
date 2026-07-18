@@ -198,7 +198,7 @@ export function PollComposer({
         {/* Watchlist picker for movie polls */}
         {kind === "movie" && (
           <div className="mb-3">
-            <p className="text-[10px] uppercase tracking-widest text-petal mb-1.5">From your watchlist</p>
+            <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1.5">From your watchlist</p>
             {watchlist.length === 0 ? (
               <p className="text-xs text-candle-muted italic">Nothing on your watchlist yet.</p>
             ) : (
