@@ -96,7 +96,7 @@ function ChatBubbleImpl({
     if (closeTimerRef.current) return;
     setActionsClosing(true);
     closeTimerRef.current = window.setTimeout(() => {
-      closeActions();
+      setActionsOpen(false);
       setActionsClosing(false);
       setVanishOpen(false);
       closeTimerRef.current = null;
