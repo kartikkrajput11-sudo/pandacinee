@@ -355,7 +355,7 @@ function GroupChat() {
                     <span>{m.content}</span>
                   )}
                   {heartPopId === m.id && (
-                    <span className="pointer-events-none absolute inset-0 flex items-center justify-center text-3xl animate-scale-in" aria-hidden>
+                    <span className="pointer-events-none absolute inset-x-0 -bottom-2 flex justify-center text-2xl animate-reaction-drop" aria-hidden>
                       ❤️
                     </span>
                   )}
@@ -368,7 +368,7 @@ function GroupChat() {
                       <button
                         key={emoji}
                         onClick={() => chat.toggleReaction(m.id, emoji)}
-                        className={`text-[11px] px-1.5 py-0.5 rounded-full border ${
+                        className={`animate-reaction-chip transition-transform duration-150 hover:scale-110 active:scale-95 text-[11px] px-1.5 py-0.5 rounded-full border ${
                           meId && uids.includes(meId) ? "bg-petal-soft border-petal/40" : "bg-surface border-border"
                         }`}
                       >
