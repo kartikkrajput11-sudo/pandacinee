@@ -284,12 +284,14 @@ function GroupChat() {
                   onPointerLeave={() => { if (longPressTimer.current) clearTimeout(longPressTimer.current); }}
                   onPointerCancel={() => { if (longPressTimer.current) clearTimeout(longPressTimer.current); }}
                   onContextMenu={(e) => { e.preventDefault(); setOpenBubbleId(m.id); }}
-                  className={`px-3 py-2 rounded-2xl text-sm select-none break-words transition ${
-                    mine
-                      ? "bg-petal text-velvet rounded-br-sm"
-                      : fromPartner
-                        ? "bg-petal-soft border border-petal rounded-bl-sm shadow-[0_0_18px_2px_hsl(var(--petal)/0.55),0_0_38px_6px_hsl(var(--petal)/0.28)] animate-partner-glow"
-                        : "bg-surface border border-border rounded-bl-sm"
+                  className={`${["poll","match_invite","event"].includes(m.type) ? "p-0 bg-transparent" : "px-3 py-2"} rounded-2xl text-sm select-none break-words transition ${
+                    ["poll","match_invite","event"].includes(m.type)
+                      ? ""
+                      : mine
+                        ? "bg-petal text-velvet rounded-br-sm"
+                        : fromPartner
+                          ? "bg-petal-soft border border-petal rounded-bl-sm shadow-[0_0_18px_2px_hsl(var(--petal)/0.55),0_0_38px_6px_hsl(var(--petal)/0.28)] animate-partner-glow"
+                          : "bg-surface border border-border rounded-bl-sm"
                   } ${m.pinned_at ? "ring-1 ring-petal/40" : ""}`}
                 >
                   {replyMsg && (
