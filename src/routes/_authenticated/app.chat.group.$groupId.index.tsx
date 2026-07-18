@@ -262,7 +262,7 @@ function GroupChat() {
       )}
 
       {/* Messages */}
-      <div ref={listRef} className="flex-1 overflow-y-auto px-3 py-4 space-y-2">
+      <div ref={listRef} className="smooth-scroll flex-1 overflow-y-auto px-3 py-4 space-y-2">
         {chat.loading && <div className="text-center text-candle-muted text-sm py-8">Loading…</div>}
         {!chat.loading && chat.messages.length === 0 && (
           <div className="text-center text-candle-muted text-sm py-16">
