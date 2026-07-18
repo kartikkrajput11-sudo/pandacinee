@@ -153,7 +153,8 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <Outlet />
+        <RouteFadeOutlet />
+
         <PartnerMessageNotifier />
         <OwnersMonthiversary />
         <PairAnniversaryCelebration />
