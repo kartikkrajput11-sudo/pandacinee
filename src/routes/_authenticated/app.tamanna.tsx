@@ -144,6 +144,9 @@ function AdminDashboard() {
         </div>
       </header>
 
+      <FoundersBannerToggle />
+
+
       <nav className="flex gap-1 mb-6 -mx-1 px-1 overflow-x-auto no-scrollbar sticky top-0 z-10 bg-background/80 backdrop-blur pt-1 pb-2">
         {([
           ["overview", LayoutDashboard, "Overview"],
@@ -181,7 +184,69 @@ function AdminDashboard() {
   );
 }
 
+// ─── Founders' Monthiversary banner toggle ────────────────────────────────
+
+function FoundersBannerToggle() {
+  const [hidden, setHidden] = useState<boolean | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      const { data } = await supabase
+        .from("site_flags")
+        .select("value")
+        .eq("key", "founders_monthiversary_hidden")
+        .maybeSingle();
+      if (!alive) return;
+      setHidden(data?.value === true || (data?.value as any) === "true");
+    })();
+    return () => { alive = false; };
+  }, []);
+
+  async function toggle() {
+    if (hidden === null || saving) return;
+    setSaving(true);
+    const next = !hidden;
+    const { error } = await supabase
+      .from("site_flags")
+      .upsert({ key: "founders_monthiversary_hidden", value: next as any, updated_at: new Date().toISOString() });
+    setSaving(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    setHidden(next);
+    toast.success(next ? "Founders' banner hidden site-wide" : "Founders' banner restored");
+  }
+
+  return (
+    <div className="mb-4 p-4 rounded-2xl border border-border bg-surface flex items-center gap-3">
+      <div className="size-10 rounded-full bg-petal-soft flex items-center justify-center shrink-0">
+        <Heart className="size-4 text-petal" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-semibold text-candle">Founders' monthiversary banner</p>
+        <p className="text-[11px] text-candle-muted">
+          {hidden === null ? "Loading…" : hidden ? "Currently hidden for everyone." : "Shows every 18th at the top of the app."}
+        </p>
+      </div>
+      <button
+        onClick={toggle}
+        disabled={hidden === null || saving}
+        aria-pressed={!!hidden}
+        className={`relative w-12 h-6 rounded-full transition-colors shrink-0 ${hidden ? "bg-petal" : "bg-border"} disabled:opacity-50`}
+      >
+        <span
+          className={`absolute top-0.5 size-5 rounded-full bg-white shadow transition-transform ${hidden ? "translate-x-6" : "translate-x-0.5"}`}
+        />
+      </button>
+    </div>
+  );
+}
+
 // ─── Overview ────────────────────────────────────────────────────────────
+
 
 function OverviewTab() {
   const fetchStats = useServerFn(getAdminStats);
