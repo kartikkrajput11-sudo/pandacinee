@@ -15,16 +15,16 @@ export const Route = createFileRoute("/")({
   },
   head: () => ({
     meta: [
-      { title: "PANDACINE — Cinema for two" },
+      { title: "PANDACINE — Connect Together" },
       {
         name: "description",
         content:
-          "Watch movies in sync, chat in real time, and celebrate every anniversary together. The cozy couples app made for the two of you.",
+          "Your premium space to watch movies, play games, chat, call, celebrate milestones, and cherish every moment together.",
       },
-      { property: "og:title", content: "PANDACINE — Cinema for two" },
+      { property: "og:title", content: "PANDACINE — Connect Together" },
       {
         property: "og:description",
-        content: "Your digital front row seat for movie nights and memories.",
+        content: "Your premium space to watch movies, play games, chat, call, celebrate milestones, and cherish every moment together.",
       },
     ],
   }),
