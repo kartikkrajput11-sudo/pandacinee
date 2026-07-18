@@ -304,7 +304,20 @@ function GroupChat() {
                       if (navigator.vibrate) navigator.vibrate(15);
                     }, 550);
                   }}
-                  onPointerUp={() => { if (longPressTimer.current) clearTimeout(longPressTimer.current); }}
+                  onPointerUp={(e) => {
+                    if (longPressTimer.current) clearTimeout(longPressTimer.current);
+                    if ((e.target as HTMLElement).closest("button, a, input, textarea")) return;
+                    const now = Date.now();
+                    if (lastTapRef.current.id === m.id && now - lastTapRef.current.at < 320) {
+                      lastTapRef.current = { id: "", at: 0 };
+                      chat.toggleReaction(m.id, "❤️");
+                      setHeartPopId(m.id);
+                      if (navigator.vibrate) navigator.vibrate(15);
+                      setTimeout(() => setHeartPopId((v) => (v === m.id ? null : v)), 700);
+                    } else {
+                      lastTapRef.current = { id: m.id, at: now };
+                    }
+                  }}
                   onPointerLeave={() => { if (longPressTimer.current) clearTimeout(longPressTimer.current); }}
                   onPointerCancel={() => { if (longPressTimer.current) clearTimeout(longPressTimer.current); }}
                   onContextMenu={(e) => { e.preventDefault(); setOpenBubbleId(m.id); }}
