@@ -30,18 +30,27 @@ export type MatchMessage = {
   created_at: string;
 };
 
-/** The duel-style games that route through the group-match lobby. */
+/** Games playable from the group-match lobby. `maxPlayers` seats; everyone
+ *  else joins as an observer with their own private chat. */
 export const DUEL_GAMES = [
-  { id: "chess",     name: "Chess",     emoji: "♟️", href: "/app/chess" },
-  { id: "know-me",   name: "Know Me?",  emoji: "💌", href: "/app/knowme" },
-  { id: "hide-seek", name: "Hide & Seek", emoji: "🫣", href: "/app/hideseek" },
+  { id: "chess",           name: "Chess",              emoji: "♟️", href: "/app/chess",            maxPlayers: 2 },
+  { id: "ludo",            name: "Ludo",               emoji: "🎲", href: "/app/ludo",             maxPlayers: 2 },
+  { id: "uno",             name: "Uno",                emoji: "🃏", href: "/app/uno",              maxPlayers: 4 },
+  { id: "know-me",         name: "How Well Do You Know Me?", emoji: "💌", href: "/app/knowme",     maxPlayers: 2 },
+  { id: "hide-seek",       name: "Hide & Seek",        emoji: "🫣", href: "/app/hideseek",         maxPlayers: 2 },
+  { id: "scribble-guess",  name: "Scribble & Guess",   emoji: "✏️", href: "/app/scribble",         maxPlayers: 4 },
+  { id: "paint-together",  name: "Paint Together",     emoji: "🎨", href: "/app/paint",            maxPlayers: 8 },
+  { id: "love-quiz",       name: "Love Quiz",          emoji: "💘", href: "/app/love-quiz",        maxPlayers: 2 },
+  { id: "memory-challenge",name: "Memory Challenge",   emoji: "📸", href: "/app/memory-challenge", maxPlayers: 4 },
+  { id: "daily-challenge", name: "Daily Challenge",    emoji: "🌞", href: "/app/daily-challenge",  maxPlayers: 4 },
+  { id: "puzzle-together", name: "Puzzle Together",    emoji: "🧩", href: "/app/puzzle",           maxPlayers: 4 },
 ];
 
-export async function createGroupMatch(groupId: string, game: string): Promise<GroupMatchRow> {
+export async function createGroupMatch(groupId: string, game: string, maxPlayers = 2): Promise<GroupMatchRow> {
   const { data, error } = await supabase.rpc("create_group_match" as never, {
     _group_id: groupId,
     _game: game,
-    _max_players: 2,
+    _max_players: maxPlayers,
   } as never);
   if (error) throw error;
   return data as unknown as GroupMatchRow;
