@@ -73,6 +73,8 @@ function GroupChat() {
   const listRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLInputElement>(null);
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastTapRef = useRef<{ id: string; at: number }>({ id: "", at: 0 });
+  const [heartPopId, setHeartPopId] = useState<string | null>(null);
 
   const group = groupData?.group;
   const members = groupData?.members ?? [];
