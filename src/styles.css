@@ -262,6 +262,16 @@ html.theme-anim * {
 
 
 /* Animations */
+@keyframes poll-shimmer {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(400%); }
+}
+@keyframes poll-pulse {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 hsl(var(--petal) / 0.5); }
+  50% { transform: scale(1.015); box-shadow: 0 0 0 6px hsl(var(--petal) / 0); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 hsl(var(--petal) / 0); }
+}
+
 @keyframes float-petal {
   0% { transform: translateY(-10vh) translateX(0) rotate(0deg); opacity: 0; }
   10% { opacity: 0.7; }
