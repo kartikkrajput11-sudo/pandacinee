@@ -118,6 +118,48 @@ function GroupChat() {
     }
   }
 
+  async function handleVoice(path: string, durationMs: number) {
+    try {
+      await chat.send({
+        content: "🎙 Voice message",
+        type: "voice",
+        media_url: path,
+        media_meta: { duration_ms: durationMs },
+        reply_to_id: replyTo?.id ?? null,
+      });
+      setReplyTo(null);
+    } catch (e: any) {
+      toast.error(e.message ?? "Couldn't send voice");
+    }
+  }
+
+  async function handleLaunchDuel(g: { id: string; name: string; emoji: string }) {
+    setDuelOpen(false);
+    try {
+      const match = await createGroupMatch(groupId, g.id);
+      await chat.send({
+        content: `${g.name} — take a seat`,
+        type: "match_invite",
+        media_meta: { match_id: match.id, game: g.id, game_name: g.name, emoji: g.emoji },
+      });
+      navigate({ to: "/app/group-match/$matchId", params: { matchId: match.id } });
+    } catch (e: any) {
+      toast.error(e.message ?? "Couldn't start match");
+    }
+  }
+
+  async function handleEventCreated(ev: { id: string; title: string }) {
+    try {
+      await chat.send({
+        content: ev.title,
+        type: "event",
+        media_meta: { event_id: ev.id },
+      });
+    } catch (e: any) {
+      toast.error(e.message ?? "Event created but couldn't post card");
+    }
+  }
+
   async function startCall(kind: "voice" | "video") {
     try {
       const c = await startGroupCall(groupId, kind);
