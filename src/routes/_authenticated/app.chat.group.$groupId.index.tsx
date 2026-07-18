@@ -51,7 +51,7 @@ function GroupChat() {
     if (bubbleCloseRef.current) return;
     setBubbleClosing(true);
     bubbleCloseRef.current = setTimeout(() => {
-      closeBubble();
+      setOpenBubbleId(null);
       setBubbleClosing(false);
       bubbleCloseRef.current = null;
     }, 220);
