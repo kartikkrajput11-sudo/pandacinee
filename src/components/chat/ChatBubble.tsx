@@ -96,7 +96,7 @@ function ChatBubbleImpl({
     if (closeTimerRef.current) return;
     setActionsClosing(true);
     closeTimerRef.current = window.setTimeout(() => {
-      setActionsOpen(false);
+      closeActions();
       setActionsClosing(false);
       setVanishOpen(false);
       closeTimerRef.current = null;
@@ -613,7 +613,7 @@ function ChatBubbleImpl({
         {actionsOpen && typeof document !== "undefined" && createPortal(
           <div
             className="fixed inset-0 z-[200] flex flex-col items-center justify-center gap-4 px-6 animate-fade-in bg-black/60 backdrop-blur-xl"
-            onClick={() => { setActionsOpen(false); setVanishOpen(false); }}
+            onClick={() => { closeActions(); }}
             onPointerDown={(e) => e.stopPropagation()}
           >
             {/* Quick reactions */}
@@ -624,7 +624,7 @@ function ChatBubbleImpl({
               {QUICK_REACTIONS.map((e) => (
                 <button
                   key={e}
-                  onClick={() => { onReact(m, e); setActionsOpen(false); }}
+                  onClick={() => { onReact(m, e); closeActions(); }}
                   className="size-10 rounded-full hover:bg-muted flex items-center justify-center text-xl transition hover:scale-125"
                 >
                   {e}
@@ -658,14 +658,14 @@ function ChatBubbleImpl({
               onClick={(e) => e.stopPropagation()}
             >
               <button
-                onClick={() => { onReply(m); setActionsOpen(false); }}
+                onClick={() => { onReply(m); closeActions(); }}
                 className="w-full px-4 py-3 flex items-center justify-between hover:bg-muted text-sm text-candle"
               >
                 <span>Reply</span><Reply className="size-4 text-candle-muted" />
               </button>
               {onForward && (
                 <button
-                  onClick={() => { onForward(m); setActionsOpen(false); }}
+                  onClick={() => { onForward(m); closeActions(); }}
                   className="w-full px-4 py-3 flex items-center justify-between hover:bg-muted text-sm text-candle border-t border-border"
                 >
                   <span>Forward</span><Forward className="size-4 text-candle-muted" />
@@ -673,20 +673,20 @@ function ChatBubbleImpl({
               )}
               {m.type === "text" && m.content && (
                 <button
-                  onClick={() => { navigator.clipboard.writeText(m.content ?? ""); setActionsOpen(false); }}
+                  onClick={() => { navigator.clipboard.writeText(m.content ?? ""); closeActions(); }}
                   className="w-full px-4 py-3 flex items-center justify-between hover:bg-muted text-sm text-candle border-t border-border"
                 >
                   <span>Copy</span>
                 </button>
               )}
               <button
-                onClick={() => { onPin(m); setActionsOpen(false); }}
+                onClick={() => { onPin(m); closeActions(); }}
                 className="w-full px-4 py-3 flex items-center justify-between hover:bg-muted text-sm text-candle border-t border-border"
               >
                 <span>{m.pinned ? "Unpin" : "Pin"}</span><Pin className="size-4 text-candle-muted" />
               </button>
               <button
-                onClick={() => { onReact(m, "❤️"); setActionsOpen(false); }}
+                onClick={() => { onReact(m, "❤️"); closeActions(); }}
                 className="w-full px-4 py-3 flex items-center justify-between hover:bg-muted text-sm text-candle border-t border-border"
               >
                 <span>Love</span><Heart className="size-4 text-petal" />
@@ -711,7 +711,7 @@ function ChatBubbleImpl({
                   ].map((o) => (
                     <button
                       key={o.label}
-                      onClick={() => { onVanish(m, o.s); setVanishOpen(false); setActionsOpen(false); }}
+                      onClick={() => { onVanish(m, o.s); closeActions(); }}
                       className="px-2 py-1 text-xs rounded-lg bg-surface-elevated border border-border text-candle hover:border-petal/60"
                     >
                       {o.label}
@@ -719,7 +719,7 @@ function ChatBubbleImpl({
                   ))}
                   {m.expires_at && (
                     <button
-                      onClick={() => { onVanish(m, null); setVanishOpen(false); setActionsOpen(false); }}
+                      onClick={() => { onVanish(m, null); closeActions(); }}
                       className="px-2 py-1 text-xs rounded-lg text-destructive hover:bg-destructive/10"
                     >
                       Cancel vanish
@@ -729,7 +729,7 @@ function ChatBubbleImpl({
               )}
               {mine && (
                 <button
-                  onClick={() => { onDelete(m); setActionsOpen(false); }}
+                  onClick={() => { onDelete(m); closeActions(); }}
                   className="w-full px-4 py-3 flex items-center justify-between hover:bg-red-500/10 text-sm text-destructive border-t border-border"
                 >
                   <span>Delete</span><Trash2 className="size-4" />
