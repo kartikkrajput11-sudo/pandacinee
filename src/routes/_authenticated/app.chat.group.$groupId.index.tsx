@@ -73,6 +73,8 @@ function GroupChat() {
   const listRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLInputElement>(null);
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastTapRef = useRef<{ id: string; at: number }>({ id: "", at: 0 });
+  const [heartPopId, setHeartPopId] = useState<string | null>(null);
 
   const group = groupData?.group;
   const members = groupData?.members ?? [];
@@ -302,11 +304,24 @@ function GroupChat() {
                       if (navigator.vibrate) navigator.vibrate(15);
                     }, 550);
                   }}
-                  onPointerUp={() => { if (longPressTimer.current) clearTimeout(longPressTimer.current); }}
+                  onPointerUp={(e) => {
+                    if (longPressTimer.current) clearTimeout(longPressTimer.current);
+                    if ((e.target as HTMLElement).closest("button, a, input, textarea")) return;
+                    const now = Date.now();
+                    if (lastTapRef.current.id === m.id && now - lastTapRef.current.at < 320) {
+                      lastTapRef.current = { id: "", at: 0 };
+                      chat.toggleReaction(m.id, "❤️");
+                      setHeartPopId(m.id);
+                      if (navigator.vibrate) navigator.vibrate(15);
+                      setTimeout(() => setHeartPopId((v) => (v === m.id ? null : v)), 700);
+                    } else {
+                      lastTapRef.current = { id: m.id, at: now };
+                    }
+                  }}
                   onPointerLeave={() => { if (longPressTimer.current) clearTimeout(longPressTimer.current); }}
                   onPointerCancel={() => { if (longPressTimer.current) clearTimeout(longPressTimer.current); }}
                   onContextMenu={(e) => { e.preventDefault(); setOpenBubbleId(m.id); }}
-                  className={`${["poll","match_invite","event"].includes(m.type) ? "p-0 bg-transparent" : "px-3 py-2"} rounded-2xl text-sm select-none break-words transition ${
+                  className={`relative ${["poll","match_invite","event"].includes(m.type) ? "p-0 bg-transparent" : "px-3 py-2"} rounded-2xl text-sm select-none break-words transition ${
                     ["poll","match_invite","event"].includes(m.type)
                       ? ""
                       : mine
@@ -338,6 +353,11 @@ function GroupChat() {
                     <GroupEventCard eventId={(m.media_meta as any)?.event_id} meId={meId} mine={mine} />
                   ) : (
                     <span>{m.content}</span>
+                  )}
+                  {heartPopId === m.id && (
+                    <span className="pointer-events-none absolute inset-0 flex items-center justify-center text-3xl animate-scale-in" aria-hidden>
+                      ❤️
+                    </span>
                   )}
                 </div>
 
