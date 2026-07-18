@@ -199,7 +199,7 @@ function GroupChat() {
           params={{ groupId }}
           className="flex items-center gap-2 flex-1 min-w-0"
         >
-          <div className="size-10 rounded-full bg-petal-soft flex items-center justify-center text-xl border border-petal/30">
+          <div className="size-10 rounded-full bg-muted flex items-center justify-center text-xl border border-border">
             {group.avatar_url || "💜"}
           </div>
           <div className="min-w-0">
@@ -207,12 +207,13 @@ function GroupChat() {
             <p className="text-[10px] text-candle-muted">{members.length} members</p>
           </div>
         </Link>
-        <button onClick={() => startCall("voice")} className="size-9 rounded-full bg-surface border border-border flex items-center justify-center text-petal" aria-label="Voice call">
+        <button onClick={() => startCall("voice")} className="size-9 rounded-full bg-surface border border-border flex items-center justify-center text-foreground/80 hover:text-foreground" aria-label="Voice call">
           <Phone className="size-4" />
         </button>
-        <button onClick={() => startCall("video")} className="size-9 rounded-full bg-surface border border-border flex items-center justify-center text-petal" aria-label="Video call">
+        <button onClick={() => startCall("video")} className="size-9 rounded-full bg-surface border border-border flex items-center justify-center text-foreground/80 hover:text-foreground" aria-label="Video call">
           <VideoIcon className="size-4" />
         </button>
+
         <Link
           to="/app/chat/group/$groupId/settings"
           params={{ groupId }}
