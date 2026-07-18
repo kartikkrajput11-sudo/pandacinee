@@ -1192,3 +1192,28 @@ body { overscroll-behavior-y: contain; }
   html { scroll-behavior: auto; }
 }
 
+/* Reaction transitions — heart pops, glides down, then chip springs in */
+@keyframes reaction-drop {
+  0%   { transform: translate3d(0, -6px, 0) scale(0.4); opacity: 0; }
+  25%  { transform: translate3d(0, -8px, 0) scale(1.35); opacity: 1; }
+  55%  { transform: translate3d(0, -4px, 0) scale(1.15); opacity: 1; }
+  100% { transform: translate3d(0, 32px, 0) scale(0.5); opacity: 0; }
+}
+.animate-reaction-drop {
+  animation: reaction-drop 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  will-change: transform, opacity;
+}
+
+@keyframes reaction-chip-in {
+  0%   { transform: scale(0.2) translateY(-6px); opacity: 0; }
+  60%  { transform: scale(1.18) translateY(0);   opacity: 1; }
+  80%  { transform: scale(0.94); }
+  100% { transform: scale(1);    opacity: 1; }
+}
+.animate-reaction-chip {
+  animation: reaction-chip-in 0.42s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  transform-origin: center bottom;
+  will-change: transform, opacity;
+}
+
+
