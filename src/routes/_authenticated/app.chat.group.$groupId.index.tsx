@@ -51,7 +51,7 @@ function GroupChat() {
     if (bubbleCloseRef.current) return;
     setBubbleClosing(true);
     bubbleCloseRef.current = setTimeout(() => {
-      setOpenBubbleId(null);
+      closeBubble();
       setBubbleClosing(false);
       bubbleCloseRef.current = null;
     }, 220);
@@ -376,7 +376,7 @@ function GroupChat() {
           <div
             className="fixed inset-0 z-[200] flex flex-col items-center justify-center gap-4 px-6 animate-fade-in"
             style={{ backdropFilter: "blur(14px) saturate(140%)", WebkitBackdropFilter: "blur(14px) saturate(140%)" as any, background: "rgba(0,0,0,0.55)" }}
-            onClick={() => setOpenBubbleId(null)}
+            onClick={() => closeBubble()}
           >
             <div
               className="flex gap-1 items-center px-3 py-2 rounded-full bg-surface/95 border border-border shadow-2xl animate-scale-in"
@@ -385,7 +385,7 @@ function GroupChat() {
               {QUICK_REACTIONS.map((e) => (
                 <button
                   key={e}
-                  onClick={() => { chat.toggleReaction(m.id, e); setOpenBubbleId(null); }}
+                  onClick={() => { chat.toggleReaction(m.id, e); closeBubble(); }}
                   className="size-10 rounded-full hover:bg-muted flex items-center justify-center text-xl transition hover:scale-125"
                 >
                   {e}
@@ -411,14 +411,14 @@ function GroupChat() {
               onClick={(e) => e.stopPropagation()}
             >
               <button
-                onClick={() => { setReplyTo(m); setOpenBubbleId(null); }}
+                onClick={() => { setReplyTo(m); closeBubble(); }}
                 className="w-full px-4 py-3 flex items-center justify-between hover:bg-muted text-sm"
               >
                 <span>Reply</span><Reply className="size-4 text-muted-foreground" />
               </button>
               {canForward && (
                 <button
-                  onClick={() => { setForwardMsg(m as unknown as MessageRow); setOpenBubbleId(null); }}
+                  onClick={() => { setForwardMsg(m as unknown as MessageRow); closeBubble(); }}
                   className="w-full px-4 py-3 flex items-center justify-between hover:bg-muted text-sm border-t border-border"
                 >
                   <span>Forward</span><Forward className="size-4 text-muted-foreground" />
@@ -426,7 +426,7 @@ function GroupChat() {
               )}
               {m.type === "text" && m.content && (
                 <button
-                  onClick={() => { navigator.clipboard.writeText(m.content ?? ""); toast.success("Copied"); setOpenBubbleId(null); }}
+                  onClick={() => { navigator.clipboard.writeText(m.content ?? ""); toast.success("Copied"); closeBubble(); }}
                   className="w-full px-4 py-3 flex items-center justify-between hover:bg-muted text-sm border-t border-border"
                 >
                   <span>Copy</span>
@@ -434,7 +434,7 @@ function GroupChat() {
               )}
               {canPin && (
                 <button
-                  onClick={() => { chat.pin(m.id, !m.pinned_at); setOpenBubbleId(null); }}
+                  onClick={() => { chat.pin(m.id, !m.pinned_at); closeBubble(); }}
                   className="w-full px-4 py-3 flex items-center justify-between hover:bg-muted text-sm border-t border-border"
                 >
                   <span>{m.pinned_at ? "Unpin" : "Pin"}</span>
@@ -445,7 +445,7 @@ function GroupChat() {
                 <button
                   onClick={async () => {
                     if (!confirm("Delete this message for everyone?")) return;
-                    try { await chat.deleteForEveryone(m.id); setOpenBubbleId(null); }
+                    try { await chat.deleteForEveryone(m.id); closeBubble(); }
                     catch (e: any) { toast.error(e.message ?? "Delete failed"); }
                   }}
                   className="w-full px-4 py-3 flex items-center justify-between hover:bg-red-500/10 text-sm text-red-400 border-t border-border"
