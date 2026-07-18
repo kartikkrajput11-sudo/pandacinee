@@ -10,7 +10,37 @@ export default function OwnersMonthiversary() {
   const [now, setNow] = useState(() => new Date());
   const [storyOpen, setStoryOpen] = useState(false);
   const [dismissed, setDismissed] = useState(false);
+  const [hiddenByAdmin, setHiddenByAdmin] = useState(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+
+  useEffect(() => {
+    let alive = true;
+    const load = async () => {
+      const { data } = await supabase
+        .from("site_flags")
+        .select("value")
+        .eq("key", "founders_monthiversary_hidden")
+        .maybeSingle();
+      if (!alive) return;
+      setHiddenByAdmin(data?.value === true || (data?.value as any) === "true");
+    };
+    load();
+    const ch = supabase
+      .channel("site-flags-monthiversary")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "site_flags", filter: "key=eq.founders_monthiversary_hidden" },
+        (payload: any) => {
+          const v = payload.new?.value;
+          setHiddenByAdmin(v === true || v === "true");
+        }
+      )
+      .subscribe();
+    return () => {
+      alive = false;
+      supabase.removeChannel(ch);
+    };
+  }, []);
 
   useEffect(() => {
     // Re-check date every minute so the banner disappears at midnight.
