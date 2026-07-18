@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { ensureAvatarUrl, resolveAvatarUrl } from "@/lib/avatar";
 
 export function UserAvatar({
@@ -6,11 +7,13 @@ export function UserAvatar({
   name,
   className = "size-10",
   ringed = false,
+  userId,
 }: {
   src: string | null | undefined;
   name?: string | null;
   className?: string;
   ringed?: boolean;
+  userId?: string | null;
 }) {
   const [url, setUrl] = useState<string | null>(() => resolveAvatarUrl(src));
 
@@ -28,11 +31,11 @@ export function UserAvatar({
   }, [src]);
 
   const letter = (name?.[0] ?? "?").toUpperCase();
-  return (
+  const inner = (
     <div
       className={`${className} rounded-full bg-petal-soft flex items-center justify-center overflow-hidden shrink-0 ${
         ringed ? "ring-2 ring-petal" : ""
-      }`}
+      } ${userId ? "cursor-pointer hover:opacity-90 transition-opacity" : ""}`}
     >
       {url ? (
         <img src={url} alt="" className="size-full object-cover" />
@@ -41,4 +44,18 @@ export function UserAvatar({
       )}
     </div>
   );
+
+  if (userId) {
+    return (
+      <Link
+        to="/app/user/$userId"
+        params={{ userId }}
+        onClick={(e) => e.stopPropagation()}
+        aria-label={name ? `View ${name}'s profile` : "View profile"}
+      >
+        {inner}
+      </Link>
+    );
+  }
+  return inner;
 }

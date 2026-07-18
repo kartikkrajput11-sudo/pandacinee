@@ -262,6 +262,7 @@ function GroupChat() {
                   name={sender?.display_name}
                   className="size-8"
                   ringed={!!fromPartner}
+                  userId={m.sender_id}
                 />
               )}
               <div className={`max-w-[75%] ${mine ? "items-end" : "items-start"} flex flex-col`}>
