@@ -9,6 +9,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { useTheme, type ThemeMode } from "@/components/ThemeProvider";
 import { CATEGORY_SETTINGS } from "@/lib/punishment";
 import { AchievementBadges } from "@/components/AchievementBadges";
+import { AvatarImg } from "@/components/AvatarImg";
 import { TAG_BY_KEY } from "@/lib/achievements";
 
 export const Route = createFileRoute("/_authenticated/app/me")({
@@ -193,7 +194,7 @@ function Me() {
               className="relative size-20 rounded-full bg-petal-soft border border-petal/20 flex items-center justify-center overflow-hidden group"
             >
               {avatarUrl ? (
-                <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
+                <AvatarImg src={avatarUrl} className="w-full h-full object-cover" />
               ) : (
                 <span className="font-serif text-3xl italic text-petal">
                   {me.display_name?.[0]?.toUpperCase() ?? "🐼"}
