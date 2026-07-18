@@ -584,61 +584,131 @@ function ChatBubbleImpl({
         )}
 
         {actionsOpen && (
-          <div className={`mt-1 flex gap-1 flex-wrap p-2 rounded-2xl bg-surface-elevated border border-border ${mine ? "self-end" : ""}`}>
-            {QUICK_REACTIONS.map((e) => (
-              <button key={e} onClick={() => { onReact(m, e); setActionsOpen(false); }} className="text-lg hover:scale-125 transition-transform">{e}</button>
-            ))}
-            <div className="w-px bg-border mx-1" />
-            <button onClick={() => { onReply(m); setActionsOpen(false); }} className="p-1.5 rounded-lg text-candle hover:bg-petal/20"><Reply className="size-4" /></button>
-            {onForward && (
-              <button onClick={() => { onForward(m); setActionsOpen(false); }} className="p-1.5 rounded-lg text-candle hover:bg-petal/20" title="Forward"><Forward className="size-4" /></button>
-            )}
-            <button onClick={() => { onPin(m); setActionsOpen(false); }} className="p-1.5 rounded-lg text-candle hover:bg-petal/20"><Pin className="size-4" /></button>
-            {mine && onVanish && (
-              <button
-                onClick={() => setVanishOpen((v) => !v)}
-                className={`p-1.5 rounded-lg hover:bg-petal/20 ${m.expires_at ? "text-petal" : "text-candle"}`}
-                title="Vanish after…"
-              >
-                <Clock className="size-4" />
-              </button>
-            )}
-            {mine && (
-              <button onClick={() => { onDelete(m); setActionsOpen(false); }} className="p-1.5 rounded-lg text-destructive hover:bg-destructive/10"><Trash2 className="size-4" /></button>
-            )}
-            <button onClick={() => { onReact(m, "❤️"); setActionsOpen(false); }} className="p-1.5 rounded-lg text-petal hover:bg-petal/20"><Heart className="size-4" /></button>
-            <div className="w-px bg-border mx-1" />
-            <button onClick={() => { setActionsOpen(false); setVanishOpen(false); }} aria-label="Close" className="p-1.5 rounded-lg text-candle hover:bg-petal/20"><X className="size-4" /></button>
-          </div>
-        )}
+          <div
+            className="fixed inset-0 z-[200] flex flex-col items-center justify-center gap-4 px-6 animate-fade-in"
+            style={{ backdropFilter: "blur(14px) saturate(140%)", background: "rgba(0,0,0,0.55)" }}
+            onClick={() => { setActionsOpen(false); setVanishOpen(false); }}
+          >
+            {/* Quick reactions */}
+            <div
+              className="flex gap-1 items-center px-3 py-2 rounded-full bg-surface-elevated/95 border border-border shadow-2xl animate-scale-in"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {QUICK_REACTIONS.map((e) => (
+                <button
+                  key={e}
+                  onClick={() => { onReact(m, e); setActionsOpen(false); }}
+                  className="size-10 rounded-full hover:bg-muted flex items-center justify-center text-xl transition hover:scale-125"
+                >
+                  {e}
+                </button>
+              ))}
+            </div>
 
-        {actionsOpen && vanishOpen && mine && onVanish && (
-          <div className={`mt-1 flex gap-1 flex-wrap p-2 rounded-2xl bg-surface-elevated border border-petal/40 ${mine ? "self-end" : ""}`}>
-            <span className="text-[10px] uppercase tracking-widest text-petal self-center px-1">Vanish in</span>
-            {[
-              { label: "10s", s: 10 },
-              { label: "1m", s: 60 },
-              { label: "5m", s: 300 },
-              { label: "1h", s: 3600 },
-              { label: "1d", s: 86400 },
-              { label: "7d", s: 604800 },
-            ].map((o) => (
+            {/* Preview */}
+            <div
+              className={`max-w-[80%] px-4 py-2.5 rounded-2xl text-sm animate-scale-in ${mine ? "bg-petal text-velvet" : "bg-surface-elevated border border-border text-candle"}`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {m.type === "text" ? <span className="break-words whitespace-pre-wrap">{m.content}</span> :
+               m.type === "image" ? <span className="opacity-80">📷 Photo</span> :
+               m.type === "video" ? <span className="opacity-80">🎬 Video</span> :
+               m.type === "voice" ? <span className="opacity-80">🎙️ Voice</span> :
+               m.type === "file" ? <span className="opacity-80">📎 {m.content}</span> :
+               m.type === "sticker" ? <span className="opacity-80">🐼 Sticker</span> :
+               m.type === "kiss" ? <span className="opacity-80">💜 Kiss</span> :
+               m.type === "hug" ? <span className="opacity-80">🫂 Hug</span> :
+               m.type === "headpat" ? <span className="opacity-80">✋ Headpat</span> :
+               m.type === "handhold" ? <span className="opacity-80">🤝 Handhold</span> :
+               m.type === "boop" ? <span className="opacity-80">👉 Boop</span> :
+               m.type === "nudge" ? <span className="opacity-80">👋 Nudge</span> :
+               <span className="opacity-80">{m.content}</span>}
+            </div>
+
+            {/* Action menu */}
+            <div
+              className="w-full max-w-xs rounded-2xl bg-surface-elevated/95 border border-border shadow-2xl overflow-hidden animate-scale-in"
+              onClick={(e) => e.stopPropagation()}
+            >
               <button
-                key={o.label}
-                onClick={() => { onVanish(m, o.s); setVanishOpen(false); setActionsOpen(false); }}
-                className="px-2 py-1 text-xs rounded-lg bg-surface border border-border text-candle hover:border-petal/60"
+                onClick={() => { onReply(m); setActionsOpen(false); }}
+                className="w-full px-4 py-3 flex items-center justify-between hover:bg-muted text-sm text-candle"
               >
-                {o.label}
+                <span>Reply</span><Reply className="size-4 text-candle-muted" />
               </button>
-            ))}
-            {m.expires_at && (
+              {onForward && (
+                <button
+                  onClick={() => { onForward(m); setActionsOpen(false); }}
+                  className="w-full px-4 py-3 flex items-center justify-between hover:bg-muted text-sm text-candle border-t border-border"
+                >
+                  <span>Forward</span><Forward className="size-4 text-candle-muted" />
+                </button>
+              )}
+              {m.type === "text" && m.content && (
+                <button
+                  onClick={() => { navigator.clipboard.writeText(m.content ?? ""); setActionsOpen(false); }}
+                  className="w-full px-4 py-3 flex items-center justify-between hover:bg-muted text-sm text-candle border-t border-border"
+                >
+                  <span>Copy</span>
+                </button>
+              )}
               <button
-                onClick={() => { onVanish(m, null); setVanishOpen(false); setActionsOpen(false); }}
-                className="px-2 py-1 text-xs rounded-lg text-destructive hover:bg-destructive/10"
+                onClick={() => { onPin(m); setActionsOpen(false); }}
+                className="w-full px-4 py-3 flex items-center justify-between hover:bg-muted text-sm text-candle border-t border-border"
               >
-                Cancel
+                <span>{m.pinned ? "Unpin" : "Pin"}</span><Pin className="size-4 text-candle-muted" />
               </button>
-            )}
+              <button
+                onClick={() => { onReact(m, "❤️"); setActionsOpen(false); }}
+                className="w-full px-4 py-3 flex items-center justify-between hover:bg-muted text-sm text-candle border-t border-border"
+              >
+                <span>Love</span><Heart className="size-4 text-petal" />
+              </button>
+              {mine && onVanish && (
+                <button
+                  onClick={() => setVanishOpen((v) => !v)}
+                  className={`w-full px-4 py-3 flex items-center justify-between hover:bg-muted text-sm border-t border-border ${m.expires_at ? "text-petal" : "text-candle"}`}
+                >
+                  <span>Vanish after…</span><Clock className="size-4" />
+                </button>
+              )}
+              {vanishOpen && mine && onVanish && (
+                <div className="px-3 py-2 flex flex-wrap gap-1.5 border-t border-border bg-surface">
+                  {[
+                    { label: "10s", s: 10 },
+                    { label: "1m", s: 60 },
+                    { label: "5m", s: 300 },
+                    { label: "1h", s: 3600 },
+                    { label: "1d", s: 86400 },
+                    { label: "7d", s: 604800 },
+                  ].map((o) => (
+                    <button
+                      key={o.label}
+                      onClick={() => { onVanish(m, o.s); setVanishOpen(false); setActionsOpen(false); }}
+                      className="px-2 py-1 text-xs rounded-lg bg-surface-elevated border border-border text-candle hover:border-petal/60"
+                    >
+                      {o.label}
+                    </button>
+                  ))}
+                  {m.expires_at && (
+                    <button
+                      onClick={() => { onVanish(m, null); setVanishOpen(false); setActionsOpen(false); }}
+                      className="px-2 py-1 text-xs rounded-lg text-destructive hover:bg-destructive/10"
+                    >
+                      Cancel vanish
+                    </button>
+                  )}
+                </div>
+              )}
+              {mine && (
+                <button
+                  onClick={() => { onDelete(m); setActionsOpen(false); }}
+                  className="w-full px-4 py-3 flex items-center justify-between hover:bg-red-500/10 text-sm text-destructive border-t border-border"
+                >
+                  <span>Delete</span><Trash2 className="size-4" />
+                </button>
+              )}
+            </div>
           </div>
         )}
       </div>
