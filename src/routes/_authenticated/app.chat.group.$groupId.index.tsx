@@ -368,7 +368,7 @@ function GroupChat() {
                       <button
                         key={emoji}
                         onClick={() => chat.toggleReaction(m.id, emoji)}
-                        className={`text-[11px] px-1.5 py-0.5 rounded-full border ${
+                        className={`animate-reaction-chip transition-transform duration-150 hover:scale-110 active:scale-95 text-[11px] px-1.5 py-0.5 rounded-full border ${
                           meId && uids.includes(meId) ? "bg-petal-soft border-petal/40" : "bg-surface border-border"
                         }`}
                       >
