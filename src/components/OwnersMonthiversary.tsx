@@ -8,29 +8,8 @@ import OwnersStoryOverlay from "./OwnersStoryOverlay";
 export default function OwnersMonthiversary() {
   const [now, setNow] = useState(() => new Date());
   const [storyOpen, setStoryOpen] = useState(false);
-  const dismissKey = `founders_banner_dismissed_${now.getFullYear()}_${now.getMonth()}`;
-  const [dismissed, setDismissed] = useState(() => {
-    if (typeof window === "undefined") return false;
-    if (localStorage.getItem("founders_banner_hidden") === "1") return true;
-    return localStorage.getItem(dismissKey) === "1";
-  });
+  const [dismissed, setDismissed] = useState(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-
-  useEffect(() => {
-    const sync = () => {
-      if (typeof window === "undefined") return;
-      const hidden = localStorage.getItem("founders_banner_hidden") === "1";
-      const monthly = localStorage.getItem(dismissKey) === "1";
-      setDismissed(hidden || monthly);
-    };
-    window.addEventListener("storage", sync);
-    window.addEventListener("founders-banner-changed", sync);
-    return () => {
-      window.removeEventListener("storage", sync);
-      window.removeEventListener("founders-banner-changed", sync);
-    };
-  }, [dismissKey]);
-
 
   useEffect(() => {
     // Re-check date every minute so the banner disappears at midnight.
@@ -108,18 +87,8 @@ export default function OwnersMonthiversary() {
         <span
           role="button"
           tabIndex={0}
-          onClick={(e) => {
-            e.stopPropagation();
-            try { localStorage.setItem(dismissKey, "1"); } catch {}
-            setDismissed(true);
-          }}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.stopPropagation();
-              try { localStorage.setItem(dismissKey, "1"); } catch {}
-              setDismissed(true);
-            }
-          }}
+          onClick={(e) => { e.stopPropagation(); setDismissed(true); }}
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.stopPropagation(); setDismissed(true); } }}
           className="relative ml-1 size-5 rounded-full flex items-center justify-center text-[#fdf6ec]/70 hover:text-[#fdf6ec] hover:bg-white/10 transition-colors"
           aria-label="Dismiss banner"
         >

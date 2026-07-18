@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, LogOut, Heart, Copy, Camera, Save, Sun, Moon, Monitor, ChevronRight, Lock, Coins, Volume2, VolumeX, Eye, EyeOff, Sparkles } from "lucide-react";
+import { ArrowLeft, LogOut, Heart, Copy, Camera, Save, Sun, Moon, Monitor, ChevronRight, Lock, Coins, Volume2, VolumeX, Eye, EyeOff } from "lucide-react";
 import { isSfxEnabled, setSfxEnabled, sfxReaction } from "@/lib/sfx";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -357,7 +357,6 @@ function Me() {
           <ThemeSection />
           <SoundToggle />
           <ActivityVisibleToggle me={me} onSaved={() => queryClient.invalidateQueries({ queryKey: ["profile"] })} />
-          <FoundersBannerToggle />
 
 
           <PunishmentLockToggle me={me} onSaved={() => queryClient.invalidateQueries({ queryKey: ["profile"] })} />
@@ -605,45 +604,6 @@ function ActivityVisibleToggle({ me, onSaved }: { me: any; onSaved: () => void }
         <span
           className={`absolute top-0.5 size-5 rounded-full bg-white shadow transition-transform ${on ? "translate-x-5" : "translate-x-0.5"}`}
         />
-      </span>
-    </button>
-  );
-}
-
-function FoundersBannerToggle() {
-  const [show, setShow] = useState<boolean>(() => {
-    if (typeof window === "undefined") return true;
-    return localStorage.getItem("founders_banner_hidden") !== "1";
-  });
-  function toggle() {
-    const next = !show;
-    setShow(next);
-    if (next) {
-      // Clear any dismissals so it comes back today
-      localStorage.removeItem("founders_banner_hidden");
-      const now = new Date();
-      localStorage.removeItem(`founders_banner_dismissed_${now.getFullYear()}_${now.getMonth()}`);
-    } else {
-      localStorage.setItem("founders_banner_hidden", "1");
-    }
-    window.dispatchEvent(new Event("founders-banner-changed"));
-    toast.success(next ? "Founders banner enabled" : "Founders banner hidden");
-  }
-  return (
-    <button
-      onClick={toggle}
-      className="w-full p-5 mb-4 rounded-3xl border border-border bg-surface flex items-center gap-3 hover:border-petal/40 transition-colors text-left"
-    >
-      <Sparkles className={`size-5 ${show ? "text-petal" : "text-candle-muted"}`} />
-      <div className="flex-1">
-        <p className="text-[10px] uppercase tracking-widest text-petal">Founders' monthiversary banner</p>
-        <p className="text-sm text-candle">{show ? "Shown on the 18th of each month" : "Hidden — no banner will appear"}</p>
-      </div>
-      <span
-        className={`relative w-11 h-6 rounded-full transition-colors ${show ? "bg-petal" : "bg-velvet border border-border"}`}
-        aria-hidden
-      >
-        <span className={`absolute top-0.5 size-5 rounded-full bg-white shadow transition-transform ${show ? "translate-x-5" : "translate-x-0.5"}`} />
       </span>
     </button>
   );
