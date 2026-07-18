@@ -43,6 +43,27 @@ function GroupChat() {
   const [text, setText] = useState("");
   const [replyTo, setReplyTo] = useState<GroupMessage | null>(null);
   const [openBubbleId, setOpenBubbleId] = useState<string | null>(null);
+  const [bubbleClosing, setBubbleClosing] = useState(false);
+  const bubbleIdleRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const bubbleCloseRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const closeBubble = () => {
+    if (bubbleIdleRef.current) { clearTimeout(bubbleIdleRef.current); bubbleIdleRef.current = null; }
+    if (bubbleCloseRef.current) return;
+    setBubbleClosing(true);
+    bubbleCloseRef.current = setTimeout(() => {
+      setOpenBubbleId(null);
+      setBubbleClosing(false);
+      bubbleCloseRef.current = null;
+    }, 220);
+  };
+  const armBubbleIdle = () => {
+    if (bubbleIdleRef.current) clearTimeout(bubbleIdleRef.current);
+    bubbleIdleRef.current = setTimeout(() => closeBubble(), 2000);
+  };
+  useEffect(() => {
+    if (openBubbleId && !bubbleClosing) armBubbleIdle();
+    return () => { if (bubbleIdleRef.current) { clearTimeout(bubbleIdleRef.current); bubbleIdleRef.current = null; } };
+  }, [openBubbleId, bubbleClosing]);
   const [sending, setSending] = useState(false);
   const [pollOpen, setPollOpen] = useState(false);
   const [duelOpen, setDuelOpen] = useState(false);
