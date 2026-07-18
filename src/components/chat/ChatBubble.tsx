@@ -154,15 +154,12 @@ function ChatBubbleImpl({
     resetDrag();
     try { (e.currentTarget as Element).setPointerCapture?.(e.pointerId); } catch {}
     clearLongPress();
-    // Only use long-press for touch/pen. Mouse users have right-click / hover.
-    if (e.pointerType !== "mouse") {
-      longPressTimer.current = window.setTimeout(() => {
-        if (gesture.current.moved) return;
-        gesture.current.longPressed = true;
-        setActionsOpen(true);
-        if ("vibrate" in navigator) navigator.vibrate?.(30);
-      }, 500);
-    }
+    longPressTimer.current = window.setTimeout(() => {
+      if (gesture.current.moved) return;
+      gesture.current.longPressed = true;
+      setActionsOpen(true);
+      if ("vibrate" in navigator) navigator.vibrate?.(30);
+    }, 550);
   };
   const onPointerMove = (e: React.PointerEvent) => {
     if (gesture.current.pointerId !== e.pointerId) return;
