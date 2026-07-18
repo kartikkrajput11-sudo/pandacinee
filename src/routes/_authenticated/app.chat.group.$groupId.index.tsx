@@ -506,6 +506,20 @@ function GroupChat() {
         open={!!forwardMsg}
         onClose={() => setForwardMsg(null)}
       />
+
+      <DuelGamePicker
+        open={duelOpen}
+        onClose={() => setDuelOpen(false)}
+        onPick={(g) => void handleLaunchDuel(g)}
+      />
+
+      <GroupEventComposer
+        open={eventOpen}
+        onClose={() => setEventOpen(false)}
+        groupId={groupId}
+        meId={meId}
+        onCreated={(ev) => void handleEventCreated(ev)}
+      />
     </div>
   );
 }
