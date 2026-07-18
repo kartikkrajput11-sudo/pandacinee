@@ -8,8 +8,29 @@ import OwnersStoryOverlay from "./OwnersStoryOverlay";
 export default function OwnersMonthiversary() {
   const [now, setNow] = useState(() => new Date());
   const [storyOpen, setStoryOpen] = useState(false);
-  const [dismissed, setDismissed] = useState(false);
+  const dismissKey = `founders_banner_dismissed_${now.getFullYear()}_${now.getMonth()}`;
+  const [dismissed, setDismissed] = useState(() => {
+    if (typeof window === "undefined") return false;
+    if (localStorage.getItem("founders_banner_hidden") === "1") return true;
+    return localStorage.getItem(dismissKey) === "1";
+  });
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+
+  useEffect(() => {
+    const sync = () => {
+      if (typeof window === "undefined") return;
+      const hidden = localStorage.getItem("founders_banner_hidden") === "1";
+      const monthly = localStorage.getItem(dismissKey) === "1";
+      setDismissed(hidden || monthly);
+    };
+    window.addEventListener("storage", sync);
+    window.addEventListener("founders-banner-changed", sync);
+    return () => {
+      window.removeEventListener("storage", sync);
+      window.removeEventListener("founders-banner-changed", sync);
+    };
+  }, [dismissKey]);
+
 
   useEffect(() => {
     // Re-check date every minute so the banner disappears at midnight.
