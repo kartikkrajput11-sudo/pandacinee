@@ -4,6 +4,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
@@ -153,7 +154,8 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <Outlet />
+        <RouteFadeOutlet />
+
         <PartnerMessageNotifier />
         <OwnersMonthiversary />
         <PairAnniversaryCelebration />
@@ -177,3 +179,13 @@ function RootComponent() {
     </QueryClientProvider>
   );
 }
+
+function RouteFadeOutlet() {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  return (
+    <div key={pathname} className="animate-route-fade">
+      <Outlet />
+    </div>
+  );
+}
+
