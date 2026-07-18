@@ -181,11 +181,7 @@ function RootComponent() {
 }
 
 function RouteFadeOutlet() {
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
-  return (
-    <div key={pathname} className="animate-route-fade">
-      <Outlet />
-    </div>
-  );
+  return <Outlet />;
 }
+
 
