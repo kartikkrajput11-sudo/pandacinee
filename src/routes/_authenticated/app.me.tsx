@@ -614,6 +614,7 @@ function ActivityVisibleToggle({ me, onSaved }: { me: any; onSaved: () => void }
 function PunishmentLockToggle({ me, onSaved }: { me: any; onSaved: () => void }) {
   const enabled = me?.punishment_lock_enabled ?? true;
   const [busy, setBusy] = useState(false);
+  const [open, setOpen] = useState(false);
   async function toggle() {
     setBusy(true);
     const { error } = await (supabase as any)
@@ -637,7 +638,11 @@ function PunishmentLockToggle({ me, onSaved }: { me: any; onSaved: () => void })
   }
   return (
     <div className="p-5 mb-4 rounded-3xl border border-border bg-surface">
-      <div className="flex items-center gap-3">
+      <button
+        type="button"
+        onClick={() => enabled && setOpen((o) => !o)}
+        className="w-full flex items-center gap-3 text-left"
+      >
         <Lock className="size-5 text-petal" />
         <div className="flex-1 min-w-0">
           <p className="text-[10px] uppercase tracking-widest text-petal">Punishment Lock</p>
@@ -645,22 +650,30 @@ function PunishmentLockToggle({ me, onSaved }: { me: any; onSaved: () => void })
             Let your partner playfully lock your chat with a challenge.
           </p>
         </div>
-        <button
-          onClick={toggle}
-          disabled={busy}
-          className={`relative h-7 w-12 rounded-full transition-colors ${enabled ? "bg-petal" : "bg-border"}`}
-          aria-pressed={enabled}
+        {enabled && (
+          <ChevronRight
+            className={`size-4 text-candle-muted transition-transform ${open ? "rotate-90" : ""}`}
+          />
+        )}
+        <span
+          role="switch"
+          aria-checked={enabled}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (!busy) toggle();
+          }}
+          className={`relative h-7 w-12 rounded-full transition-colors cursor-pointer ${enabled ? "bg-petal" : "bg-border"}`}
         >
           <span
             className={`absolute top-0.5 size-6 rounded-full bg-white transition-all ${
               enabled ? "left-[22px]" : "left-0.5"
             }`}
           />
-        </button>
-      </div>
+        </span>
+      </button>
 
-      {enabled && (
-        <div className="mt-4 pt-4 border-t border-border space-y-2">
+      {enabled && open && (
+        <div className="mt-4 pt-4 border-t border-border space-y-2 animate-fade-in">
           <p className="text-[10px] uppercase tracking-widest text-candle-muted">Allowed challenge categories</p>
           {CATEGORY_SETTINGS.map((c) => {
             const val = (me as any)?.[c.key] !== false;
@@ -694,3 +707,4 @@ function PunishmentLockToggle({ me, onSaved }: { me: any; onSaved: () => void })
     </div>
   );
 }
+
