@@ -612,9 +612,11 @@ function ChatBubbleImpl({
 
         {actionsOpen && typeof document !== "undefined" && createPortal(
           <div
-            className="fixed inset-0 z-[200] flex flex-col items-center justify-center gap-4 px-6 animate-fade-in bg-black/60 backdrop-blur-xl"
+            className={`fixed inset-0 z-[200] flex flex-col items-center justify-center gap-4 px-6 bg-black/60 backdrop-blur-xl ${actionsClosing ? "animate-fade-out" : "animate-fade-in"}`}
             onClick={() => { closeActions(); }}
             onPointerDown={(e) => e.stopPropagation()}
+            onMouseMove={armIdleClose}
+            onTouchStart={armIdleClose}
           >
             {/* Quick reactions */}
             <div
