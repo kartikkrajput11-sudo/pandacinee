@@ -226,8 +226,9 @@ function GroupChat() {
 
       {/* Pinned banner */}
       {pinned.length > 0 && (
-        <div className="px-4 py-2 bg-petal-soft/30 border-b border-petal/20 text-xs text-candle-muted flex items-center gap-2 overflow-x-auto">
-          <Pin className="size-3 text-petal shrink-0" />
+        <div className="px-4 py-2 bg-muted/50 border-b border-border text-xs text-candle-muted flex items-center gap-2 overflow-x-auto">
+          <Pin className="size-3 text-foreground/70 shrink-0" />
+
           {pinned.map((m) => (
             <span key={m.id} className="truncate max-w-[220px] italic">
               {m.type === "image" ? "📷 Photo" : m.content}
