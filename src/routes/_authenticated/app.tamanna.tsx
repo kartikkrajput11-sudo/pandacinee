@@ -144,6 +144,9 @@ function AdminDashboard() {
         </div>
       </header>
 
+      <FoundersBannerToggle />
+
+
       <nav className="flex gap-1 mb-6 -mx-1 px-1 overflow-x-auto no-scrollbar sticky top-0 z-10 bg-background/80 backdrop-blur pt-1 pb-2">
         {([
           ["overview", LayoutDashboard, "Overview"],
