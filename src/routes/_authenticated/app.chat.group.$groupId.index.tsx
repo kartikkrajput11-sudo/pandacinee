@@ -199,7 +199,7 @@ function GroupChat() {
           params={{ groupId }}
           className="flex items-center gap-2 flex-1 min-w-0"
         >
-          <div className="size-10 rounded-full bg-petal-soft flex items-center justify-center text-xl border border-petal/30">
+          <div className="size-10 rounded-full bg-muted flex items-center justify-center text-xl border border-border">
             {group.avatar_url || "💜"}
           </div>
           <div className="min-w-0">
@@ -207,12 +207,13 @@ function GroupChat() {
             <p className="text-[10px] text-candle-muted">{members.length} members</p>
           </div>
         </Link>
-        <button onClick={() => startCall("voice")} className="size-9 rounded-full bg-surface border border-border flex items-center justify-center text-petal" aria-label="Voice call">
+        <button onClick={() => startCall("voice")} className="size-9 rounded-full bg-surface border border-border flex items-center justify-center text-foreground/80 hover:text-foreground" aria-label="Voice call">
           <Phone className="size-4" />
         </button>
-        <button onClick={() => startCall("video")} className="size-9 rounded-full bg-surface border border-border flex items-center justify-center text-petal" aria-label="Video call">
+        <button onClick={() => startCall("video")} className="size-9 rounded-full bg-surface border border-border flex items-center justify-center text-foreground/80 hover:text-foreground" aria-label="Video call">
           <VideoIcon className="size-4" />
         </button>
+
         <Link
           to="/app/chat/group/$groupId/settings"
           params={{ groupId }}
@@ -225,8 +226,9 @@ function GroupChat() {
 
       {/* Pinned banner */}
       {pinned.length > 0 && (
-        <div className="px-4 py-2 bg-petal-soft/30 border-b border-petal/20 text-xs text-candle-muted flex items-center gap-2 overflow-x-auto">
-          <Pin className="size-3 text-petal shrink-0" />
+        <div className="px-4 py-2 bg-muted/50 border-b border-border text-xs text-candle-muted flex items-center gap-2 overflow-x-auto">
+          <Pin className="size-3 text-foreground/70 shrink-0" />
+
           {pinned.map((m) => (
             <span key={m.id} className="truncate max-w-[220px] italic">
               {m.type === "image" ? "📷 Photo" : m.content}
@@ -390,7 +392,7 @@ function GroupChat() {
       {/* Composer */}
       {replyTo && (
         <div className="px-4 py-2 bg-surface/60 border-t border-border flex items-center gap-2 text-xs">
-          <Reply className="size-3 text-petal" />
+          <Reply className="size-3 text-muted-foreground" />
           <span className="truncate flex-1 text-candle-muted">
             Replying to <span className="text-candle italic">
               {memberById.get(replyTo.sender_id)?.display_name ?? "…"}
@@ -404,28 +406,28 @@ function GroupChat() {
           <>
             <button
               onClick={() => imgRef.current?.click()}
-              className="size-10 rounded-full bg-surface border border-border flex items-center justify-center text-petal shrink-0"
+              className="size-10 rounded-full bg-surface border border-border flex items-center justify-center text-foreground/80 shrink-0"
               aria-label="Attach image"
             >
               <ImageIcon className="size-4" />
             </button>
             <button
               onClick={() => setPollOpen(true)}
-              className="size-10 rounded-full bg-surface border border-border flex items-center justify-center text-petal shrink-0"
+              className="size-10 rounded-full bg-surface border border-border flex items-center justify-center text-foreground/80 shrink-0"
               aria-label="Create poll"
             >
               <BarChart3 className="size-4" />
             </button>
             <button
               onClick={() => setEventOpen(true)}
-              className="size-10 rounded-full bg-surface border border-border flex items-center justify-center text-petal shrink-0"
+              className="size-10 rounded-full bg-surface border border-border flex items-center justify-center text-foreground/80 shrink-0"
               aria-label="Plan an event"
             >
               <Calendar className="size-4" />
             </button>
             <button
               onClick={() => setDuelOpen(true)}
-              className="size-10 rounded-full bg-surface border border-border flex items-center justify-center text-petal shrink-0"
+              className="size-10 rounded-full bg-surface border border-border flex items-center justify-center text-foreground/80 shrink-0"
               aria-label="Play together"
             >
               <Swords className="size-4" />
@@ -470,7 +472,7 @@ function GroupChat() {
               <button
                 onClick={handleSend}
                 disabled={sending}
-                className="size-10 rounded-full bg-petal text-velvet flex items-center justify-center shrink-0 disabled:opacity-50"
+                className="size-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center shrink-0 disabled:opacity-50"
                 aria-label="Send"
               >
                 <Send className="size-4" />

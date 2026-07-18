@@ -117,9 +117,10 @@ export function PollComposer({
               <button
                 key={k}
                 onClick={() => setKind(k)}
-                className={`flex flex-col items-center gap-1 py-2 rounded-xl border text-[10px] ${
-                  active ? "bg-petal-soft border-petal/60 text-candle" : "bg-velvet border-border text-candle-muted"
+                className={`flex flex-col items-center gap-1 py-2 rounded-xl border text-[10px] transition ${
+                  active ? "bg-primary/10 border-primary/50 text-foreground" : "bg-background/50 border-border text-muted-foreground"
                 }`}
+
               >
                 <M.icon className="size-4" />
                 {M.label}
@@ -197,7 +198,7 @@ export function PollComposer({
         {/* Watchlist picker for movie polls */}
         {kind === "movie" && (
           <div className="mb-3">
-            <p className="text-[10px] uppercase tracking-widest text-petal mb-1.5">From your watchlist</p>
+            <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1.5">From your watchlist</p>
             {watchlist.length === 0 ? (
               <p className="text-xs text-candle-muted italic">Nothing on your watchlist yet.</p>
             ) : (
@@ -226,7 +227,7 @@ export function PollComposer({
         <button
           onClick={submit}
           disabled={submitting}
-          className="w-full py-2.5 rounded-xl bg-petal text-velvet font-medium text-sm disabled:opacity-50"
+          className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground font-medium text-sm disabled:opacity-50"
         >
           {submitting ? "Creating…" : "Post poll"}
         </button>
