@@ -86,7 +86,36 @@ function ChatBubbleImpl({
 
 }) {
   const [actionsOpen, setActionsOpen] = useState(false);
+  const [actionsClosing, setActionsClosing] = useState(false);
   const [vanishOpen, setVanishOpen] = useState(false);
+  const closeTimerRef = useRef<number | null>(null);
+  const idleTimerRef = useRef<number | null>(null);
+
+  const closeActions = () => {
+    if (idleTimerRef.current) { window.clearTimeout(idleTimerRef.current); idleTimerRef.current = null; }
+    if (closeTimerRef.current) return;
+    setActionsClosing(true);
+    closeTimerRef.current = window.setTimeout(() => {
+      setActionsOpen(false);
+      setActionsClosing(false);
+      setVanishOpen(false);
+      closeTimerRef.current = null;
+    }, 220);
+  };
+
+  const armIdleClose = () => {
+    if (idleTimerRef.current) window.clearTimeout(idleTimerRef.current);
+    idleTimerRef.current = window.setTimeout(() => closeActions(), 2000);
+  };
+
+  useEffect(() => {
+    if (actionsOpen && !actionsClosing) armIdleClose();
+    return () => {
+      if (idleTimerRef.current) { window.clearTimeout(idleTimerRef.current); idleTimerRef.current = null; }
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [actionsOpen, actionsClosing, vanishOpen]);
+
 
   async function downloadFile() {
     if (!m.media_url) return;
