@@ -321,7 +321,7 @@ function GroupChat() {
                   onPointerLeave={() => { if (longPressTimer.current) clearTimeout(longPressTimer.current); }}
                   onPointerCancel={() => { if (longPressTimer.current) clearTimeout(longPressTimer.current); }}
                   onContextMenu={(e) => { e.preventDefault(); setOpenBubbleId(m.id); }}
-                  className={`${["poll","match_invite","event"].includes(m.type) ? "p-0 bg-transparent" : "px-3 py-2"} rounded-2xl text-sm select-none break-words transition ${
+                  className={`relative ${["poll","match_invite","event"].includes(m.type) ? "p-0 bg-transparent" : "px-3 py-2"} rounded-2xl text-sm select-none break-words transition ${
                     ["poll","match_invite","event"].includes(m.type)
                       ? ""
                       : mine
