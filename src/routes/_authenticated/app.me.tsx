@@ -9,6 +9,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { useTheme, type ThemeMode } from "@/components/ThemeProvider";
 import { CATEGORY_SETTINGS } from "@/lib/punishment";
 import { AchievementBadges } from "@/components/AchievementBadges";
+import { AvatarImg } from "@/components/AvatarImg";
 import { TAG_BY_KEY } from "@/lib/achievements";
 
 export const Route = createFileRoute("/_authenticated/app/me")({
