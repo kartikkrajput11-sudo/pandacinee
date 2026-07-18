@@ -138,7 +138,8 @@ function Home() {
           <p className="text-[10px] uppercase tracking-[0.22em] text-candle-muted mb-3 px-1 flex items-center gap-2">
             <span className="text-petal">✦</span> Signature
           </p>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+
             <SignatureTile to="/app/letters" Icon={Feather} label="Love Letters" caption="Seal now, open later" swatch="from-[#c9a84c]/40 to-[#f0d78c]/10" />
             <SignatureTile to="/app/timeline" Icon={Milestone} label="Timeline" caption="Highlights of us" swatch="from-[#c96b7a]/40 to-[#f0c0cc]/10" />
             <SignatureTile to="/app/constellation" Icon={Stars} label="Constellation" caption="Your night sky" swatch="from-[#5cbdb9]/40 to-[#0d7a5f]/10" />
