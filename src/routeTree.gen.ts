@@ -60,6 +60,7 @@ import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/e
 import { Route as AuthenticatedAppUserUserIdRouteImport } from './routes/_authenticated/app.user.$userId'
 import { Route as AuthenticatedAppMoviesIdRouteImport } from './routes/_authenticated/app.movies.$id'
 import { Route as AuthenticatedAppLettersIdRouteImport } from './routes/_authenticated/app.letters.$id'
+import { Route as AuthenticatedAppGroupMatchMatchIdRouteImport } from './routes/_authenticated/app.group-match.$matchId'
 import { Route as AuthenticatedAppGamesGameRouteImport } from './routes/_authenticated/app.games.$game'
 import { Route as AuthenticatedAppChatPeerIdRouteImport } from './routes/_authenticated/app.chat.$peerId'
 import { Route as AuthenticatedAppCallPeerIdRouteImport } from './routes/_authenticated/app.call.$peerId'
@@ -347,6 +348,12 @@ const AuthenticatedAppLettersIdRoute =
     path: '/letters/$id',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppGroupMatchMatchIdRoute =
+  AuthenticatedAppGroupMatchMatchIdRouteImport.update({
+    id: '/group-match/$matchId',
+    path: '/group-match/$matchId',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppGamesGameRoute =
   AuthenticatedAppGamesGameRouteImport.update({
     id: '/games/$game',
@@ -459,6 +466,7 @@ export interface FileRoutesByFullPath {
   '/app/call/$peerId': typeof AuthenticatedAppCallPeerIdRoute
   '/app/chat/$peerId': typeof AuthenticatedAppChatPeerIdRoute
   '/app/games/$game': typeof AuthenticatedAppGamesGameRoute
+  '/app/group-match/$matchId': typeof AuthenticatedAppGroupMatchMatchIdRoute
   '/app/letters/$id': typeof AuthenticatedAppLettersIdRoute
   '/app/movies/$id': typeof AuthenticatedAppMoviesIdRouteWithChildren
   '/app/user/$userId': typeof AuthenticatedAppUserUserIdRoute
@@ -520,6 +528,7 @@ export interface FileRoutesByTo {
   '/app/call/$peerId': typeof AuthenticatedAppCallPeerIdRoute
   '/app/chat/$peerId': typeof AuthenticatedAppChatPeerIdRoute
   '/app/games/$game': typeof AuthenticatedAppGamesGameRoute
+  '/app/group-match/$matchId': typeof AuthenticatedAppGroupMatchMatchIdRoute
   '/app/letters/$id': typeof AuthenticatedAppLettersIdRoute
   '/app/movies/$id': typeof AuthenticatedAppMoviesIdRouteWithChildren
   '/app/user/$userId': typeof AuthenticatedAppUserUserIdRoute
@@ -584,6 +593,7 @@ export interface FileRoutesById {
   '/_authenticated/app/call/$peerId': typeof AuthenticatedAppCallPeerIdRoute
   '/_authenticated/app/chat/$peerId': typeof AuthenticatedAppChatPeerIdRoute
   '/_authenticated/app/games/$game': typeof AuthenticatedAppGamesGameRoute
+  '/_authenticated/app/group-match/$matchId': typeof AuthenticatedAppGroupMatchMatchIdRoute
   '/_authenticated/app/letters/$id': typeof AuthenticatedAppLettersIdRoute
   '/_authenticated/app/movies/$id': typeof AuthenticatedAppMoviesIdRouteWithChildren
   '/_authenticated/app/user/$userId': typeof AuthenticatedAppUserUserIdRoute
@@ -649,6 +659,7 @@ export interface FileRouteTypes {
     | '/app/call/$peerId'
     | '/app/chat/$peerId'
     | '/app/games/$game'
+    | '/app/group-match/$matchId'
     | '/app/letters/$id'
     | '/app/movies/$id'
     | '/app/user/$userId'
@@ -710,6 +721,7 @@ export interface FileRouteTypes {
     | '/app/call/$peerId'
     | '/app/chat/$peerId'
     | '/app/games/$game'
+    | '/app/group-match/$matchId'
     | '/app/letters/$id'
     | '/app/movies/$id'
     | '/app/user/$userId'
@@ -773,6 +785,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/call/$peerId'
     | '/_authenticated/app/chat/$peerId'
     | '/_authenticated/app/games/$game'
+    | '/_authenticated/app/group-match/$matchId'
     | '/_authenticated/app/letters/$id'
     | '/_authenticated/app/movies/$id'
     | '/_authenticated/app/user/$userId'
@@ -1166,6 +1179,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppLettersIdRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/group-match/$matchId': {
+      id: '/_authenticated/app/group-match/$matchId'
+      path: '/group-match/$matchId'
+      fullPath: '/app/group-match/$matchId'
+      preLoaderRoute: typeof AuthenticatedAppGroupMatchMatchIdRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/games/$game': {
       id: '/_authenticated/app/games/$game'
       path: '/games/$game'
@@ -1338,6 +1358,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppCallPeerIdRoute: typeof AuthenticatedAppCallPeerIdRoute
   AuthenticatedAppChatPeerIdRoute: typeof AuthenticatedAppChatPeerIdRoute
   AuthenticatedAppGamesGameRoute: typeof AuthenticatedAppGamesGameRoute
+  AuthenticatedAppGroupMatchMatchIdRoute: typeof AuthenticatedAppGroupMatchMatchIdRoute
   AuthenticatedAppLettersIdRoute: typeof AuthenticatedAppLettersIdRoute
   AuthenticatedAppUserUserIdRoute: typeof AuthenticatedAppUserUserIdRoute
   AuthenticatedAppChatIndexRoute: typeof AuthenticatedAppChatIndexRoute
@@ -1382,6 +1403,8 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppCallPeerIdRoute: AuthenticatedAppCallPeerIdRoute,
   AuthenticatedAppChatPeerIdRoute: AuthenticatedAppChatPeerIdRoute,
   AuthenticatedAppGamesGameRoute: AuthenticatedAppGamesGameRoute,
+  AuthenticatedAppGroupMatchMatchIdRoute:
+    AuthenticatedAppGroupMatchMatchIdRoute,
   AuthenticatedAppLettersIdRoute: AuthenticatedAppLettersIdRoute,
   AuthenticatedAppUserUserIdRoute: AuthenticatedAppUserUserIdRoute,
   AuthenticatedAppChatIndexRoute: AuthenticatedAppChatIndexRoute,
@@ -1422,13 +1445,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

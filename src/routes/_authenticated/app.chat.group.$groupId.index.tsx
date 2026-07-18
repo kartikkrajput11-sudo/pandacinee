@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft, Settings, Phone, Video as VideoIcon, Send, Image as ImageIcon,
-  Smile, Pin, Trash2, Reply, X, MoreVertical, PinOff, BarChart3, Forward,
+  Pin, Trash2, Reply, X, PinOff, BarChart3, Forward, Swords, Calendar,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useProfile } from "@/hooks/useProfile";
@@ -15,6 +15,13 @@ import { UserAvatar } from "@/components/UserAvatar";
 import { PollComposer } from "@/components/chat/PollComposer";
 import { PollMessage } from "@/components/chat/PollMessage";
 import { ForwardDialog } from "@/components/chat/ForwardDialog";
+import { VoiceRecorder } from "@/components/chat/VoiceRecorder";
+import { VoicePlayer } from "@/components/chat/VoicePlayer";
+import { DuelGamePicker } from "@/components/chat/DuelGamePicker";
+import { GroupEventComposer } from "@/components/chat/GroupEventComposer";
+import { GroupEventCard } from "@/components/chat/GroupEventCard";
+import { GroupMatchInviteCard } from "@/components/chat/GroupMatchInviteCard";
+import { createGroupMatch } from "@/hooks/useGroupMatch";
 import type { PollMeta } from "@/lib/poll";
 import type { MessageRow } from "@/lib/chat";
 
@@ -38,6 +45,9 @@ function GroupChat() {
   const [openBubbleId, setOpenBubbleId] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
   const [pollOpen, setPollOpen] = useState(false);
+  const [duelOpen, setDuelOpen] = useState(false);
+  const [eventOpen, setEventOpen] = useState(false);
+  const [recording, setRecording] = useState(false);
   const [forwardMsg, setForwardMsg] = useState<MessageRow | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLInputElement>(null);
@@ -105,6 +115,48 @@ function GroupChat() {
       setReplyTo(null);
     } catch (e: any) {
       toast.error(e.message ?? "Upload failed");
+    }
+  }
+
+  async function handleVoice(path: string, durationMs: number) {
+    try {
+      await chat.send({
+        content: "🎙 Voice message",
+        type: "voice",
+        media_url: path,
+        media_meta: { duration_ms: durationMs },
+        reply_to_id: replyTo?.id ?? null,
+      });
+      setReplyTo(null);
+    } catch (e: any) {
+      toast.error(e.message ?? "Couldn't send voice");
+    }
+  }
+
+  async function handleLaunchDuel(g: { id: string; name: string; emoji: string }) {
+    setDuelOpen(false);
+    try {
+      const match = await createGroupMatch(groupId, g.id);
+      await chat.send({
+        content: `${g.name} — take a seat`,
+        type: "match_invite",
+        media_meta: { match_id: match.id, game: g.id, game_name: g.name, emoji: g.emoji },
+      });
+      navigate({ to: "/app/group-match/$matchId", params: { matchId: match.id } });
+    } catch (e: any) {
+      toast.error(e.message ?? "Couldn't start match");
+    }
+  }
+
+  async function handleEventCreated(ev: { id: string; title: string }) {
+    try {
+      await chat.send({
+        content: ev.title,
+        type: "event",
+        media_meta: { event_id: ev.id },
+      });
+    } catch (e: any) {
+      toast.error(e.message ?? "Event created but couldn't post card");
     }
   }
 
@@ -233,6 +285,8 @@ function GroupChat() {
                   )}
                   {m.type === "image" && m.media_url ? (
                     <GroupImage path={m.media_url} />
+                  ) : m.type === "voice" && m.media_url ? (
+                    <VoicePlayer path={m.media_url} durationMs={(m.media_meta as any)?.duration_ms} />
                   ) : m.type === "poll" ? (
                     <PollMessage
                       messageId={m.id}
@@ -240,6 +294,10 @@ function GroupChat() {
                       meId={meId}
                       memberById={memberById}
                     />
+                  ) : m.type === "match_invite" ? (
+                    <GroupMatchInviteCard m={m as unknown as MessageRow} />
+                  ) : m.type === "event" ? (
+                    <GroupEventCard eventId={(m.media_meta as any)?.event_id} meId={meId} mine={mine} />
                   ) : (
                     <span>{m.content}</span>
                   )}
@@ -342,20 +400,38 @@ function GroupChat() {
         </div>
       )}
       <div className="flex items-end gap-2 px-3 py-3 border-t border-border bg-surface/70">
-        <button
-          onClick={() => imgRef.current?.click()}
-          className="size-10 rounded-full bg-surface border border-border flex items-center justify-center text-petal shrink-0"
-          aria-label="Attach image"
-        >
-          <ImageIcon className="size-4" />
-        </button>
-        <button
-          onClick={() => setPollOpen(true)}
-          className="size-10 rounded-full bg-surface border border-border flex items-center justify-center text-petal shrink-0"
-          aria-label="Create poll"
-        >
-          <BarChart3 className="size-4" />
-        </button>
+        {!recording && (
+          <>
+            <button
+              onClick={() => imgRef.current?.click()}
+              className="size-10 rounded-full bg-surface border border-border flex items-center justify-center text-petal shrink-0"
+              aria-label="Attach image"
+            >
+              <ImageIcon className="size-4" />
+            </button>
+            <button
+              onClick={() => setPollOpen(true)}
+              className="size-10 rounded-full bg-surface border border-border flex items-center justify-center text-petal shrink-0"
+              aria-label="Create poll"
+            >
+              <BarChart3 className="size-4" />
+            </button>
+            <button
+              onClick={() => setEventOpen(true)}
+              className="size-10 rounded-full bg-surface border border-border flex items-center justify-center text-petal shrink-0"
+              aria-label="Plan an event"
+            >
+              <Calendar className="size-4" />
+            </button>
+            <button
+              onClick={() => setDuelOpen(true)}
+              className="size-10 rounded-full bg-surface border border-border flex items-center justify-center text-petal shrink-0"
+              aria-label="Play together"
+            >
+              <Swords className="size-4" />
+            </button>
+          </>
+        )}
         <input
           ref={imgRef}
           type="file"
@@ -367,27 +443,49 @@ function GroupChat() {
             e.target.value = "";
           }}
         />
-        <textarea
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-              void handleSend();
-            }
-          }}
-          placeholder="Message the circle…"
-          rows={1}
-          className="flex-1 resize-none bg-surface border border-border rounded-2xl px-4 py-2.5 text-sm text-candle max-h-32"
-        />
-        <button
-          onClick={handleSend}
-          disabled={!text.trim() || sending}
-          className="size-10 rounded-full bg-petal text-velvet flex items-center justify-center shrink-0 disabled:opacity-50"
-          aria-label="Send"
-        >
-          <Send className="size-4" />
-        </button>
+        {recording ? (
+          meId && (
+            <VoiceRecorder
+              userId={meId}
+              onSend={handleVoice}
+              onRecordingChange={setRecording}
+            />
+          )
+        ) : (
+          <>
+            <textarea
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  void handleSend();
+                }
+              }}
+              placeholder="Message the circle…"
+              rows={1}
+              className="flex-1 resize-none bg-surface border border-border rounded-2xl px-4 py-2.5 text-sm text-candle max-h-32"
+            />
+            {text.trim() ? (
+              <button
+                onClick={handleSend}
+                disabled={sending}
+                className="size-10 rounded-full bg-petal text-velvet flex items-center justify-center shrink-0 disabled:opacity-50"
+                aria-label="Send"
+              >
+                <Send className="size-4" />
+              </button>
+            ) : (
+              meId && (
+                <VoiceRecorder
+                  userId={meId}
+                  onSend={handleVoice}
+                  onRecordingChange={setRecording}
+                />
+              )
+            )}
+          </>
+        )}
       </div>
 
       <PollComposer
@@ -407,6 +505,20 @@ function GroupChat() {
         message={forwardMsg}
         open={!!forwardMsg}
         onClose={() => setForwardMsg(null)}
+      />
+
+      <DuelGamePicker
+        open={duelOpen}
+        onClose={() => setDuelOpen(false)}
+        onPick={(g) => void handleLaunchDuel(g)}
+      />
+
+      <GroupEventComposer
+        open={eventOpen}
+        onClose={() => setEventOpen(false)}
+        groupId={groupId}
+        meId={meId}
+        onCreated={(ev) => void handleEventCreated(ev)}
       />
     </div>
   );

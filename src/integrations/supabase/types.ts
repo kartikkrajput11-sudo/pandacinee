@@ -856,6 +856,155 @@ export type Database = {
         }
         Relationships: []
       }
+      group_event_rsvps: {
+        Row: {
+          event_id: string
+          response: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          event_id: string
+          response: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          event_id?: string
+          response?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_event_rsvps_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "group_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      group_events: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          group_id: string
+          id: string
+          location: string | null
+          starts_at: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          group_id: string
+          id?: string
+          location?: string | null
+          starts_at: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          group_id?: string
+          id?: string
+          location?: string | null
+          starts_at?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_events_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "chat_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      group_match_participants: {
+        Row: {
+          joined_at: string
+          match_id: string
+          role: string
+          seat: number | null
+          user_id: string
+        }
+        Insert: {
+          joined_at?: string
+          match_id: string
+          role: string
+          seat?: number | null
+          user_id: string
+        }
+        Update: {
+          joined_at?: string
+          match_id?: string
+          role?: string
+          seat?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_match_participants_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "group_matches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      group_matches: {
+        Row: {
+          created_at: string
+          created_by: string
+          ended_at: string | null
+          external_ref: string | null
+          game: string
+          group_id: string
+          id: string
+          max_players: number
+          started_at: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          ended_at?: string | null
+          external_ref?: string | null
+          game: string
+          group_id: string
+          id?: string
+          max_players?: number
+          started_at?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          ended_at?: string | null
+          external_ref?: string | null
+          game?: string
+          group_id?: string
+          id?: string
+          max_players?: number
+          started_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_matches_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "chat_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       love_letters: {
         Row: {
           body: string
@@ -915,6 +1064,38 @@ export type Database = {
           voice_url?: string | null
         }
         Relationships: []
+      }
+      match_player_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          match_id: string
+          sender_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          match_id: string
+          sender_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          match_id?: string
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_player_messages_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "group_matches"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       memory_jar: {
         Row: {
@@ -1127,6 +1308,38 @@ export type Database = {
           type?: string
         }
         Relationships: []
+      }
+      observer_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          match_id: string
+          sender_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          match_id: string
+          sender_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          match_id?: string
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "observer_messages_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "group_matches"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       paint_gallery: {
         Row: {
@@ -2013,6 +2226,27 @@ export type Database = {
         Args: { _me: string; _partner: string }
         Returns: number
       }
+      create_group_match: {
+        Args: { _game: string; _group_id: string; _max_players?: number }
+        Returns: {
+          created_at: string
+          created_by: string
+          ended_at: string | null
+          external_ref: string | null
+          game: string
+          group_id: string
+          id: string
+          max_players: number
+          started_at: string | null
+          status: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "group_matches"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       credit_coin_purchase: { Args: { _payment_id: string }; Returns: Json }
       delete_email: {
         Args: { message_id: number; queue_name: string }
@@ -2052,10 +2286,19 @@ export type Database = {
         Args: { _gid: string; _uid: string }
         Returns: boolean
       }
+      is_match_observer: {
+        Args: { _match_id: string; _uid: string }
+        Returns: boolean
+      }
+      is_match_player: {
+        Args: { _match_id: string; _uid: string }
+        Returns: boolean
+      }
       is_watch_party_member: {
         Args: { _pid: string; _uid: string }
         Returns: boolean
       }
+      join_group_match: { Args: { _match_id: string }; Returns: string }
       join_group_with_code: {
         Args: { _code: string }
         Returns: {
