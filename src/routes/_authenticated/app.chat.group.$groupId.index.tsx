@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft, Settings, Phone, Video as VideoIcon, Send, Image as ImageIcon,
-  Smile, Pin, Trash2, Reply, X, MoreVertical, PinOff, BarChart3, Forward,
+  Pin, Trash2, Reply, X, PinOff, BarChart3, Forward, Swords, Calendar,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useProfile } from "@/hooks/useProfile";
@@ -15,6 +15,13 @@ import { UserAvatar } from "@/components/UserAvatar";
 import { PollComposer } from "@/components/chat/PollComposer";
 import { PollMessage } from "@/components/chat/PollMessage";
 import { ForwardDialog } from "@/components/chat/ForwardDialog";
+import { VoiceRecorder } from "@/components/chat/VoiceRecorder";
+import { VoicePlayer } from "@/components/chat/VoicePlayer";
+import { DuelGamePicker } from "@/components/chat/DuelGamePicker";
+import { GroupEventComposer } from "@/components/chat/GroupEventComposer";
+import { GroupEventCard } from "@/components/chat/GroupEventCard";
+import { GroupMatchInviteCard } from "@/components/chat/GroupMatchInviteCard";
+import { createGroupMatch } from "@/hooks/useGroupMatch";
 import type { PollMeta } from "@/lib/poll";
 import type { MessageRow } from "@/lib/chat";
 
