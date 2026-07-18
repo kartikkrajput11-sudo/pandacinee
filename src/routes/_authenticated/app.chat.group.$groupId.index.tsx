@@ -133,14 +133,14 @@ function GroupChat() {
     }
   }
 
-  async function handleLaunchDuel(g: { id: string; name: string; emoji: string }) {
+  async function handleLaunchDuel(g: { id: string; name: string; emoji: string; maxPlayers?: number }) {
     setDuelOpen(false);
     try {
-      const match = await createGroupMatch(groupId, g.id);
+      const match = await createGroupMatch(groupId, g.id, g.maxPlayers ?? 2);
       await chat.send({
         content: `${g.name} — take a seat`,
         type: "match_invite",
-        media_meta: { match_id: match.id, game: g.id, game_name: g.name, emoji: g.emoji },
+        media_meta: { match_id: match.id, game: g.id, game_name: g.name, emoji: g.emoji, max_players: g.maxPlayers ?? 2 },
       });
       navigate({ to: "/app/group-match/$matchId", params: { matchId: match.id } });
     } catch (e: any) {
