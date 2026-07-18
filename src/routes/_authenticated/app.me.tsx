@@ -250,6 +250,58 @@ function Me() {
                 className="w-full bg-velvet border border-border rounded-2xl px-4 py-3 text-candle"
               />
             </Field>
+            <Field label="Username">
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-candle-muted">@</span>
+                <input
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_.]/g, ""))}
+                  maxLength={30}
+                  className={`w-full bg-velvet border rounded-2xl pl-8 pr-24 py-3 text-candle ${
+                    usernameStatus === "taken" || usernameStatus === "invalid"
+                      ? "border-destructive"
+                      : usernameStatus === "available"
+                      ? "border-emerald-500/60"
+                      : "border-border"
+                  }`}
+                />
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs">
+                  {usernameStatus === "checking" && <span className="text-candle-muted">checking…</span>}
+                  {usernameStatus === "available" && <span className="text-emerald-500">✓ available</span>}
+                  {usernameStatus === "taken" && <span className="text-destructive">taken</span>}
+                  {usernameStatus === "invalid" && username.length > 0 && (
+                    <span className="text-destructive">3–30 · a–z 0–9 _ .</span>
+                  )}
+                </div>
+              </div>
+              {usernameStatus === "taken" && usernameSuggestions.length > 0 && (
+                <div className="mt-2">
+                  <p className="text-[11px] text-candle-muted mb-1.5">Try one of these:</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {usernameSuggestions.map((s) => (
+                      <button
+                        key={s}
+                        type="button"
+                        onClick={() => setUsername(s)}
+                        className="px-2.5 py-1 text-xs rounded-full bg-petal-soft/60 border border-petal/30 text-petal hover:bg-petal-soft transition-colors"
+                      >
+                        @{s}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {usernameStatus === "available" && (
+                <button
+                  type="button"
+                  onClick={saveUsername}
+                  disabled={savingUsername}
+                  className="mt-2 px-3 py-1.5 text-xs rounded-full bg-petal text-velvet font-semibold disabled:opacity-60"
+                >
+                  {savingUsername ? "Saving…" : "Save username"}
+                </button>
+              )}
+            </Field>
             <Field label="Bio">
               <textarea
                 value={bio}
