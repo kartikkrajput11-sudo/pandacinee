@@ -2294,6 +2294,7 @@ export type Database = {
         Args: { _match_id: string; _uid: string }
         Returns: boolean
       }
+      is_paint_pair_member: { Args: { _pair_key: string }; Returns: boolean }
       is_username_available: { Args: { _username: string }; Returns: boolean }
       is_watch_party_member: {
         Args: { _pid: string; _uid: string }
