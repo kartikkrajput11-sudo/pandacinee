@@ -285,6 +285,8 @@ function GroupChat() {
                   )}
                   {m.type === "image" && m.media_url ? (
                     <GroupImage path={m.media_url} />
+                  ) : m.type === "voice" && m.media_url ? (
+                    <VoicePlayer path={m.media_url} durationMs={(m.media_meta as any)?.duration_ms} />
                   ) : m.type === "poll" ? (
                     <PollMessage
                       messageId={m.id}
@@ -292,6 +294,10 @@ function GroupChat() {
                       meId={meId}
                       memberById={memberById}
                     />
+                  ) : m.type === "match_invite" ? (
+                    <GroupMatchInviteCard m={m as unknown as MessageRow} />
+                  ) : m.type === "event" ? (
+                    <GroupEventCard eventId={(m.media_meta as any)?.event_id} meId={meId} mine={mine} />
                   ) : (
                     <span>{m.content}</span>
                   )}
