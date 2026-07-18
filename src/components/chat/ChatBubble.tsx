@@ -581,11 +581,11 @@ function ChatBubbleImpl({
           </p>
         )}
 
-        {actionsOpen && (
+        {actionsOpen && typeof document !== "undefined" && createPortal(
           <div
-            className="fixed inset-0 z-[200] flex flex-col items-center justify-center gap-4 px-6 animate-fade-in"
-            style={{ backdropFilter: "blur(14px) saturate(140%)", background: "rgba(0,0,0,0.55)" }}
+            className="fixed inset-0 z-[200] flex flex-col items-center justify-center gap-4 px-6 animate-fade-in bg-black/60 backdrop-blur-xl"
             onClick={() => { setActionsOpen(false); setVanishOpen(false); }}
+            onPointerDown={(e) => e.stopPropagation()}
           >
             {/* Quick reactions */}
             <div
@@ -707,7 +707,8 @@ function ChatBubbleImpl({
                 </button>
               )}
             </div>
-          </div>
+          </div>,
+          document.body
         )}
       </div>
     </div>
