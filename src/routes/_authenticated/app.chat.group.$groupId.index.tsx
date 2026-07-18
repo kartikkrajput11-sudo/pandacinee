@@ -354,6 +354,11 @@ function GroupChat() {
                   ) : (
                     <span>{m.content}</span>
                   )}
+                  {heartPopId === m.id && (
+                    <span className="pointer-events-none absolute inset-0 flex items-center justify-center text-3xl animate-scale-in" aria-hidden>
+                      ❤️
+                    </span>
+                  )}
                 </div>
 
                 {/* Reactions */}
