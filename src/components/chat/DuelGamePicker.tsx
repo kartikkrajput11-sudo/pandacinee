@@ -27,17 +27,22 @@ export function DuelGamePicker({
           </button>
         </div>
         <p className="text-[11px] text-candle-muted mb-3 italic">
-          First two joiners take the seats. The rest of the circle joins as observers with their own private chat, and can watch the players' banter unfold.
+          First joiners take the seats. The rest of the circle joins as observers with their own private chat, and can watch the players' banter unfold.
         </p>
-        <div className="grid grid-cols-1 gap-2">
+        <div className="grid grid-cols-2 gap-2 max-h-[60vh] overflow-y-auto pr-1">
           {DUEL_GAMES.map((g) => (
             <button
               key={g.id}
               onClick={() => onPick(g)}
-              className="text-left p-3 rounded-2xl bg-surface border border-border hover:border-petal/60 transition-colors flex items-center gap-3"
+              className="text-left p-3 rounded-2xl bg-surface border border-border hover:border-petal/60 hover:bg-petal/5 transition-colors flex flex-col items-start gap-1"
             >
-              <span className="text-3xl">{g.emoji}</span>
-              <span className="text-sm font-medium text-candle">{g.name}</span>
+              <div className="flex items-center gap-2 w-full">
+                <span className="text-2xl">{g.emoji}</span>
+                <span className="ml-auto text-[9px] uppercase tracking-widest text-petal bg-petal/10 border border-petal/30 rounded-full px-1.5 py-0.5">
+                  {g.maxPlayers} seat{g.maxPlayers === 1 ? "" : "s"}
+                </span>
+              </div>
+              <span className="text-sm font-medium text-candle leading-tight">{g.name}</span>
             </button>
           ))}
         </div>
