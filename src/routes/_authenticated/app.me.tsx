@@ -27,6 +27,10 @@ function Me() {
   const fileRef = useRef<HTMLInputElement>(null);
 
   const [displayName, setDisplayName] = useState("");
+  const [username, setUsername] = useState("");
+  const [usernameStatus, setUsernameStatus] = useState<"idle" | "checking" | "available" | "taken" | "invalid">("idle");
+  const [usernameSuggestions, setUsernameSuggestions] = useState<string[]>([]);
+  const [savingUsername, setSavingUsername] = useState(false);
   const [bio, setBio] = useState("");
   const [favoriteColor, setFavoriteColor] = useState<string | null>(null);
   const [equippedTags, setEquippedTags] = useState<string[]>([]);
