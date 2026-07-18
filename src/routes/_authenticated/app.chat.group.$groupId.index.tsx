@@ -51,6 +51,7 @@ function GroupChat() {
   const [forwardMsg, setForwardMsg] = useState<MessageRow | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLInputElement>(null);
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const group = groupData?.group;
   const members = groupData?.members ?? [];
