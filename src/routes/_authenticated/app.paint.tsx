@@ -169,7 +169,11 @@ type RemoteCursor = { x: number; y: number; color: string; name: string; ts: num
 function PaintTogether() {
   const { data } = useProfile();
   const me = data?.profile;
-  const partner = data?.partner;
+  const { matchId } = Route.useSearch();
+  const { opponentId: matchOppId } = useMatchOpponent(matchId, me?.id);
+  const partner = matchId
+    ? (matchOppId ? { id: matchOppId, display_name: "Partner" } as { id: string; display_name?: string } : null)
+    : data?.partner;
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [color, setColor] = useState("#8b5cf6");
