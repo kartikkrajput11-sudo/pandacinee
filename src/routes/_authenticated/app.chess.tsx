@@ -64,13 +64,32 @@ function ChessPage() {
   const navigate = useNavigate();
   const { data: profileData } = useProfile();
   const me = profileData?.profile;
-  const partner = profileData?.partner;
+  const { opponentId: matchOppId, ready: matchReady } = useMatchOpponent(search.matchId, me?.id);
+  const partner = search.matchId
+    ? (matchOppId ? { id: matchOppId, display_name: "Partner" } : null)
+    : profileData?.partner;
 
   const gameId = search.game ?? null;
   const mode = search.mode;
 
+  // Auto-start a partner game when arriving from a group match with an opponent seated.
+  useEffect(() => {
+    if (!search.matchId || gameId || mode === "self" || mode === "ai") return;
+    if (!matchReady || !me?.id || !matchOppId) return;
+    void startPartnerGame(me.id, matchOppId).then((id) => {
+      if (id) navigate({ to: "/app/chess", search: { game: id, mode: "partner", matchId: search.matchId } });
+    });
+  }, [search.matchId, matchReady, me?.id, matchOppId, gameId, mode, navigate]);
+
   // Show lobby only when no active session — partner needs a game id, local modes need a mode selection.
   if (!gameId && mode !== "self" && mode !== "ai") {
+    if (search.matchId) {
+      return (
+        <div className="min-h-screen grid place-items-center text-candle-muted">
+          Setting up the board with your opponent…
+        </div>
+      );
+    }
     return <Lobby me={me} partner={partner} onStart={(nextMode, ai) => {
       if (nextMode === "partner") {
         void startPartnerGame(me?.id, partner?.id).then((id) => {
@@ -84,6 +103,7 @@ function ChessPage() {
 
   return <GameScreen gameId={gameId} mode={mode ?? "partner"} aiLevel={search.ai ?? "medium"} meId={me?.id ?? null} partnerName={partner?.display_name ?? "your panda"} />;
 }
+
 
 async function startPartnerGame(meId?: string | null, partnerId?: string | null): Promise<string | null> {
   if (!meId || !partnerId) {
