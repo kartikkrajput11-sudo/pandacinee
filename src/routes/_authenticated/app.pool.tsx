@@ -200,17 +200,23 @@ type Player = 0 | 1;
 function PoolPage() {
   const { data } = useProfile();
   const me = useMemo(() => data?.profile ? { id: data.profile.id, display_name: data.profile.display_name } : null, [data]);
-  const partner = data?.partner;
+  const { matchId } = Route.useSearch();
+  const { opponentId: matchOppId } = useMatchOpponent(matchId, me?.id);
+  const partner = matchId
+    ? (matchOppId ? { id: matchOppId, display_name: "Partner" } : null)
+    : data?.partner;
   const roomKey = useMemo(() => {
+    if (matchId) return `pool:match:${matchId}`;
     const ids = [me?.id, partner?.id].filter(Boolean).sort();
     return ids.length === 2 ? `pool:${ids.join(":")}` : "";
-  }, [me?.id, partner?.id]);
+  }, [matchId, me?.id, partner?.id]);
   // Deterministic seat: lower sorted user id = seat 0
   const mySeat = useMemo<Player | null>(() => {
     if (!me?.id || !partner?.id) return null;
     const ids = [me.id, partner.id].sort();
     return ids[0] === me.id ? 0 : 1;
   }, [me?.id, partner?.id]);
+
 
   const [balls, setBalls] = useState<Ball[]>(() => makeRack());
   const [turn, setTurn] = useState<Player>(0);
