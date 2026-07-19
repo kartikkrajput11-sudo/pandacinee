@@ -80,7 +80,7 @@ function KnowMePage() {
 
   useEffect(() => {
     if (mode !== "online" || !me || !partner) return;
-    const key = [me.id, partner.id].sort().join(":");
+    const key = matchId ?? [me.id, partner.id].sort().join(":");
     const channel = supabase.channel(`knowme:${key}`, {
       config: { broadcast: { self: false }, presence: { key: me.id } },
     });
