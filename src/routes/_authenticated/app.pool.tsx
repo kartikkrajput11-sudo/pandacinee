@@ -208,6 +208,13 @@ function PoolPage() {
   const [winner, setWinner] = useState<Player | null>(null);
   const [message, setMessage] = useState<string>("Break!");
   const [ballInHand, setBallInHand] = useState<Player | null>(null);
+  const [matchScore, setMatchScore] = useState<[number, number]>(() => {
+    try { const s = localStorage.getItem("pool:score"); if (s) return JSON.parse(s); } catch { /* noop */ }
+    return [0, 0];
+  });
+  useEffect(() => {
+    try { localStorage.setItem("pool:score", JSON.stringify(matchScore)); } catch { /* noop */ }
+  }, [matchScore]);
 
   const svgRef = useRef<SVGSVGElement | null>(null);
   const [mouse, setMouse] = useState<{ x: number; y: number } | null>(null);
