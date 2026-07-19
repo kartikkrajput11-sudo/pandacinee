@@ -482,7 +482,29 @@ function PoolPage() {
         </button>
       </header>
 
-      {/* Score & turn */}
+      {/* Match scoreboard */}
+      <div className="relative z-10 max-w-6xl mx-auto px-5 mb-3">
+        <div className="rounded-2xl border border-petal/30 bg-black/30 backdrop-blur px-4 py-3 flex items-center justify-between gap-4">
+          <div className="flex-1 text-center">
+            <p className="text-[9px] uppercase tracking-[0.2em] text-petal">Player 1</p>
+            <p className="font-serif italic text-3xl mt-0.5">{matchScore[0]}</p>
+          </div>
+          <div className="text-center px-3">
+            <p className="text-[9px] uppercase tracking-[0.2em] text-candle-muted">Match</p>
+            <p className="font-serif italic text-xl text-petal">vs</p>
+            <button
+              onClick={() => setMatchScore([0, 0])}
+              className="text-[9px] text-candle-muted underline hover:text-candle transition"
+            >reset</button>
+          </div>
+          <div className="flex-1 text-center">
+            <p className="text-[9px] uppercase tracking-[0.2em] text-petal">Player 2</p>
+            <p className="font-serif italic text-3xl mt-0.5">{matchScore[1]}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Turn strip */}
       <div className="relative z-10 max-w-6xl mx-auto px-5 flex items-center justify-between gap-3 mb-3 text-xs">
         <div className={`flex items-center gap-2 rounded-full px-3 py-1 border ${turn === 0 && !winner ? "border-petal bg-petal-soft/30" : "border-border/40"}`}>
           <span className={`size-2.5 rounded-full ${assign[0] === "solid" ? "bg-red-500" : assign[0] === "stripe" ? "bg-yellow-400 ring-2 ring-white/40" : "bg-white/40"}`} />
