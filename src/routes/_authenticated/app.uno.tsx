@@ -57,8 +57,37 @@ const COLOR_SWATCH: Record<UnoColor, string> = {
 function UnoPage() {
   const { data } = useProfile();
   const me = data?.profile;
-  const partner = data?.partner;
+  const { matchId } = Route.useSearch();
+  const [matchOpponentId, setMatchOpponentId] = useState<string | null>(null);
+
+  // If arrived from a group match lobby, resolve the seated opponent so we can
+  // auto-enter partner mode and skip the mode picker.
+  useEffect(() => {
+    if (!matchId || !me) return;
+    let cancelled = false;
+    (async () => {
+      const { data: rows } = await supabase
+        .from("group_match_participants" as never)
+        .select("user_id,role,seat")
+        .eq("match_id", matchId)
+        .eq("role", "player")
+        .order("seat", { ascending: true });
+      if (cancelled) return;
+      const players = ((rows ?? []) as { user_id: string }[]).map((r) => r.user_id);
+      const opp = players.find((id) => id !== me.id) ?? null;
+      setMatchOpponentId(opp);
+    })();
+    return () => { cancelled = true; };
+  }, [matchId, me]);
+
+  const partner = matchId
+    ? (matchOpponentId ? { id: matchOpponentId } as { id: string } : null)
+    : data?.partner;
   const [mode, setMode] = useState<Mode | null>(null);
+  // Auto-enter partner mode when we arrived from a group match with an opponent seated.
+  useEffect(() => {
+    if (matchId && partner && !mode) setMode("partner");
+  }, [matchId, partner, mode]);
   const [state, setState] = useState<UnoState>(() => initialState());
   const [flashId, setFlashId] = useState<string | null>(null);
   const [deckPulse, setDeckPulse] = useState(0);
@@ -73,6 +102,7 @@ function UnoPage() {
     if (mode !== "partner" || !me || !partner) return "you";
     return me.id < partner.id ? "you" : "them";
   }, [mode, me, partner]);
+
 
   const stateRef = useRef<UnoState>(state);
   useEffect(() => { stateRef.current = state; }, [state]);
