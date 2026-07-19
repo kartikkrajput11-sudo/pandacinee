@@ -449,9 +449,10 @@ function PoolPage() {
     const len = Math.hypot(dx, dy) || 1;
     const ux = dx / len, uy = dy / len;
     const pullback = drag ? Math.min(60, power * 4) : 20;
-    const near = { x: cueBall.x + ux * (R + 8 + pullback), y: cueBall.y + uy * (R + 8 + pullback) };
-    const far = { x: near.x + ux * 220, y: near.y + uy * 220 };
-    return { near, far };
+    const tipX = cueBall.x + ux * (R + 8 + pullback);
+    const tipY = cueBall.y + uy * (R + 8 + pullback);
+    const angleDeg = Math.atan2(uy, ux) * 180 / Math.PI;
+    return { tipX, tipY, angleDeg };
   }, [cueBall, mouse, canShoot, drag, power]);
 
   const solidsLeft = balls.filter((b) => !b.pocketed && b.group === "solid").length;
