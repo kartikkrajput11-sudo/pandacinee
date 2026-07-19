@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
+import { useMatchOpponent } from "@/hooks/useMatchOpponent";
 import { ChessBoard } from "@/components/chess/ChessBoard";
 import { PromotionDialog } from "@/components/chess/PromotionDialog";
 import { WinAnimation } from "@/components/chess/WinAnimation";
