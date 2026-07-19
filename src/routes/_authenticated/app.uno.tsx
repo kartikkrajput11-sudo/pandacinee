@@ -24,6 +24,9 @@ import { sfxReaction, sfxPollVote, sfxKiss } from "@/lib/sfx";
 
 export const Route = createFileRoute("/_authenticated/app/uno")({
   component: UnoPage,
+  validateSearch: (search: Record<string, unknown>) => ({
+    matchId: typeof search.matchId === "string" ? search.matchId : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Uno — PandaCine" },
@@ -31,6 +34,7 @@ export const Route = createFileRoute("/_authenticated/app/uno")({
     ],
   }),
 });
+
 
 type Mode = "partner" | "local";
 
