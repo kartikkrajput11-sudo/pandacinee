@@ -101,7 +101,12 @@ function ChessPage() {
     }} />;
   }
 
-  return <GameScreen gameId={gameId} mode={mode ?? "partner"} aiLevel={search.ai ?? "medium"} meId={me?.id ?? null} partnerName={partner?.display_name ?? "your panda"} />;
+  return (
+    <>
+      {search.matchId && <GroupPlayersBar matchId={search.matchId} meId={me?.id} gameName="Chess" />}
+      <GameScreen gameId={gameId} mode={mode ?? "partner"} aiLevel={search.ai ?? "medium"} meId={me?.id ?? null} partnerName={partner?.display_name ?? "your panda"} />
+    </>
+  );
 }
 
 
