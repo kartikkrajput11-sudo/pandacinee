@@ -657,7 +657,9 @@ function PoolPage() {
           {assign[0] && <span className="text-candle-muted">— {assign[0] === "solid" ? solidsLeft : stripesLeft} left</span>}
           {ballInHand === 0 && <Hand className="size-3 text-petal animate-pulse" />}
         </div>
-        <p className="text-candle-muted font-serif italic text-center">{message}</p>
+        <p className="text-candle-muted font-serif italic text-center">
+          {mySeat !== null && !isMyTurn && !winner ? `${partner?.display_name ?? "Partner"}'s turn…` : message}
+        </p>
         <div className={`flex items-center gap-2 rounded-full px-3 py-1 border ${turn === 1 && !winner ? "border-petal bg-petal-soft/30" : "border-border/40"}`}>
           <span className={`size-2.5 rounded-full ${assign[1] === "solid" ? "bg-red-500" : assign[1] === "stripe" ? "bg-yellow-400 ring-2 ring-white/40" : "bg-white/40"}`} />
           <span className="font-serif italic">Player 2</span>
