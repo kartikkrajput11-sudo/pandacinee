@@ -369,9 +369,11 @@ function PoolPage() {
       const legalWin = myGroup && myLeft === 0 && !cueSunk && !foul;
       if (legalWin) {
         setWinner(turn); sfxPoolWin(); setMessage(`Player ${turn + 1} wins!`);
+        setMatchScore((s) => (turn === 0 ? [s[0] + 1, s[1]] : [s[0], s[1] + 1]));
       } else {
         setWinner(other); sfxPoolWin();
         setMessage(cueSunk ? `Player ${other + 1} wins — scratch on 8` : `Player ${other + 1} wins — 8 ball early`);
+        setMatchScore((s) => (other === 0 ? [s[0] + 1, s[1]] : [s[0], s[1] + 1]));
       }
       return;
     }
