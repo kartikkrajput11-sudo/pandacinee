@@ -29,6 +29,7 @@ const searchSchema = z.object({
   game: z.string().uuid().optional(),
   mode: z.enum(["partner", "self", "ai"]).optional(),
   ai: z.enum(["easy", "medium", "hard", "expert"]).optional(),
+  matchId: z.string().optional(),
 });
 
 export const Route = createFileRoute("/_authenticated/app/chess")({
