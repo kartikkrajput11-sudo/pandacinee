@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, LogOut, Heart, Copy, Camera, Save, Sun, Moon, Monitor, ChevronRight, Lock, Coins, Volume2, VolumeX, Eye, EyeOff } from "lucide-react";
+import { ArrowLeft, LogOut, Heart, Copy, Camera, Save, Sun, Moon, Monitor, ChevronRight, Lock, Coins, Volume2, VolumeX, Eye, EyeOff, CheckCheck, Check } from "lucide-react";
 import { isSfxEnabled, setSfxEnabled, sfxReaction } from "@/lib/sfx";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -357,6 +357,7 @@ function Me() {
           <ThemeSection />
           <SoundToggle />
           <ActivityVisibleToggle me={me} onSaved={() => queryClient.invalidateQueries({ queryKey: ["profile"] })} />
+          <ReadReceiptsToggle me={me} onSaved={() => queryClient.invalidateQueries({ queryKey: ["profile"] })} />
 
 
           <PunishmentLockToggle me={me} onSaved={() => queryClient.invalidateQueries({ queryKey: ["profile"] })} />
@@ -595,6 +596,47 @@ function ActivityVisibleToggle({ me, onSaved }: { me: any; onSaved: () => void }
         <p className="text-[10px] uppercase tracking-widest text-petal">Activity status</p>
         <p className="text-sm text-candle">
           {on ? "Partner sees when you're online & last active" : "Hidden — no online dot or last-seen time"}
+        </p>
+      </div>
+      <span
+        className={`relative w-11 h-6 rounded-full transition-colors ${on ? "bg-petal" : "bg-velvet border border-border"}`}
+        aria-hidden
+      >
+        <span
+          className={`absolute top-0.5 size-5 rounded-full bg-white shadow transition-transform ${on ? "translate-x-5" : "translate-x-0.5"}`}
+        />
+      </span>
+    </button>
+  );
+}
+
+
+function ReadReceiptsToggle({ me, onSaved }: { me: any; onSaved: () => void }) {
+  const on = me?.read_receipts_enabled !== false;
+  const [busy, setBusy] = useState(false);
+  async function toggle() {
+    setBusy(true);
+    const next = !on;
+    const { error } = await (supabase as any)
+      .from("profiles")
+      .update({ read_receipts_enabled: next })
+      .eq("id", me.id);
+    setBusy(false);
+    if (error) return toast.error(error.message);
+    toast.success(next ? "Seen receipts on" : "Seen receipts off");
+    onSaved();
+  }
+  return (
+    <button
+      onClick={toggle}
+      disabled={busy}
+      className="w-full p-5 mb-4 rounded-3xl border border-border bg-surface flex items-center gap-3 hover:border-petal/40 transition-colors text-left disabled:opacity-60"
+    >
+      {on ? <CheckCheck className="size-5 text-petal" /> : <Check className="size-5 text-candle-muted" />}
+      <div className="flex-1">
+        <p className="text-[10px] uppercase tracking-widest text-petal">Seen receipts</p>
+        <p className="text-sm text-candle">
+          {on ? "Partner sees when you've read their messages" : "Hidden — partner won't see 'seen' on their messages"}
         </p>
       </div>
       <span

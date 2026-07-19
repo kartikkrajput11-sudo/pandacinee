@@ -146,13 +146,21 @@ export function useChat(meId: string | null, partnerId: string | null) {
     }
   }, [fetchMessages, hasMore, loadingOlder, meId, messages, partnerId]);
 
-  // mark partner's unread as read
+  // mark partner's unread as read — but only if the user has seen receipts enabled
   useEffect(() => {
     if (!meId || !partnerId) return;
     const unread = messages.filter((m) => m.sender_id === partnerId && m.receiver_id === meId && !m.read_at);
     if (unread.length === 0) return;
     const ids = unread.map((m) => m.id);
-    supabase.from("messages").update({ read_at: new Date().toISOString() }).in("id", ids).then();
+    (async () => {
+      const { data: mine } = await supabase
+        .from("profiles")
+        .select("read_receipts_enabled")
+        .eq("id", meId)
+        .maybeSingle();
+      if ((mine as any)?.read_receipts_enabled === false) return;
+      await supabase.from("messages").update({ read_at: new Date().toISOString() }).in("id", ids);
+    })();
   }, [messages, meId, partnerId]);
 
   // Reap expired messages (real vanish)
