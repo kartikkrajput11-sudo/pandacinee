@@ -30,6 +30,7 @@ import { Route as AuthenticatedAppShopRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedAppScribbleRouteImport } from './routes/_authenticated/app.scribble'
 import { Route as AuthenticatedAppRitualsRouteImport } from './routes/_authenticated/app.rituals'
 import { Route as AuthenticatedAppPuzzleRouteImport } from './routes/_authenticated/app.puzzle'
+import { Route as AuthenticatedAppPoolRouteImport } from './routes/_authenticated/app.pool'
 import { Route as AuthenticatedAppPlayRouteImport } from './routes/_authenticated/app.play'
 import { Route as AuthenticatedAppPartnerRouteImport } from './routes/_authenticated/app.partner'
 import { Route as AuthenticatedAppPaintRouteImport } from './routes/_authenticated/app.paint'
@@ -181,6 +182,11 @@ const AuthenticatedAppRitualsRoute = AuthenticatedAppRitualsRouteImport.update({
 const AuthenticatedAppPuzzleRoute = AuthenticatedAppPuzzleRouteImport.update({
   id: '/puzzle',
   path: '/puzzle',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
+const AuthenticatedAppPoolRoute = AuthenticatedAppPoolRouteImport.update({
+  id: '/pool',
+  path: '/pool',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
 const AuthenticatedAppPlayRoute = AuthenticatedAppPlayRouteImport.update({
@@ -463,6 +469,7 @@ export interface FileRoutesByFullPath {
   '/app/paint': typeof AuthenticatedAppPaintRoute
   '/app/partner': typeof AuthenticatedAppPartnerRoute
   '/app/play': typeof AuthenticatedAppPlayRoute
+  '/app/pool': typeof AuthenticatedAppPoolRoute
   '/app/puzzle': typeof AuthenticatedAppPuzzleRoute
   '/app/rituals': typeof AuthenticatedAppRitualsRoute
   '/app/scribble': typeof AuthenticatedAppScribbleRoute
@@ -527,6 +534,7 @@ export interface FileRoutesByTo {
   '/app/paint': typeof AuthenticatedAppPaintRoute
   '/app/partner': typeof AuthenticatedAppPartnerRoute
   '/app/play': typeof AuthenticatedAppPlayRoute
+  '/app/pool': typeof AuthenticatedAppPoolRoute
   '/app/puzzle': typeof AuthenticatedAppPuzzleRoute
   '/app/rituals': typeof AuthenticatedAppRitualsRoute
   '/app/scribble': typeof AuthenticatedAppScribbleRoute
@@ -594,6 +602,7 @@ export interface FileRoutesById {
   '/_authenticated/app/paint': typeof AuthenticatedAppPaintRoute
   '/_authenticated/app/partner': typeof AuthenticatedAppPartnerRoute
   '/_authenticated/app/play': typeof AuthenticatedAppPlayRoute
+  '/_authenticated/app/pool': typeof AuthenticatedAppPoolRoute
   '/_authenticated/app/puzzle': typeof AuthenticatedAppPuzzleRoute
   '/_authenticated/app/rituals': typeof AuthenticatedAppRitualsRoute
   '/_authenticated/app/scribble': typeof AuthenticatedAppScribbleRoute
@@ -662,6 +671,7 @@ export interface FileRouteTypes {
     | '/app/paint'
     | '/app/partner'
     | '/app/play'
+    | '/app/pool'
     | '/app/puzzle'
     | '/app/rituals'
     | '/app/scribble'
@@ -726,6 +736,7 @@ export interface FileRouteTypes {
     | '/app/paint'
     | '/app/partner'
     | '/app/play'
+    | '/app/pool'
     | '/app/puzzle'
     | '/app/rituals'
     | '/app/scribble'
@@ -792,6 +803,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/paint'
     | '/_authenticated/app/partner'
     | '/_authenticated/app/play'
+    | '/_authenticated/app/pool'
     | '/_authenticated/app/puzzle'
     | '/_authenticated/app/rituals'
     | '/_authenticated/app/scribble'
@@ -993,6 +1005,13 @@ declare module '@tanstack/react-router' {
       path: '/puzzle'
       fullPath: '/app/puzzle'
       preLoaderRoute: typeof AuthenticatedAppPuzzleRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/pool': {
+      id: '/_authenticated/app/pool'
+      path: '/pool'
+      fullPath: '/app/pool'
+      preLoaderRoute: typeof AuthenticatedAppPoolRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/play': {
@@ -1384,6 +1403,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppPaintRoute: typeof AuthenticatedAppPaintRoute
   AuthenticatedAppPartnerRoute: typeof AuthenticatedAppPartnerRoute
   AuthenticatedAppPlayRoute: typeof AuthenticatedAppPlayRoute
+  AuthenticatedAppPoolRoute: typeof AuthenticatedAppPoolRoute
   AuthenticatedAppPuzzleRoute: typeof AuthenticatedAppPuzzleRoute
   AuthenticatedAppRitualsRoute: typeof AuthenticatedAppRitualsRoute
   AuthenticatedAppScribbleRoute: typeof AuthenticatedAppScribbleRoute
@@ -1429,6 +1449,7 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppPaintRoute: AuthenticatedAppPaintRoute,
   AuthenticatedAppPartnerRoute: AuthenticatedAppPartnerRoute,
   AuthenticatedAppPlayRoute: AuthenticatedAppPlayRoute,
+  AuthenticatedAppPoolRoute: AuthenticatedAppPoolRoute,
   AuthenticatedAppPuzzleRoute: AuthenticatedAppPuzzleRoute,
   AuthenticatedAppRitualsRoute: AuthenticatedAppRitualsRoute,
   AuthenticatedAppScribbleRoute: AuthenticatedAppScribbleRoute,
