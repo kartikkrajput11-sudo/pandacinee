@@ -511,7 +511,8 @@ function PoolPage() {
           <div className="absolute inset-2 rounded-[30px] pointer-events-none" style={{ border: "1px solid rgba(212,162,74,0.25)" }} />
           <svg
             ref={svgRef}
-            viewBox={`-30 -30 ${W + 60} ${H + 60}`}
+            viewBox={`-140 -100 ${W + 280} ${H + 200}`}
+            style={{ overflow: "visible", cursor: ballInHand === turn ? "crosshair" : canShoot ? "grab" : "default" }}
             className="w-full h-auto rounded-2xl select-none touch-none"
             onPointerMove={onSvgMove}
             onPointerDown={onSvgDown}
