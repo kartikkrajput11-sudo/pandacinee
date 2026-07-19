@@ -77,7 +77,10 @@ export function GroupPlayersBar({
   const observers = participants.filter((p) => p.role === "observer");
 
   return (
-    <div className="fixed inset-x-0 top-0 z-40 w-full border-b border-candle-line/50 bg-gradient-to-r from-[#1a0f1e]/95 via-[#241026]/95 to-[#1a0f1e]/95 backdrop-blur-xl">
+    <>
+      {/* Reserve top space so the fixed bar never overlaps game headers. */}
+      <div aria-hidden className="h-14 sm:h-[3.75rem]" />
+      <div className="fixed inset-x-0 top-0 z-40 w-full border-b border-candle-line/50 bg-gradient-to-r from-[#1a0f1e]/95 via-[#241026]/95 to-[#1a0f1e]/95 backdrop-blur-xl">
       <div className="mx-auto flex max-w-6xl items-center gap-3 px-3 py-2 sm:px-5 sm:py-2.5">
         <Link
           to="/app/group-match/$matchId"
