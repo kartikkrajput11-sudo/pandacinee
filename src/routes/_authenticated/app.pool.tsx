@@ -603,13 +603,29 @@ function PoolPage() {
             <h1 className="font-serif italic text-2xl">8-Ball Pool</h1>
           </div>
         </div>
-        <button
-          onClick={resetGame}
-          className="flex items-center gap-2 rounded-full border border-petal/40 bg-petal-soft/30 backdrop-blur px-4 py-1.5 text-sm hover:bg-petal-soft/60 transition"
-        >
-          <RotateCcw className="size-4" /> New rack
-        </button>
+        <div className="flex items-center gap-2">
+          {partner && (
+            <div
+              title={partnerOnline ? `${partner.display_name ?? "Partner"} is online` : "Partner is offline"}
+              className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-serif italic backdrop-blur ${
+                partnerOnline
+                  ? "border-emerald-400/40 bg-emerald-500/10 text-emerald-200"
+                  : "border-border/40 bg-black/30 text-candle-muted"
+              }`}
+            >
+              {partnerOnline ? <Wifi className="size-3.5" /> : <WifiOff className="size-3.5" />}
+              {mySeat !== null ? `You: P${mySeat + 1}` : "Solo"}
+            </div>
+          )}
+          <button
+            onClick={resetGame}
+            className="flex items-center gap-2 rounded-full border border-petal/40 bg-petal-soft/30 backdrop-blur px-4 py-1.5 text-sm hover:bg-petal-soft/60 transition"
+          >
+            <RotateCcw className="size-4" /> New rack
+          </button>
+        </div>
       </header>
+
 
       {/* Match scoreboard */}
       <div className="relative z-10 max-w-6xl mx-auto px-5 mb-3">
