@@ -231,6 +231,7 @@ function LudoPage() {
 
   return (
     <div className="min-h-screen relative overflow-hidden">
+      {matchId && <GroupPlayersBar matchId={matchId} meId={me?.id} gameName="Ludo" />}
       <LudoAmbient />
       <div className="relative z-10 pt-8 px-4 pb-24 max-w-xl mx-auto">
         <header className="flex items-center justify-between mb-5">
