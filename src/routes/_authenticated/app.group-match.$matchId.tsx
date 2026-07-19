@@ -42,13 +42,17 @@ function GroupMatchLobby() {
     joinGroupMatch(matchId).catch(() => {});
   }, [m.match, m.loading, meId, iAmParticipant, matchId]);
 
-  const seatsFilled = m.players.length >= (m.match?.max_players ?? 2);
-  const canLaunchToGame = iAmParticipant && seatsFilled && gameDef;
+  const maxSeats = m.match?.max_players ?? 2;
+  const seatsFilled = m.players.length >= maxSeats;
+  const minReady = m.players.length >= 2; // any duel needs at least 2
+  const isHost = !!m.match && meId === m.match.created_by;
+  const canLaunchToGame = iAmParticipant && minReady && gameDef;
 
   function launch() {
     if (!gameDef) return;
     navigate({ to: gameDef.href, search: { matchId } as never });
   }
+
 
   if (m.loading || !m.match) {
     return <div className="p-8 text-center text-candle-muted">Loading lobby…</div>;
