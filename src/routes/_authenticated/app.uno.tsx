@@ -233,7 +233,16 @@ function UnoPage() {
   // Auto: if it's opponent's turn in LOCAL mode, we let both players share the phone.
   // Nothing automatic — pass and play.
 
+  if (matchId && !mode) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-candle-muted text-sm italic">
+        Dealing the group table…
+      </div>
+    );
+  }
+
   if (!mode) {
+
     return (
       <div className="min-h-screen relative overflow-hidden">
         <UnoAmbient />
