@@ -236,31 +236,134 @@ function PoolPage() {
   const turnEndedRef = useRef(false);
   const firstHitRef = useRef<FirstHit>({ id: null });
 
+  // -------- Realtime sync --------
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const remoteApplyingRef = useRef(false);
+  const lastSendRef = useRef(0);
+  const [partnerOnline, setPartnerOnline] = useState(false);
+  const turnRef = useRef<Player>(0);
+  turnRef.current = turn;
+  const mySeatRef = useRef<Player | null>(mySeat);
+  mySeatRef.current = mySeat;
+
+  const isMyTurn = mySeat === null || mySeat === turn;
+  const isMyTurnRef = useRef(isMyTurn);
+  isMyTurnRef.current = isMyTurn;
+
+  const sendState = useCallback((force = false) => {
+    const ch = channelRef.current;
+    if (!ch || remoteApplyingRef.current) return;
+    // Only current-turn seat is authoritative for state
+    if (mySeatRef.current !== null && mySeatRef.current !== turnRef.current && !force) return;
+    const now = performance.now();
+    if (!force && now - lastSendRef.current < 45) return;
+    lastSendRef.current = now;
+    ch.send({
+      type: "broadcast",
+      event: "state",
+      payload: {
+        ts: Date.now(),
+        from: mySeatRef.current,
+        balls: ballsRef.current.map(b => ({
+          id: b.id, x: b.x, y: b.y, vx: b.vx, vy: b.vy,
+          pocketed: b.pocketed, sinkT: b.sinkT,
+          pocketX: b.pocketX, pocketY: b.pocketY,
+        })),
+        turn: turnRef.current,
+        assign,
+        ballInHand,
+        winner,
+        message,
+        matchScore,
+      },
+    });
+  }, [assign, ballInHand, winner, message, matchScore]);
+
+  useEffect(() => {
+    if (!roomKey) return;
+    const ch = supabase.channel(roomKey, { config: { broadcast: { self: false }, presence: { key: me?.id ?? "anon" } } });
+    channelRef.current = ch;
+    ch.on("broadcast", { event: "state" }, ({ payload }) => {
+      remoteApplyingRef.current = true;
+      const incoming: Ball[] = payload.balls.map((rb: Ball) => {
+        const existing = ballsRef.current.find(b => b.id === rb.id);
+        return {
+          id: rb.id,
+          x: rb.x, y: rb.y, vx: rb.vx, vy: rb.vy,
+          group: existing?.group ?? groupOf(rb.id),
+          color: existing?.color ?? BALL_COLORS[rb.id],
+          pocketed: rb.pocketed, sinkT: rb.sinkT,
+          pocketX: rb.pocketX, pocketY: rb.pocketY,
+        };
+      });
+      ballsRef.current = incoming;
+      setBalls(incoming);
+      setTurn(payload.turn);
+      setAssign(payload.assign);
+      setBallInHand(payload.ballInHand);
+      setWinner(payload.winner);
+      setMessage(payload.message);
+      if (payload.matchScore) setMatchScore(payload.matchScore);
+      // Reset local sim flags — authoritative sender manages them
+      movingRef.current = anyMoving(incoming);
+      turnEndedRef.current = false;
+      setTimeout(() => { remoteApplyingRef.current = false; }, 0);
+    });
+    ch.on("broadcast", { event: "reset" }, () => {
+      remoteApplyingRef.current = true;
+      const fresh = makeRack();
+      ballsRef.current = fresh;
+      setBalls(fresh);
+      setTurn(0); setAssign([null, null]); setPocketedThisTurn([]);
+      setWinner(null); setMessage("Break!"); setBallInHand(null);
+      setPlacingCue(null);
+      movingRef.current = false; turnEndedRef.current = false;
+      firstHitRef.current.id = null;
+      setTimeout(() => { remoteApplyingRef.current = false; }, 0);
+    });
+    ch.on("presence", { event: "sync" }, () => {
+      const state = ch.presenceState();
+      const others = Object.keys(state).filter(k => k !== me?.id);
+      setPartnerOnline(others.length > 0);
+    });
+    ch.subscribe(async (status) => {
+      if (status === "SUBSCRIBED") {
+        await ch.track({ seat: mySeatRef.current, at: Date.now() });
+      }
+    });
+    return () => { supabase.removeChannel(ch); channelRef.current = null; };
+  }, [roomKey, me?.id]);
+
   useEffect(() => {
     let last = performance.now();
     const loop = (t: number) => {
       const dt = Math.min(32, t - last); last = t;
-      const steps = Math.max(1, Math.round(dt / 16));
-      for (let i = 0; i < steps; i++) {
-        step(
-          ballsRef.current,
-          () => sfxPoolRail(),
-          () => sfxPoolClick(),
-          (b) => {
-            sfxPoolPocket();
-            setPocketedThisTurn((s) => [...s, b]);
-          },
-          firstHitRef.current,
-        );
-      }
-      const stillMoving = anyMoving(ballsRef.current);
-      setBalls([...ballsRef.current]);
-      if (!stillMoving && movingRef.current && !turnEndedRef.current) {
-        movingRef.current = false;
-        turnEndedRef.current = true;
-        setTimeout(resolveTurn, 0);
-      } else if (stillMoving) {
-        movingRef.current = true;
+      // Only the authoritative seat simulates. Solo (mySeat null) always simulates.
+      if (isMyTurnRef.current) {
+        const steps = Math.max(1, Math.round(dt / 16));
+        for (let i = 0; i < steps; i++) {
+          step(
+            ballsRef.current,
+            () => sfxPoolRail(),
+            () => sfxPoolClick(),
+            (b) => {
+              sfxPoolPocket();
+              setPocketedThisTurn((s) => [...s, b]);
+            },
+            firstHitRef.current,
+          );
+        }
+        const stillMoving = anyMoving(ballsRef.current);
+        setBalls([...ballsRef.current]);
+        if (stillMoving) {
+          movingRef.current = true;
+          sendState();
+        }
+        if (!stillMoving && movingRef.current && !turnEndedRef.current) {
+          movingRef.current = false;
+          turnEndedRef.current = true;
+          setTimeout(resolveTurn, 0);
+        }
       }
       rafRef.current = requestAnimationFrame(loop);
     };
@@ -270,7 +373,8 @@ function PoolPage() {
   }, []);
 
   const cueBall = balls.find((b) => b.id === 0);
-  const canShoot = !winner && cueBall && !anyMoving(balls) && ballInHand === null;
+  const canShoot = !winner && cueBall && !anyMoving(balls) && ballInHand === null && isMyTurn;
+
 
   const toSvg = useCallback((clientX: number, clientY: number) => {
     const svg = svgRef.current;
