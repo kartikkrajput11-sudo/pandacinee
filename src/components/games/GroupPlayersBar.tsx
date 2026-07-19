@@ -110,7 +110,7 @@ export function GroupPlayersBar({
                   <UserAvatar
                     src={prof?.avatar_url ?? null}
                     name={prof?.display_name ?? "Player"}
-                    size={28}
+                    className="h-7 w-7"
                   />
                   {isHost && (
                     <Crown className="absolute -right-1 -top-1 h-3 w-3 text-amber-300 drop-shadow" />
