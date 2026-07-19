@@ -134,30 +134,50 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
     onReadyRef.current({
       play: () => {
         setBuffering(true);
-        v.play()
-          .then(() => stopBuffering())
-          .catch(() => {
-            // Autoplay was blocked (no user gesture yet). Retry muted so the
-            // follower still stays in sync — they can tap the speaker to unmute.
-            try {
-              v.muted = true;
-              setMuted(true);
-              v.play()
-                .then(() => {
-                  stopBuffering();
-                  setShowControls(true);
-                })
-                .catch(() => {
-                  stopBuffering();
-                  setPlaying(false);
-                  setShowControls(true);
-                });
-            } catch {
-              stopBuffering();
-              setPlaying(false);
-              setShowControls(true);
-            }
-          });
+        // Wait until the video is actually buffered enough to play. Calling
+        // .play() before HAVE_FUTURE_DATA is the classic "guest sees a black
+        // frame" bug on watch parties — the browser accepts the call but has
+        // no frame to render yet.
+        const attempt = () => {
+          v.play()
+            .then(() => stopBuffering())
+            .catch(() => {
+              // Autoplay was blocked (no user gesture yet). Retry muted so the
+              // follower still stays in sync — they can tap the speaker to unmute.
+              try {
+                v.muted = true;
+                setMuted(true);
+                v.play()
+                  .then(() => {
+                    stopBuffering();
+                    setShowControls(true);
+                  })
+                  .catch(() => {
+                    stopBuffering();
+                    setPlaying(false);
+                    setShowControls(true);
+                  });
+              } catch {
+                stopBuffering();
+                setPlaying(false);
+                setShowControls(true);
+              }
+            });
+        };
+        if (v.readyState >= 3) {
+          attempt();
+        } else {
+          const onCanPlay = () => {
+            v.removeEventListener("canplay", onCanPlay);
+            attempt();
+          };
+          v.addEventListener("canplay", onCanPlay);
+          // Safety: if buffering stalls, still try after 6s so we don't hang forever.
+          window.setTimeout(() => {
+            v.removeEventListener("canplay", onCanPlay);
+            if (v.paused) attempt();
+          }, 6000);
+        }
       },
       pause: () => { v.pause(); stopBuffering(); },
       seek: (t: number) => {
