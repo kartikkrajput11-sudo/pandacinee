@@ -50,6 +50,16 @@ type WatchSyncRow = {
   is_host: boolean;
 };
 
+const safeSeconds = (value: unknown, fallback = 0) => {
+  const n = Number(value);
+  return Number.isFinite(n) && n >= 0 ? n : fallback;
+};
+
+const safeRate = (value: unknown, fallback = 1) => {
+  const n = Number(value);
+  return Number.isFinite(n) && n > 0 ? n : fallback;
+};
+
 const emptyMine = (): Mine => ({
   currentTime: 0,
   duration: 0,
@@ -108,16 +118,20 @@ export function useWatchSync(
       last_seen_at: now,
       ready: myReadyRef.current,
       source_kind: mySourceKindRef.current,
-      current_seconds: mine.currentTime,
-      duration_seconds: mine.duration,
-      playback_rate: mine.playbackRate,
-      source_idx: mine.sourceIdx,
+      current_seconds: safeSeconds(mine.currentTime),
+      duration_seconds: safeSeconds(mine.duration),
+      playback_rate: safeRate(mine.playbackRate),
+      source_idx: Number.isFinite(Number(mine.sourceIdx)) ? Number(mine.sourceIdx) : 0,
       season: mine.season,
       episode: mine.episode,
       event: mine.event,
       event_at: mine.updatedAt ? new Date(mine.updatedAt).toISOString() : null,
       ...patch,
     };
+    row.current_seconds = safeSeconds(row.current_seconds);
+    row.duration_seconds = safeSeconds(row.duration_seconds);
+    row.playback_rate = safeRate(row.playback_rate);
+    row.source_idx = Number.isFinite(Number(row.source_idx)) ? Number(row.source_idx) : 0;
     (supabase as any)
       .from("watch_sync_members")
       .upsert(row, { onConflict: "room_key,user_id" })
@@ -164,17 +178,17 @@ export function useWatchSync(
     setPeer((prev) => {
       if (prev && prev.updatedAt >= updatedAt) return prev;
       return {
-        currentTime: Number(other.current_seconds ?? 0),
-        duration: Number(other.duration_seconds ?? 0),
-        playbackRate: Number(other.playback_rate ?? 1),
+        currentTime: safeSeconds(other.current_seconds),
+        duration: safeSeconds(other.duration_seconds),
+        playbackRate: safeRate(other.playback_rate),
         updatedAt,
         event: other.event,
-        sourceIdx: Number(other.source_idx ?? 0),
+        sourceIdx: Number.isFinite(Number(other.source_idx)) ? Number(other.source_idx) : 0,
         season: other.season,
         episode: other.episode,
       };
     });
-    setDrift(mineRef.current.currentTime - Number(other.current_seconds ?? 0));
+    setDrift(safeSeconds(mineRef.current.currentTime) - safeSeconds(other.current_seconds));
   }, [channelName, meId]);
 
   useEffect(() => {
@@ -212,17 +226,17 @@ export function useWatchSync(
         setPeer((prev) => {
           if (prev && prev.updatedAt >= p.updatedAt) return prev;
           return {
-            currentTime: p.currentTime,
-            duration: p.duration,
-            playbackRate: p.playbackRate,
+            currentTime: safeSeconds(p.currentTime),
+            duration: safeSeconds(p.duration),
+            playbackRate: safeRate(p.playbackRate),
             updatedAt: p.updatedAt,
             event: p.event,
-            sourceIdx: p.sourceIdx,
+            sourceIdx: Number.isFinite(Number(p.sourceIdx)) ? Number(p.sourceIdx) : 0,
             season: p.season,
             episode: p.episode,
           };
         });
-        const d = mineRef.current.currentTime - p.currentTime;
+        const d = safeSeconds(mineRef.current.currentTime) - safeSeconds(p.currentTime);
         setDrift(d);
       })
       .on("broadcast", { event: "seek" }, ({ payload }) => {
@@ -308,7 +322,15 @@ export function useWatchSync(
 
   const publish = useCallback((patch: Partial<Mine>) => {
     const now = Date.now();
-    const next: Mine = { ...mineRef.current, ...patch, updatedAt: now };
+    const merged = { ...mineRef.current, ...patch };
+    const next: Mine = {
+      ...merged,
+      currentTime: safeSeconds(merged.currentTime),
+      duration: safeSeconds(merged.duration),
+      playbackRate: safeRate(merged.playbackRate),
+      sourceIdx: Number.isFinite(Number(merged.sourceIdx)) ? Number(merged.sourceIdx) : 0,
+      updatedAt: now,
+    };
     mineRef.current = next;
     const ch = channelRef.current;
     ch?.send({ type: "broadcast", event: "state", payload: { ...next, from: meId } });
