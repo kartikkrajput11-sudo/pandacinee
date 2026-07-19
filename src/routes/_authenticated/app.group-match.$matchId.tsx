@@ -74,8 +74,12 @@ function GroupMatchLobby() {
       </header>
 
       {/* Seats */}
-      <div className="px-4 py-5 grid grid-cols-2 gap-3">
-        {[0, 1].map((idx) => {
+      <div className={`px-4 py-5 grid gap-3 ${
+        (m.match.max_players ?? 2) <= 2 ? "grid-cols-2"
+        : (m.match.max_players ?? 2) <= 4 ? "grid-cols-2 sm:grid-cols-4"
+        : "grid-cols-2 sm:grid-cols-4"
+      }`}>
+        {Array.from({ length: m.match.max_players ?? 2 }).map((_, idx) => {
           const p = m.players[idx];
           const prof = p ? profiles[p.user_id] : null;
           return (
