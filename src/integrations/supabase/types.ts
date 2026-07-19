@@ -2446,6 +2446,27 @@ export type Database = {
           username: string
         }[]
       }
+      start_group_match: {
+        Args: { _match_id: string }
+        Returns: {
+          created_at: string
+          created_by: string
+          ended_at: string | null
+          external_ref: string | null
+          game: string
+          group_id: string
+          id: string
+          max_players: number
+          started_at: string | null
+          status: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "group_matches"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       suggest_usernames: {
         Args: { _base: string; _count?: number }
         Returns: string[]
