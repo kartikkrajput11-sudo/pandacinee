@@ -295,10 +295,15 @@ type PeerMsg =
 function HideSeekPage() {
   const { data } = useProfile();
   const me = data?.profile;
-  const partner = data?.partner;
+  const { matchId } = Route.useSearch();
+  const { opponentId: matchOppId } = useMatchOpponent(matchId, me?.id);
+  const partner = matchId
+    ? (matchOppId ? { id: matchOppId, display_name: "Partner" } as { id: string; display_name?: string } : null)
+    : data?.partner;
   const navigate = useNavigate();
 
   const [mode, setMode] = useState<Mode>("local");
+  useEffect(() => { if (matchId && partner) setMode("online"); }, [matchId, partner]);
   const [phase, setPhase] = useState<Phase>("intro");
   const [round, setRound] = useState(1);
   const [hiderId, setHiderId] = useState<string | null>(null);
