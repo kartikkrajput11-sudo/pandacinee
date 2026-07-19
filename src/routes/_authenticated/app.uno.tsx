@@ -24,6 +24,9 @@ import { sfxReaction, sfxPollVote, sfxKiss } from "@/lib/sfx";
 
 export const Route = createFileRoute("/_authenticated/app/uno")({
   component: UnoPage,
+  validateSearch: (search: Record<string, unknown>) => ({
+    matchId: typeof search.matchId === "string" ? search.matchId : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Uno — PandaCine" },
@@ -31,6 +34,7 @@ export const Route = createFileRoute("/_authenticated/app/uno")({
     ],
   }),
 });
+
 
 type Mode = "partner" | "local";
 
@@ -53,8 +57,37 @@ const COLOR_SWATCH: Record<UnoColor, string> = {
 function UnoPage() {
   const { data } = useProfile();
   const me = data?.profile;
-  const partner = data?.partner;
+  const { matchId } = Route.useSearch();
+  const [matchOpponentId, setMatchOpponentId] = useState<string | null>(null);
+
+  // If arrived from a group match lobby, resolve the seated opponent so we can
+  // auto-enter partner mode and skip the mode picker.
+  useEffect(() => {
+    if (!matchId || !me) return;
+    let cancelled = false;
+    (async () => {
+      const { data: rows } = await supabase
+        .from("group_match_participants" as never)
+        .select("user_id,role,seat")
+        .eq("match_id", matchId)
+        .eq("role", "player")
+        .order("seat", { ascending: true });
+      if (cancelled) return;
+      const players = ((rows ?? []) as { user_id: string }[]).map((r) => r.user_id);
+      const opp = players.find((id) => id !== me.id) ?? null;
+      setMatchOpponentId(opp);
+    })();
+    return () => { cancelled = true; };
+  }, [matchId, me]);
+
+  const partner = matchId
+    ? (matchOpponentId ? { id: matchOpponentId } as { id: string } : null)
+    : data?.partner;
   const [mode, setMode] = useState<Mode | null>(null);
+  // Auto-enter partner mode when we arrived from a group match with an opponent seated.
+  useEffect(() => {
+    if (matchId && partner && !mode) setMode("partner");
+  }, [matchId, partner, mode]);
   const [state, setState] = useState<UnoState>(() => initialState());
   const [flashId, setFlashId] = useState<string | null>(null);
   const [deckPulse, setDeckPulse] = useState(0);
@@ -70,14 +103,16 @@ function UnoPage() {
     return me.id < partner.id ? "you" : "them";
   }, [mode, me, partner]);
 
+
   const stateRef = useRef<UnoState>(state);
   useEffect(() => { stateRef.current = state; }, [state]);
 
   const chRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   useEffect(() => {
     if (mode !== "partner" || !me || !partner) return;
-    const key = [me.id, partner.id].sort().join(":");
+    const key = matchId ?? [me.id, partner.id].sort().join(":");
     const isHost = me.id < partner.id;
+
     const ch = supabase.channel(`uno:${key}`, { config: { broadcast: { self: false } } });
     ch.on("broadcast", { event: "state" }, ({ payload }) => {
       setState(payload as UnoState);
@@ -198,7 +233,16 @@ function UnoPage() {
   // Auto: if it's opponent's turn in LOCAL mode, we let both players share the phone.
   // Nothing automatic — pass and play.
 
+  if (matchId && !mode) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-candle-muted text-sm italic">
+        Dealing the group table…
+      </div>
+    );
+  }
+
   if (!mode) {
+
     return (
       <div className="min-h-screen relative overflow-hidden">
         <UnoAmbient />
