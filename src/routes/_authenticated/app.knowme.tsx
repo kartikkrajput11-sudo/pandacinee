@@ -7,6 +7,7 @@ import { pickQuestions, type KnowMeQuestion } from "@/lib/knowme";
 import { sfxReaction, sfxPollVote, sfxKiss } from "@/lib/sfx";
 import { supabase } from "@/integrations/supabase/client";
 import { GameChat } from "@/components/games/GameChat";
+import { GroupPlayersBar } from "@/components/games/GroupPlayersBar";
 
 export const Route = createFileRoute("/_authenticated/app/knowme")({
   component: KnowMePage,
