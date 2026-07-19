@@ -310,6 +310,7 @@ function UnoPage() {
 
   return (
     <div className="min-h-screen relative overflow-hidden">
+      {matchId && <GroupPlayersBar matchId={matchId} meId={me?.id} gameName="Uno" />}
       <UnoAmbient />
       <div className="relative z-10 pt-8 px-4 pb-24">
         {/* Header */}
