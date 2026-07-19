@@ -1058,14 +1058,10 @@ function CatalogWatch({ id }: { id: string }) {
             ) : (
               <button
                 onClick={() => {
-                  // If partner is online and this is a Pandacine source, use the
-                  // ready-check flow: broadcast "prepare" so both sides preload,
-                  // then host can hit Play once both are loaded.
-                  if (gateActive && !partnerIsHost) {
-                    if (!hostId) claimHost();
-                    sendPrepare(startAt ?? 0);
-                    setPausedByHost(true);
-                  }
+                  // Each viewer loads their own Supabase-signed stream and starts
+                  // independently. The sync channel keeps timelines aligned via
+                  // drift correction — no cross-viewer "ready" coupling.
+                  if (gateActive && !partnerIsHost && !hostId) claimHost();
                   setStarted(true);
                   setPlayerLoading(true);
                 }}
