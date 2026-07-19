@@ -4,7 +4,7 @@ import { ArrowLeft, Send, Swords, Eye, Play, MessageCircle } from "lucide-react"
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
-import { useGroupMatch, joinGroupMatch, DUEL_GAMES } from "@/hooks/useGroupMatch";
+import { useGroupMatch, joinGroupMatch, startGroupMatch, DUEL_GAMES } from "@/hooks/useGroupMatch";
 import { UserAvatar } from "@/components/UserAvatar";
 
 export const Route = createFileRoute("/_authenticated/app/group-match/$matchId")({
