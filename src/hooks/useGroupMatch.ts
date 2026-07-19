@@ -36,6 +36,7 @@ export const DUEL_GAMES = [
   { id: "chess",           name: "Chess",              emoji: "♟️", href: "/app/chess",            maxPlayers: 2 },
   { id: "ludo",            name: "Ludo",               emoji: "🎲", href: "/app/ludo",             maxPlayers: 2 },
   { id: "uno",             name: "Uno",                emoji: "🃏", href: "/app/uno",              maxPlayers: 4 },
+  { id: "pool",            name: "8-Ball Pool",        emoji: "🎱", href: "/app/pool",             maxPlayers: 2 },
   { id: "know-me",         name: "How Well Do You Know Me?", emoji: "💌", href: "/app/knowme",     maxPlayers: 2 },
   { id: "hide-seek",       name: "Hide & Seek",        emoji: "🫣", href: "/app/hideseek",         maxPlayers: 2 },
   { id: "scribble-guess",  name: "Scribble & Guess",   emoji: "✏️", href: "/app/scribble",         maxPlayers: 4 },
@@ -44,6 +45,7 @@ export const DUEL_GAMES = [
   { id: "memory-challenge",name: "Memory Challenge",   emoji: "📸", href: "/app/memory-challenge", maxPlayers: 4 },
   { id: "daily-challenge", name: "Daily Challenge",    emoji: "🌞", href: "/app/daily-challenge",  maxPlayers: 4 },
   { id: "puzzle-together", name: "Puzzle Together",    emoji: "🧩", href: "/app/puzzle",           maxPlayers: 4 },
+
 ];
 
 export async function createGroupMatch(groupId: string, game: string, maxPlayers = 2): Promise<GroupMatchRow> {
