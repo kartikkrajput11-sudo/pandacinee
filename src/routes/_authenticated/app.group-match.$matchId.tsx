@@ -44,15 +44,29 @@ function GroupMatchLobby() {
 
   const maxSeats = m.match?.max_players ?? 2;
   const seatsFilled = m.players.length >= maxSeats;
-  const minReady = m.players.length >= 2; // any duel needs at least 2
+  const minReady = m.players.length >= 2;
   const isHost = !!m.match && meId === m.match.created_by;
-  const canLaunchToGame = iAmParticipant && minReady && gameDef;
+  const isLive = m.match?.status === "live" || m.match?.status === "ended";
+  const [starting, setStarting] = useState(false);
 
-  function launch() {
-    if (!gameDef) return;
+  // When host starts the match, EVERY seated player (and observers) auto-enter.
+  useEffect(() => {
+    if (!isLive || !gameDef || !m.myRole) return;
     navigate({ to: gameDef.href, search: { matchId } as never });
-  }
+  }, [isLive, gameDef, m.myRole, matchId, navigate]);
 
+  async function hostStart() {
+    if (!isHost || starting) return;
+    setStarting(true);
+    try {
+      await startGroupMatch(matchId);
+      // Realtime will flip status → live → the effect above navigates everyone.
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Couldn't start");
+    } finally {
+      setStarting(false);
+    }
+  }
 
   if (m.loading || !m.match) {
     return <div className="p-8 text-center text-candle-muted">Loading lobby…</div>;
@@ -94,6 +108,7 @@ function GroupMatchLobby() {
                   <UserAvatar src={prof?.avatar_url ?? undefined} name={prof?.display_name} className="size-14" />
                   <p className="text-sm font-medium text-candle truncate max-w-full">
                     {prof?.display_name ?? "…"}{p.user_id === meId && " (you)"}
+                    {p.user_id === m.match?.created_by && " · host"}
                   </p>
                 </>
               ) : (
@@ -121,34 +136,35 @@ function GroupMatchLobby() {
         </div>
       )}
 
-      {/* Launch */}
+      {/* Launch — host only */}
       <div className="px-4 pb-3">
-        <button
-          onClick={launch}
-          disabled={!canLaunchToGame}
-          className="w-full py-3 rounded-full bg-petal text-velvet font-semibold text-sm petal-glow disabled:opacity-40 flex items-center justify-center gap-2"
-        >
-          <Play className="size-4" />
-          {m.myRole === "player"
-            ? minReady
-              ? seatsFilled ? "Enter the arena" : `Start now (${m.players.length}/${maxSeats})`
-              : "Waiting for another player…"
-            : minReady ? "Watch as observer" : "Waiting for players…"}
-        </button>
-        {isHost && minReady && !seatsFilled && (
+        {isHost ? (
+          <button
+            onClick={hostStart}
+            disabled={!minReady || !gameDef || starting || isLive}
+            className="w-full py-3 rounded-full bg-petal text-velvet font-semibold text-sm petal-glow disabled:opacity-40 flex items-center justify-center gap-2"
+          >
+            <Play className="size-4" />
+            {isLive
+              ? "Entering arena…"
+              : starting
+                ? "Starting…"
+                : minReady
+                  ? seatsFilled ? "Start match" : `Start match now (${m.players.length}/${maxSeats})`
+                  : "Waiting for at least 2 seated players…"}
+          </button>
+        ) : (
+          <div className="w-full py-3 rounded-full bg-surface border border-border text-candle-muted text-sm text-center italic">
+            {isLive ? "Host started — entering…" : "Waiting for the host to start the match…"}
+          </div>
+        )}
+        {isHost && minReady && !seatsFilled && !isLive && (
           <p className="mt-2 text-center text-[11px] italic text-candle-muted">
-            You're the host — you can start early with {m.players.length} seated, or wait to fill all {maxSeats} seats.
+            You're the host — start now with {m.players.length} seated, or wait to fill all {maxSeats} seats.
           </p>
         )}
-        {m.myRole === "observer" && minReady && (
-          <button
-            onClick={launch}
-            className="w-full mt-2 py-2 rounded-full bg-surface border border-border text-candle-muted text-xs"
-          >
-            Open the arena view →
-          </button>
-        )}
       </div>
+
 
 
       {/* Chat tabs */}
