@@ -4,11 +4,15 @@ import { ArrowLeft, Sparkles, Trophy, RotateCw } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
+import { useMatchOpponent } from "@/hooks/useMatchOpponent";
 import { generateLoveQuiz } from "@/lib/games.functions";
 import { gameSfx } from "@/lib/game-sfx";
 
 export const Route = createFileRoute("/_authenticated/app/love-quiz")({
   component: LoveQuiz,
+  validateSearch: (search: Record<string, unknown>) => ({
+    matchId: typeof search.matchId === "string" ? search.matchId : undefined,
+  }),
 });
 
 type Q = { q: string; options: string[]; answer: number };
