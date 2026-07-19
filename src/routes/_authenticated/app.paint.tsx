@@ -203,6 +203,7 @@ function PaintTogether() {
 
   function pairKey() {
     if (!me) return "";
+    if (matchId) return `match:${matchId}`;
     return partner ? [me.id, partner.id].sort().join(":") : me.id;
   }
 
