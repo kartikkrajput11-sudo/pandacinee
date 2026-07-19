@@ -163,7 +163,7 @@ function PuzzleTogether() {
   // Realtime pair channel — race + dare only, no piece sync.
   useEffect(() => {
     if (!me) return;
-    const key = partner ? [me.id, partner.id].sort().join(":") : me.id;
+    const key = matchId ?? (partner ? [me.id, partner.id].sort().join(":") : me.id);
     const ch = supabase.channel(`puzzle:${key}`, { config: { broadcast: { self: false } } });
     ch.on("broadcast", { event: "solved" }, ({ payload }) => {
       const p = payload as { by: string; time: number; difficulty: number };
