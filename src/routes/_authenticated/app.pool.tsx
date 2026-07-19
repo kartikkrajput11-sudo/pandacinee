@@ -1,8 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
-import { ArrowLeft, RotateCcw, Trophy, Hand } from "lucide-react";
+import { ArrowLeft, RotateCcw, Trophy, Hand, Wifi, WifiOff } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
 import { GameChat } from "@/components/games/GameChat";
+import { supabase } from "@/integrations/supabase/client";
 import {
   sfxPoolCue,
   sfxPoolClick,
@@ -200,6 +201,12 @@ function PoolPage() {
     const ids = [me?.id, partner?.id].filter(Boolean).sort();
     return ids.length === 2 ? `pool:${ids.join(":")}` : "";
   }, [me?.id, partner?.id]);
+  // Deterministic seat: lower sorted user id = seat 0
+  const mySeat = useMemo<Player | null>(() => {
+    if (!me?.id || !partner?.id) return null;
+    const ids = [me.id, partner.id].sort();
+    return ids[0] === me.id ? 0 : 1;
+  }, [me?.id, partner?.id]);
 
   const [balls, setBalls] = useState<Ball[]>(() => makeRack());
   const [turn, setTurn] = useState<Player>(0);
@@ -229,31 +236,134 @@ function PoolPage() {
   const turnEndedRef = useRef(false);
   const firstHitRef = useRef<FirstHit>({ id: null });
 
+  // -------- Realtime sync --------
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const remoteApplyingRef = useRef(false);
+  const lastSendRef = useRef(0);
+  const [partnerOnline, setPartnerOnline] = useState(false);
+  const turnRef = useRef<Player>(0);
+  turnRef.current = turn;
+  const mySeatRef = useRef<Player | null>(mySeat);
+  mySeatRef.current = mySeat;
+
+  const isMyTurn = mySeat === null || mySeat === turn;
+  const isMyTurnRef = useRef(isMyTurn);
+  isMyTurnRef.current = isMyTurn;
+
+  const sendState = useCallback((force = false) => {
+    const ch = channelRef.current;
+    if (!ch || remoteApplyingRef.current) return;
+    // Only current-turn seat is authoritative for state
+    if (mySeatRef.current !== null && mySeatRef.current !== turnRef.current && !force) return;
+    const now = performance.now();
+    if (!force && now - lastSendRef.current < 45) return;
+    lastSendRef.current = now;
+    ch.send({
+      type: "broadcast",
+      event: "state",
+      payload: {
+        ts: Date.now(),
+        from: mySeatRef.current,
+        balls: ballsRef.current.map(b => ({
+          id: b.id, x: b.x, y: b.y, vx: b.vx, vy: b.vy,
+          pocketed: b.pocketed, sinkT: b.sinkT,
+          pocketX: b.pocketX, pocketY: b.pocketY,
+        })),
+        turn: turnRef.current,
+        assign,
+        ballInHand,
+        winner,
+        message,
+        matchScore,
+      },
+    });
+  }, [assign, ballInHand, winner, message, matchScore]);
+
+  useEffect(() => {
+    if (!roomKey) return;
+    const ch = supabase.channel(roomKey, { config: { broadcast: { self: false }, presence: { key: me?.id ?? "anon" } } });
+    channelRef.current = ch;
+    ch.on("broadcast", { event: "state" }, ({ payload }) => {
+      remoteApplyingRef.current = true;
+      const incoming: Ball[] = payload.balls.map((rb: Ball) => {
+        const existing = ballsRef.current.find(b => b.id === rb.id);
+        return {
+          id: rb.id,
+          x: rb.x, y: rb.y, vx: rb.vx, vy: rb.vy,
+          group: existing?.group ?? groupOf(rb.id),
+          color: existing?.color ?? BALL_COLORS[rb.id],
+          pocketed: rb.pocketed, sinkT: rb.sinkT,
+          pocketX: rb.pocketX, pocketY: rb.pocketY,
+        };
+      });
+      ballsRef.current = incoming;
+      setBalls(incoming);
+      setTurn(payload.turn);
+      setAssign(payload.assign);
+      setBallInHand(payload.ballInHand);
+      setWinner(payload.winner);
+      setMessage(payload.message);
+      if (payload.matchScore) setMatchScore(payload.matchScore);
+      // Reset local sim flags — authoritative sender manages them
+      movingRef.current = anyMoving(incoming);
+      turnEndedRef.current = false;
+      setTimeout(() => { remoteApplyingRef.current = false; }, 0);
+    });
+    ch.on("broadcast", { event: "reset" }, () => {
+      remoteApplyingRef.current = true;
+      const fresh = makeRack();
+      ballsRef.current = fresh;
+      setBalls(fresh);
+      setTurn(0); setAssign([null, null]); setPocketedThisTurn([]);
+      setWinner(null); setMessage("Break!"); setBallInHand(null);
+      setPlacingCue(null);
+      movingRef.current = false; turnEndedRef.current = false;
+      firstHitRef.current.id = null;
+      setTimeout(() => { remoteApplyingRef.current = false; }, 0);
+    });
+    ch.on("presence", { event: "sync" }, () => {
+      const state = ch.presenceState();
+      const others = Object.keys(state).filter(k => k !== me?.id);
+      setPartnerOnline(others.length > 0);
+    });
+    ch.subscribe(async (status) => {
+      if (status === "SUBSCRIBED") {
+        await ch.track({ seat: mySeatRef.current, at: Date.now() });
+      }
+    });
+    return () => { supabase.removeChannel(ch); channelRef.current = null; };
+  }, [roomKey, me?.id]);
+
   useEffect(() => {
     let last = performance.now();
     const loop = (t: number) => {
       const dt = Math.min(32, t - last); last = t;
-      const steps = Math.max(1, Math.round(dt / 16));
-      for (let i = 0; i < steps; i++) {
-        step(
-          ballsRef.current,
-          () => sfxPoolRail(),
-          () => sfxPoolClick(),
-          (b) => {
-            sfxPoolPocket();
-            setPocketedThisTurn((s) => [...s, b]);
-          },
-          firstHitRef.current,
-        );
-      }
-      const stillMoving = anyMoving(ballsRef.current);
-      setBalls([...ballsRef.current]);
-      if (!stillMoving && movingRef.current && !turnEndedRef.current) {
-        movingRef.current = false;
-        turnEndedRef.current = true;
-        setTimeout(resolveTurn, 0);
-      } else if (stillMoving) {
-        movingRef.current = true;
+      // Only the authoritative seat simulates. Solo (mySeat null) always simulates.
+      if (isMyTurnRef.current) {
+        const steps = Math.max(1, Math.round(dt / 16));
+        for (let i = 0; i < steps; i++) {
+          step(
+            ballsRef.current,
+            () => sfxPoolRail(),
+            () => sfxPoolClick(),
+            (b) => {
+              sfxPoolPocket();
+              setPocketedThisTurn((s) => [...s, b]);
+            },
+            firstHitRef.current,
+          );
+        }
+        const stillMoving = anyMoving(ballsRef.current);
+        setBalls([...ballsRef.current]);
+        if (stillMoving) {
+          movingRef.current = true;
+          sendState();
+        }
+        if (!stillMoving && movingRef.current && !turnEndedRef.current) {
+          movingRef.current = false;
+          turnEndedRef.current = true;
+          setTimeout(resolveTurn, 0);
+        }
       }
       rafRef.current = requestAnimationFrame(loop);
     };
@@ -263,7 +373,8 @@ function PoolPage() {
   }, []);
 
   const cueBall = balls.find((b) => b.id === 0);
-  const canShoot = !winner && cueBall && !anyMoving(balls) && ballInHand === null;
+  const canShoot = !winner && cueBall && !anyMoving(balls) && ballInHand === null && isMyTurn;
+
 
   const toSvg = useCallback((clientX: number, clientY: number) => {
     const svg = svgRef.current;
@@ -279,7 +390,7 @@ function PoolPage() {
   // -------- Ball-in-hand placement --------
   const onSvgMove = (e: React.PointerEvent) => {
     const p = toSvg(e.clientX, e.clientY);
-    if (ballInHand !== null && ballInHand === turn) {
+    if (ballInHand !== null && ballInHand === turn && isMyTurn) {
       const cx = Math.max(R, Math.min(W - R, p.x));
       const cy = Math.max(R, Math.min(H - R, p.y));
       if (!overlapsAny(ballsRef.current, cx, cy, 0)) {
@@ -298,7 +409,7 @@ function PoolPage() {
   };
   const onSvgDown = (e: React.PointerEvent) => {
     const p = toSvg(e.clientX, e.clientY);
-    if (ballInHand !== null && ballInHand === turn) {
+    if (ballInHand !== null && ballInHand === turn && isMyTurn) {
       const cx = Math.max(R, Math.min(W - R, p.x));
       const cy = Math.max(R, Math.min(H - R, p.y));
       if (!overlapsAny(ballsRef.current, cx, cy, 0)) {
@@ -308,6 +419,7 @@ function PoolPage() {
         setBallInHand(null);
         setPlacingCue(null);
         setMessage("Take your shot");
+        setTimeout(() => sendState(true), 0);
       }
       return;
     }
@@ -332,6 +444,8 @@ function PoolPage() {
     firstHitRef.current.id = null;
     turnEndedRef.current = false;
     movingRef.current = true;
+    // Broadcast the initial cue-strike so partner sees motion begin instantly
+    setTimeout(() => sendState(true), 0);
   };
 
   // -------- Turn resolution --------
@@ -417,10 +531,14 @@ function PoolPage() {
         ? `Sunk ${numSunk}${shouldContinue ? " — go again" : ""}`
         : "Miss",
     );
+    // Broadcast resolved turn state to partner
+    setTimeout(() => sendState(true), 0);
   };
 
   const resetGame = () => {
-    setBalls(makeRack());
+    const fresh = makeRack();
+    ballsRef.current = fresh;
+    setBalls(fresh);
     setTurn(0);
     setAssign([null, null]);
     setPocketedThisTurn([]);
@@ -431,7 +549,18 @@ function PoolPage() {
     movingRef.current = false;
     turnEndedRef.current = false;
     firstHitRef.current.id = null;
+    // Notify partner to reset too
+    channelRef.current?.send({ type: "broadcast", event: "reset", payload: { ts: Date.now() } });
   };
+
+  // Broadcast on important state transitions (handles resolveTurn early returns)
+  useEffect(() => {
+    if (remoteApplyingRef.current) return;
+    if (mySeat !== null && mySeat !== turn && ballInHand !== mySeat && winner === null) return;
+    const id = setTimeout(() => sendState(true), 20);
+    return () => clearTimeout(id);
+  }, [turn, assign, ballInHand, winner, message, mySeat, sendState]);
+
 
   // -------- Aim geometry --------
   const aimEnd = useMemo(() => {
@@ -474,13 +603,29 @@ function PoolPage() {
             <h1 className="font-serif italic text-2xl">8-Ball Pool</h1>
           </div>
         </div>
-        <button
-          onClick={resetGame}
-          className="flex items-center gap-2 rounded-full border border-petal/40 bg-petal-soft/30 backdrop-blur px-4 py-1.5 text-sm hover:bg-petal-soft/60 transition"
-        >
-          <RotateCcw className="size-4" /> New rack
-        </button>
+        <div className="flex items-center gap-2">
+          {partner && (
+            <div
+              title={partnerOnline ? `${partner.display_name ?? "Partner"} is online` : "Partner is offline"}
+              className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-serif italic backdrop-blur ${
+                partnerOnline
+                  ? "border-emerald-400/40 bg-emerald-500/10 text-emerald-200"
+                  : "border-border/40 bg-black/30 text-candle-muted"
+              }`}
+            >
+              {partnerOnline ? <Wifi className="size-3.5" /> : <WifiOff className="size-3.5" />}
+              {mySeat !== null ? `You: P${mySeat + 1}` : "Solo"}
+            </div>
+          )}
+          <button
+            onClick={resetGame}
+            className="flex items-center gap-2 rounded-full border border-petal/40 bg-petal-soft/30 backdrop-blur px-4 py-1.5 text-sm hover:bg-petal-soft/60 transition"
+          >
+            <RotateCcw className="size-4" /> New rack
+          </button>
+        </div>
       </header>
+
 
       {/* Match scoreboard */}
       <div className="relative z-10 max-w-6xl mx-auto px-5 mb-3">
@@ -512,7 +657,9 @@ function PoolPage() {
           {assign[0] && <span className="text-candle-muted">— {assign[0] === "solid" ? solidsLeft : stripesLeft} left</span>}
           {ballInHand === 0 && <Hand className="size-3 text-petal animate-pulse" />}
         </div>
-        <p className="text-candle-muted font-serif italic text-center">{message}</p>
+        <p className="text-candle-muted font-serif italic text-center">
+          {mySeat !== null && !isMyTurn && !winner ? `${partner?.display_name ?? "Partner"}'s turn…` : message}
+        </p>
         <div className={`flex items-center gap-2 rounded-full px-3 py-1 border ${turn === 1 && !winner ? "border-petal bg-petal-soft/30" : "border-border/40"}`}>
           <span className={`size-2.5 rounded-full ${assign[1] === "solid" ? "bg-red-500" : assign[1] === "stripe" ? "bg-yellow-400 ring-2 ring-white/40" : "bg-white/40"}`} />
           <span className="font-serif italic">Player 2</span>
