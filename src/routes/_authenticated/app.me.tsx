@@ -357,6 +357,7 @@ function Me() {
           <ThemeSection />
           <SoundToggle />
           <ActivityVisibleToggle me={me} onSaved={() => queryClient.invalidateQueries({ queryKey: ["profile"] })} />
+          <ReadReceiptsToggle me={me} onSaved={() => queryClient.invalidateQueries({ queryKey: ["profile"] })} />
 
 
           <PunishmentLockToggle me={me} onSaved={() => queryClient.invalidateQueries({ queryKey: ["profile"] })} />
