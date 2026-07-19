@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, Check, Lock, Sparkles, RotateCcw, Heart, Wifi, Users } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
+import { useMatchOpponent } from "@/hooks/useMatchOpponent";
 import { pickQuestions, type KnowMeQuestion } from "@/lib/knowme";
 import { sfxReaction, sfxPollVote, sfxKiss } from "@/lib/sfx";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,6 +10,9 @@ import { GameChat } from "@/components/games/GameChat";
 
 export const Route = createFileRoute("/_authenticated/app/knowme")({
   component: KnowMePage,
+  validateSearch: (search: Record<string, unknown>) => ({
+    matchId: typeof search.matchId === "string" ? search.matchId : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "How Well Do You Know Me? — PandaCine" },
@@ -16,6 +20,7 @@ export const Route = createFileRoute("/_authenticated/app/knowme")({
     ],
   }),
 });
+
 
 type Mode = "local" | "online";
 type Phase =
