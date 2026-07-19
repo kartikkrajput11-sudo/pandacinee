@@ -400,7 +400,7 @@ function Scribble() {
   // Realtime channel
   useEffect(() => {
     if (!me) return;
-    const key = partner ? [me.id, partner.id].sort().join(":") : me.id;
+    const key = matchId ?? (partner ? [me.id, partner.id].sort().join(":") : me.id);
     const ch = supabase.channel(`scribble:${key}`, { config: { broadcast: { self: false } } });
     ch.on("broadcast", { event: "stroke" }, ({ payload }) => {
       strokes.current.push(payload as Stroke);
