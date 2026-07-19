@@ -596,14 +596,42 @@ function PoolPage() {
               />
             )}
             {cuePreview && (
-              <line
-                x1={cuePreview.near.x} y1={cuePreview.near.y}
-                x2={cuePreview.far.x} y2={cuePreview.far.y}
-                stroke="url(#cueStick)"
-                strokeWidth={6}
-                strokeLinecap="round"
-                opacity={0.95}
-              />
+              <g transform={`translate(${cuePreview.tipX} ${cuePreview.tipY}) rotate(${cuePreview.angleDeg})`} opacity={0.98}>
+                {/* Full cue extends along +x from tip (which sits at x=0). Shaft points at cue ball. */}
+                {/* Soft ground shadow */}
+                <rect x={0} y={5} width={260} height={2.5} fill="rgba(0,0,0,0.35)" rx={1.25} />
+                {/* Leather tip */}
+                <rect x={0} y={-2.2} width={4} height={4.4} rx={1.2} fill="#6a4a2a" />
+                {/* Ferrule (ivory) */}
+                <rect x={4} y={-2.4} width={5} height={4.8} fill="#f4ecd8" />
+                <rect x={4} y={-2.4} width={5} height={4.8} fill="url(#cueShaftShine)" opacity={0.5} />
+                {/* Shaft (maple, tapered) */}
+                <path d="M 9 -2.4 L 150 -3.2 L 150 3.2 L 9 2.4 Z" fill="url(#cueShaftGrad)" />
+                <path d="M 9 -2.4 L 150 -3.2 L 150 -1.8 L 9 -1.4 Z" fill="rgba(255,255,255,0.35)" />
+                <path d="M 9 1.5 L 150 2.0 L 150 3.2 L 9 2.4 Z" fill="rgba(0,0,0,0.25)" />
+                {/* Wrap collar */}
+                <rect x={148} y={-3.4} width={2} height={6.8} fill="#c9a24a" />
+                {/* Leather grip */}
+                <rect x={150} y={-3.4} width={40} height={6.8} fill="url(#cueGripGrad)" />
+                {[152,158,164,170,176,182,188].map((x, i) => (
+                  <line key={i} x1={x} y1={-3.4} x2={x} y2={3.4} stroke="rgba(0,0,0,0.35)" strokeWidth={0.3} />
+                ))}
+                {/* Gold ring */}
+                <rect x={190} y={-3.6} width={2.5} height={7.2} fill="#d4a24a" />
+                <rect x={190} y={-3.6} width={2.5} height={1} fill="#f5d688" />
+                {/* Butt (dark wood, slight taper) */}
+                <path d="M 192.5 -3.6 L 252 -4.4 L 252 4.4 L 192.5 3.6 Z" fill="url(#cueButtGrad)" />
+                <path d="M 192.5 -3.6 L 252 -4.4 L 252 -2.6 L 192.5 -2 Z" fill="rgba(255,255,255,0.18)" />
+                {/* Butt cap bumper */}
+                <rect x={251} y={-4.4} width={4} height={8.8} rx={1.5} fill="#1a1208" />
+                <rect x={251} y={-4.4} width={4} height={2} rx={1.5} fill="#3a2818" />
+                {/* Subtle inlay diamonds on butt */}
+                {[210, 224, 238].map((x, i) => (
+                  <g key={i} transform={`translate(${x} 0)`}>
+                    <path d="M 0 -2 L 2.5 0 L 0 2 L -2.5 0 Z" fill="#d4a24a" opacity={0.7} />
+                  </g>
+                ))}
+              </g>
             )}
 
             {/* Ball-in-hand ghost preview */}
