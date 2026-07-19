@@ -30,6 +30,7 @@ export const GAME_KINDS: GameKind[] = [
   "ludo",
   "uno",
   "hide-seek",
+  "pool",
   "know-me",
   "scribble-guess",
   "two-truths-lie",
