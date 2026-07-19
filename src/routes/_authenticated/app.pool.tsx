@@ -390,7 +390,7 @@ function PoolPage() {
   // -------- Ball-in-hand placement --------
   const onSvgMove = (e: React.PointerEvent) => {
     const p = toSvg(e.clientX, e.clientY);
-    if (ballInHand !== null && ballInHand === turn) {
+    if (ballInHand !== null && ballInHand === turn && isMyTurn) {
       const cx = Math.max(R, Math.min(W - R, p.x));
       const cy = Math.max(R, Math.min(H - R, p.y));
       if (!overlapsAny(ballsRef.current, cx, cy, 0)) {
@@ -409,7 +409,7 @@ function PoolPage() {
   };
   const onSvgDown = (e: React.PointerEvent) => {
     const p = toSvg(e.clientX, e.clientY);
-    if (ballInHand !== null && ballInHand === turn) {
+    if (ballInHand !== null && ballInHand === turn && isMyTurn) {
       const cx = Math.max(R, Math.min(W - R, p.x));
       const cy = Math.max(R, Math.min(H - R, p.y));
       if (!overlapsAny(ballsRef.current, cx, cy, 0)) {
@@ -419,6 +419,7 @@ function PoolPage() {
         setBallInHand(null);
         setPlacingCue(null);
         setMessage("Take your shot");
+        setTimeout(() => sendState(true), 0);
       }
       return;
     }
