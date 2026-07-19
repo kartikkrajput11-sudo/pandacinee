@@ -1823,9 +1823,9 @@ function CustomWatch({ customId }: { customId: string }) {
     clearIncomingSeek();
   }, [incomingSeek, clearIncomingSeek, playerReady, runSuppressed]);
 
-  // Follower: mirror host's discrete events + tight drift correction (PandaCine).
+  // Mutual sync: latest partner event mirrors here after this screen loads its own stream.
   useEffect(() => {
-    if (!peer || !partnerIsHost) return;
+    if (!peer || !partner) return;
     if (peer.updatedAt <= lastAppliedPeerEventRef.current) return;
     const h = handleRef.current;
     if (!h) return;
@@ -1866,7 +1866,7 @@ function CustomWatch({ customId }: { customId: string }) {
       if (evt === "play") h.play();
       if (evt === "pause") h.pause();
     });
-  }, [peer, partnerIsHost, playerReady, runSuppressed]);
+  }, [peer, partner, playerReady, runSuppressed]);
 
   // Countdown → both press play together
   const [countdownRemaining, setCountdownRemaining] = useState<number | null>(null);
@@ -1901,7 +1901,6 @@ function CustomWatch({ customId }: { customId: string }) {
     if (suppressRef.current) return;
     const isDiscrete = evt.event === "play" || evt.event === "pause" || evt.event === "seeked" || evt.event === "ended" || evt.event === "ratechange";
     if (isDiscrete && partner && !hostId) claimHost();
-    if (partnerIsHost && isDiscrete) return;
     if (!isDiscrete && Date.now() - lastPublishRef.current < 500) return;
     lastPublishRef.current = Date.now();
     publish({ event: evt.event, currentTime: evt.currentTime, duration: evt.duration, sourceIdx: 0, playbackRate: evt.playbackRate });
@@ -1962,7 +1961,7 @@ function CustomWatch({ customId }: { customId: string }) {
             <CustomMoviePlayer
               src={videoSrc}
               poster={movie?.backdrop_url ?? movie?.poster_url ?? null}
-              locked={!!hostId && !iAmHost}
+                locked={false}
               onLockedAttempt={() => {
                 toast.info("Playback is controlled by your partner.", { id: "locked-attempt", duration: 1800 });
               }}
