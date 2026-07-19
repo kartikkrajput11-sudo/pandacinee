@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
 import { useMatchOpponent } from "@/hooks/useMatchOpponent";
 import { AvatarImg } from "@/components/AvatarImg";
+import { GroupPlayersBar } from "@/components/games/GroupPlayersBar";
 
 export const Route = createFileRoute("/_authenticated/app/scribble")({
   component: Scribble,
@@ -694,6 +695,7 @@ function Scribble() {
 
   return (
     <div className="pt-10 px-4 pb-4">
+      {matchId && <GroupPlayersBar matchId={matchId} meId={me?.id} gameName="Scribble" />}
       <header className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <Link to="/app/play" className="text-candle-muted">

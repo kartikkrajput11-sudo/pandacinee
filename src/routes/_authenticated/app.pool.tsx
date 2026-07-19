@@ -4,6 +4,7 @@ import { ArrowLeft, RotateCcw, Trophy, Hand, Wifi, WifiOff } from "lucide-react"
 import { useProfile } from "@/hooks/useProfile";
 import { useMatchOpponent } from "@/hooks/useMatchOpponent";
 import { GameChat } from "@/components/games/GameChat";
+import { GroupPlayersBar } from "@/components/games/GroupPlayersBar";
 import { supabase } from "@/integrations/supabase/client";
 import {
   sfxPoolCue,
@@ -600,6 +601,7 @@ function PoolPage() {
 
   return (
     <div className="min-h-screen bg-velvet text-candle relative overflow-hidden">
+      {matchId && <GroupPlayersBar matchId={matchId} meId={me?.id} gameName="8-Ball Pool" />}
       <div aria-hidden className="pointer-events-none absolute inset-0">
         <div className="absolute -top-32 -left-32 size-[420px] rounded-full blur-3xl opacity-30" style={{ background: "radial-gradient(circle, #b8323f 0%, transparent 70%)" }} />
         <div className="absolute -bottom-32 -right-32 size-[520px] rounded-full blur-3xl opacity-25" style={{ background: "radial-gradient(circle, #d4a24a 0%, transparent 70%)" }} />

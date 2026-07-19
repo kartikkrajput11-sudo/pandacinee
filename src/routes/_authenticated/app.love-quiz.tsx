@@ -7,6 +7,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { useMatchOpponent } from "@/hooks/useMatchOpponent";
 import { generateLoveQuiz } from "@/lib/games.functions";
 import { gameSfx } from "@/lib/game-sfx";
+import { GroupPlayersBar } from "@/components/games/GroupPlayersBar";
 
 export const Route = createFileRoute("/_authenticated/app/love-quiz")({
   component: LoveQuiz,
@@ -210,6 +211,7 @@ function LoveQuiz() {
 
   return (
     <div className="pt-10 px-5 pb-10">
+      {matchId && <GroupPlayersBar matchId={matchId} meId={me?.id} gameName="Love Quiz" />}
       <header className="flex items-center gap-3 mb-6">
         <Link to="/app/play" className="text-candle-muted">
           <ArrowLeft className="size-5" />

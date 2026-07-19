@@ -6,6 +6,7 @@ import { useMatchOpponent } from "@/hooks/useMatchOpponent";
 import { supabase } from "@/integrations/supabase/client";
 import { sfxKiss, sfxPollVote, sfxReaction } from "@/lib/sfx";
 import { GameChat } from "@/components/games/GameChat";
+import { GroupPlayersBar } from "@/components/games/GroupPlayersBar";
 
 export const Route = createFileRoute("/_authenticated/app/hideseek")({
   component: HideSeekPage,
@@ -555,6 +556,7 @@ function HideSeekPage() {
 
   return (
     <div className="min-h-dvh bg-gradient-to-b from-velvet via-surface to-velvet">
+      {matchId && <GroupPlayersBar matchId={matchId} meId={me?.id} gameName="Hide & Seek" />}
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
         <div className="absolute -top-24 -left-16 size-72 rounded-full blur-3xl opacity-40"
           style={{ background: "radial-gradient(circle, oklch(0.72 0.18 15 / 0.55), transparent 70%)" }} />

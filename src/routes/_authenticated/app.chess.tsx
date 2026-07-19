@@ -24,6 +24,7 @@ import {
 import type { AiLevel, ChessMode } from "@/lib/chess";
 import { sfx } from "@/lib/chess-sfx";
 import { GameChat } from "@/components/games/GameChat";
+import { GroupPlayersBar } from "@/components/games/GroupPlayersBar";
 
 const searchSchema = z.object({
   game: z.string().uuid().optional(),
@@ -101,7 +102,12 @@ function ChessPage() {
     }} />;
   }
 
-  return <GameScreen gameId={gameId} mode={mode ?? "partner"} aiLevel={search.ai ?? "medium"} meId={me?.id ?? null} partnerName={partner?.display_name ?? "your panda"} />;
+  return (
+    <>
+      {search.matchId && <GroupPlayersBar matchId={search.matchId} meId={me?.id} gameName="Chess" />}
+      <GameScreen gameId={gameId} mode={mode ?? "partner"} aiLevel={search.ai ?? "medium"} meId={me?.id ?? null} partnerName={partner?.display_name ?? "your panda"} />
+    </>
+  );
 }
 
 

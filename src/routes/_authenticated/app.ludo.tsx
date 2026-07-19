@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { LudoWinAnimation } from "@/components/ludo/LudoWinAnimation";
 import { GameChat } from "@/components/games/GameChat";
 import { sfxLudoDiceRoll, sfxLudoHop, sfxLudoCapture, sfxLudoHome, sfxLudoWin } from "@/lib/sfx";
+import { GroupPlayersBar } from "@/components/games/GroupPlayersBar";
 
 import { useProfile } from "@/hooks/useProfile";
 import { useMatchOpponent } from "@/hooks/useMatchOpponent";
@@ -230,6 +231,7 @@ function LudoPage() {
 
   return (
     <div className="min-h-screen relative overflow-hidden">
+      {matchId && <GroupPlayersBar matchId={matchId} meId={me?.id} gameName="Ludo" />}
       <LudoAmbient />
       <div className="relative z-10 pt-8 px-4 pb-24 max-w-xl mx-auto">
         <header className="flex items-center justify-between mb-5">

@@ -21,6 +21,7 @@ import {
   type UnoPlayer,
 } from "@/lib/uno";
 import { sfxReaction, sfxPollVote, sfxKiss } from "@/lib/sfx";
+import { GroupPlayersBar } from "@/components/games/GroupPlayersBar";
 
 export const Route = createFileRoute("/_authenticated/app/uno")({
   component: UnoPage,
@@ -310,6 +311,7 @@ function UnoPage() {
 
   return (
     <div className="min-h-screen relative overflow-hidden">
+      {matchId && <GroupPlayersBar matchId={matchId} meId={me?.id} gameName="Uno" />}
       <UnoAmbient />
       <div className="relative z-10 pt-8 px-4 pb-24">
         {/* Header */}

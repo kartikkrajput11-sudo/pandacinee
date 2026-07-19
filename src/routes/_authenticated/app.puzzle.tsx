@@ -6,6 +6,7 @@ import { gameSfx } from "@/lib/game-sfx";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
 import { useMatchOpponent } from "@/hooks/useMatchOpponent";
+import { GroupPlayersBar } from "@/components/games/GroupPlayersBar";
 
 export const Route = createFileRoute("/_authenticated/app/puzzle")({
   component: PuzzleTogether,
@@ -327,6 +328,7 @@ function PuzzleTogether() {
 
   return (
     <div className="pt-10 px-5 pb-10">
+      {matchId && <GroupPlayersBar matchId={matchId} meId={me?.id} gameName="Puzzle Together" />}
       <header className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <Link to="/app/play" className="text-candle-muted">

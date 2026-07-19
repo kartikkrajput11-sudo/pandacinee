@@ -7,6 +7,7 @@ import { pickQuestions, type KnowMeQuestion } from "@/lib/knowme";
 import { sfxReaction, sfxPollVote, sfxKiss } from "@/lib/sfx";
 import { supabase } from "@/integrations/supabase/client";
 import { GameChat } from "@/components/games/GameChat";
+import { GroupPlayersBar } from "@/components/games/GroupPlayersBar";
 
 export const Route = createFileRoute("/_authenticated/app/knowme")({
   component: KnowMePage,
@@ -273,6 +274,7 @@ function KnowMePage() {
 
   return (
     <div className="min-h-dvh bg-gradient-to-b from-velvet via-surface to-velvet">
+      {matchId && <GroupPlayersBar matchId={matchId} meId={me?.id} gameName="Know Me" />}
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
         <div className="absolute -top-24 -left-16 size-72 rounded-full blur-3xl opacity-40"
              style={{ background: "radial-gradient(circle, oklch(0.72 0.18 15 / 0.55), transparent 70%)" }} />
