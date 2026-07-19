@@ -5,10 +5,14 @@ import { toast } from "sonner";
 import { gameSfx } from "@/lib/game-sfx";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
+import { useMatchOpponent } from "@/hooks/useMatchOpponent";
 import { AvatarImg } from "@/components/AvatarImg";
 
 export const Route = createFileRoute("/_authenticated/app/scribble")({
   component: Scribble,
+  validateSearch: (search: Record<string, unknown>) => ({
+    matchId: typeof search.matchId === "string" ? search.matchId : undefined,
+  }),
 });
 
 const WORDS = [
