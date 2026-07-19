@@ -201,6 +201,12 @@ function PoolPage() {
     const ids = [me?.id, partner?.id].filter(Boolean).sort();
     return ids.length === 2 ? `pool:${ids.join(":")}` : "";
   }, [me?.id, partner?.id]);
+  // Deterministic seat: lower sorted user id = seat 0
+  const mySeat = useMemo<Player | null>(() => {
+    if (!me?.id || !partner?.id) return null;
+    const ids = [me.id, partner.id].sort();
+    return ids[0] === me.id ? 0 : 1;
+  }, [me?.id, partner?.id]);
 
   const [balls, setBalls] = useState<Ball[]>(() => makeRack());
   const [turn, setTurn] = useState<Player>(0);
