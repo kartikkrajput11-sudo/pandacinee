@@ -208,6 +208,13 @@ function PoolPage() {
   const [winner, setWinner] = useState<Player | null>(null);
   const [message, setMessage] = useState<string>("Break!");
   const [ballInHand, setBallInHand] = useState<Player | null>(null);
+  const [matchScore, setMatchScore] = useState<[number, number]>(() => {
+    try { const s = localStorage.getItem("pool:score"); if (s) return JSON.parse(s); } catch { /* noop */ }
+    return [0, 0];
+  });
+  useEffect(() => {
+    try { localStorage.setItem("pool:score", JSON.stringify(matchScore)); } catch { /* noop */ }
+  }, [matchScore]);
 
   const svgRef = useRef<SVGSVGElement | null>(null);
   const [mouse, setMouse] = useState<{ x: number; y: number } | null>(null);
@@ -362,9 +369,11 @@ function PoolPage() {
       const legalWin = myGroup && myLeft === 0 && !cueSunk && !foul;
       if (legalWin) {
         setWinner(turn); sfxPoolWin(); setMessage(`Player ${turn + 1} wins!`);
+        setMatchScore((s) => (turn === 0 ? [s[0] + 1, s[1]] : [s[0], s[1] + 1]));
       } else {
         setWinner(other); sfxPoolWin();
         setMessage(cueSunk ? `Player ${other + 1} wins — scratch on 8` : `Player ${other + 1} wins — 8 ball early`);
+        setMatchScore((s) => (other === 0 ? [s[0] + 1, s[1]] : [s[0], s[1] + 1]));
       }
       return;
     }
@@ -440,9 +449,10 @@ function PoolPage() {
     const len = Math.hypot(dx, dy) || 1;
     const ux = dx / len, uy = dy / len;
     const pullback = drag ? Math.min(60, power * 4) : 20;
-    const near = { x: cueBall.x + ux * (R + 8 + pullback), y: cueBall.y + uy * (R + 8 + pullback) };
-    const far = { x: near.x + ux * 220, y: near.y + uy * 220 };
-    return { near, far };
+    const tipX = cueBall.x + ux * (R + 8 + pullback);
+    const tipY = cueBall.y + uy * (R + 8 + pullback);
+    const angleDeg = Math.atan2(uy, ux) * 180 / Math.PI;
+    return { tipX, tipY, angleDeg };
   }, [cueBall, mouse, canShoot, drag, power]);
 
   const solidsLeft = balls.filter((b) => !b.pocketed && b.group === "solid").length;
@@ -472,7 +482,29 @@ function PoolPage() {
         </button>
       </header>
 
-      {/* Score & turn */}
+      {/* Match scoreboard */}
+      <div className="relative z-10 max-w-6xl mx-auto px-5 mb-3">
+        <div className="rounded-2xl border border-petal/30 bg-black/30 backdrop-blur px-4 py-3 flex items-center justify-between gap-4">
+          <div className="flex-1 text-center">
+            <p className="text-[9px] uppercase tracking-[0.2em] text-petal">Player 1</p>
+            <p className="font-serif italic text-3xl mt-0.5">{matchScore[0]}</p>
+          </div>
+          <div className="text-center px-3">
+            <p className="text-[9px] uppercase tracking-[0.2em] text-candle-muted">Match</p>
+            <p className="font-serif italic text-xl text-petal">vs</p>
+            <button
+              onClick={() => setMatchScore([0, 0])}
+              className="text-[9px] text-candle-muted underline hover:text-candle transition"
+            >reset</button>
+          </div>
+          <div className="flex-1 text-center">
+            <p className="text-[9px] uppercase tracking-[0.2em] text-petal">Player 2</p>
+            <p className="font-serif italic text-3xl mt-0.5">{matchScore[1]}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Turn strip */}
       <div className="relative z-10 max-w-6xl mx-auto px-5 flex items-center justify-between gap-3 mb-3 text-xs">
         <div className={`flex items-center gap-2 rounded-full px-3 py-1 border ${turn === 0 && !winner ? "border-petal bg-petal-soft/30" : "border-border/40"}`}>
           <span className={`size-2.5 rounded-full ${assign[0] === "solid" ? "bg-red-500" : assign[0] === "stripe" ? "bg-yellow-400 ring-2 ring-white/40" : "bg-white/40"}`} />
@@ -501,14 +533,15 @@ function PoolPage() {
           <div className="absolute inset-2 rounded-[30px] pointer-events-none" style={{ border: "1px solid rgba(212,162,74,0.25)" }} />
           <svg
             ref={svgRef}
-            viewBox={`-30 -30 ${W + 60} ${H + 60}`}
+            viewBox={`-140 -100 ${W + 280} ${H + 200}`}
+            style={{ overflow: "visible", cursor: ballInHand === turn ? "crosshair" : canShoot ? "grab" : "default" }}
             className="w-full h-auto rounded-2xl select-none touch-none"
             onPointerMove={onSvgMove}
             onPointerDown={onSvgDown}
             onPointerUp={onSvgUp}
             onPointerCancel={() => setDrag(null)}
             onPointerLeave={() => { setMouse(null); if (drag) setDrag(null); }}
-            style={{ cursor: ballInHand === turn ? "crosshair" : canShoot ? "grab" : "default" }}
+            
           >
             <defs>
               <radialGradient id="feltGrad" cx="50%" cy="45%" r="70%">
@@ -521,10 +554,25 @@ function PoolPage() {
                 <stop offset="55%" stopColor="#000" />
                 <stop offset="100%" stopColor="#000" />
               </radialGradient>
-              <linearGradient id="cueStick" x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0%" stopColor="#f4e4c8" />
-                <stop offset="60%" stopColor="#8b5a2b" />
-                <stop offset="100%" stopColor="#3a1f0a" />
+              <linearGradient id="cueShaftGrad" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stopColor="#f5e2b6" />
+                <stop offset="55%" stopColor="#e2c185" />
+                <stop offset="100%" stopColor="#b58a4a" />
+              </linearGradient>
+              <linearGradient id="cueShaftShine" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="rgba(255,255,255,0.7)" />
+                <stop offset="50%" stopColor="rgba(255,255,255,0)" />
+                <stop offset="100%" stopColor="rgba(0,0,0,0.35)" />
+              </linearGradient>
+              <linearGradient id="cueGripGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#5a2418" />
+                <stop offset="50%" stopColor="#2a0f08" />
+                <stop offset="100%" stopColor="#4a1e12" />
+              </linearGradient>
+              <linearGradient id="cueButtGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#3a1f0a" />
+                <stop offset="50%" stopColor="#1a0e04" />
+                <stop offset="100%" stopColor="#2a1608" />
               </linearGradient>
               {/* High-end ball glow */}
               <radialGradient id="ballShine" cx="32%" cy="28%" r="70%">
@@ -585,14 +633,42 @@ function PoolPage() {
               />
             )}
             {cuePreview && (
-              <line
-                x1={cuePreview.near.x} y1={cuePreview.near.y}
-                x2={cuePreview.far.x} y2={cuePreview.far.y}
-                stroke="url(#cueStick)"
-                strokeWidth={6}
-                strokeLinecap="round"
-                opacity={0.95}
-              />
+              <g transform={`translate(${cuePreview.tipX} ${cuePreview.tipY}) rotate(${cuePreview.angleDeg})`} opacity={0.98}>
+                {/* Full cue extends along +x from tip (which sits at x=0). Shaft points at cue ball. */}
+                {/* Soft ground shadow */}
+                <rect x={0} y={5} width={260} height={2.5} fill="rgba(0,0,0,0.35)" rx={1.25} />
+                {/* Leather tip */}
+                <rect x={0} y={-2.2} width={4} height={4.4} rx={1.2} fill="#6a4a2a" />
+                {/* Ferrule (ivory) */}
+                <rect x={4} y={-2.4} width={5} height={4.8} fill="#f4ecd8" />
+                <rect x={4} y={-2.4} width={5} height={4.8} fill="url(#cueShaftShine)" opacity={0.5} />
+                {/* Shaft (maple, tapered) */}
+                <path d="M 9 -2.4 L 150 -3.2 L 150 3.2 L 9 2.4 Z" fill="url(#cueShaftGrad)" />
+                <path d="M 9 -2.4 L 150 -3.2 L 150 -1.8 L 9 -1.4 Z" fill="rgba(255,255,255,0.35)" />
+                <path d="M 9 1.5 L 150 2.0 L 150 3.2 L 9 2.4 Z" fill="rgba(0,0,0,0.25)" />
+                {/* Wrap collar */}
+                <rect x={148} y={-3.4} width={2} height={6.8} fill="#c9a24a" />
+                {/* Leather grip */}
+                <rect x={150} y={-3.4} width={40} height={6.8} fill="url(#cueGripGrad)" />
+                {[152,158,164,170,176,182,188].map((x, i) => (
+                  <line key={i} x1={x} y1={-3.4} x2={x} y2={3.4} stroke="rgba(0,0,0,0.35)" strokeWidth={0.3} />
+                ))}
+                {/* Gold ring */}
+                <rect x={190} y={-3.6} width={2.5} height={7.2} fill="#d4a24a" />
+                <rect x={190} y={-3.6} width={2.5} height={1} fill="#f5d688" />
+                {/* Butt (dark wood, slight taper) */}
+                <path d="M 192.5 -3.6 L 252 -4.4 L 252 4.4 L 192.5 3.6 Z" fill="url(#cueButtGrad)" />
+                <path d="M 192.5 -3.6 L 252 -4.4 L 252 -2.6 L 192.5 -2 Z" fill="rgba(255,255,255,0.18)" />
+                {/* Butt cap bumper */}
+                <rect x={251} y={-4.4} width={4} height={8.8} rx={1.5} fill="#1a1208" />
+                <rect x={251} y={-4.4} width={4} height={2} rx={1.5} fill="#3a2818" />
+                {/* Subtle inlay diamonds on butt */}
+                {[210, 224, 238].map((x, i) => (
+                  <g key={i} transform={`translate(${x} 0)`}>
+                    <path d="M 0 -2 L 2.5 0 L 0 2 L -2.5 0 Z" fill="#d4a24a" opacity={0.7} />
+                  </g>
+                ))}
+              </g>
             )}
 
             {/* Ball-in-hand ghost preview */}
