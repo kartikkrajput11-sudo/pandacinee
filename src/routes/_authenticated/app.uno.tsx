@@ -21,6 +21,7 @@ import {
   type UnoPlayer,
 } from "@/lib/uno";
 import { sfxReaction, sfxPollVote, sfxKiss } from "@/lib/sfx";
+import { GroupPlayersBar } from "@/components/games/GroupPlayersBar";
 
 export const Route = createFileRoute("/_authenticated/app/uno")({
   component: UnoPage,
