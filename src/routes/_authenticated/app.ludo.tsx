@@ -125,13 +125,25 @@ function LudoPage() {
     // Freeze state during walk so board doesn't jump; animate through each square.
     for (const p of path) {
       setWalking({ player: t.player, idx: t.idx, pos: p });
+      sfxLudoHop();
       await new Promise((r) => window.setTimeout(r, 220));
     }
     setWalking(null);
     const next = applyMove(state, t.player, t.idx);
+    // Detect capture: opponent token that was on-track pre-move is now in yard.
+    const captured = state.tokens.some((prev) => {
+      if (prev.player === t.player) return false;
+      const now = next.tokens.find((x) => x.player === prev.player && x.idx === prev.idx);
+      return prev.pos !== -1 && now?.pos === -1;
+    });
+    if (captured) sfxLudoCapture();
+    // Detect a token reaching home (finished).
+    const finished = next.tokens.find((x) => x.player === t.player && x.idx === t.idx)?.pos === 200;
+    if (finished && !next.winner) sfxLudoHome();
     setState(next);
     broadcast(next);
     if (next.winner) {
+      sfxLudoWin();
       toast.success(`${PLAYER_META[next.winner].emoji} ${PLAYER_META[next.winner].name} wins!`);
     }
   };
