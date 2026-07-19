@@ -1116,54 +1116,8 @@ function CatalogWatch({ id }: { id: string }) {
               </div>
             )}
 
-            {/* Ready-check gate — both partners must load before host can hit play.
-                 Host can force-start after a delay in case partner's video is slow. */}
-            {started && gateActive && !bothReady && (
-              <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-4 bg-velvet/85 backdrop-blur-xl">
-                <span className="relative size-16 rounded-full flex items-center justify-center bg-petal/10 border border-petal/30">
-                  <span aria-hidden className="absolute inset-0 rounded-full border-t-2 border-petal animate-spin" />
-                  <RefreshCw className="size-6 text-petal" />
-                </span>
-                <p className="text-[10px] uppercase tracking-[0.35em] text-petal">Loading together</p>
-                <div className="flex flex-col items-center gap-1.5 text-xs text-candle">
-                  <span className="flex items-center gap-2">
-                    {myReady ? <Check className="size-3.5 text-green-400" /> : <span className="size-3.5 rounded-full border-2 border-candle-muted border-t-petal animate-spin" />}
-                    You {myReady ? "ready" : "loading…"}
-                  </span>
-                  <span className="flex items-center gap-2">
-                    {peerReady ? <Check className="size-3.5 text-green-400" /> : <span className="size-3.5 rounded-full border-2 border-candle-muted border-t-petal animate-spin" />}
-                    {partnerFirst} {peerReady ? "ready" : "loading…"}
-                  </span>
-                </div>
-                {iAmHost && myReady && (
-                  <button
-                    onClick={() => {
-                      // Force-start: skip the wait and play now. Follower will
-                      // catch up via the "play" broadcast (retries muted if needed).
-                      const h = customPlayerRef.current;
-                      setPausedByHost(false);
-                      runSuppressedPlayerAction(() => {
-                        h?.setMuted(false);
-                        h?.seek(startAt ?? 0);
-                        h?.play();
-                      });
-                      publish({
-                        event: "play",
-                        currentTime: startAt ?? 0,
-                        duration: h?.duration() ?? mine.duration,
-                        sourceIdx,
-                        playbackRate: 1,
-                        season: isTv ? season : null,
-                        episode: isTv ? episode : null,
-                      });
-                    }}
-                    className="mt-2 px-5 h-10 rounded-full bg-petal text-velvet text-xs font-semibold shadow-lg shadow-petal/30"
-                  >
-                    Start anyway
-                  </button>
-                )}
-              </div>
-            )}
+            {/* No ready-gate: each viewer plays their own Supabase stream
+                independently. Drift correction below keeps timelines aligned. */}
 
             {/* Partner online but not on the storage source — sync is disabled */}
             {started && !!partner && partnerOnline && isPandacine && peerSourceKind !== "pandacine" && peerSourceKind !== "unknown" && (
