@@ -156,5 +156,6 @@ export function GroupPlayersBar({
         )}
       </div>
     </div>
+    </>
   );
 }
