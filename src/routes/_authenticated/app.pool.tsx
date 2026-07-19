@@ -4,6 +4,7 @@ import { ArrowLeft, RotateCcw, Trophy, Hand, Wifi, WifiOff } from "lucide-react"
 import { useProfile } from "@/hooks/useProfile";
 import { useMatchOpponent } from "@/hooks/useMatchOpponent";
 import { GameChat } from "@/components/games/GameChat";
+import { GroupPlayersBar } from "@/components/games/GroupPlayersBar";
 import { supabase } from "@/integrations/supabase/client";
 import {
   sfxPoolCue,
