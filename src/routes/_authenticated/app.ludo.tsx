@@ -524,36 +524,36 @@ function LudoBoard({
           );
         })}
 
-        {/* Yard exit indicators — drawn INSIDE each yard so they're clearly attached to home,
-            with just the arrowhead poking toward the track. */}
-        {/* Red: bottom-left yard, arrow lives at row 9-10 inside yard, tip crosses top edge */}
+        {/* Entry arrows — sit on the outer edge of each player's colored lane,
+            pointing INTO their start cell (classic Ludo layout). */}
+        {/* Red: left edge → right into start [1,6] */}
         <g>
           <path
-            d={`M ${2.5 * CELL} ${11 * CELL} L ${2.5 * CELL} ${9.4 * CELL}`}
+            d={`M ${0.15 * CELL} ${6.5 * CELL} L ${0.9 * CELL} ${6.5 * CELL}`}
             stroke={PLAYER_META.red.color}
             strokeWidth={3}
             strokeLinecap="round"
             strokeDasharray="3 3"
-            opacity={0.85}
+            opacity={0.9}
           />
           <polygon
-            points={`${2.5 * CELL - 5},${9.35 * CELL} ${2.5 * CELL + 5},${9.35 * CELL} ${2.5 * CELL},${8.75 * CELL}`}
+            points={`${0.95 * CELL},${6.5 * CELL - 4.5} ${0.95 * CELL},${6.5 * CELL + 4.5} ${1.45 * CELL},${6.5 * CELL}`}
             fill={PLAYER_META.red.color}
             opacity={1}
           />
         </g>
-        {/* Yellow: top-right yard, arrow lives at row 5-4 inside yard, tip crosses bottom edge */}
+        {/* Yellow: right edge → left into start [13,8] */}
         <g>
           <path
-            d={`M ${12.5 * CELL} ${4 * CELL} L ${12.5 * CELL} ${5.6 * CELL}`}
+            d={`M ${14.85 * CELL} ${8.5 * CELL} L ${14.1 * CELL} ${8.5 * CELL}`}
             stroke={PLAYER_META.yellow.color}
             strokeWidth={3}
             strokeLinecap="round"
             strokeDasharray="3 3"
-            opacity={0.85}
+            opacity={0.9}
           />
           <polygon
-            points={`${12.5 * CELL - 5},${5.65 * CELL} ${12.5 * CELL + 5},${5.65 * CELL} ${12.5 * CELL},${6.25 * CELL}`}
+            points={`${14.05 * CELL},${8.5 * CELL - 4.5} ${14.05 * CELL},${8.5 * CELL + 4.5} ${13.55 * CELL},${8.5 * CELL}`}
             fill={PLAYER_META.yellow.color}
             opacity={1}
           />
