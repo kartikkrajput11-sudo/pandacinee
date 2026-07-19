@@ -524,37 +524,37 @@ function LudoBoard({
           );
         })}
 
-        {/* Yard → start entry lanes */}
-        {/* Red: yard (bottom-left) → start [1,6] above */}
+        {/* Yard → start entry lanes (attached to each color's home yard, landing on their start cell) */}
+        {/* Red: bottom-left yard exits upward into start cell [1,6] */}
         <g>
           <path
-            d={`M ${1.5 * CELL} ${9 * CELL} L ${1.5 * CELL} ${7 * CELL}`}
+            d={`M ${1.5 * CELL} ${9 * CELL} L ${1.5 * CELL} ${6.5 * CELL}`}
             stroke={PLAYER_META.red.color}
             strokeWidth={3}
             strokeLinecap="round"
             strokeDasharray="3 3"
-            opacity={0.55}
+            opacity={0.7}
           />
           <polygon
-            points={`${1.5 * CELL - 4},${6.9 * CELL} ${1.5 * CELL + 4},${6.9 * CELL} ${1.5 * CELL},${6.4 * CELL}`}
+            points={`${1.5 * CELL - 4.5},${6.55 * CELL} ${1.5 * CELL + 4.5},${6.55 * CELL} ${1.5 * CELL},${6.05 * CELL}`}
             fill={PLAYER_META.red.color}
-            opacity={0.85}
+            opacity={0.95}
           />
         </g>
-        {/* Yellow: yard (top-right) → start [13,8] below */}
+        {/* Yellow: top-right yard exits downward into start cell [13,8] */}
         <g>
           <path
-            d={`M ${13.5 * CELL} ${6 * CELL} L ${13.5 * CELL} ${8 * CELL}`}
+            d={`M ${13.5 * CELL} ${6 * CELL} L ${13.5 * CELL} ${8.5 * CELL}`}
             stroke={PLAYER_META.yellow.color}
             strokeWidth={3}
             strokeLinecap="round"
             strokeDasharray="3 3"
-            opacity={0.55}
+            opacity={0.7}
           />
           <polygon
-            points={`${13.5 * CELL - 4},${8.1 * CELL} ${13.5 * CELL + 4},${8.1 * CELL} ${13.5 * CELL},${8.6 * CELL}`}
+            points={`${13.5 * CELL - 4.5},${8.45 * CELL} ${13.5 * CELL + 4.5},${8.45 * CELL} ${13.5 * CELL},${8.95 * CELL}`}
             fill={PLAYER_META.yellow.color}
-            opacity={0.85}
+            opacity={0.95}
           />
         </g>
         {/* Home columns */}
