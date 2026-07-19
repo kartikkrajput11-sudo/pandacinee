@@ -1,8 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
-import { ArrowLeft, RotateCcw, Trophy, Hand } from "lucide-react";
+import { ArrowLeft, RotateCcw, Trophy, Hand, Wifi, WifiOff } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
 import { GameChat } from "@/components/games/GameChat";
+import { supabase } from "@/integrations/supabase/client";
 import {
   sfxPoolCue,
   sfxPoolClick,
