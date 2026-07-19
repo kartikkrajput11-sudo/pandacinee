@@ -52,6 +52,7 @@ export const GAMES: Record<GameKind, { name: string; emoji: string; body: string
   "ludo": { name: "Ludo", emoji: "🎲", body: "Roll, race, capture — 2-player.", href: "/app/ludo" },
   "uno": { name: "Uno", emoji: "🃏", body: "Velvet card salon, live.", href: "/app/uno" },
   "hide-seek": { name: "Hide & Seek", emoji: "🫣", body: "Hide in a velvet room. Hunt with hints.", href: "/app/hideseek" },
+  "pool": { name: "8-Ball Pool", emoji: "🎱", body: "Rack, aim, sink — velvet felt.", href: "/app/pool" },
   "know-me": { name: "How Well Do You Know Me?", emoji: "💌", body: "Pass-and-play couple quiz.", href: "/app/knowme" },
   "scribble-guess": { name: "Scribble & Guess", emoji: "✏️", body: "Draw. Guess. Win.", href: "/app/scribble" },
   "daily-challenge": { name: "Daily Challenge", emoji: "🌞", body: "One prompt each day.", href: "/app/daily-challenge" },
