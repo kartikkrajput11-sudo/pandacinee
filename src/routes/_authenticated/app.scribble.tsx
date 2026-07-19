@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
 import { useMatchOpponent } from "@/hooks/useMatchOpponent";
 import { AvatarImg } from "@/components/AvatarImg";
+import { GroupPlayersBar } from "@/components/games/GroupPlayersBar";
 
 export const Route = createFileRoute("/_authenticated/app/scribble")({
   component: Scribble,
