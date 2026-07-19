@@ -106,3 +106,51 @@ export function sfxPollVote() {
     { freq: 990, start: 0.06, dur: 0.12, gain: 0.045, type: "square" },
   ]);
 }
+
+// Ludo — dice tumble (rapid clatter of pitched blips)
+export function sfxLudoDiceRoll() {
+  const notes: Note[] = [];
+  for (let i = 0; i < 7; i++) {
+    notes.push({
+      freq: 420 + Math.random() * 260,
+      start: i * 0.09,
+      dur: 0.07,
+      gain: 0.05,
+      type: "square",
+    });
+  }
+  notes.push({ freq: 880, start: 0.75, dur: 0.14, gain: 0.06, type: "triangle" });
+  play(notes);
+}
+
+// Ludo — token hop (per square)
+export function sfxLudoHop() {
+  play([{ freq: 720, glideTo: 980, start: 0, dur: 0.07, gain: 0.05, type: "triangle" }]);
+}
+
+// Ludo — capture (opponent knocked back to yard)
+export function sfxLudoCapture() {
+  play([
+    { freq: 520, glideTo: 180, start: 0, dur: 0.22, gain: 0.07, type: "sawtooth" },
+    { freq: 260, glideTo: 110, start: 0.08, dur: 0.26, gain: 0.06, type: "square" },
+  ]);
+}
+
+// Ludo — token safely home
+export function sfxLudoHome() {
+  play([
+    { freq: 660, start: 0, dur: 0.1, gain: 0.055, type: "sine" },
+    { freq: 990, start: 0.08, dur: 0.12, gain: 0.05, type: "sine" },
+    { freq: 1320, start: 0.16, dur: 0.16, gain: 0.05, type: "sine" },
+  ]);
+}
+
+// Ludo — victory fanfare
+export function sfxLudoWin() {
+  play([
+    { freq: 523.25, start: 0, dur: 0.18, gain: 0.07, type: "triangle" },
+    { freq: 659.25, start: 0.16, dur: 0.18, gain: 0.07, type: "triangle" },
+    { freq: 783.99, start: 0.32, dur: 0.22, gain: 0.07, type: "triangle" },
+    { freq: 1046.5, start: 0.5, dur: 0.4, gain: 0.08, type: "triangle" },
+  ]);
+}
