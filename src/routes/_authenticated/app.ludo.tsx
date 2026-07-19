@@ -98,6 +98,7 @@ function LudoPage() {
 
     if (!canAct || state.winner || state.dice != null || rolling) return;
     setRolling(true);
+    sfxLudoDiceRoll();
     const v = rollDie();
     window.setTimeout(() => {
       setLastRoll(v);
