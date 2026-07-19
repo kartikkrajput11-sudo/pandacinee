@@ -71,7 +71,12 @@ function shuffled(n: number) {
 function PuzzleTogether() {
   const { data } = useProfile();
   const me = data?.profile;
-  const partner = data?.partner;
+  const { matchId } = Route.useSearch();
+  const { opponentId: matchOppId } = useMatchOpponent(matchId, me?.id);
+  const partner = matchId
+    ? (matchOppId ? { id: matchOppId, display_name: "Partner" } as { id: string; display_name?: string } : null)
+    : data?.partner;
+
 
   const [diffIdx, setDiffIdx] = useState(1);
   const diff = DIFFICULTIES[diffIdx];
