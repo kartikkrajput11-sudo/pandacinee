@@ -335,7 +335,7 @@ function HideSeekPage() {
 
   useEffect(() => {
     if (mode !== "online" || !me || !partner) return;
-    const key = [me.id, partner.id].sort().join(":");
+    const key = matchId ?? [me.id, partner.id].sort().join(":");
     const channel = supabase.channel(`hideseek:${key}`, {
       config: { broadcast: { self: false }, presence: { key: me.id } },
     });
