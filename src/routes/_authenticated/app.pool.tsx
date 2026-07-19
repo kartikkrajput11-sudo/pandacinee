@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
-import { ArrowLeft, RotateCcw, Trophy } from "lucide-react";
+import { ArrowLeft, RotateCcw, Trophy, Hand } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
 import { GameChat } from "@/components/games/GameChat";
 import {
@@ -22,19 +22,18 @@ export const Route = createFileRoute("/_authenticated/app/pool")({
 });
 
 // -------------------- Table constants --------------------
-// Playing surface (inner felt) in "table units". Rendered by CSS scaling.
-const W = 900; // table interior width
-const H = 500; // table interior height
-const R = 14;  // ball radius
-const POCKET_R = 26; // pocket capture radius
-const FRICTION = 0.988; // per-frame velocity decay
-const MIN_V = 0.05; // below this a ball is at rest
-const RESTITUTION = 0.98; // wall/ball bounciness
+const W = 900;
+const H = 500;
+const R = 14;
+const POCKET_R = 24;
+const FRICTION = 0.988;
+const MIN_V = 0.05;
+const RESTITUTION = 0.96;
 const MAX_POWER = 34;
 
 type Group = "solid" | "stripe" | "eight" | "cue";
 type Ball = {
-  id: number;   // 0 = cue, 1..7 solids, 8 = eight, 9..15 stripes
+  id: number;
   x: number;
   y: number;
   vx: number;
@@ -42,23 +41,21 @@ type Ball = {
   group: Group;
   color: string;
   pocketed: boolean;
-  // animation state after pocketing
-  sinkT: number; // 0 -> 1 while shrinking into pocket
+  sinkT: number;
   pocketX?: number;
   pocketY?: number;
 };
 
-// Classic 8-ball colors (approx.)
 const BALL_COLORS: Record<number, string> = {
-  0: "#f8f3e6", // cue — ivory
-  1: "#f2b807", // yellow
-  2: "#123f8e", // blue
-  3: "#c62828", // red
-  4: "#5b2c8a", // purple
-  5: "#e07a1f", // orange
-  6: "#1f6b3a", // green
-  7: "#6b1414", // maroon
-  8: "#141414", // 8 ball
+  0: "#f8f3e6",
+  1: "#f2b807",  // yellow
+  2: "#123f8e",  // blue
+  3: "#c62828",  // red
+  4: "#5b2c8a",  // purple
+  5: "#e07a1f",  // orange
+  6: "#1f6b3a",  // green
+  7: "#6b1414",  // maroon
+  8: "#141414",
   9: "#f2b807", 10: "#123f8e", 11: "#c62828", 12: "#5b2c8a",
   13: "#e07a1f", 14: "#1f6b3a", 15: "#6b1414",
 };
@@ -69,7 +66,6 @@ function groupOf(id: number): Group {
   return id < 8 ? "solid" : "stripe";
 }
 
-// Six pocket positions (top-left, top-mid, top-right, and bottom row).
 const POCKETS: { x: number; y: number }[] = [
   { x: 0, y: 0 },
   { x: W / 2, y: -6 },
@@ -79,26 +75,25 @@ const POCKETS: { x: number; y: number }[] = [
   { x: W, y: H },
 ];
 
+const HEAD_SPOT_X = W * 0.22;
+const FOOT_SPOT_X = W * 0.72;
+
 function makeRack(): Ball[] {
-  // Cue ball on the "head spot"
   const balls: Ball[] = [];
   balls.push({
-    id: 0, x: W * 0.22, y: H / 2, vx: 0, vy: 0,
+    id: 0, x: HEAD_SPOT_X, y: H / 2, vx: 0, vy: 0,
     group: "cue", color: BALL_COLORS[0], pocketed: false, sinkT: 0,
   });
-
-  // Rack the 15 balls in a triangle on the "foot spot"
-  const apexX = W * 0.72;
+  const apexX = FOOT_SPOT_X;
   const apexY = H / 2;
   const dx = R * Math.sqrt(3) * 1.02;
   const dy = R * 2 * 1.02;
-  // Standard-ish rack: 8-ball in center of 3rd row, corners one solid one stripe.
   const order = [
-    [1],           // row 0 apex — solid
-    [9, 2],        // row 1
-    [10, 8, 3],    // row 2 — 8 in the middle
-    [11, 4, 12, 5],// row 3
-    [6, 13, 7, 14, 15], // row 4
+    [1],
+    [9, 2],
+    [10, 8, 3],
+    [11, 4, 12, 5],
+    [6, 13, 7, 14, 15],
   ];
   order.forEach((row, ri) => {
     row.forEach((id, ci) => {
@@ -114,8 +109,15 @@ function makeRack(): Ball[] {
 }
 
 // -------------------- Physics --------------------
-function step(balls: Ball[], onRail: () => void, onClick: () => void, onPocket: (b: Ball) => void) {
-  // Integrate
+type FirstHit = { id: number | null };
+
+function step(
+  balls: Ball[],
+  onRail: () => void,
+  onClick: () => void,
+  onPocket: (b: Ball) => void,
+  firstHit: FirstHit,
+) {
   for (const b of balls) {
     if (b.pocketed) {
       if (b.sinkT < 1) b.sinkT = Math.min(1, b.sinkT + 0.08);
@@ -127,7 +129,6 @@ function step(balls: Ball[], onRail: () => void, onClick: () => void, onPocket: 
     b.vy *= FRICTION;
     if (Math.hypot(b.vx, b.vy) < MIN_V) { b.vx = 0; b.vy = 0; }
   }
-  // Walls
   for (const b of balls) {
     if (b.pocketed) continue;
     if (b.x < R) { b.x = R; b.vx = -b.vx * RESTITUTION; if (Math.abs(b.vx) > 0.5) onRail(); }
@@ -135,7 +136,6 @@ function step(balls: Ball[], onRail: () => void, onClick: () => void, onPocket: 
     if (b.y < R) { b.y = R; b.vy = -b.vy * RESTITUTION; if (Math.abs(b.vy) > 0.5) onRail(); }
     if (b.y > H - R) { b.y = H - R; b.vy = -b.vy * RESTITUTION; if (Math.abs(b.vy) > 0.5) onRail(); }
   }
-  // Ball-ball
   for (let i = 0; i < balls.length; i++) {
     for (let j = i + 1; j < balls.length; j++) {
       const a = balls[i], c = balls[j];
@@ -146,11 +146,9 @@ function step(balls: Ball[], onRail: () => void, onClick: () => void, onPocket: 
       if (d2 > 0 && d2 < min * min) {
         const d = Math.sqrt(d2);
         const nx = dx / d, ny = dy / d;
-        // resolve overlap
         const overlap = (min - d) / 2;
         a.x -= nx * overlap; a.y -= ny * overlap;
         c.x += nx * overlap; c.y += ny * overlap;
-        // relative velocity along normal
         const rvx = c.vx - a.vx, rvy = c.vy - a.vy;
         const vn = rvx * nx + rvy * ny;
         if (vn < 0) {
@@ -159,11 +157,15 @@ function step(balls: Ball[], onRail: () => void, onClick: () => void, onPocket: 
           a.vx -= ix; a.vy -= iy;
           c.vx += ix; c.vy += iy;
           if (Math.abs(vn) > 1) onClick();
+          // record first-hit against cue ball
+          if (firstHit.id === null) {
+            if (a.id === 0 && c.id !== 0) firstHit.id = c.id;
+            else if (c.id === 0 && a.id !== 0) firstHit.id = a.id;
+          }
         }
       }
     }
   }
-  // Pockets
   for (const b of balls) {
     if (b.pocketed) continue;
     for (const p of POCKETS) {
@@ -180,6 +182,10 @@ function step(balls: Ball[], onRail: () => void, onClick: () => void, onPocket: 
 
 function anyMoving(balls: Ball[]) {
   return balls.some((b) => !b.pocketed && (b.vx !== 0 || b.vy !== 0));
+}
+
+function overlapsAny(balls: Ball[], x: number, y: number, ignoreId = -1) {
+  return balls.some((b) => !b.pocketed && b.id !== ignoreId && Math.hypot(b.x - x, b.y - y) < R * 2 + 0.5);
 }
 
 // -------------------- Component --------------------
@@ -201,25 +207,25 @@ function PoolPage() {
   const [pocketedThisTurn, setPocketedThisTurn] = useState<Ball[]>([]);
   const [winner, setWinner] = useState<Player | null>(null);
   const [message, setMessage] = useState<string>("Break!");
+  const [ballInHand, setBallInHand] = useState<Player | null>(null);
 
-  // aim state
   const svgRef = useRef<SVGSVGElement | null>(null);
   const [mouse, setMouse] = useState<{ x: number; y: number } | null>(null);
   const [drag, setDrag] = useState<{ startX: number; startY: number } | null>(null);
   const [power, setPower] = useState(0);
+  const [placingCue, setPlacingCue] = useState<{ x: number; y: number } | null>(null);
 
   const ballsRef = useRef(balls);
   ballsRef.current = balls;
   const movingRef = useRef(false);
   const rafRef = useRef<number | null>(null);
   const turnEndedRef = useRef(false);
+  const firstHitRef = useRef<FirstHit>({ id: null });
 
-  // Animate physics
   useEffect(() => {
     let last = performance.now();
     const loop = (t: number) => {
       const dt = Math.min(32, t - last); last = t;
-      // fixed-ish 60fps steps
       const steps = Math.max(1, Math.round(dt / 16));
       for (let i = 0; i < steps; i++) {
         step(
@@ -230,6 +236,7 @@ function PoolPage() {
             sfxPoolPocket();
             setPocketedThisTurn((s) => [...s, b]);
           },
+          firstHitRef.current,
         );
       }
       const stillMoving = anyMoving(ballsRef.current);
@@ -237,7 +244,6 @@ function PoolPage() {
       if (!stillMoving && movingRef.current && !turnEndedRef.current) {
         movingRef.current = false;
         turnEndedRef.current = true;
-        // Resolve turn on next tick so pocketedThisTurn state is committed
         setTimeout(resolveTurn, 0);
       } else if (stillMoving) {
         movingRef.current = true;
@@ -250,9 +256,8 @@ function PoolPage() {
   }, []);
 
   const cueBall = balls.find((b) => b.id === 0);
-  const canShoot = !winner && cueBall && !anyMoving(balls);
+  const canShoot = !winner && cueBall && !anyMoving(balls) && ballInHand === null;
 
-  // -------- Shooting --------
   const toSvg = useCallback((clientX: number, clientY: number) => {
     const svg = svgRef.current;
     if (!svg) return { x: 0, y: 0 };
@@ -264,9 +269,18 @@ function PoolPage() {
     return { x: p.x, y: p.y };
   }, []);
 
-  const onMove = (e: React.PointerEvent) => {
-    if (!canShoot) return;
+  // -------- Ball-in-hand placement --------
+  const onSvgMove = (e: React.PointerEvent) => {
     const p = toSvg(e.clientX, e.clientY);
+    if (ballInHand !== null && ballInHand === turn) {
+      const cx = Math.max(R, Math.min(W - R, p.x));
+      const cy = Math.max(R, Math.min(H - R, p.y));
+      if (!overlapsAny(ballsRef.current, cx, cy, 0)) {
+        setPlacingCue({ x: cx, y: cy });
+      }
+      return;
+    }
+    if (!canShoot) return;
     setMouse(p);
     if (drag && cueBall) {
       const dx = cueBall.x - p.x;
@@ -275,17 +289,29 @@ function PoolPage() {
       setPower(Math.min(MAX_POWER, dist * 0.08));
     }
   };
-  const onDown = (e: React.PointerEvent) => {
+  const onSvgDown = (e: React.PointerEvent) => {
+    const p = toSvg(e.clientX, e.clientY);
+    if (ballInHand !== null && ballInHand === turn) {
+      const cx = Math.max(R, Math.min(W - R, p.x));
+      const cy = Math.max(R, Math.min(H - R, p.y));
+      if (!overlapsAny(ballsRef.current, cx, cy, 0)) {
+        const cb = ballsRef.current.find((b) => b.id === 0);
+        if (cb) { cb.x = cx; cb.y = cy; cb.vx = 0; cb.vy = 0; cb.pocketed = false; cb.sinkT = 0; }
+        setBalls([...ballsRef.current]);
+        setBallInHand(null);
+        setPlacingCue(null);
+        setMessage("Take your shot");
+      }
+      return;
+    }
     if (!canShoot || !cueBall) return;
     (e.target as Element).setPointerCapture?.(e.pointerId);
-    const p = toSvg(e.clientX, e.clientY);
     setDrag({ startX: p.x, startY: p.y });
     setMouse(p);
   };
-  const onUp = () => {
+  const onSvgUp = () => {
     if (!drag || !cueBall || !mouse) { setDrag(null); return; }
     if (power < 1) { setDrag(null); setPower(0); return; }
-    // Direction is from cursor toward cue (pulling back releases forward).
     const dx = cueBall.x - mouse.x;
     const dy = cueBall.y - mouse.y;
     const len = Math.hypot(dx, dy) || 1;
@@ -296,6 +322,7 @@ function PoolPage() {
     setDrag(null);
     setPower(0);
     setPocketedThisTurn([]);
+    firstHitRef.current.id = null;
     turnEndedRef.current = false;
     movingRef.current = true;
   };
@@ -308,16 +335,42 @@ function PoolPage() {
     const cueSunk = pocketed.some((b) => b.id === 0);
     const eightSunk = pocketed.some((b) => b.id === 8);
     const other = (turn === 0 ? 1 : 0) as Player;
+    const firstHitId = firstHitRef.current.id;
+    const firstHitBall = firstHitId != null ? ballsRef.current.find(b => b.id === firstHitId) : null;
 
-    // Re-spot cue ball if scratched
-    if (cueSunk) {
-      const cb = ballsRef.current.find((b) => b.id === 0);
-      if (cb) { cb.pocketed = false; cb.sinkT = 0; cb.x = W * 0.22; cb.y = H / 2; cb.vx = 0; cb.vy = 0; }
+    let a: [Assignment, Assignment] = [...assign] as [Assignment, Assignment];
+    const isBreak = !a[0] && !a[1];
+    let foul = false;
+    let foulReason = "";
+
+    // Foul: cue scratched
+    if (cueSunk) { foul = true; foulReason = "Scratch"; }
+    // Foul: no ball hit
+    else if (firstHitId === null) { foul = true; foulReason = "No ball struck"; }
+    // Foul: wrong group first hit (only after break & groups assigned)
+    else if (!isBreak && a[turn] && firstHitBall) {
+      const myGroup = a[turn];
+      const my8OnTable = ballsRef.current.filter(b => !b.pocketed && b.group === myGroup).length > 0;
+      const legalFirst = my8OnTable ? firstHitBall.group === myGroup : firstHitBall.group === "eight";
+      if (!legalFirst) { foul = true; foulReason = `Hit ${firstHitBall.group} first — foul`; }
     }
 
-    // Assign groups on first legit pocket
-    let a: [Assignment, Assignment] = [...assign] as [Assignment, Assignment];
-    if (!a[0] && !a[1]) {
+    // 8-ball outcomes
+    if (eightSunk) {
+      const myGroup = a[turn];
+      const myLeft = myGroup ? ballsRef.current.filter((b) => !b.pocketed && b.group === myGroup).length : 15;
+      const legalWin = myGroup && myLeft === 0 && !cueSunk && !foul;
+      if (legalWin) {
+        setWinner(turn); sfxPoolWin(); setMessage(`Player ${turn + 1} wins!`);
+      } else {
+        setWinner(other); sfxPoolWin();
+        setMessage(cueSunk ? `Player ${other + 1} wins — scratch on 8` : `Player ${other + 1} wins — 8 ball early`);
+      }
+      return;
+    }
+
+    // Assign groups on first legit non-foul pocket (post-break)
+    if (isBreak && !foul) {
       const first = pocketed.find((b) => b.group === "solid" || b.group === "stripe");
       if (first) {
         a = turn === 0
@@ -327,31 +380,33 @@ function PoolPage() {
       }
     }
 
-    // Win / loss on 8-ball
-    if (eightSunk) {
-      const myGroup = a[turn];
-      const myLeft = ballsRef.current.filter((b) => !b.pocketed && b.group === myGroup).length;
-      if (myGroup && myLeft === 0 && !cueSunk) {
-        setWinner(turn); sfxPoolWin(); setMessage(`Player ${turn + 1} wins!`);
-        return;
-      } else {
-        setWinner(other); sfxPoolWin(); setMessage(`Player ${other + 1} wins — 8-ball early.`);
-        return;
+    // Respot cue on scratch
+    if (cueSunk) {
+      const cb = ballsRef.current.find((b) => b.id === 0);
+      if (cb) {
+        cb.pocketed = false; cb.sinkT = 0;
+        cb.x = HEAD_SPOT_X; cb.y = H / 2;
+        cb.vx = 0; cb.vy = 0;
       }
     }
 
-    // Continue turn if player pocketed one of their own and didn't scratch
+    if (foul) {
+      setTurn(other);
+      setBallInHand(other);
+      setMessage(`${foulReason} — Player ${other + 1} has ball in hand`);
+      return;
+    }
+
     const myGroup = a[turn];
-    const pocketedMine = myGroup ? pocketed.some((b) => b.group === myGroup) : false;
-    const shouldContinue = pocketedMine && !cueSunk;
+    const pocketedMine = myGroup ? pocketed.some((b) => b.group === myGroup) : pocketed.some(b => b.group === "solid" || b.group === "stripe");
+    const shouldContinue = pocketedMine;
 
     if (!shouldContinue) setTurn(other);
+    const numSunk = pocketed.filter(b => b.id !== 0 && b.id !== 8).length;
     setMessage(
-      cueSunk
-        ? "Scratch — cue ball re-spotted"
-        : pocketed.length
-          ? `Sunk ${pocketed.filter(b => b.id !== 0).length}${shouldContinue ? " — go again" : ""}`
-          : "Miss",
+      numSunk > 0
+        ? `Sunk ${numSunk}${shouldContinue ? " — go again" : ""}`
+        : "Miss",
     );
   };
 
@@ -362,14 +417,16 @@ function PoolPage() {
     setPocketedThisTurn([]);
     setWinner(null);
     setMessage("Break!");
+    setBallInHand(null);
+    setPlacingCue(null);
     movingRef.current = false;
     turnEndedRef.current = false;
+    firstHitRef.current.id = null;
   };
 
   // -------- Aim geometry --------
   const aimEnd = useMemo(() => {
     if (!cueBall || !mouse || !canShoot) return null;
-    // Line from cue in the shot direction (opposite of cursor from cue).
     const dx = cueBall.x - mouse.x;
     const dy = cueBall.y - mouse.y;
     const len = Math.hypot(dx, dy) || 1;
@@ -378,7 +435,6 @@ function PoolPage() {
 
   const cuePreview = useMemo(() => {
     if (!cueBall || !mouse || !canShoot) return null;
-    // The visible cue stick sits behind the cue (on cursor side), pulled back by drag amount.
     const dx = mouse.x - cueBall.x;
     const dy = mouse.y - cueBall.y;
     const len = Math.hypot(dx, dy) || 1;
@@ -391,10 +447,10 @@ function PoolPage() {
 
   const solidsLeft = balls.filter((b) => !b.pocketed && b.group === "solid").length;
   const stripesLeft = balls.filter((b) => !b.pocketed && b.group === "stripe").length;
+  const pocketedBalls = balls.filter(b => b.pocketed && b.id !== 0).sort((x, y) => x.id - y.id);
 
   return (
     <div className="min-h-screen bg-velvet text-candle relative overflow-hidden">
-      {/* Ambient aurora */}
       <div aria-hidden className="pointer-events-none absolute inset-0">
         <div className="absolute -top-32 -left-32 size-[420px] rounded-full blur-3xl opacity-30" style={{ background: "radial-gradient(circle, #b8323f 0%, transparent 70%)" }} />
         <div className="absolute -bottom-32 -right-32 size-[520px] rounded-full blur-3xl opacity-25" style={{ background: "radial-gradient(circle, #d4a24a 0%, transparent 70%)" }} />
@@ -422,12 +478,14 @@ function PoolPage() {
           <span className={`size-2.5 rounded-full ${assign[0] === "solid" ? "bg-red-500" : assign[0] === "stripe" ? "bg-yellow-400 ring-2 ring-white/40" : "bg-white/40"}`} />
           <span className="font-serif italic">Player 1</span>
           {assign[0] && <span className="text-candle-muted">— {assign[0] === "solid" ? solidsLeft : stripesLeft} left</span>}
+          {ballInHand === 0 && <Hand className="size-3 text-petal animate-pulse" />}
         </div>
-        <p className="text-candle-muted font-serif italic">{message}</p>
+        <p className="text-candle-muted font-serif italic text-center">{message}</p>
         <div className={`flex items-center gap-2 rounded-full px-3 py-1 border ${turn === 1 && !winner ? "border-petal bg-petal-soft/30" : "border-border/40"}`}>
           <span className={`size-2.5 rounded-full ${assign[1] === "solid" ? "bg-red-500" : assign[1] === "stripe" ? "bg-yellow-400 ring-2 ring-white/40" : "bg-white/40"}`} />
           <span className="font-serif italic">Player 2</span>
           {assign[1] && <span className="text-candle-muted">— {assign[1] === "solid" ? solidsLeft : stripesLeft} left</span>}
+          {ballInHand === 1 && <Hand className="size-3 text-petal animate-pulse" />}
         </div>
       </div>
 
@@ -440,17 +498,17 @@ function PoolPage() {
             border: "1px solid rgba(212,162,74,0.35)",
           }}
         >
-          {/* Gold trim */}
           <div className="absolute inset-2 rounded-[30px] pointer-events-none" style={{ border: "1px solid rgba(212,162,74,0.25)" }} />
           <svg
             ref={svgRef}
             viewBox={`-30 -30 ${W + 60} ${H + 60}`}
             className="w-full h-auto rounded-2xl select-none touch-none"
-            onPointerMove={onMove}
-            onPointerDown={onDown}
-            onPointerUp={onUp}
+            onPointerMove={onSvgMove}
+            onPointerDown={onSvgDown}
+            onPointerUp={onSvgUp}
             onPointerCancel={() => setDrag(null)}
             onPointerLeave={() => { setMouse(null); if (drag) setDrag(null); }}
+            style={{ cursor: ballInHand === turn ? "crosshair" : canShoot ? "grab" : "default" }}
           >
             <defs>
               <radialGradient id="feltGrad" cx="50%" cy="45%" r="70%">
@@ -458,27 +516,42 @@ function PoolPage() {
                 <stop offset="60%" stopColor="#134a2d" />
                 <stop offset="100%" stopColor="#0a2e1c" />
               </radialGradient>
-              <radialGradient id="pocketGrad" cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stopColor="#000" />
-                <stop offset="70%" stopColor="#000" />
-                <stop offset="100%" stopColor="#1a1a1a" />
+              <radialGradient id="pocketGrad" cx="35%" cy="35%" r="65%">
+                <stop offset="0%" stopColor="#2a2a2a" />
+                <stop offset="55%" stopColor="#000" />
+                <stop offset="100%" stopColor="#000" />
               </radialGradient>
               <linearGradient id="cueStick" x1="0" y1="0" x2="1" y2="0">
                 <stop offset="0%" stopColor="#f4e4c8" />
                 <stop offset="60%" stopColor="#8b5a2b" />
                 <stop offset="100%" stopColor="#3a1f0a" />
               </linearGradient>
-              {/* Ball highlights */}
-              <radialGradient id="ballShine" cx="35%" cy="30%" r="60%">
-                <stop offset="0%" stopColor="rgba(255,255,255,0.85)" />
-                <stop offset="30%" stopColor="rgba(255,255,255,0.15)" />
-                <stop offset="100%" stopColor="rgba(0,0,0,0.35)" />
+              {/* High-end ball glow */}
+              <radialGradient id="ballShine" cx="32%" cy="28%" r="70%">
+                <stop offset="0%" stopColor="rgba(255,255,255,0.95)" />
+                <stop offset="18%" stopColor="rgba(255,255,255,0.35)" />
+                <stop offset="55%" stopColor="rgba(255,255,255,0.02)" />
+                <stop offset="100%" stopColor="rgba(0,0,0,0.55)" />
               </radialGradient>
+              <radialGradient id="ballRim" cx="50%" cy="50%" r="50%">
+                <stop offset="85%" stopColor="rgba(0,0,0,0)" />
+                <stop offset="100%" stopColor="rgba(0,0,0,0.55)" />
+              </radialGradient>
+              <filter id="ballShadow" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur in="SourceAlpha" stdDeviation="1.2" />
+                <feOffset dx="0" dy="2" result="off" />
+                <feComponentTransfer><feFuncA type="linear" slope="0.55" /></feComponentTransfer>
+                <feMerge><feMergeNode /><feMergeNode in="SourceGraphic" /></feMerge>
+              </filter>
+              {/* Stripe belt mask — colored band on ivory ball */}
+              <clipPath id="stripeBand">
+                <rect x={-R} y={-R * 0.5} width={R * 2} height={R} />
+              </clipPath>
             </defs>
 
-            {/* Felt */}
             <rect x={-4} y={-4} width={W + 8} height={H + 8} rx={14} fill="url(#feltGrad)" />
-            {/* Diamond markers on rails */}
+
+            {/* Diamond markers */}
             {[0.2, 0.4, 0.6, 0.8].flatMap((f, i) => [
               <circle key={`t${i}`} cx={W * f} cy={-16} r={2.2} fill="#d4a24a" opacity={0.7} />,
               <circle key={`b${i}`} cx={W * f} cy={H + 16} r={2.2} fill="#d4a24a" opacity={0.7} />,
@@ -488,13 +561,17 @@ function PoolPage() {
               <circle key={`r${i}`} cx={W + 16} cy={H * f} r={2.2} fill="#d4a24a" opacity={0.7} />,
             ])}
 
-            {/* Head-string line */}
-            <line x1={W * 0.25} y1={4} x2={W * 0.25} y2={H - 4} stroke="rgba(255,255,255,0.08)" strokeDasharray="3 6" />
-            <circle cx={W * 0.72} cy={H / 2} r={3} fill="rgba(255,255,255,0.12)" />
+            {/* Kitchen line & foot spot */}
+            <line x1={HEAD_SPOT_X} y1={4} x2={HEAD_SPOT_X} y2={H - 4} stroke="rgba(255,255,255,0.08)" strokeDasharray="3 6" />
+            <circle cx={FOOT_SPOT_X} cy={H / 2} r={3} fill="rgba(255,255,255,0.12)" />
+            <circle cx={HEAD_SPOT_X} cy={H / 2} r={3} fill="rgba(255,255,255,0.12)" />
 
             {/* Pockets */}
             {POCKETS.map((p, i) => (
-              <circle key={i} cx={p.x} cy={p.y} r={POCKET_R} fill="url(#pocketGrad)" stroke="#0a0a0a" strokeWidth={2} />
+              <g key={i}>
+                <circle cx={p.x} cy={p.y} r={POCKET_R + 3} fill="#0a0a0a" opacity={0.55} />
+                <circle cx={p.x} cy={p.y} r={POCKET_R} fill="url(#pocketGrad)" stroke="#0a0a0a" strokeWidth={2} />
+              </g>
             ))}
 
             {/* Aim guide */}
@@ -507,8 +584,6 @@ function PoolPage() {
                 strokeDasharray="4 6"
               />
             )}
-
-            {/* Cue stick preview */}
             {cuePreview && (
               <line
                 x1={cuePreview.near.x} y1={cuePreview.near.y}
@@ -520,46 +595,32 @@ function PoolPage() {
               />
             )}
 
-            {/* Balls */}
-            {balls.map((b) => {
-              if (b.pocketed && b.sinkT >= 1) return null;
-              const scale = b.pocketed ? 1 - b.sinkT : 1;
-              const cx = b.pocketed && b.pocketX != null ? b.x + (b.pocketX - b.x) * b.sinkT : b.x;
-              const cy = b.pocketed && b.pocketY != null ? b.y + (b.pocketY - b.y) * b.sinkT : b.y;
-              const r = R * scale;
+            {/* Ball-in-hand ghost preview */}
+            {ballInHand === turn && placingCue && (
+              <g transform={`translate(${placingCue.x} ${placingCue.y})`} opacity={0.55}>
+                <circle r={R} fill="#f8f3e6" stroke="#d4a24a" strokeDasharray="3 3" />
+              </g>
+            )}
+
+            {/* Balls (on table) */}
+            {balls.filter(b => !b.pocketed).map((b) => (
+              <BallGfx key={b.id} b={b} />
+            ))}
+
+            {/* Balls sinking into pocket */}
+            {balls.filter(b => b.pocketed && b.sinkT < 1).map((b) => {
+              const t = b.sinkT;
+              const cx = b.x + ((b.pocketX ?? b.x) - b.x) * t;
+              const cy = b.y + ((b.pocketY ?? b.y) - b.y) * t;
+              const scale = 1 - t;
               return (
-                <g key={b.id} transform={`translate(${cx} ${cy})`} opacity={scale}>
-                  {/* Base */}
-                  <circle r={r} fill={b.color} />
-                  {/* Stripe belt */}
-                  {b.group === "stripe" && (
-                    <g>
-                      <rect x={-r} y={-r * 0.42} width={r * 2} height={r * 0.84} fill="#f8f3e6" />
-                      <rect x={-r} y={-r * 0.42} width={r * 2} height={r * 0.84} fill={b.color} opacity={0.0} />
-                      <circle r={r} fill={b.color} style={{ mixBlendMode: "multiply" }} opacity={0} />
-                    </g>
-                  )}
-                  {/* Number badge */}
-                  {b.id !== 0 && (
-                    <g>
-                      <circle r={r * 0.42} fill="#f8f3e6" />
-                      <text
-                        y={r * 0.16}
-                        textAnchor="middle"
-                        fontSize={r * 0.7}
-                        fontFamily="serif"
-                        fontWeight={700}
-                        fill="#141414"
-                      >{b.id}</text>
-                    </g>
-                  )}
-                  {/* Shine */}
-                  <circle r={r} fill="url(#ballShine)" pointerEvents="none" />
+                <g key={`s-${b.id}`} transform={`translate(${cx} ${cy}) scale(${scale})`} opacity={1 - t * 0.4}>
+                  <BallGfx b={{ ...b, x: 0, y: 0 }} raw />
                 </g>
               );
             })}
 
-            {/* Power meter overlay near cursor while dragging */}
+            {/* Power meter */}
             {drag && mouse && (
               <g transform={`translate(${mouse.x} ${mouse.y - 30})`}>
                 <rect x={-40} y={-6} width={80} height={10} rx={5} fill="rgba(0,0,0,0.55)" />
@@ -568,13 +629,21 @@ function PoolPage() {
             )}
           </svg>
 
-          <p className="mt-3 text-[11px] text-candle-muted text-center font-serif italic">
-            Drag from the cue ball — direction sets aim, distance sets power.
+          {/* Pocketed tray */}
+          <div className="mt-3 flex items-center justify-between gap-3 px-2">
+            <TrayRow label="Solids" balls={pocketedBalls.filter(b => b.group === "solid")} />
+            <TrayRow label="8" balls={pocketedBalls.filter(b => b.group === "eight")} highlight />
+            <TrayRow label="Stripes" balls={pocketedBalls.filter(b => b.group === "stripe")} />
+          </div>
+
+          <p className="mt-2 text-[11px] text-candle-muted text-center font-serif italic">
+            {ballInHand === turn
+              ? "Ball in hand — click anywhere on the table to place the cue ball"
+              : "Drag from the cue ball — direction sets aim, distance sets power"}
           </p>
         </div>
       </div>
 
-      {/* Winner overlay */}
       {winner !== null && (
         <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/70 backdrop-blur-sm">
           <div className="rounded-3xl bg-velvet border border-petal/40 px-8 py-7 text-center shadow-2xl max-w-sm">
@@ -592,6 +661,80 @@ function PoolPage() {
       {roomKey && (
         <GameChat roomKey={roomKey} me={me} partnerName={partner?.display_name} title="Table talk" />
       )}
+    </div>
+  );
+}
+
+// -------- Ball graphic --------
+function BallGfx({ b, raw = false }: { b: Ball; raw?: boolean }) {
+  const isStripe = b.group === "stripe";
+  const isCue = b.id === 0;
+  const base = isStripe ? "#f8f3e6" : b.color;
+  const content = (
+    <>
+      {/* drop shadow disk */}
+      {!raw && <ellipse cx={0} cy={R * 0.85} rx={R * 0.85} ry={R * 0.25} fill="rgba(0,0,0,0.45)" />}
+      {/* base */}
+      <circle r={R} fill={base} />
+      {/* stripe band */}
+      {isStripe && (
+        <g clipPath="url(#stripeBand)">
+          <circle r={R} fill={b.color} />
+        </g>
+      )}
+      {/* subtle equator shade for depth */}
+      {isStripe && (
+        <line x1={-R} y1={0} x2={R} y2={0} stroke="rgba(0,0,0,0.08)" strokeWidth={0.5} />
+      )}
+      {/* Number badge */}
+      {!isCue && (
+        <g>
+          <circle r={R * 0.44} fill="#f8f3e6" />
+          <circle r={R * 0.44} fill="url(#ballRim)" opacity={0.4} />
+          <text
+            y={R * 0.18}
+            textAnchor="middle"
+            fontSize={R * 0.7}
+            fontFamily="Georgia, serif"
+            fontWeight={700}
+            fill={b.id === 8 ? "#141414" : "#141414"}
+          >{b.id}</text>
+        </g>
+      )}
+      {/* Cue ball red dot */}
+      {isCue && (
+        <circle cx={R * 0.35} cy={-R * 0.35} r={1.2} fill="#c62828" opacity={0.6} />
+      )}
+      {/* Glossy highlight */}
+      <circle r={R} fill="url(#ballShine)" pointerEvents="none" />
+      {/* rim shadow */}
+      <circle r={R} fill="url(#ballRim)" pointerEvents="none" />
+      {/* specular sparkle */}
+      <ellipse cx={-R * 0.35} cy={-R * 0.4} rx={R * 0.22} ry={R * 0.12} fill="rgba(255,255,255,0.9)" opacity={0.85} pointerEvents="none" />
+    </>
+  );
+  if (raw) return <>{content}</>;
+  return <g transform={`translate(${b.x} ${b.y})`} filter="url(#ballShadow)">{content}</g>;
+}
+
+function TrayRow({ label, balls, highlight = false }: { label: string; balls: Ball[]; highlight?: boolean }) {
+  return (
+    <div className={`flex items-center gap-2 rounded-full px-3 py-1 border ${highlight ? "border-petal/60 bg-petal-soft/20" : "border-border/40 bg-black/20"}`}>
+      <span className="text-[10px] uppercase tracking-widest text-candle-muted">{label}</span>
+      <div className="flex items-center gap-1">
+        {balls.length === 0 ? <span className="text-[10px] text-candle-muted/60">—</span> : balls.map((b) => (
+          <span key={b.id} className="relative inline-block w-4 h-4 rounded-full" style={{
+            background: b.group === "stripe"
+              ? `radial-gradient(circle at 32% 28%, rgba(255,255,255,0.9), rgba(255,255,255,0.1) 40%), linear-gradient(180deg, #f8f3e6 0 30%, ${b.color} 30% 70%, #f8f3e6 70% 100%)`
+              : `radial-gradient(circle at 32% 28%, rgba(255,255,255,0.9), rgba(255,255,255,0.1) 40%), ${b.color}`,
+            boxShadow: "inset 0 -1px 2px rgba(0,0,0,0.4)",
+          }}>
+            <span className="absolute inset-0 flex items-center justify-center text-[7px] font-bold text-black" style={{
+              textShadow: "0 0 2px rgba(255,255,255,0.5)",
+            }}>{b.id}</span>
+          </span>
+        ))}
+      </div>
     </div>
   );
 }
