@@ -110,8 +110,9 @@ function UnoPage() {
   const chRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   useEffect(() => {
     if (mode !== "partner" || !me || !partner) return;
-    const key = [me.id, partner.id].sort().join(":");
+    const key = matchId ?? [me.id, partner.id].sort().join(":");
     const isHost = me.id < partner.id;
+
     const ch = supabase.channel(`uno:${key}`, { config: { broadcast: { self: false } } });
     ch.on("broadcast", { event: "state" }, ({ payload }) => {
       setState(payload as UnoState);
