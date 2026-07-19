@@ -219,72 +219,143 @@ function LudoPage() {
     : [];
 
   return (
-    <div className="pt-10 px-4 max-w-xl mx-auto pb-10">
-      <header className="flex items-center gap-3 mb-4">
-        <button onClick={() => setMode(null)} className="text-candle-muted"><ArrowLeft className="size-5" /></button>
-        <div className="flex-1">
-          <p className="text-[10px] uppercase tracking-widest text-petal">Ludo</p>
-          <h1 className="font-serif text-xl italic">
-            {state.winner
-              ? `${PLAYER_META[state.winner].name} wins ✨`
-              : `${PLAYER_META[state.turn].emoji} ${PLAYER_META[state.turn].name}'s turn`}
-          </h1>
-        </div>
-        <button onClick={handleReset} className="p-2 rounded-full bg-surface border border-border text-candle-muted hover:text-candle" title="Reset">
-          <RotateCcw className="size-4" />
-        </button>
-      </header>
+    <div className="min-h-screen relative overflow-hidden">
+      <LudoAmbient />
+      <div className="relative z-10 pt-8 px-4 pb-24 max-w-xl mx-auto">
+        <header className="flex items-center justify-between mb-5">
+          <button onClick={() => setMode(null)} className="text-candle-muted hover:text-candle transition-colors">
+            <ArrowLeft className="size-5" />
+          </button>
+          <div className="text-center">
+            <p className="text-[9px] uppercase tracking-[0.35em] text-petal">Ludo · velveteen</p>
+            <p className="text-sm font-serif italic text-candle mt-0.5">
+              {state.winner
+                ? `${PLAYER_META[state.winner].name} wins ✨`
+                : `${PLAYER_META[state.turn].emoji} ${PLAYER_META[state.turn].name}'s turn`}
+            </p>
+          </div>
+          <button
+            onClick={handleReset}
+            className="p-2 rounded-full bg-surface/70 border border-border text-candle-muted hover:text-candle backdrop-blur"
+            title="Reset"
+          >
+            <RotateCcw className="size-4" />
+          </button>
+        </header>
 
+        {mode === "partner" && (
+          <p className="text-[11px] text-candle-muted mb-3 text-center tracking-wide">
+            You are <span className="text-candle">{PLAYER_META[mySeat].emoji} {PLAYER_META[mySeat].name}</span>
+            {!canAct && !state.winner && " · waiting for opponent"}
+          </p>
+        )}
 
-      {mode === "partner" && (
-        <p className="text-[11px] text-candle-muted mb-2 text-center">
-          You are {PLAYER_META[mySeat].emoji} {PLAYER_META[mySeat].name}
-          {!canAct && !state.winner && " · waiting for opponent"}
-        </p>
-      )}
-
-      <LudoBoard state={state} legalIds={legalIds} onMoveToken={handleMove} canAct={canAct} walking={walking} destinations={destinations} />
-
-      <div className="mt-5 flex items-center justify-center gap-4">
-        <Die value={state.dice ?? lastRoll} rolling={rolling} active={state.dice != null} />
-        <button
-          onClick={handleRoll}
-          disabled={!canAct || state.dice != null || !!state.winner || rolling}
-          className="px-6 py-3 rounded-2xl bg-petal text-white font-serif italic text-lg disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 shadow-[0_10px_30px_-8px_rgba(225,29,116,0.6)] hover:shadow-[0_14px_36px_-8px_rgba(225,29,116,0.75)] transition-shadow"
+        {/* Board — velvet card */}
+        <div
+          className="relative rounded-[28px] p-3 sm:p-5 border border-petal/30 bg-surface/70 backdrop-blur-xl shadow-[0_30px_80px_-30px_rgba(0,0,0,0.7)] overflow-hidden"
         >
-          <Dice5 className="size-4" />
-          {rolling ? "Rolling…" : "Roll dice"}
-        </button>
-      </div>
+          <div
+            className="absolute inset-0 pointer-events-none opacity-40"
+            style={{
+              background:
+                "radial-gradient(120% 80% at 50% 0%, color-mix(in oklab, var(--petal) 22%, transparent), transparent 60%)",
+            }}
+          />
+          <div className="absolute inset-0 pointer-events-none opacity-30 mix-blend-overlay"
+            style={{
+              background:
+                "radial-gradient(60% 40% at 50% 100%, oklch(0.85 0.16 68 / 0.35), transparent 70%)",
+            }}
+          />
+          <div className="relative">
+            <LudoBoard
+              state={state}
+              legalIds={legalIds}
+              onMoveToken={handleMove}
+              canAct={canAct}
+              walking={walking}
+              destinations={destinations}
+            />
+          </div>
+        </div>
 
-      <div className="text-center mt-3 min-h-[1.25rem]">
-        {state.winner ? null : state.dice != null && legalIds.size > 0 ? (
-          <p className="text-xs text-petal">Tap a glowing token to move it {state.dice} step{state.dice === 1 ? "" : "s"}.</p>
-        ) : state.dice != null ? (
-          <p className="text-xs text-candle-muted">No legal move — passing turn…</p>
-        ) : !canAct && mode === "partner" ? (
-          <p className="text-xs text-candle-muted">Waiting for opponent to roll…</p>
-        ) : (
-          <p className="text-xs text-candle-muted">Your turn — roll the dice.</p>
+        {/* Dice + roll — velvet console */}
+        <div className="mt-5 relative rounded-3xl p-4 border border-petal/25 bg-surface/60 backdrop-blur-xl shadow-[0_20px_50px_-20px_rgba(0,0,0,0.6)]">
+          <div className="flex items-center justify-center gap-5">
+            <Die value={state.dice ?? lastRoll} rolling={rolling} active={state.dice != null} />
+            <button
+              onClick={handleRoll}
+              disabled={!canAct || state.dice != null || !!state.winner || rolling}
+              className="relative px-7 py-3.5 rounded-2xl font-serif italic text-lg text-white disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 transition-all overflow-hidden group"
+              style={{
+                background:
+                  "linear-gradient(135deg, oklch(0.62 0.22 15) 0%, oklch(0.55 0.24 350) 60%, oklch(0.48 0.22 320) 100%)",
+                boxShadow:
+                  "0 14px 36px -10px rgba(225,29,116,0.55), inset 0 1px 0 rgba(255,255,255,0.25), inset 0 -6px 12px rgba(0,0,0,0.25)",
+              }}
+            >
+              <span
+                className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
+                style={{
+                  background:
+                    "radial-gradient(80% 120% at 50% 0%, rgba(255,255,255,0.28), transparent 60%)",
+                }}
+              />
+              <Dice5 className="size-4 relative" />
+              <span className="relative">{rolling ? "Rolling…" : "Roll dice"}</span>
+            </button>
+          </div>
+
+          <div className="text-center mt-3 min-h-[1.25rem]">
+            {state.winner ? null : state.dice != null && legalIds.size > 0 ? (
+              <p className="text-xs text-petal tracking-wide">
+                Tap a glowing token to move it {state.dice} step{state.dice === 1 ? "" : "s"}.
+              </p>
+            ) : state.dice != null ? (
+              <p className="text-xs text-candle-muted">No legal move — passing turn…</p>
+            ) : !canAct && mode === "partner" ? (
+              <p className="text-xs text-candle-muted">Waiting for opponent to roll…</p>
+            ) : (
+              <p className="text-xs text-candle-muted italic">Your turn — roll the dice.</p>
+            )}
+          </div>
+        </div>
+
+        <LudoWinAnimation
+          trigger={winTrigger}
+          winner={winWho ?? null}
+          onDone={() => setDemoWin(null)}
+        />
+
+        {mode === "partner" && me && partner && (
+          <GameChat
+            roomKey={`ludo:${[me.id, partner.id].sort().join(":")}`}
+            me={me}
+            partnerName={partner.display_name}
+            title="Ludo table"
+          />
         )}
       </div>
-
-      <LudoWinAnimation
-        trigger={winTrigger}
-        winner={winWho ?? null}
-        onDone={() => setDemoWin(null)}
-      />
-
-      {mode === "partner" && me && partner && (
-        <GameChat
-          roomKey={`ludo:${[me.id, partner.id].sort().join(":")}`}
-          me={me}
-          partnerName={partner.display_name}
-          title="Ludo table"
-        />
-      )}
     </div>
+  );
+}
 
+function LudoAmbient() {
+  return (
+    <div className="absolute inset-0 pointer-events-none">
+      <div
+        className="absolute -top-24 -left-16 w-80 h-80 rounded-full opacity-40 blur-3xl"
+        style={{ background: "radial-gradient(circle, oklch(0.55 0.22 340 / 0.55), transparent 70%)" }}
+      />
+      <div
+        className="absolute -top-16 -right-16 w-72 h-72 rounded-full opacity-35 blur-3xl"
+        style={{ background: "radial-gradient(circle, oklch(0.72 0.16 68 / 0.5), transparent 70%)" }}
+      />
+      <div
+        className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[130%] h-72 opacity-30 blur-3xl"
+        style={{ background: "radial-gradient(ellipse, oklch(0.45 0.14 300 / 0.4), transparent 70%)" }}
+      />
+    </div>
   );
 }
 
