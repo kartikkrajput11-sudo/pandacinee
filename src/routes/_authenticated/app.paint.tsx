@@ -598,6 +598,7 @@ function PaintTogether() {
 
   return (
     <div className="pt-10 px-4 pb-4">
+      {matchId && <GroupPlayersBar matchId={matchId} meId={me?.id} gameName="Paint Together" />}
       <header className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <Link to="/app/play" className="text-candle-muted">
