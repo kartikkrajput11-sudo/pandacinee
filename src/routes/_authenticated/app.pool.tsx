@@ -532,10 +532,25 @@ function PoolPage() {
                 <stop offset="55%" stopColor="#000" />
                 <stop offset="100%" stopColor="#000" />
               </radialGradient>
-              <linearGradient id="cueStick" x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0%" stopColor="#f4e4c8" />
-                <stop offset="60%" stopColor="#8b5a2b" />
-                <stop offset="100%" stopColor="#3a1f0a" />
+              <linearGradient id="cueShaftGrad" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stopColor="#f5e2b6" />
+                <stop offset="55%" stopColor="#e2c185" />
+                <stop offset="100%" stopColor="#b58a4a" />
+              </linearGradient>
+              <linearGradient id="cueShaftShine" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="rgba(255,255,255,0.7)" />
+                <stop offset="50%" stopColor="rgba(255,255,255,0)" />
+                <stop offset="100%" stopColor="rgba(0,0,0,0.35)" />
+              </linearGradient>
+              <linearGradient id="cueGripGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#5a2418" />
+                <stop offset="50%" stopColor="#2a0f08" />
+                <stop offset="100%" stopColor="#4a1e12" />
+              </linearGradient>
+              <linearGradient id="cueButtGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#3a1f0a" />
+                <stop offset="50%" stopColor="#1a0e04" />
+                <stop offset="100%" stopColor="#2a1608" />
               </linearGradient>
               {/* High-end ball glow */}
               <radialGradient id="ballShine" cx="32%" cy="28%" r="70%">
