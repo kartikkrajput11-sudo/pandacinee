@@ -4,11 +4,15 @@ import { ArrowLeft, Sparkles, Trophy, RotateCw } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
+import { useMatchOpponent } from "@/hooks/useMatchOpponent";
 import { generateLoveQuiz } from "@/lib/games.functions";
 import { gameSfx } from "@/lib/game-sfx";
 
 export const Route = createFileRoute("/_authenticated/app/love-quiz")({
   component: LoveQuiz,
+  validateSearch: (search: Record<string, unknown>) => ({
+    matchId: typeof search.matchId === "string" ? search.matchId : undefined,
+  }),
 });
 
 type Q = { q: string; options: string[]; answer: number };
@@ -39,7 +43,11 @@ function emptyState(): State {
 function LoveQuiz() {
   const { data } = useProfile();
   const me = data?.profile;
-  const partner = data?.partner;
+  const { matchId } = Route.useSearch();
+  const { opponentId: matchOppId } = useMatchOpponent(matchId, me?.id);
+  const partner = matchId
+    ? (matchOppId ? { id: matchOppId, display_name: "Partner" } as { id: string; display_name?: string } : null)
+    : data?.partner;
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(false);
   const [spinning, setSpinning] = useState(false);

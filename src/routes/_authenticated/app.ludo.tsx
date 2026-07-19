@@ -8,6 +8,7 @@ import { GameChat } from "@/components/games/GameChat";
 import { sfxLudoDiceRoll, sfxLudoHop, sfxLudoCapture, sfxLudoHome, sfxLudoWin } from "@/lib/sfx";
 
 import { useProfile } from "@/hooks/useProfile";
+import { useMatchOpponent } from "@/hooks/useMatchOpponent";
 import {
   initialState,
   applyRoll,
@@ -30,6 +31,9 @@ import {
 
 export const Route = createFileRoute("/_authenticated/app/ludo")({
   component: LudoPage,
+  validateSearch: (search: Record<string, unknown>) => ({
+    matchId: typeof search.matchId === "string" ? search.matchId : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Ludo — PandaCine" },
@@ -43,8 +47,13 @@ type Mode = "partner" | "local";
 function LudoPage() {
   const { data } = useProfile();
   const me = data?.profile;
-  const partner = data?.partner;
+  const { matchId } = Route.useSearch();
+  const { opponentId: matchOppId } = useMatchOpponent(matchId, me?.id);
+  const partner = matchId
+    ? (matchOppId ? ({ id: matchOppId } as { id: string; display_name?: string }) : null)
+    : data?.partner;
   const [mode, setMode] = useState<Mode | null>(null);
+  useEffect(() => { if (matchId && partner && !mode) setMode("partner"); }, [matchId, partner, mode]);
   const [state, setState] = useState<State>(() => initialState());
 
   // Determine local seat for partner mode. Lower UUID plays Red.
@@ -57,8 +66,9 @@ function LudoPage() {
   const chRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   useEffect(() => {
     if (mode !== "partner" || !me || !partner) return;
-    const key = [me.id, partner.id].sort().join(":");
+    const key = matchId ?? [me.id, partner.id].sort().join(":");
     const ch = supabase.channel(`ludo:${key}`, { config: { broadcast: { self: false } } });
+
     ch.on("broadcast", { event: "state" }, ({ payload }) => {
       setState(payload as State);
     });

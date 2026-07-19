@@ -5,9 +5,13 @@ import { toast } from "sonner";
 import { gameSfx } from "@/lib/game-sfx";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
+import { useMatchOpponent } from "@/hooks/useMatchOpponent";
 
 export const Route = createFileRoute("/_authenticated/app/puzzle")({
   component: PuzzleTogether,
+  validateSearch: (search: Record<string, unknown>) => ({
+    matchId: typeof search.matchId === "string" ? search.matchId : undefined,
+  }),
 });
 
 const DIFFICULTIES = [
@@ -67,7 +71,12 @@ function shuffled(n: number) {
 function PuzzleTogether() {
   const { data } = useProfile();
   const me = data?.profile;
-  const partner = data?.partner;
+  const { matchId } = Route.useSearch();
+  const { opponentId: matchOppId } = useMatchOpponent(matchId, me?.id);
+  const partner = matchId
+    ? (matchOppId ? { id: matchOppId, display_name: "Partner" } as { id: string; display_name?: string } : null)
+    : data?.partner;
+
 
   const [diffIdx, setDiffIdx] = useState(1);
   const diff = DIFFICULTIES[diffIdx];
@@ -154,7 +163,7 @@ function PuzzleTogether() {
   // Realtime pair channel — race + dare only, no piece sync.
   useEffect(() => {
     if (!me) return;
-    const key = partner ? [me.id, partner.id].sort().join(":") : me.id;
+    const key = matchId ?? (partner ? [me.id, partner.id].sort().join(":") : me.id);
     const ch = supabase.channel(`puzzle:${key}`, { config: { broadcast: { self: false } } });
     ch.on("broadcast", { event: "solved" }, ({ payload }) => {
       const p = payload as { by: string; time: number; difficulty: number };

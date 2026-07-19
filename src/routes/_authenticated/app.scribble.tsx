@@ -5,10 +5,14 @@ import { toast } from "sonner";
 import { gameSfx } from "@/lib/game-sfx";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
+import { useMatchOpponent } from "@/hooks/useMatchOpponent";
 import { AvatarImg } from "@/components/AvatarImg";
 
 export const Route = createFileRoute("/_authenticated/app/scribble")({
   component: Scribble,
+  validateSearch: (search: Record<string, unknown>) => ({
+    matchId: typeof search.matchId === "string" ? search.matchId : undefined,
+  }),
 });
 
 const WORDS = [
@@ -100,7 +104,12 @@ function guessesMatch(guess: string, secret: string) {
 function Scribble() {
   const { data } = useProfile();
   const me = data?.profile;
-  const partner = data?.partner;
+  const { matchId } = Route.useSearch();
+  const { opponentId: matchOppId } = useMatchOpponent(matchId, me?.id);
+  const partner = matchId
+    ? (matchOppId ? { id: matchOppId, display_name: "Partner" } as { id: string; display_name?: string } : null)
+    : data?.partner;
+
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [color, setColor] = useState("#8b5cf6");
@@ -391,7 +400,7 @@ function Scribble() {
   // Realtime channel
   useEffect(() => {
     if (!me) return;
-    const key = partner ? [me.id, partner.id].sort().join(":") : me.id;
+    const key = matchId ?? (partner ? [me.id, partner.id].sort().join(":") : me.id);
     const ch = supabase.channel(`scribble:${key}`, { config: { broadcast: { self: false } } });
     ch.on("broadcast", { event: "stroke" }, ({ payload }) => {
       strokes.current.push(payload as Stroke);

@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { ArrowLeft, RotateCcw, Trophy, Hand, Wifi, WifiOff } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
+import { useMatchOpponent } from "@/hooks/useMatchOpponent";
 import { GameChat } from "@/components/games/GameChat";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -13,6 +14,9 @@ import {
 } from "@/lib/sfx";
 
 export const Route = createFileRoute("/_authenticated/app/pool")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    matchId: typeof search.matchId === "string" ? search.matchId : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "8-Ball Pool — Pandacine" },
@@ -196,17 +200,23 @@ type Player = 0 | 1;
 function PoolPage() {
   const { data } = useProfile();
   const me = useMemo(() => data?.profile ? { id: data.profile.id, display_name: data.profile.display_name } : null, [data]);
-  const partner = data?.partner;
+  const { matchId } = Route.useSearch();
+  const { opponentId: matchOppId } = useMatchOpponent(matchId, me?.id);
+  const partner = matchId
+    ? (matchOppId ? { id: matchOppId, display_name: "Partner" } : null)
+    : data?.partner;
   const roomKey = useMemo(() => {
+    if (matchId) return `pool:match:${matchId}`;
     const ids = [me?.id, partner?.id].filter(Boolean).sort();
     return ids.length === 2 ? `pool:${ids.join(":")}` : "";
-  }, [me?.id, partner?.id]);
+  }, [matchId, me?.id, partner?.id]);
   // Deterministic seat: lower sorted user id = seat 0
   const mySeat = useMemo<Player | null>(() => {
     if (!me?.id || !partner?.id) return null;
     const ids = [me.id, partner.id].sort();
     return ids[0] === me.id ? 0 : 1;
   }, [me?.id, partner?.id]);
+
 
   const [balls, setBalls] = useState<Ball[]>(() => makeRack());
   const [turn, setTurn] = useState<Player>(0);

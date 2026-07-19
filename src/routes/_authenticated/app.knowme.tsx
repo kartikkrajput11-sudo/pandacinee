@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, Check, Lock, Sparkles, RotateCcw, Heart, Wifi, Users } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
+import { useMatchOpponent } from "@/hooks/useMatchOpponent";
 import { pickQuestions, type KnowMeQuestion } from "@/lib/knowme";
 import { sfxReaction, sfxPollVote, sfxKiss } from "@/lib/sfx";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,6 +10,9 @@ import { GameChat } from "@/components/games/GameChat";
 
 export const Route = createFileRoute("/_authenticated/app/knowme")({
   component: KnowMePage,
+  validateSearch: (search: Record<string, unknown>) => ({
+    matchId: typeof search.matchId === "string" ? search.matchId : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "How Well Do You Know Me? — PandaCine" },
@@ -16,6 +20,7 @@ export const Route = createFileRoute("/_authenticated/app/knowme")({
     ],
   }),
 });
+
 
 type Mode = "local" | "online";
 type Phase =
@@ -40,14 +45,20 @@ type PeerMsg =
 function KnowMePage() {
   const { data } = useProfile();
   const me = data?.profile;
-  const partner = data?.partner;
+  const { matchId } = Route.useSearch();
+  const { opponentId: matchOppId } = useMatchOpponent(matchId, me?.id);
+  const partner = matchId
+    ? (matchOppId ? { id: matchOppId, display_name: "Partner" } as { id: string; display_name?: string } : null)
+    : data?.partner;
   const navigate = useNavigate();
 
   const [mode, setMode] = useState<Mode>("local");
+  useEffect(() => { if (matchId && partner) setMode("online"); }, [matchId, partner]);
   const [phase, setPhase] = useState<Phase>("intro");
   const [count, setCount] = useState(8);
   const [seed, setSeed] = useState(() => Date.now());
   const questions = useMemo<KnowMeQuestion[]>(() => pickQuestions(count, seed), [count, seed]);
+
 
   const [answers, setAnswers] = useState<number[]>([]);
   const [guesses, setGuesses] = useState<number[]>([]);
@@ -69,7 +80,7 @@ function KnowMePage() {
 
   useEffect(() => {
     if (mode !== "online" || !me || !partner) return;
-    const key = [me.id, partner.id].sort().join(":");
+    const key = matchId ?? [me.id, partner.id].sort().join(":");
     const channel = supabase.channel(`knowme:${key}`, {
       config: { broadcast: { self: false }, presence: { key: me.id } },
     });

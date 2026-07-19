@@ -21,10 +21,14 @@ import {
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
+import { useMatchOpponent } from "@/hooks/useMatchOpponent";
 import { GameChat } from "@/components/games/GameChat";
 
 export const Route = createFileRoute("/_authenticated/app/paint")({
   component: PaintTogether,
+  validateSearch: (search: Record<string, unknown>) => ({
+    matchId: typeof search.matchId === "string" ? search.matchId : undefined,
+  }),
 });
 
 type ShapeKind = "line" | "rect" | "oval" | "triangle" | "heart" | "star";
@@ -165,7 +169,11 @@ type RemoteCursor = { x: number; y: number; color: string; name: string; ts: num
 function PaintTogether() {
   const { data } = useProfile();
   const me = data?.profile;
-  const partner = data?.partner;
+  const { matchId } = Route.useSearch();
+  const { opponentId: matchOppId } = useMatchOpponent(matchId, me?.id);
+  const partner = matchId
+    ? (matchOppId ? { id: matchOppId, display_name: "Partner" } as { id: string; display_name?: string } : null)
+    : data?.partner;
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [color, setColor] = useState("#8b5cf6");
@@ -195,6 +203,7 @@ function PaintTogether() {
 
   function pairKey() {
     if (!me) return "";
+    if (matchId) return `match:${matchId}`;
     return partner ? [me.id, partner.id].sort().join(":") : me.id;
   }
 

@@ -2,12 +2,16 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { ArrowLeft, RotateCcw, Eye, EyeOff, Sparkles, Users, Wifi } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
+import { useMatchOpponent } from "@/hooks/useMatchOpponent";
 import { supabase } from "@/integrations/supabase/client";
 import { sfxKiss, sfxPollVote, sfxReaction } from "@/lib/sfx";
 import { GameChat } from "@/components/games/GameChat";
 
 export const Route = createFileRoute("/_authenticated/app/hideseek")({
   component: HideSeekPage,
+  validateSearch: (search: Record<string, unknown>) => ({
+    matchId: typeof search.matchId === "string" ? search.matchId : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Hide & Seek — PandaCine" },
@@ -291,10 +295,15 @@ type PeerMsg =
 function HideSeekPage() {
   const { data } = useProfile();
   const me = data?.profile;
-  const partner = data?.partner;
+  const { matchId } = Route.useSearch();
+  const { opponentId: matchOppId } = useMatchOpponent(matchId, me?.id);
+  const partner = matchId
+    ? (matchOppId ? { id: matchOppId, display_name: "Partner" } as { id: string; display_name?: string } : null)
+    : data?.partner;
   const navigate = useNavigate();
 
   const [mode, setMode] = useState<Mode>("local");
+  useEffect(() => { if (matchId && partner) setMode("online"); }, [matchId, partner]);
   const [phase, setPhase] = useState<Phase>("intro");
   const [round, setRound] = useState(1);
   const [hiderId, setHiderId] = useState<string | null>(null);
@@ -326,7 +335,7 @@ function HideSeekPage() {
 
   useEffect(() => {
     if (mode !== "online" || !me || !partner) return;
-    const key = [me.id, partner.id].sort().join(":");
+    const key = matchId ?? [me.id, partner.id].sort().join(":");
     const channel = supabase.channel(`hideseek:${key}`, {
       config: { broadcast: { self: false }, presence: { key: me.id } },
     });
