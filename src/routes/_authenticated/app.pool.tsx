@@ -531,10 +531,14 @@ function PoolPage() {
         ? `Sunk ${numSunk}${shouldContinue ? " — go again" : ""}`
         : "Miss",
     );
+    // Broadcast resolved turn state to partner
+    setTimeout(() => sendState(true), 0);
   };
 
   const resetGame = () => {
-    setBalls(makeRack());
+    const fresh = makeRack();
+    ballsRef.current = fresh;
+    setBalls(fresh);
     setTurn(0);
     setAssign([null, null]);
     setPocketedThisTurn([]);
@@ -545,6 +549,8 @@ function PoolPage() {
     movingRef.current = false;
     turnEndedRef.current = false;
     firstHitRef.current.id = null;
+    // Notify partner to reset too
+    channelRef.current?.send({ type: "broadcast", event: "reset", payload: { ts: Date.now() } });
   };
 
   // -------- Aim geometry --------
