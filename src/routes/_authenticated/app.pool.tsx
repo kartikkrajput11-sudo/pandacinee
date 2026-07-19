@@ -13,6 +13,9 @@ import {
 } from "@/lib/sfx";
 
 export const Route = createFileRoute("/_authenticated/app/pool")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    matchId: typeof search.matchId === "string" ? search.matchId : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "8-Ball Pool — Pandacine" },
