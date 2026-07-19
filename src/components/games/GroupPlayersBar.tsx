@@ -141,7 +141,7 @@ export function GroupPlayersBar({
                     key={o.user_id}
                     src={prof?.avatar_url ?? null}
                     name={prof?.display_name ?? "Watcher"}
-                    size={20}
+                    className="h-5 w-5"
                   />
                 );
               })}
