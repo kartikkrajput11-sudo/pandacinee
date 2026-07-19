@@ -64,6 +64,12 @@ export async function joinGroupMatch(matchId: string): Promise<"player" | "obser
   return data as "player" | "observer";
 }
 
+export async function startGroupMatch(matchId: string): Promise<GroupMatchRow> {
+  const { data, error } = await supabase.rpc("start_group_match" as never, { _match_id: matchId } as never);
+  if (error) throw error;
+  return data as unknown as GroupMatchRow;
+}
+
 export function useGroupMatch(matchId: string | null, meId: string | null) {
   const [match, setMatch] = useState<GroupMatchRow | null>(null);
   const [participants, setParticipants] = useState<MatchParticipant[]>([]);
