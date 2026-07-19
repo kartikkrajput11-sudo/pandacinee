@@ -553,6 +553,15 @@ function PoolPage() {
     channelRef.current?.send({ type: "broadcast", event: "reset", payload: { ts: Date.now() } });
   };
 
+  // Broadcast on important state transitions (handles resolveTurn early returns)
+  useEffect(() => {
+    if (remoteApplyingRef.current) return;
+    if (mySeat !== null && mySeat !== turn && ballInHand !== mySeat && winner === null) return;
+    const id = setTimeout(() => sendState(true), 20);
+    return () => clearTimeout(id);
+  }, [turn, assign, ballInHand, winner, message, mySeat, sendState]);
+
+
   // -------- Aim geometry --------
   const aimEnd = useMemo(() => {
     if (!cueBall || !mouse || !canShoot) return null;
