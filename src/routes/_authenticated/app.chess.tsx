@@ -24,6 +24,7 @@ import {
 import type { AiLevel, ChessMode } from "@/lib/chess";
 import { sfx } from "@/lib/chess-sfx";
 import { GameChat } from "@/components/games/GameChat";
+import { GroupPlayersBar } from "@/components/games/GroupPlayersBar";
 
 const searchSchema = z.object({
   game: z.string().uuid().optional(),
