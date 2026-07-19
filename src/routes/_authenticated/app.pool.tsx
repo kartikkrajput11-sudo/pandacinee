@@ -519,7 +519,7 @@ function PoolPage() {
             onPointerUp={onSvgUp}
             onPointerCancel={() => setDrag(null)}
             onPointerLeave={() => { setMouse(null); if (drag) setDrag(null); }}
-            style={{ cursor: ballInHand === turn ? "crosshair" : canShoot ? "grab" : "default" }}
+            
           >
             <defs>
               <radialGradient id="feltGrad" cx="50%" cy="45%" r="70%">
