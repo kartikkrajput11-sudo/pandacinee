@@ -51,6 +51,9 @@ function play(notes: Note[]) {
   if (!enabled) return;
   const c = ac();
   if (!c) return;
+  // Ensure context is running — needed after any auto-suspend on mobile/desktop
+  // idle. Fire-and-forget; scheduled notes still play once it resumes.
+  if (c.state === "suspended") { try { void c.resume(); } catch { /* ignore */ } }
   const master = c.createGain();
   master.gain.value = 0.9;
   master.connect(c.destination);
