@@ -130,10 +130,17 @@ function GroupMatchLobby() {
         >
           <Play className="size-4" />
           {m.myRole === "player"
-            ? seatsFilled ? "Enter the arena" : "Waiting for opponent…"
-            : "Watch as observer"}
+            ? minReady
+              ? seatsFilled ? "Enter the arena" : `Start now (${m.players.length}/${maxSeats})`
+              : "Waiting for another player…"
+            : minReady ? "Watch as observer" : "Waiting for players…"}
         </button>
-        {m.myRole === "observer" && seatsFilled && (
+        {isHost && minReady && !seatsFilled && (
+          <p className="mt-2 text-center text-[11px] italic text-candle-muted">
+            You're the host — you can start early with {m.players.length} seated, or wait to fill all {maxSeats} seats.
+          </p>
+        )}
+        {m.myRole === "observer" && minReady && (
           <button
             onClick={launch}
             className="w-full mt-2 py-2 rounded-full bg-surface border border-border text-candle-muted text-xs"
@@ -142,6 +149,7 @@ function GroupMatchLobby() {
           </button>
         )}
       </div>
+
 
       {/* Chat tabs */}
       <div className="flex-1 flex flex-col min-h-0 border-t border-border">
