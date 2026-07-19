@@ -157,3 +157,39 @@ export function sfxLudoWin() {
     { freq: 1046.5, start: 0.5, dur: 0.4, gain: 0.08, type: "triangle" },
   ]);
 }
+
+// Pool — cue strikes the ball
+export function sfxPoolCue() {
+  play([
+    { freq: 220, start: 0, dur: 0.05, gain: 0.09, type: "square", glideTo: 90 },
+    { freq: 1200, start: 0, dur: 0.03, gain: 0.05, type: "triangle" },
+  ]);
+}
+// Pool — ball on ball click
+export function sfxPoolClick() {
+  play([
+    { freq: 1400, start: 0, dur: 0.04, gain: 0.06, type: "triangle", glideTo: 900 },
+  ]);
+}
+// Pool — rail bounce (softer thump)
+export function sfxPoolRail() {
+  play([
+    { freq: 180, start: 0, dur: 0.06, gain: 0.05, type: "sine", glideTo: 90 },
+  ]);
+}
+// Pool — pocket sink (deep drop)
+export function sfxPoolPocket() {
+  play([
+    { freq: 300, start: 0, dur: 0.08, gain: 0.07, type: "sine", glideTo: 120 },
+    { freq: 120, start: 0.08, dur: 0.18, gain: 0.06, type: "sine", glideTo: 60 },
+  ]);
+}
+// Pool — victory
+export function sfxPoolWin() {
+  play([
+    { freq: 523.25, start: 0, dur: 0.16, gain: 0.07, type: "triangle" },
+    { freq: 659.25, start: 0.14, dur: 0.16, gain: 0.07, type: "triangle" },
+    { freq: 987.77, start: 0.28, dur: 0.34, gain: 0.08, type: "triangle" },
+  ]);
+}
+
