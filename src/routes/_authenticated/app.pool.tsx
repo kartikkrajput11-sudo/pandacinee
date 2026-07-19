@@ -444,6 +444,8 @@ function PoolPage() {
     firstHitRef.current.id = null;
     turnEndedRef.current = false;
     movingRef.current = true;
+    // Broadcast the initial cue-strike so partner sees motion begin instantly
+    setTimeout(() => sendState(true), 0);
   };
 
   // -------- Turn resolution --------
