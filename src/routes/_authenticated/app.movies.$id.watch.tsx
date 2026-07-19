@@ -505,26 +505,26 @@ function CatalogWatch({ id }: { id: string }) {
     window.setTimeout(() => { suppressPlayerEventRef.current = false; }, ms);
   }, []);
 
-  // Follower: mirror host's source selection so both are watching the same stream
+  // Mutual sync: mirror the latest source selection so both screens use the same stream.
   useEffect(() => {
-    if (!partnerIsHost || !peer) return;
+    if (!peer) return;
     if (typeof peer.sourceIdx !== "number") return;
     if (peer.sourceIdx === sourceIdx) return;
     if (peer.sourceIdx < 0 || peer.sourceIdx >= allSources.length) return;
     setSourceIdx(peer.sourceIdx);
-  }, [partnerIsHost, peer, sourceIdx, allSources.length]);
+  }, [peer, sourceIdx, allSources.length]);
 
-  // Follower: mirror host's season/episode (TV series only)
+  // Mutual sync: mirror the latest season/episode (TV series only).
   useEffect(() => {
-    if (!partnerIsHost || !peer || !isTv) return;
+    if (!peer || !isTv) return;
     if (typeof peer.season === "number" && peer.season !== season) setSeason(peer.season);
     if (typeof peer.episode === "number" && peer.episode !== episode) setEpisode(peer.episode);
-  }, [partnerIsHost, peer, isTv, season, episode]);
+  }, [peer, isTv, season, episode]);
 
-  // Follower auto-sync: when partner is host, mirror their play/pause/seek.
+  // Mutual auto-sync: the latest play/pause/seek from either partner moves the other screen.
   // Only runs when BOTH partners loaded the movie from storage (Pandacine).
   useEffect(() => {
-    if (!peer || !partnerIsHost || !me) return;
+    if (!peer || !partner || !me) return;
     if (!isPandacine || peerSourceKind !== "pandacine") return;
     if (peer.updatedAt <= lastAppliedPeerEventRef.current) return;
     const evt = peer.event;
@@ -552,6 +552,18 @@ function CatalogWatch({ id }: { id: string }) {
       setStartAt(peer.currentTime);
       setStarted(true);
       setPlayerLoading(true);
+      return;
+    }
+
+    // If the partner's event arrives before this screen has mounted/buffered its
+    // own video, mount immediately and replay the action as soon as the handle is ready.
+    if (isPandacine && !customPlayerRef.current) {
+      if (evt !== "pause") {
+        pendingAutoJoinRef.current = peer.currentTime;
+        setStartAt(peer.currentTime);
+        setStarted(true);
+        setPlayerLoading(true);
+      }
       return;
     }
 
@@ -602,7 +614,7 @@ function CatalogWatch({ id }: { id: string }) {
       applySeek(peer.currentTime, { pause: false });
       if (evt === "seeked") toast.info(`${partner?.display_name.split(" ")[0]} skipped`);
     }
-  }, [peer, partnerIsHost, me, mine.currentTime, applySeek, partner, isPandacine, peerSourceKind, started, customPlayerReady, runSuppressedPlayerAction]);
+  }, [peer, me, mine.currentTime, applySeek, partner, isPandacine, peerSourceKind, started, customPlayerReady, runSuppressedPlayerAction]);
 
   // When the custom player mounts after an auto-join, mute + seek + play.
   useEffect(() => {
@@ -1002,7 +1014,7 @@ function CatalogWatch({ id }: { id: string }) {
                   src={pandacine.videoSrc}
                   poster={backdropUrl}
                   startAt={startAt}
-                  locked={!!hostId && !iAmHost}
+                    locked={false}
                   onLockedAttempt={() => {
                     toast.info("Playback is controlled by your partner.", { id: "locked-attempt", duration: 1800 });
                   }}
@@ -1018,7 +1030,6 @@ function CatalogWatch({ id }: { id: string }) {
                     const now = Date.now();
                     const isDiscrete = evt.event === "play" || evt.event === "pause" || evt.event === "seeked" || evt.event === "ended" || evt.event === "ratechange";
                     if (isDiscrete && partner && !hostId) claimHost();
-                    if (partnerIsHost && isDiscrete) return;
                     // Tighter publish cadence for Pandacine host so followers stay ±100ms.
                     if (isDiscrete || now - lastPublishRef.current > 500) {
                       lastPublishRef.current = now;
