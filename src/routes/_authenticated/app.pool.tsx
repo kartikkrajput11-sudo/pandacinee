@@ -468,28 +468,28 @@ function PoolPage() {
   };
 
   // -------- Turn resolution --------
+  // NOTE: called from the RAF loop (which captures the first-render closure),
+  // so read all mutable state via refs.
   const resolveTurn = () => {
-    const pocketed = pocketedThisTurn;
+    const currentTurn = turnRef.current;
+    const pocketed = pocketedThisTurnRef.current;
     setPocketedThisTurn([]);
 
     const cueSunk = pocketed.some((b) => b.id === 0);
     const eightSunk = pocketed.some((b) => b.id === 8);
-    const other = (turn === 0 ? 1 : 0) as Player;
+    const other = (currentTurn === 0 ? 1 : 0) as Player;
     const firstHitId = firstHitRef.current.id;
     const firstHitBall = firstHitId != null ? ballsRef.current.find(b => b.id === firstHitId) : null;
 
-    let a: [Assignment, Assignment] = [...assign] as [Assignment, Assignment];
+    let a: [Assignment, Assignment] = [...assignRef.current] as [Assignment, Assignment];
     const isBreak = !a[0] && !a[1];
     let foul = false;
     let foulReason = "";
 
-    // Foul: cue scratched
     if (cueSunk) { foul = true; foulReason = "Scratch"; }
-    // Foul: no ball hit
     else if (firstHitId === null) { foul = true; foulReason = "No ball struck"; }
-    // Foul: wrong group first hit (only after break & groups assigned)
-    else if (!isBreak && a[turn] && firstHitBall) {
-      const myGroup = a[turn];
+    else if (!isBreak && a[currentTurn] && firstHitBall) {
+      const myGroup = a[currentTurn];
       const my8OnTable = ballsRef.current.filter(b => !b.pocketed && b.group === myGroup).length > 0;
       const legalFirst = my8OnTable ? firstHitBall.group === myGroup : firstHitBall.group === "eight";
       if (!legalFirst) { foul = true; foulReason = `Hit ${firstHitBall.group} first — foul`; }
@@ -497,17 +497,18 @@ function PoolPage() {
 
     // 8-ball outcomes
     if (eightSunk) {
-      const myGroup = a[turn];
+      const myGroup = a[currentTurn];
       const myLeft = myGroup ? ballsRef.current.filter((b) => !b.pocketed && b.group === myGroup).length : 15;
       const legalWin = myGroup && myLeft === 0 && !cueSunk && !foul;
       if (legalWin) {
-        setWinner(turn); sfxPoolWin(); setMessage(`Player ${turn + 1} wins!`);
-        setMatchScore((s) => (turn === 0 ? [s[0] + 1, s[1]] : [s[0], s[1] + 1]));
+        setWinner(currentTurn); sfxPoolWin(); setMessage(`Player ${currentTurn + 1} wins!`);
+        setMatchScore((s) => (currentTurn === 0 ? [s[0] + 1, s[1]] : [s[0], s[1] + 1]));
       } else {
         setWinner(other); sfxPoolWin();
         setMessage(cueSunk ? `Player ${other + 1} wins — scratch on 8` : `Player ${other + 1} wins — 8 ball early`);
         setMatchScore((s) => (other === 0 ? [s[0] + 1, s[1]] : [s[0], s[1] + 1]));
       }
+      setTimeout(() => sendState(true), 0);
       return;
     }
 
@@ -515,14 +516,13 @@ function PoolPage() {
     if (isBreak && !foul) {
       const first = pocketed.find((b) => b.group === "solid" || b.group === "stripe");
       if (first) {
-        a = turn === 0
+        a = currentTurn === 0
           ? [first.group as Assignment, first.group === "solid" ? "stripe" : "solid"]
           : [first.group === "solid" ? "stripe" : "solid", first.group as Assignment];
         setAssign(a);
       }
     }
 
-    // Respot cue on scratch
     if (cueSunk) {
       const cb = ballsRef.current.find((b) => b.id === 0);
       if (cb) {
@@ -536,10 +536,12 @@ function PoolPage() {
       setTurn(other);
       setBallInHand(other);
       setMessage(`${foulReason} — Player ${other + 1} has ball in hand`);
+      // Broadcast turn switch + ball-in-hand to partner
+      setTimeout(() => sendState(true), 0);
       return;
     }
 
-    const myGroup = a[turn];
+    const myGroup = a[currentTurn];
     const pocketedMine = myGroup ? pocketed.some((b) => b.group === myGroup) : pocketed.some(b => b.group === "solid" || b.group === "stripe");
     const shouldContinue = pocketedMine;
 
@@ -550,9 +552,10 @@ function PoolPage() {
         ? `Sunk ${numSunk}${shouldContinue ? " — go again" : ""}`
         : "Miss",
     );
-    // Broadcast resolved turn state to partner
     setTimeout(() => sendState(true), 0);
   };
+  resolveTurnRef.current = resolveTurn;
+
 
   const resetGame = () => {
     const fresh = makeRack();
