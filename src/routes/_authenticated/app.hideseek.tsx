@@ -489,8 +489,15 @@ function HideSeekPage() {
   function pickSpot(pt: Pt) {
     sfxPollVote();
     setSpot(pt);
-    if (mode === "online" && me && sceneId != null) {
-      send({ t: "hide", from: me.id, sceneId, x: pt.x, y: pt.y });
+    setWhispers([]);
+    setPhase("hider_pick_whispers");
+  }
+
+  function submitWhispers(ws: string[]) {
+    sfxReaction();
+    setWhispers(ws);
+    if (mode === "online" && me && sceneId != null && spot) {
+      send({ t: "hide", from: me.id, sceneId, x: spot.x, y: spot.y, whispers: ws });
       setPhase("hider_watch");
     } else {
       setPhase("handoff");
