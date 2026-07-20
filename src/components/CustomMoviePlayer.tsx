@@ -86,23 +86,46 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
   const onBufferingChangeRef = useRef(onBufferingChange);
   useEffect(() => { onBufferingChangeRef.current = onBufferingChange; }, [onBufferingChange]);
 
+  // Debounce the "waiting" broadcast so brief stalls / drift-correction seeks
+  // (<800ms) don't ping-pong the partner into an auto-pause loop.
+  const waitingNotifyTimer = useRef<number | null>(null);
+  const waitingNotifiedRef = useRef(false);
+  const clearWaitingNotify = () => {
+    if (waitingNotifyTimer.current) {
+      window.clearTimeout(waitingNotifyTimer.current);
+      waitingNotifyTimer.current = null;
+    }
+  };
+
   const stopBuffering = useCallback(() => {
     if (bufferTimer.current) {
       window.clearTimeout(bufferTimer.current);
       bufferTimer.current = null;
     }
     setBuffering(false);
-    onBufferingChangeRef.current?.("ready");
+    clearWaitingNotify();
+    if (waitingNotifiedRef.current) {
+      waitingNotifiedRef.current = false;
+      onBufferingChangeRef.current?.("ready");
+    }
   }, []);
 
   const startBuffering = useCallback(() => {
     setBuffering(true);
-    onBufferingChangeRef.current?.("waiting");
+    clearWaitingNotify();
+    waitingNotifyTimer.current = window.setTimeout(() => {
+      waitingNotifiedRef.current = true;
+      onBufferingChangeRef.current?.("waiting");
+    }, 800);
     if (bufferTimer.current) window.clearTimeout(bufferTimer.current);
     bufferTimer.current = window.setTimeout(() => {
       setBuffering(false);
       setShowControls(true);
-      onBufferingChangeRef.current?.("ready");
+      clearWaitingNotify();
+      if (waitingNotifiedRef.current) {
+        waitingNotifiedRef.current = false;
+        onBufferingChangeRef.current?.("ready");
+      }
     }, 6500);
   }, []);
 
@@ -356,7 +379,6 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
         }}
         onWaiting={startBuffering}
         onStalled={startBuffering}
-        onSeeking={startBuffering}
         onSuspend={stopBuffering}
         onPlaying={stopBuffering}
         onError={() => {
