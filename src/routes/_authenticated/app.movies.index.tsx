@@ -407,41 +407,39 @@ function FilterBar({
   ];
   const ratingOptions = [0, 6, 7, 8, 9];
   return (
-    <div className="mb-2 space-y-2">
-      <div className="flex items-center gap-1.5">
+    <div className="mb-4 space-y-4">
+      <div className="flex items-center gap-8 border-b border-white/5">
         {typeOptions.map((opt) => {
           const active = type === opt.id;
           return (
             <button
               key={opt.id}
               onClick={() => onType(opt.id)}
-              className={`inline-flex items-center gap-1.5 h-8 px-3 rounded-full text-[11px] font-semibold uppercase tracking-widest border transition-all ${
-                active
-                  ? "bg-petal text-velvet border-petal shadow-[0_6px_18px_-6px_rgba(238,130,175,0.55)]"
-                  : "bg-surface border-border text-candle-muted hover:text-candle hover:border-petal/40"
+              className={`relative pb-3 text-sm font-medium transition-colors ${
+                active ? "text-candle" : "text-candle-muted/60 hover:text-candle"
               }`}
             >
-              {opt.icon}
               {opt.label}
+              {active && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-petal rounded-full shadow-[0_0_10px] shadow-petal/60" />}
             </button>
           );
         })}
       </div>
-      <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
-        <span className="text-[10px] uppercase tracking-widest text-candle-muted shrink-0">Rating</span>
+      <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
         {ratingOptions.map((r) => {
           const active = minRating === r;
+          const label = r === 0 ? "All Ratings" : r >= 8 ? `${r}.0+ Score` : `${r}.0+ Score`;
           return (
             <button
               key={r}
               onClick={() => onMinRating(r)}
-              className={`shrink-0 inline-flex items-center gap-0.5 h-7 px-2.5 rounded-full text-[11px] border transition-all ${
+              className={`shrink-0 px-4 py-2 rounded-full border text-xs font-medium transition-all ${
                 active
-                  ? "bg-petal/15 border-petal text-petal"
-                  : "bg-surface border-border text-candle-muted hover:text-candle hover:border-petal/40"
+                  ? "border-petal bg-petal/5 text-petal"
+                  : "border-white/10 bg-white/5 text-candle-muted/70 italic tracking-wide hover:text-candle"
               }`}
             >
-              {r === 0 ? "Any" : (<><Star className="size-2.5 fill-petal text-petal" />{r}+</>)}
+              {label}
             </button>
           );
         })}
@@ -449,6 +447,7 @@ function FilterBar({
     </div>
   );
 }
+
 
 function SearchHeader({
   input, setInput, onSubmit, onClear, inline = false,
@@ -470,71 +469,75 @@ function SearchHeader({
           </div>
         </header>
       )}
-      <form onSubmit={onSubmit} className="mb-6 flex items-center gap-2 px-4 h-11 rounded-full bg-surface border border-border">
-        <Search className="size-4 text-candle-muted" />
-        <input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Search any movie…"
-          className="flex-1 bg-transparent outline-none text-sm text-candle placeholder:text-candle-muted"
-        />
-        {input && (
-          <button type="button" onClick={onClear} className="text-xs text-petal">Clear</button>
-        )}
+      <form onSubmit={onSubmit} className={`mb-5 relative ${inline ? "sticky top-0 z-40 -mx-5 px-5 py-4 bg-background/80 backdrop-blur-2xl" : ""}`}>
+        <div className="relative">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-candle-muted/50" />
+          <input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Search titles, genres…"
+            className="w-full bg-white/5 border border-white/10 rounded-2xl py-3.5 pl-11 pr-16 text-sm text-candle placeholder:text-candle-muted/40 focus:outline-none focus:border-petal/40 transition-all shadow-inner"
+          />
+          {input && (
+            <button type="button" onClick={onClear} className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-petal">Clear</button>
+          )}
+        </div>
       </form>
+
     </>
   );
 }
 
 function FeaturedHero({ movie, isTv = false }: { movie: TmdbMovie; isTv?: boolean }) {
   return (
-    <div className="relative h-[380px] w-full overflow-hidden">
+    <div className="relative h-[420px] w-full overflow-hidden">
       {movie.backdrop_path && (
         <img
           src={poster(movie.backdrop_path, "w500")!}
           alt=""
-          className="absolute inset-0 w-full h-full object-cover opacity-70"
+          className="absolute inset-0 w-full h-full object-cover"
         />
       )}
-      <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-transparent to-transparent" />
       <Link
         to="/app"
-        className="absolute top-10 left-5 size-10 rounded-full bg-velvet/40 backdrop-blur-md border border-border flex items-center justify-center z-20"
+        className="absolute top-10 left-5 size-10 rounded-full bg-velvet/40 backdrop-blur-md border border-white/10 flex items-center justify-center z-20"
       >
         <ArrowLeft className="size-5 text-candle" />
       </Link>
-      <div className="absolute top-10 right-5 z-20">
-        <p className="text-[10px] uppercase tracking-widest text-petal text-right">Tonight</p>
-        <h1 className="font-serif text-2xl italic text-candle">Movies</h1>
+      <div className="absolute top-10 right-5 z-20 text-right">
+        <p className="text-[10px] uppercase tracking-[0.25em] text-petal">Tonight</p>
+        <h1 className="font-serif text-2xl italic text-candle leading-none mt-1">Movies</h1>
       </div>
-      <div className="absolute bottom-0 left-0 right-0 px-6 pb-6">
-        <p className="text-[10px] uppercase tracking-[0.2em] text-petal font-bold mb-2 flex items-center gap-2">
-          <Flame className="size-3" /> #1 Trending
-        </p>
-        <h2 className="font-serif font-semibold text-3xl leading-[0.95] text-candle mb-2 line-clamp-2">
+      <div className="absolute bottom-0 left-0 right-0 px-6 pb-7">
+        <div className="mb-3">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-petal text-velvet text-[10px] font-bold tracking-[0.2em] uppercase rounded-sm italic shadow-[0_0_18px_-2px] shadow-petal/60">
+            <Flame className="size-2.5" /> #1 Trending
+          </span>
+        </div>
+        <h2 className="font-serif italic text-5xl leading-[0.95] text-candle mb-4 tracking-tight line-clamp-2">
           {movie.title}
         </h2>
-        <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-candle-muted mb-4">
-          {movie.release_date && <span>{movie.release_date.slice(0, 4)}</span>}
-          {movie.vote_average ? (
-            <>
-              <span className="opacity-40">•</span>
-              <span>★ {movie.vote_average.toFixed(1)}</span>
-            </>
-          ) : null}
+        <div className="flex items-center gap-3">
+          <Link
+            to="/app/movies/$id"
+            params={{ id: String(movie.id) }}
+            className="inline-flex items-center gap-2 py-3 px-7 rounded-full bg-candle text-velvet font-semibold text-sm shadow-[0_20px_60px_-20px] shadow-black/60 hover:brightness-110 transition-all"
+          >
+            <Play className="size-4 fill-velvet" />
+            Watch Now
+          </Link>
+          <div className="text-[10px] uppercase tracking-[0.2em] text-candle-muted italic">
+            {movie.release_date && <span>{movie.release_date.slice(0, 4)}</span>}
+            {movie.vote_average ? <span className="ml-2 text-petal">★ {movie.vote_average.toFixed(1)}</span> : null}
+          </div>
         </div>
-        <Link
-          to="/app/movies/$id"
-          params={{ id: String(movie.id) }}
-          className="inline-flex items-center gap-2 py-3 px-6 rounded-full bg-petal text-velvet font-bold text-xs uppercase tracking-wider shadow-[0_20px_60px_-20px] shadow-petal/60"
-        >
-          <Play className="size-3.5 fill-velvet" />
-          Watch Now
-        </Link>
       </div>
     </div>
   );
 }
+
 
 function Rail({
   title, icon, movies, loading = false, variant = "poster", tvBadge = false,
@@ -548,12 +551,15 @@ function Rail({
 }) {
   if (!loading && movies.length === 0) return null;
   return (
-    <section className="mt-8">
-      <h3 className="text-[10px] font-bold tracking-[0.2em] uppercase text-candle-muted mb-4 flex items-center gap-2.5">
-        {icon}
-        <span>{title}</span>
-        <div className="h-px flex-1 bg-border" />
-      </h3>
+    <section className="mt-10">
+      <div className="mb-4 flex items-end justify-between gap-3">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="w-px h-6 bg-petal/50 shrink-0" />
+          <h3 className="font-serif italic text-2xl text-candle leading-none truncate">{title}</h3>
+        </div>
+        <span className="text-[10px] tracking-[0.2em] uppercase text-petal font-semibold shrink-0">View All</span>
+      </div>
+
       <div className="flex gap-3 overflow-x-auto no-scrollbar -mx-5 px-5 pb-2">
         {loading
           ? Array.from({ length: 6 }).map((_, i) => (
@@ -628,12 +634,15 @@ function GenreChip({ label, icon, genre }: { label: string; icon: React.ReactNod
 
 function CustomRail({ title, movies }: { title: string; movies: CustomMovieRow[] }) {
   return (
-    <section className="mt-8">
-      <h3 className="text-[10px] font-bold tracking-[0.2em] uppercase text-candle-muted mb-4 flex items-center gap-2.5">
-        <Sparkles className="size-3.5 text-petal" />
-        <span>{title}</span>
-        <div className="h-px flex-1 bg-border" />
-      </h3>
+    <section className="mt-10">
+      <div className="mb-4 flex items-end justify-between gap-3">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="w-px h-6 bg-petal/50 shrink-0" />
+          <h3 className="font-serif italic text-2xl text-candle leading-none truncate">{title}</h3>
+        </div>
+        <span className="text-[10px] tracking-[0.2em] uppercase text-petal font-semibold shrink-0">Fresh</span>
+      </div>
+
       <div className="flex gap-3 overflow-x-auto no-scrollbar -mx-5 px-5 pb-2">
         {movies.map((m) => (
           <Link
