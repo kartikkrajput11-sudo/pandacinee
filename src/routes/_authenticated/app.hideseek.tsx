@@ -405,9 +405,10 @@ function HideSeekPage() {
     }
 
     if (msg.t === "hide") {
-      // I'm the seeker — receive scene + hider's point
+      // I'm the seeker — receive scene + hider's point + whispers
       setSceneId(msg.sceneId);
       setSpot({ x: msg.x, y: msg.y });
+      setWhispers(msg.whispers ?? []);
       setAttempts([]);
       setFoundAt(null);
       setPhase("seeker");
