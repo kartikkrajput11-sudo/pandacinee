@@ -1838,7 +1838,32 @@ function CustomWatch({ customId }: { customId: string }) {
     window.setTimeout(() => { suppressRef.current = false; }, ms);
   }, []);
 
+  // Rewind-on-buffer (SyncPlay-style): while the partner is stalled, auto-pause
+  // the local player. When they resume, kick a 300ms countdown so both restart
+  // on the same frame.
+  const autoPausedForBufferRef = useRef(false);
+  useEffect(() => {
+    const h = handleRef.current;
+    if (!h) return;
+    if (peerBuffering) {
+      if (!h.isPaused()) {
+        autoPausedForBufferRef.current = true;
+        runSuppressed(() => h.pause());
+        toast.info(`${partner?.display_name?.split(" ")[0] ?? "Partner"} is buffering…`, { id: "peer-buffer", duration: 1500 });
+      }
+    } else if (autoPausedForBufferRef.current) {
+      autoPausedForBufferRef.current = false;
+      const t = h.currentTime();
+      sendCountdown(0.3, t);
+      window.setTimeout(() => {
+        runSuppressed(() => { h.seek(t); h.play(); });
+      }, 300);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [peerBuffering]);
+
   // Manual seek request
+
   useEffect(() => {
     if (!incomingSeek) return;
     if (!handleRef.current) return;
