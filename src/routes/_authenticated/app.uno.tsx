@@ -140,7 +140,7 @@ function UnoPage() {
     });
     chRef.current = ch;
     return () => { ch.unsubscribe(); chRef.current = null; };
-  }, [mode, me, partner]);
+  }, [mode, me?.id, partner?.id, matchId]);
 
   function sync(next: UnoState) {
     setState(next);
@@ -226,6 +226,9 @@ function UnoPage() {
   }
 
   function reset() {
+    if (mode === "partner" && !state.winner) {
+      if (!window.confirm("Reshuffle and deal a new hand? This resets the match for both of you.")) return;
+    }
     const s = initialState();
     setDealNonce((n) => n + 1);
     sync(s);
