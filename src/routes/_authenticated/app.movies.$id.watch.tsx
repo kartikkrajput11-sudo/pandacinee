@@ -364,7 +364,10 @@ function CatalogWatch({ id }: { id: string }) {
 
 
 
-  // Capture VidKing events, publish to partner (throttled)
+  // Capture VidKing events, publish to partner (host-only, throttled).
+  // Only the host broadcasts play/pause/seek — followers listen only, so
+  // their iframe's spurious pause/play emissions (on reload, when we soft-
+  // sync them) can't feed back as a phantom "partner paused".
   useEffect(() => {
     const onMessage = (event: MessageEvent) => {
       if (!String(event.origin).includes("vidking.net")) return;
@@ -376,8 +379,12 @@ function CatalogWatch({ id }: { id: string }) {
         const currentTime: number = Number(data.currentTime ?? 0);
         const duration: number = Number(data.duration ?? mine.duration ?? 0);
         setSlowPlayer(false);
-        const now = Date.now();
         const isDiscrete = evt === "play" || evt === "pause" || evt === "seeked" || evt === "ended";
+        // First real interaction claims the room if no one owns it yet.
+        const claimingNow = isDiscrete && partner && !hostId && !!me;
+        if (claimingNow) claimHost();
+        if (!iAmHost && !claimingNow) return;
+        const now = Date.now();
         if (isDiscrete || now - lastPublishRef.current > 2000) {
           lastPublishRef.current = now;
           publish({ event: evt, currentTime, duration, sourceIdx });
@@ -386,7 +393,7 @@ function CatalogWatch({ id }: { id: string }) {
     };
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
-  }, [publish, sourceIdx, mine.duration]);
+  }, [publish, sourceIdx, mine.duration, iAmHost, hostId, partner, me, claimHost]);
 
   useEffect(() => {
     if (!started) return;
