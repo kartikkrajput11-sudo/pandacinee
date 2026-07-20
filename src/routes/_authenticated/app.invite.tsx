@@ -109,7 +109,7 @@ function Invite() {
             />
             <button
               type="submit"
-              disabled={pairing || code.length < 4}
+              disabled={pairing || code.trim().length < 6}
               className="w-full py-3.5 bg-petal text-velvet rounded-full font-semibold text-sm petal-glow disabled:opacity-40"
             >
               {pairing ? "Pairing…" : "Pair"}
