@@ -51,7 +51,15 @@ const STEPS: Step[] = [
     selector: '[data-tour="chat-hero"]',
     eyebrow: "Whispers",
     title: "Chats & groups",
-    body: "Send affections (kiss, hug, headpat, boop), lock chats, share voice notes, pin messages, forward media. In groups, your partner's messages glow softly.",
+    body: "Voice notes, pins, forwards, view-once media, locked chats, polls, group codes. In groups your panda's messages glow softly so you never miss them.",
+    placement: "bottom",
+  },
+  {
+    route: "/app/chat",
+    selector: '[data-tour="chat-hero"]',
+    eyebrow: "Little tenderness",
+    title: "Affections",
+    body: "Send a kiss, hug, headpat, handhold, boop or nudge — each plays a full-screen panda animation on your partner's device. Tiny rituals, big warmth.",
     placement: "bottom",
   },
   {
@@ -75,7 +83,7 @@ const STEPS: Step[] = [
     selector: '[data-tour="me-badges"]',
     eyebrow: "Honor",
     title: "Badges & achievements",
-    body: "Earn tags for streaks, movie nights, and wins. Equip up to three honors on your profile for your panda to see.",
+    body: "Earn coins from rituals, streaks and movie nights, then buy honors — Candle Keeper, Night Owls, Eternal Flame. Equip up to three to shine on your profile.",
     placement: "top",
   },
   {
@@ -135,9 +143,16 @@ export function AppTour({ open, onClose }: { open: boolean; onClose: () => void 
       const el = await waitForEl(step.selector, 5000);
       if (cancelled) return;
       if (el) {
-        // scroll so the element sits in the upper third — leaves room for the tooltip below
+        // Scroll placement depends on where the tooltip will sit.
+        // If the tooltip goes ABOVE the target, keep the target low so there's
+        // room above it. If BELOW, keep it high so there's room below.
         const r = el.getBoundingClientRect();
-        const targetY = window.scrollY + r.top - Math.max(80, window.innerHeight * 0.22);
+        const vh0 = window.innerHeight;
+        const placeTop = step.placement === "top";
+        const desiredTopInViewport = placeTop
+          ? Math.max(vh0 * 0.55, vh0 - r.height - 260) // target sits in lower half
+          : Math.max(80, vh0 * 0.22);                   // target sits in upper third
+        const targetY = window.scrollY + r.top - desiredTopInViewport;
         window.scrollTo({ top: Math.max(0, targetY), behavior: "smooth" });
         await new Promise((r) => setTimeout(r, 420));
         if (cancelled) return;
