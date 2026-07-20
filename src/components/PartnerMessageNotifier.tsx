@@ -66,6 +66,7 @@ export default function PartnerMessageNotifier() {
     let meId: string | null = null;
     let friendIds: Set<string> = new Set();
     const peerCache = new Map<string, PeerInfo>();
+    const channels: ReturnType<typeof supabase.channel>[] = [];
 
     const loadPeer = async (id: string): Promise<PeerInfo | null> => {
       if (peerCache.has(id)) return peerCache.get(id)!;
@@ -88,6 +89,7 @@ export default function PartnerMessageNotifier() {
         .select("requester_id,addressee_id,status")
         .or(`requester_id.eq.${meId},addressee_id.eq.${meId}`)
         .eq("status", "accepted");
+      if (cancelled) return;
       friendIds = new Set(
         (fs ?? [])
           .map((f) => (f.requester_id === meId ? f.addressee_id : f.requester_id))
@@ -113,10 +115,9 @@ export default function PartnerMessageNotifier() {
               type: string;
             };
             if (!row?.sender_id || row.sender_id === meId) return;
-            // Skip if user is already viewing that DM
             if (pathRef.current.startsWith(`/app/chat/${row.sender_id}`)) return;
             const peer = await loadPeer(row.sender_id);
-            if (!peer) return;
+            if (!peer || cancelled) return;
             push({
               id: row.id,
               peerId: row.sender_id,
@@ -128,18 +129,21 @@ export default function PartnerMessageNotifier() {
           },
         )
         .subscribe();
+      channels.push(dmChan);
+      if (cancelled) return;
 
       // Group listener
       const { data: memberships } = await supabase
         .from("chat_group_members")
         .select("group_id")
         .eq("user_id", meId);
+      if (cancelled) return;
       const groupIds = ((memberships ?? []) as { group_id: string | null }[])
         .map((m) => m.group_id)
         .filter((x): x is string => !!x);
 
-      const groupChannels: any[] = [];
       for (const gid of groupIds) {
+        if (cancelled) return;
         const ch = supabase
           .channel(`notify-g-${gid}-${meId}`)
           .on(
@@ -160,10 +164,9 @@ export default function PartnerMessageNotifier() {
               };
               if (!row?.sender_id || row.sender_id === meId) return;
               if (pathRef.current.startsWith(`/app/chat/group/${row.group_id}`)) return;
-              // Only notify for friends/partner senders (avoid random noise)
               if (!friendIds.has(row.sender_id)) return;
               const peer = await loadPeer(row.sender_id);
-              if (!peer) return;
+              if (!peer || cancelled) return;
               const { data: g } = await supabase
                 .from("chat_groups")
                 .select("name")
@@ -182,20 +185,16 @@ export default function PartnerMessageNotifier() {
             },
           )
           .subscribe();
-        groupChannels.push(ch);
+        channels.push(ch);
       }
-
-      (init as any)._cleanup = () => {
-        supabase.removeChannel(dmChan);
-        for (const c of groupChannels) supabase.removeChannel(c);
-      };
     };
 
-    init();
+    void init();
 
     return () => {
       cancelled = true;
-      (init as any)._cleanup?.();
+      for (const c of channels) supabase.removeChannel(c);
+      channels.length = 0;
     };
   }, []);
 
