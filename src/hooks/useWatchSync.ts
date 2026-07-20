@@ -91,6 +91,8 @@ export function useWatchSync(
   const [presencePeerSourceKind, setPresencePeerSourceKind] = useState<SourceKind>("unknown");
   const [backendPeerSourceKind, setBackendPeerSourceKind] = useState<SourceKind>("unknown");
   const [peerPreparing, setPeerPreparing] = useState<{ time: number; ts: number } | null>(null);
+  const [peerBuffering, setPeerBuffering] = useState(false);
+
 
   const mineRef = useRef<Mine>(emptyMine());
   const channelRef = useRef<RealtimeChannel | null>(null);
