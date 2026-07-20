@@ -652,7 +652,32 @@ function CatalogWatch({ id }: { id: string }) {
     }, 800);
   }, [customPlayerReady, runSuppressedPlayerAction]);
 
+  // Rewind-on-buffer (SyncPlay-style): pause locally while the partner is
+  // stalled; resume together via a short countdown when they recover.
+  const autoPausedForBufferRef = useRef(false);
+  useEffect(() => {
+    if (!isPandacine || peerSourceKind !== "pandacine") return;
+    const h = customPlayerRef.current;
+    if (!h) return;
+    if (peerBuffering) {
+      if (!h.isPaused()) {
+        autoPausedForBufferRef.current = true;
+        runSuppressedPlayerAction(() => h.pause());
+        toast.info(`${partner?.display_name?.split(" ")[0] ?? "Partner"} is buffering…`, { id: "peer-buffer", duration: 1500 });
+      }
+    } else if (autoPausedForBufferRef.current) {
+      autoPausedForBufferRef.current = false;
+      const t = h.currentTime();
+      sendCountdown(0.3, t);
+      window.setTimeout(() => {
+        runSuppressedPlayerAction(() => { h.seek(t); h.play(); });
+      }, 300);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [peerBuffering]);
+
   // -------- Storage-only sync gate --------
+
   // Real-time sync (seek, play/pause, drift) is only enabled when BOTH partners
   // have loaded the movie from Lovable Cloud storage (Pandacine source).
   // If either side is on a 3rd-party iframe, we can't reliably control it.
