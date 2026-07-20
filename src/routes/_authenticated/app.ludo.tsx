@@ -104,9 +104,8 @@ function LudoPage() {
 
   const [rolling, setRolling] = useState(false);
   const [lastRoll, setLastRoll] = useState<number | null>(null);
-  const [demoWin, setDemoWin] = useState<{ n: number; who: Player } | null>(null);
-  const winTrigger = demoWin ? demoWin.n : state.winner ? `real-${state.winner}` : null;
-  const winWho = demoWin ? demoWin.who : state.winner;
+  const winTrigger = state.winner ? `real-${state.winner}` : null;
+  const winWho = state.winner;
   const handleRoll = () => {
 
     if (!canAct || state.winner || state.dice != null || rolling) return;
