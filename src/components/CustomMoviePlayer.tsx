@@ -540,7 +540,8 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
                   <span>{rate}x</span>
                 </button>
                 {rateOpen && (
-                  <div className="absolute right-0 bottom-11 bg-black/90 border border-white/10 rounded-2xl p-1.5 flex flex-col gap-0.5 min-w-[80px]">
+                  <div className="absolute right-0 bottom-11 z-50 bg-black/90 border border-white/10 rounded-2xl p-1.5 flex flex-col gap-0.5 min-w-[80px] shadow-2xl">
+
                     {RATES.map((r) => (
                       <button
                         key={r}
