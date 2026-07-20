@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'env.dart';
 import 'router.dart';
+import 'services/push_service.dart';
 import 'theme.dart';
 
 Future<void> main() async {
@@ -15,6 +16,15 @@ Future<void> main() async {
       authFlowType: AuthFlowType.pkce,
     ),
   );
+
+  // Phase 22 — best-effort push init; do not block launch on failure.
+  // Requires `flutter_app/android/app/google-services.json` (see RELEASE.md).
+  try {
+    await PushService.instance.init();
+  } catch (e) {
+    debugPrint('Push init failed (non-fatal): $e');
+  }
+
   runApp(const ProviderScope(child: PandacineApp()));
 }
 

@@ -21,6 +21,7 @@ import { Route as ApiLivekitTokenRouteImport } from './routes/api/livekit-token'
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
 import { Route as AuthenticatedAppIndexRouteImport } from './routes/_authenticated/app.index'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
+import { Route as ApiPublicPushDispatchRouteImport } from './routes/api/public/push-dispatch'
 import { Route as AuthenticatedAppWishlistRouteImport } from './routes/_authenticated/app.wishlist'
 import { Route as AuthenticatedAppWatchlistRouteImport } from './routes/_authenticated/app.watchlist'
 import { Route as AuthenticatedAppWatchRouteImport } from './routes/_authenticated/app.watch'
@@ -134,6 +135,11 @@ const AuthenticatedAppIndexRoute = AuthenticatedAppIndexRouteImport.update({
 const LovableEmailSuppressionRoute = LovableEmailSuppressionRouteImport.update({
   id: '/lovable/email/suppression',
   path: '/lovable/email/suppression',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicPushDispatchRoute = ApiPublicPushDispatchRouteImport.update({
+  id: '/api/public/push-dispatch',
+  path: '/api/public/push-dispatch',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAppWishlistRoute =
@@ -487,6 +493,7 @@ export interface FileRoutesByFullPath {
   '/app/watch': typeof AuthenticatedAppWatchRoute
   '/app/watchlist': typeof AuthenticatedAppWatchlistRoute
   '/app/wishlist': typeof AuthenticatedAppWishlistRoute
+  '/api/public/push-dispatch': typeof ApiPublicPushDispatchRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/app/': typeof AuthenticatedAppIndexRoute
   '/app/call/$peerId': typeof AuthenticatedAppCallPeerIdRoute
@@ -553,6 +560,7 @@ export interface FileRoutesByTo {
   '/app/watch': typeof AuthenticatedAppWatchRoute
   '/app/watchlist': typeof AuthenticatedAppWatchlistRoute
   '/app/wishlist': typeof AuthenticatedAppWishlistRoute
+  '/api/public/push-dispatch': typeof ApiPublicPushDispatchRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/app': typeof AuthenticatedAppIndexRoute
   '/app/call/$peerId': typeof AuthenticatedAppCallPeerIdRoute
@@ -622,6 +630,7 @@ export interface FileRoutesById {
   '/_authenticated/app/watch': typeof AuthenticatedAppWatchRoute
   '/_authenticated/app/watchlist': typeof AuthenticatedAppWatchlistRoute
   '/_authenticated/app/wishlist': typeof AuthenticatedAppWishlistRoute
+  '/api/public/push-dispatch': typeof ApiPublicPushDispatchRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/_authenticated/app/': typeof AuthenticatedAppIndexRoute
   '/_authenticated/app/call/$peerId': typeof AuthenticatedAppCallPeerIdRoute
@@ -692,6 +701,7 @@ export interface FileRouteTypes {
     | '/app/watch'
     | '/app/watchlist'
     | '/app/wishlist'
+    | '/api/public/push-dispatch'
     | '/lovable/email/suppression'
     | '/app/'
     | '/app/call/$peerId'
@@ -758,6 +768,7 @@ export interface FileRouteTypes {
     | '/app/watch'
     | '/app/watchlist'
     | '/app/wishlist'
+    | '/api/public/push-dispatch'
     | '/lovable/email/suppression'
     | '/app'
     | '/app/call/$peerId'
@@ -826,6 +837,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/watch'
     | '/_authenticated/app/watchlist'
     | '/_authenticated/app/wishlist'
+    | '/api/public/push-dispatch'
     | '/lovable/email/suppression'
     | '/_authenticated/app/'
     | '/_authenticated/app/call/$peerId'
@@ -863,6 +875,7 @@ export interface RootRouteChildren {
   UnsubscribeRoute: typeof UnsubscribeRoute
   ApiLivekitTokenRoute: typeof ApiLivekitTokenRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
+  ApiPublicPushDispatchRoute: typeof ApiPublicPushDispatchRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
@@ -955,6 +968,13 @@ declare module '@tanstack/react-router' {
       path: '/lovable/email/suppression'
       fullPath: '/lovable/email/suppression'
       preLoaderRoute: typeof LovableEmailSuppressionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/push-dispatch': {
+      id: '/api/public/push-dispatch'
+      path: '/api/public/push-dispatch'
+      fullPath: '/api/public/push-dispatch'
+      preLoaderRoute: typeof ApiPublicPushDispatchRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/app/wishlist': {
@@ -1519,6 +1539,7 @@ const rootRouteChildren: RootRouteChildren = {
   UnsubscribeRoute: UnsubscribeRoute,
   ApiLivekitTokenRoute: ApiLivekitTokenRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
+  ApiPublicPushDispatchRoute: ApiPublicPushDispatchRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
   LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,
