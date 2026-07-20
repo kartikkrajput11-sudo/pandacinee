@@ -87,6 +87,13 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, s) => CallRoomScreen(callId: s.pathParameters['callId']!),
       ),
       GoRoute(
+        path: '/app/call/:callId/live',
+        builder: (_, s) => LiveCallRoomScreen(
+          callId: s.pathParameters['callId']!,
+          video: (s.uri.queryParameters['video'] ?? '0') == '1',
+        ),
+      ),
+      GoRoute(
         path: '/app/watch/:roomId/:leaderId',
         builder: (_, s) => WatchPartyScreen(
           roomId: s.pathParameters['roomId']!,
