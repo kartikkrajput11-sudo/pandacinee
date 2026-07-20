@@ -104,10 +104,18 @@ export function useGroupMatch(matchId: string | null, meId: string | null) {
       .on("postgres_changes", { event: "*", schema: "public", table: "group_matches", filter: `id=eq.${matchId}` }, () => void load())
       .on("postgres_changes", { event: "*", schema: "public", table: "group_match_participants", filter: `match_id=eq.${matchId}` }, () => void load())
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "observer_messages", filter: `match_id=eq.${matchId}` }, (payload) => {
-        setObserverMessages((prev) => [...prev, payload.new as MatchMessage]);
+        setObserverMessages((prev) => {
+          const row = payload.new as MatchMessage;
+          if (prev.some((m) => m.id === row.id)) return prev;
+          return [...prev, row];
+        });
       })
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "match_player_messages", filter: `match_id=eq.${matchId}` }, (payload) => {
-        setPlayerMessages((prev) => [...prev, payload.new as MatchMessage]);
+        setPlayerMessages((prev) => {
+          const row = payload.new as MatchMessage;
+          if (prev.some((m) => m.id === row.id)) return prev;
+          return [...prev, row];
+        });
       })
       .subscribe();
     return () => {
