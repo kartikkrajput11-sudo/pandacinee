@@ -294,6 +294,7 @@ function PoolPage() {
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const remoteApplyingRef = useRef(false);
   const lastSendRef = useRef(0);
+  const hasAuthoritativeRef = useRef(false);
   const [partnerOnline, setPartnerOnline] = useState(false);
   const turnRef = useRef<Player>(0);
   turnRef.current = turn;
