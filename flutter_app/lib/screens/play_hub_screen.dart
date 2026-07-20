@@ -16,9 +16,9 @@ class _Game {
 const _games = [
   _Game('rps', 'Rock · Paper · Scissors', 'Quick duel, best of five', Icons.back_hand, ready: true),
   _Game('chess', 'Chess', 'Capture animations, blood spots', Icons.castle, ready: true),
-  _Game('ludo', 'Ludo', 'Spring-arc tokens, velvet board', Icons.casino),
-  _Game('uno', 'Uno', 'Table talk & card bursts', Icons.style),
-  _Game('pool', '8-Ball Pool', 'Cue-pull power, turn-based', Icons.sports_bar),
+  _Game('ludo', 'Ludo', 'Spring-arc tokens, velvet board', Icons.casino, ready: true),
+  _Game('uno', 'Uno', 'Table talk & card bursts', Icons.style, ready: true),
+  _Game('pool', '8-Ball Pool', 'Cue-pull power, turn-based', Icons.sports_bar, ready: true),
   _Game('hideseek', 'Hide & Seek', 'Whisper hints & proximity', Icons.visibility_off),
   _Game('knowme', 'How Well Do You Know Me?', 'Setter & guesser rounds', Icons.favorite),
 ];
