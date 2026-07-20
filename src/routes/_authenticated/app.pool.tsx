@@ -450,14 +450,11 @@ function PoolPage() {
     setMouse(p);
   };
   const fireCue = useCallback((pwr: number) => {
-    if (!cueBall || !canShoot) return;
+    if (!cueBall || !mouse || !canShoot) return;
     if (pwr < 1) return;
-    // Fallback aim: if user hasn't moved cursor over the table, aim toward table center
-    const aim = mouse ?? { x: W / 2, y: H / 2 };
-    let dx = cueBall.x - aim.x;
-    let dy = cueBall.y - aim.y;
-    let len = Math.hypot(dx, dy);
-    if (len < 1) { dx = -1; dy = 0; len = 1; }
+    const dx = cueBall.x - mouse.x;
+    const dy = cueBall.y - mouse.y;
+    const len = Math.hypot(dx, dy) || 1;
     cueBall.vx = (dx / len) * pwr;
     cueBall.vy = (dy / len) * pwr;
     sfxPoolCue();
@@ -471,7 +468,6 @@ function PoolPage() {
     movingRef.current = true;
     setTimeout(() => sendState(true), 0);
   }, [cueBall, mouse, canShoot, sendState]);
-
 
   const onSvgUp = () => {
     if (!drag || !cueBall || !mouse) { setDrag(null); return; }
@@ -773,7 +769,7 @@ function PoolPage() {
             onPointerDown={onSvgDown}
             onPointerUp={onSvgUp}
             onPointerCancel={() => setDrag(null)}
-            onPointerLeave={() => { if (drag) setDrag(null); }}
+            onPointerLeave={() => { setMouse(null); if (drag) setDrag(null); }}
             
           >
             <defs>
