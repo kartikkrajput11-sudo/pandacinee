@@ -177,12 +177,16 @@ function Me() {
 
   return (
     <div className="pt-10 px-5">
-      <header className="flex items-center gap-3 mb-6">
-        <Link to="/app" className="text-candle-muted">
-          <ArrowLeft className="size-5" />
-        </Link>
-        <h1 className="font-serif text-2xl italic">Profile</h1>
-      </header>
+      <EditorialPageHeader
+        eyebrow="You"
+        title="Profile"
+        subtitle="Your card in the theatre — name, ambience, and the little details your panda notices."
+        leading={
+          <Link to="/app" className="text-candle-muted p-2 -ml-2 rounded-full hover:bg-surface transition-colors">
+            <ArrowLeft className="size-5" />
+          </Link>
+        }
+      />
 
       {isLoading || !me ? (
         <div className="text-candle-muted text-sm">Loading…</div>
