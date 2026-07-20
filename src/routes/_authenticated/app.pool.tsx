@@ -380,7 +380,8 @@ function PoolPage() {
         if (!stillMoving && movingRef.current && !turnEndedRef.current) {
           movingRef.current = false;
           turnEndedRef.current = true;
-          setTimeout(resolveTurn, 0);
+          setTimeout(() => resolveTurnRef.current(), 0);
+
         }
       }
       rafRef.current = requestAnimationFrame(loop);
