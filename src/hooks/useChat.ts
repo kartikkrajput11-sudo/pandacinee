@@ -133,10 +133,14 @@ export function useChat(meId: string | null, partnerId: string | null) {
 
     return () => {
       cancelled = true;
+      if (typingTimer.current) window.clearTimeout(typingTimer.current);
+      typingTimer.current = null;
       supabase.removeChannel(ch);
       channelRef.current = null;
+      readReceiptsEnabledRef.current = null;
     };
   }, [fetchMessages, meId, partnerId]);
+
 
   const loadOlder = useCallback(async () => {
     if (!meId || !partnerId || loadingOlder || !hasMore || messages.length === 0) return;
