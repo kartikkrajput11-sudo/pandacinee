@@ -663,6 +663,15 @@ function HideSeekPage() {
           <PickSpot scene={scene} onPick={pickSpot} onBack={() => setPhase("hider_pick_scene")} />
         )}
 
+        {phase === "hider_pick_whispers" && scene && spot != null && (
+          <PickWhispers
+            scene={scene}
+            spot={spot}
+            onBack={() => setPhase("hider_pick_spot")}
+            onSubmit={submitWhispers}
+          />
+        )}
+
         {phase === "handoff" && (
           <Handoff
             hiderName={hiderName}
@@ -675,7 +684,7 @@ function HideSeekPage() {
         )}
 
         {phase === "hider_watch" && scene && spot != null && (
-          <HiderWatch scene={scene} spot={spot} attempts={attempts} seekerName={seekerName} />
+          <HiderWatch scene={scene} spot={spot} attempts={attempts} whispers={whispers} seekerName={seekerName} />
         )}
 
         {phase === "seeker" && scene && spot != null && (
@@ -683,6 +692,7 @@ function HideSeekPage() {
             scene={scene}
             spot={spot}
             attempts={attempts}
+            whispers={whispers}
             onGuess={seekerGuess}
             hiderName={hiderName}
           />
