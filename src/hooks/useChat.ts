@@ -39,6 +39,8 @@ export function useChat(meId: string | null, partnerId: string | null) {
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const typingTimer = useRef<number | null>(null);
   const lastTypingSent = useRef(0);
+  const readReceiptsEnabledRef = useRef<boolean | null>(null);
+
 
   const fetchMessages = useCallback(
     async (before?: string) => {
