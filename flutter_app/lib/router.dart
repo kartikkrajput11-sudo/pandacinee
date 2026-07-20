@@ -66,6 +66,15 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/app/affections', builder: (_, __) => const AffectionsScreen()),
       GoRoute(path: '/app/notifications', builder: (_, __) => const NotificationsScreen()),
       GoRoute(path: '/app/settings', builder: (_, __) => const SettingsScreen()),
+      GoRoute(path: '/app/groups', builder: (_, __) => const GroupsListScreen()),
+      GoRoute(
+        path: '/app/group/:groupId/matches',
+        builder: (_, s) => GroupMatchesScreen(groupId: s.pathParameters['groupId']!),
+      ),
+      GoRoute(path: '/app/locks', builder: (_, __) => const PunishmentLockScreen()),
+      GoRoute(path: '/app/vault', builder: (_, __) => const VaultScreen()),
+      GoRoute(path: '/app/daily', builder: (_, __) => const DailyScreen()),
+      GoRoute(path: '/app/shop', builder: (_, __) => const ShopScreen()),
     ],
   );
 });
