@@ -187,6 +187,7 @@ export function useLiveKitCall(opts: {
 
     return () => {
       cancelled = true;
+      teardownRef.current = true;
       const room = roomRef.current;
       if (room) { void room.disconnect(); roomRef.current = null; }
       localStreamRef.current?.getTracks().forEach((t) => t.stop());
@@ -241,6 +242,9 @@ export function useLiveKitCall(opts: {
       );
       if (camPub?.track instanceof LocalVideoTrack) {
         await camPub.track.replaceTrack(newTrack.mediaStreamTrack);
+        // replaceTrack copies the raw MediaStreamTrack into the existing publication;
+        // the wrapper we created is now orphaned, so release it explicitly.
+        try { newTrack.stop(); } catch { /* ignore */ }
       } else {
         await lp.publishTrack(newTrack, { source: Track.Source.Camera });
       }
