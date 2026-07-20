@@ -324,9 +324,14 @@ export function AppTour({ open, onClose }: { open: boolean; onClose: () => void 
 
       {/* Tooltip card */}
       <div
-        key={i}
+        ref={tipRef}
         className="absolute animate-fade-in"
-        style={{ left: tipX, top: tipY, width: tooltipW }}
+        style={{
+          left: tipX,
+          top: tipY,
+          width: tooltipW,
+          transition: "left 220ms cubic-bezier(.22,.61,.36,1), top 220ms cubic-bezier(.22,.61,.36,1)",
+        }}
       >
         {arrow === "up" && spot && (
           <div
