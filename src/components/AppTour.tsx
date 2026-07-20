@@ -143,9 +143,16 @@ export function AppTour({ open, onClose }: { open: boolean; onClose: () => void 
       const el = await waitForEl(step.selector, 5000);
       if (cancelled) return;
       if (el) {
-        // scroll so the element sits in the upper third — leaves room for the tooltip below
+        // Scroll placement depends on where the tooltip will sit.
+        // If the tooltip goes ABOVE the target, keep the target low so there's
+        // room above it. If BELOW, keep it high so there's room below.
         const r = el.getBoundingClientRect();
-        const targetY = window.scrollY + r.top - Math.max(80, window.innerHeight * 0.22);
+        const vh0 = window.innerHeight;
+        const placeTop = step.placement === "top";
+        const desiredTopInViewport = placeTop
+          ? Math.max(vh0 * 0.55, vh0 - r.height - 260) // target sits in lower half
+          : Math.max(80, vh0 * 0.22);                   // target sits in upper third
+        const targetY = window.scrollY + r.top - desiredTopInViewport;
         window.scrollTo({ top: Math.max(0, targetY), behavior: "smooth" });
         await new Promise((r) => setTimeout(r, 420));
         if (cancelled) return;
