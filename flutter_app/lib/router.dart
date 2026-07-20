@@ -58,6 +58,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/app/movies', builder: (_, __) => const MoviesScreen()),
       GoRoute(path: '/app/me', builder: (_, __) => const ProfileScreen()),
       GoRoute(path: '/app/affections', builder: (_, __) => const AffectionsScreen()),
+      GoRoute(path: '/app/notifications', builder: (_, __) => const NotificationsScreen()),
+      GoRoute(path: '/app/settings', builder: (_, __) => const SettingsScreen()),
     ],
   );
 });
