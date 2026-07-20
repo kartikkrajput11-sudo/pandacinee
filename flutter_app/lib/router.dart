@@ -7,6 +7,8 @@ import 'screens/chat_list_screen.dart';
 import 'screens/dm_screen.dart';
 import 'screens/group_screen.dart';
 import 'screens/home_screen.dart';
+import 'screens/play_hub_screen.dart';
+import 'screens/rps_screen.dart';
 import 'supabase_providers.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -34,6 +36,8 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/app/group/:groupId',
         builder: (_, s) => GroupScreen(groupId: s.pathParameters['groupId']!),
       ),
+      GoRoute(path: '/app/play', builder: (_, __) => const PlayHubScreen()),
+      GoRoute(path: '/app/play/rps', builder: (_, __) => const RpsScreen()),
     ],
   );
 });

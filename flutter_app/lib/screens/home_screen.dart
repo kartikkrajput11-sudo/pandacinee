@@ -33,7 +33,7 @@ class HomeScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 28),
                 _card(context, 'Chats', 'DMs, groups, affections', onTap: () => context.push('/app/chats')),
-                _card(context, 'Play', 'Chess, Ludo, Uno, Pool…'),
+                _card(context, 'Play', 'Chess, Ludo, Uno, Pool…', onTap: () => context.push('/app/play')),
                 _card(context, 'Movies', 'Watch in lock-step'),
                 _card(context, 'Profile', 'Badges & achievements'),
                 const SizedBox(height: 40),
