@@ -20,6 +20,12 @@ import 'screens/profile_screen.dart';
 import 'screens/affections_screen.dart';
 import 'screens/notifications_screen.dart';
 import 'screens/settings_screen.dart';
+import 'screens/groups_list_screen.dart';
+import 'screens/group_matches_screen.dart';
+import 'screens/punishment_lock_screen.dart';
+import 'screens/vault_screen.dart';
+import 'screens/daily_screen.dart';
+import 'screens/shop_screen.dart';
 import 'supabase_providers.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
