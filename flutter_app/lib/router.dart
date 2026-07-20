@@ -9,6 +9,7 @@ import 'screens/group_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/play_hub_screen.dart';
 import 'screens/rps_screen.dart';
+import 'screens/chess_screen.dart';
 import 'supabase_providers.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -38,6 +39,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(path: '/app/play', builder: (_, __) => const PlayHubScreen()),
       GoRoute(path: '/app/play/rps', builder: (_, __) => const RpsScreen()),
+      GoRoute(path: '/app/play/chess', builder: (_, __) => const ChessScreen()),
     ],
   );
 });
