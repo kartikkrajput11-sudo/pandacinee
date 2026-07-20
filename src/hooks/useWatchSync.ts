@@ -265,6 +265,13 @@ export function useWatchSync(
         if (p.from === meId) return;
         setPeerPreparing({ time: p.time ?? 0, ts: Date.now() });
       })
+      .on("broadcast", { event: "buffer" }, ({ payload }) => {
+        // SyncPlay-style buffer signal — pause everyone while a peer is stalled.
+        const p = payload as { from: string; state: "waiting" | "ready" };
+        if (p.from === meId) return;
+        setPeerBuffering(p.state === "waiting");
+      })
+
       .subscribe(async (status) => {
         if (status === "SUBSCRIBED") {
           await ch.track({ userId: meId, joinedAt: joinedAtRef.current, ready: myReadyRef.current, sourceKind: mySourceKindRef.current });
