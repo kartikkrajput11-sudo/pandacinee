@@ -51,7 +51,15 @@ const STEPS: Step[] = [
     selector: '[data-tour="chat-hero"]',
     eyebrow: "Whispers",
     title: "Chats & groups",
-    body: "Send affections (kiss, hug, headpat, boop), lock chats, share voice notes, pin messages, forward media. In groups, your partner's messages glow softly.",
+    body: "Voice notes, pins, forwards, view-once media, locked chats, polls, group codes. In groups your panda's messages glow softly so you never miss them.",
+    placement: "bottom",
+  },
+  {
+    route: "/app/chat",
+    selector: '[data-tour="chat-hero"]',
+    eyebrow: "Little tenderness",
+    title: "Affections",
+    body: "Send a kiss, hug, headpat, handhold, boop or nudge — each plays a full-screen panda animation on your partner's device. Tiny rituals, big warmth.",
     placement: "bottom",
   },
   {
@@ -75,7 +83,7 @@ const STEPS: Step[] = [
     selector: '[data-tour="me-badges"]',
     eyebrow: "Honor",
     title: "Badges & achievements",
-    body: "Earn tags for streaks, movie nights, and wins. Equip up to three honors on your profile for your panda to see.",
+    body: "Earn coins from rituals, streaks and movie nights, then buy honors — Candle Keeper, Night Owls, Eternal Flame. Equip up to three to shine on your profile.",
     placement: "top",
   },
   {
