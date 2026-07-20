@@ -389,7 +389,7 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
         }`}
       >
         {/* Luxurious glass panel wrapping the bar */}
-        <div className="relative rounded-xl px-2 py-1.5 md:px-3 md:py-2 bg-white/[0.06] backdrop-blur-2xl border border-white/10 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.08)] overflow-hidden">
+        <div className="relative rounded-xl px-2 py-1.5 md:px-3 md:py-2 bg-white/[0.06] backdrop-blur-2xl border border-white/10 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.08)]">
           {/* Petal glow accent */}
           <div aria-hidden className="pointer-events-none absolute -top-16 -left-10 h-32 w-56 rounded-full bg-petal/20 blur-3xl" />
           <div aria-hidden className="pointer-events-none absolute -bottom-16 -right-10 h-32 w-56 rounded-full bg-petal/15 blur-3xl" />
