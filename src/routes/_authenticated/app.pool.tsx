@@ -706,15 +706,24 @@ function PoolPage() {
       </div>
 
       {/* Table */}
-      <div className="relative z-10 max-w-6xl mx-auto px-3 pb-24">
+      <div className="relative z-10 max-w-6xl mx-auto px-3 pb-24 flex gap-3 items-stretch">
+        {/* Left-side power stick */}
+        <PowerStick
+          value={stickPower}
+          max={MAX_POWER}
+          disabled={!canShoot || !mouse}
+          onChange={setStickPower}
+          onFire={() => fireCue(stickPower)}
+        />
         <div
-          className="relative rounded-[36px] p-4 shadow-[0_30px_80px_-30px_rgba(0,0,0,0.7)]"
+          className="relative flex-1 min-w-0 rounded-[36px] p-4 shadow-[0_30px_80px_-30px_rgba(0,0,0,0.7)]"
           style={{
             background: "linear-gradient(145deg, #5a2418 0%, #3a170e 50%, #2a0f08 100%)",
             border: "1px solid rgba(212,162,74,0.35)",
           }}
         >
           <div className="absolute inset-2 rounded-[30px] pointer-events-none" style={{ border: "1px solid rgba(212,162,74,0.25)" }} />
+
           <svg
             ref={svgRef}
             viewBox={`-140 -100 ${W + 280} ${H + 200}`}
