@@ -285,7 +285,13 @@ export function AppTour({ open, onClose }: { open: boolean; onClose: () => void 
       {spot && (
         <div
           className="pointer-events-none absolute rounded-[20px] border border-petal/70 shadow-[0_0_0_2px_rgba(236,120,155,0.25),0_0_40px_10px_rgba(236,120,155,0.35)] animate-pulse"
-          style={{ left: spot.x, top: spot.y, width: spot.w, height: spot.h }}
+          style={{
+            left: spot.x,
+            top: spot.y,
+            width: spot.w,
+            height: spot.h,
+            transition: "left 220ms cubic-bezier(.22,.61,.36,1), top 220ms cubic-bezier(.22,.61,.36,1), width 220ms cubic-bezier(.22,.61,.36,1), height 220ms cubic-bezier(.22,.61,.36,1)",
+          }}
         />
       )}
 
