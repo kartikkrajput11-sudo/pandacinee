@@ -140,7 +140,7 @@ function UnoPage() {
     });
     chRef.current = ch;
     return () => { ch.unsubscribe(); chRef.current = null; };
-  }, [mode, me, partner]);
+  }, [mode, me?.id, partner?.id, matchId]);
 
   function sync(next: UnoState) {
     setState(next);
