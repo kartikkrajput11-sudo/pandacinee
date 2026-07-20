@@ -66,6 +66,13 @@ function Home() {
         }
         trailing={
           <>
+            <button
+              onClick={() => setTourOpen(true)}
+              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface/70 border border-petal/40 text-[10px] uppercase tracking-[0.28em] text-petal hover:bg-petal/10 transition"
+              aria-label="Start guided tour"
+            >
+              ✦ Tour
+            </button>
             <span data-tour="home-notify"><NotificationCenter /></span>
             <Avatar profile={profile} />
           </>
