@@ -608,15 +608,13 @@ function GameScreen({
       {/* Win animation — sword slices the losing king's head */}
       <WinAnimation
         trigger={
-          demoWin ? demoWin.n :
           confetti && result.winner && result.winner !== "draw" ? `${result.winner}-${chess.history().length}` : null
         }
         loserColor={
-          demoWin ? demoWin.loser :
           result.winner === "w" ? "b" : result.winner === "b" ? "w" : null
         }
         muted={muted}
-        onDone={() => setDemoWin(null)}
+        onDone={() => { /* handled by confetti timer */ }}
       />
 
 
