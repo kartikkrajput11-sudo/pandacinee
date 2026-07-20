@@ -2012,7 +2012,9 @@ function CustomWatch({ customId }: { customId: string }) {
                 toast.error("This uploaded file is not playable in the browser here.", { id: "custom-load-issue", duration: 4500 });
               }}
               onEvent={handleEvent}
+              onBufferingChange={sendBuffering}
             />
+
           ) : customLoadIssue ? (
             <div className="w-full h-full bg-black rounded-2xl flex items-center justify-center px-6 text-center text-candle-muted text-sm">
               This upload could not be played in the browser. Try another server or re-upload an MP4 encoded for web playback.
