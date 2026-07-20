@@ -1158,13 +1158,15 @@ function PickWhispers({ scene, spot, onBack, onSubmit }: {
   );
 }
 
-function SeekerBoard({ scene, spot, attempts, onGuess, hiderName }: {
-  scene: Scene; spot: Pt; attempts: Pt[]; onGuess: (pt: Pt) => void; hiderName: string;
+function SeekerBoard({ scene, spot, attempts, whispers, onGuess, hiderName }: {
+  scene: Scene; spot: Pt; attempts: Pt[]; whispers: string[]; onGuess: (pt: Pt) => void; hiderName: string;
 }) {
   const lastAttempt = attempts.length > 0 ? attempts[attempts.length - 1] : null;
   const lastHeat = lastAttempt ? heatFor(lastAttempt, spot) : null;
   const remaining = MAX_ATTEMPTS - attempts.length;
   const done = remaining <= 0 || (lastAttempt && distance(lastAttempt, spot) <= HIT_RADIUS);
+  // Reveal one whisper before each guess: attempts.length + 1, capped at whispers.length.
+  const revealed = Math.min(whispers.length, attempts.length + 1);
 
   return (
     <div className="space-y-3">
@@ -1173,6 +1175,27 @@ function SeekerBoard({ scene, spot, attempts, onGuess, hiderName }: {
         <p className="font-serif italic text-xl">{scene.name}</p>
         <p className="text-xs text-candle-muted mt-1">{remaining} {remaining === 1 ? "guess" : "guesses"} left</p>
       </div>
+
+      {whispers.length > 0 && (
+        <div className="rounded-2xl border border-petal/30 bg-gradient-to-br from-petal-soft/30 to-surface/60 backdrop-blur p-4 space-y-2">
+          <p className="text-[10px] uppercase tracking-[0.28em] text-petal flex items-center gap-1.5">
+            <MessageCircle className="size-3.5" /> Whispers from {hiderName}
+          </p>
+          <ul className="space-y-1.5">
+            {whispers.map((w, i) => {
+              const locked = i >= revealed;
+              return (
+                <li key={i} className={`flex items-start gap-2 text-sm ${locked ? "text-candle-muted/50" : "text-candle"}`}>
+                  <span className="mt-1">{locked ? <Lock className="size-3.5" /> : <span className="text-petal">✦</span>}</span>
+                  <span className={locked ? "italic" : "italic"}>
+                    {locked ? `Unlocks after guess ${i}` : `"${w}"`}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
 
       {lastHeat && (
         <div className={`text-center rounded-2xl border border-border bg-surface/60 backdrop-blur p-3 ${lastHeat.cls}`}>
@@ -1193,7 +1216,7 @@ function SeekerBoard({ scene, spot, attempts, onGuess, hiderName }: {
         </RoomFrame>
       </div>
 
-      <p className="text-center text-[11px] text-candle-muted italic">Tap anywhere on the map. Warmer means close, burning means dead-on.</p>
+      <p className="text-center text-[11px] text-candle-muted italic">Tap the map to guess. Each miss unlocks a new whisper.</p>
     </div>
   );
 }
