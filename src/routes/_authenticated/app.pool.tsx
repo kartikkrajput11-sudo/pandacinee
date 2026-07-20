@@ -381,10 +381,10 @@ function PoolPage() {
       setTimeout(() => { remoteApplyingRef.current = false; }, 0);
     });
     ch.on("broadcast", { event: "hello" }, () => {
-      // A peer joined/rejoined — the current turn holder rebroadcasts full state so they resume mid-game
-      if (mySeatRef.current === null || mySeatRef.current === turnRef.current) {
-        setTimeout(() => sendState(true), 50);
-      }
+      // Only peers with an authoritative snapshot answer — a rejoining peer with
+      // stale/fresh local state must never clobber the live match.
+      if (!hasAuthoritativeRef.current) return;
+      setTimeout(() => sendState(true), 60);
     });
     ch.on("presence", { event: "sync" }, () => {
       const state = ch.presenceState();
