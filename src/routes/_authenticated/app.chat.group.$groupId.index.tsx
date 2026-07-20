@@ -74,7 +74,18 @@ function GroupChat() {
   const imgRef = useRef<HTMLInputElement>(null);
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastTapRef = useRef<{ id: string; at: number }>({ id: "", at: 0 });
+  const heartPopTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [heartPopId, setHeartPopId] = useState<string | null>(null);
+
+  // Unmount cleanup for all pending timers
+  useEffect(() => {
+    return () => {
+      if (longPressTimer.current) clearTimeout(longPressTimer.current);
+      if (bubbleIdleRef.current) clearTimeout(bubbleIdleRef.current);
+      if (bubbleCloseRef.current) clearTimeout(bubbleCloseRef.current);
+      if (heartPopTimer.current) clearTimeout(heartPopTimer.current);
+    };
+  }, []);
 
   const group = groupData?.group;
   const members = groupData?.members ?? [];
@@ -112,9 +123,10 @@ function GroupChat() {
     return map;
   }, [chat.reactions]);
 
+  const lastMessageId = chat.messages[chat.messages.length - 1]?.id ?? null;
   useEffect(() => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: "smooth" });
-  }, [chat.messages.length]);
+  }, [lastMessageId]);
 
   async function handleSend() {
     const trimmed = text.trim();
@@ -313,7 +325,8 @@ function GroupChat() {
                       chat.toggleReaction(m.id, "❤️");
                       setHeartPopId(m.id);
                       if (navigator.vibrate) navigator.vibrate(15);
-                      setTimeout(() => setHeartPopId((v) => (v === m.id ? null : v)), 700);
+                      if (heartPopTimer.current) clearTimeout(heartPopTimer.current);
+                      heartPopTimer.current = setTimeout(() => setHeartPopId((v) => (v === m.id ? null : v)), 700);
                     } else {
                       lastTapRef.current = { id: m.id, at: now };
                     }
@@ -552,7 +565,7 @@ function GroupChat() {
               value={text}
               onChange={(e) => setText(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
+                if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
                   e.preventDefault();
                   void handleSend();
                 }
