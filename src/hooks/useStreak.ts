@@ -52,18 +52,39 @@ export function useStreak(meId: string | null, partnerId: string | null) {
 
   useEffect(() => {
     if (!meId) return;
-    const ch = supabase
-      .channel(`checkins-${meId}`)
+    let debounce: ReturnType<typeof setTimeout> | null = null;
+    const schedule = () => {
+      if (debounce) return;
+      debounce = setTimeout(() => {
+        debounce = null;
+        qc.invalidateQueries({ queryKey: ["streak"] });
+      }, 300);
+    };
+    // Scope to me + partner only, not every check-in in the table.
+    const chMe = supabase
+      .channel(`checkins-me-${meId}`)
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "daily_checkins" },
-        () => qc.invalidateQueries({ queryKey: ["streak"] }),
+        { event: "*", schema: "public", table: "daily_checkins", filter: `user_id=eq.${meId}` },
+        schedule,
       )
       .subscribe();
+    const chPartner = partnerId
+      ? supabase
+          .channel(`checkins-partner-${partnerId}`)
+          .on(
+            "postgres_changes",
+            { event: "*", schema: "public", table: "daily_checkins", filter: `user_id=eq.${partnerId}` },
+            schedule,
+          )
+          .subscribe()
+      : null;
     return () => {
-      supabase.removeChannel(ch);
+      if (debounce) clearTimeout(debounce);
+      supabase.removeChannel(chMe);
+      if (chPartner) supabase.removeChannel(chPartner);
     };
-  }, [meId, qc]);
+  }, [meId, partnerId, qc]);
 
   return {
     streak: q.data?.streak ?? 0,
