@@ -20,6 +20,12 @@ import 'screens/profile_screen.dart';
 import 'screens/affections_screen.dart';
 import 'screens/notifications_screen.dart';
 import 'screens/settings_screen.dart';
+import 'screens/groups_list_screen.dart';
+import 'screens/group_matches_screen.dart';
+import 'screens/punishment_lock_screen.dart';
+import 'screens/vault_screen.dart';
+import 'screens/daily_screen.dart';
+import 'screens/shop_screen.dart';
 import 'supabase_providers.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -60,6 +66,15 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/app/affections', builder: (_, __) => const AffectionsScreen()),
       GoRoute(path: '/app/notifications', builder: (_, __) => const NotificationsScreen()),
       GoRoute(path: '/app/settings', builder: (_, __) => const SettingsScreen()),
+      GoRoute(path: '/app/groups', builder: (_, __) => const GroupsListScreen()),
+      GoRoute(
+        path: '/app/group/:groupId/matches',
+        builder: (_, s) => GroupMatchesScreen(groupId: s.pathParameters['groupId']!),
+      ),
+      GoRoute(path: '/app/locks', builder: (_, __) => const PunishmentLockScreen()),
+      GoRoute(path: '/app/vault', builder: (_, __) => const VaultScreen()),
+      GoRoute(path: '/app/daily', builder: (_, __) => const DailyScreen()),
+      GoRoute(path: '/app/shop', builder: (_, __) => const ShopScreen()),
     ],
   );
 });

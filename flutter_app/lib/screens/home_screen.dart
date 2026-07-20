@@ -48,6 +48,11 @@ class HomeScreen extends ConsumerWidget {
                 _card(context, 'Movies', 'Watch in lock-step', onTap: () => context.push('/app/movies')),
                 _card(context, 'Profile', 'Badges & achievements', onTap: () => context.push('/app/me')),
                 _card(context, 'Affections', 'Kiss · Hug · Headpat…', onTap: () => context.push('/app/affections')),
+                _card(context, 'Groups', 'Rooms, codes, matches', onTap: () => context.push('/app/groups')),
+                _card(context, 'Vault', 'Letters, capsules, memory', onTap: () => context.push('/app/vault')),
+                _card(context, 'Daily', 'Prompt & mood log', onTap: () => context.push('/app/daily')),
+                _card(context, 'Shop', 'Panda Coins & petals', onTap: () => context.push('/app/shop')),
+                _card(context, 'Locked chapter', 'Word verification', onTap: () => context.push('/app/locks')),
                 const SizedBox(height: 30),
               ],
             );
