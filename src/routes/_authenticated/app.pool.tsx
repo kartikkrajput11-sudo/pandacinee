@@ -361,6 +361,8 @@ function PoolPage() {
       setWinner(payload.winner);
       setMessage(payload.message);
       if (payload.matchScore) setMatchScore(payload.matchScore);
+      // Receiving a valid state means we now hold the authoritative snapshot too
+      hasAuthoritativeRef.current = true;
       // Reset local sim flags — authoritative sender manages them
       movingRef.current = anyMoving(incoming);
       turnEndedRef.current = false;
