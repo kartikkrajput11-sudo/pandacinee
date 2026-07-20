@@ -51,30 +51,39 @@ function MovieDetailInner({ id }: { id: string }) {
   useEffect(() => {
     let alive = true;
     (async () => {
-      // 1) Check admin override to know if this is a series (media_type=tv)
+      // 1) Admin override tells us the intended media type
       const { data: ov } = await supabase
         .from("custom_movies")
         .select("title, overview, poster_url, backdrop_url, runtime, media_type")
         .eq("tmdb_id", Number(id))
         .maybeSingle();
-      const tv = ov?.media_type === "tv";
+
+      // 2) Fetch both endpoints in parallel — TMDB uses distinct id spaces for
+      //    movies vs TV, so either or both can succeed. We pick TV when the
+      //    admin marked it, when only TV resolves, or when TV has real season
+      //    data and the movie result is thin.
+      const [movieRes, tvRes] = await Promise.all([
+        fetchMovie({ data: { id: Number(id) } }).catch(() => null),
+        fetchTv({ data: { id: Number(id) } }).catch(() => null),
+      ]);
       if (!alive) return;
+
+      const tvHasSeasons = !!(tvRes && Array.isArray(tvRes.seasons) && tvRes.seasons.length);
+      const movieLooksReal = !!(movieRes && (movieRes.release_date || movieRes.runtime));
+      const preferTv =
+        ov?.media_type === "tv" ||
+        (tvHasSeasons && !movieLooksReal) ||
+        (tvHasSeasons && movieRes?.media_type === "tv");
+      const tv = preferTv && !!tvRes;
       setIsTv(tv);
 
-      // 2) Fetch the right TMDB endpoint. Fall back to movie if TV 404s.
-      let m: any = null;
-      if (tv) {
-        m = await fetchTv({ data: { id: Number(id) } }).catch(() => null);
-      }
-      if (!m) {
-        m = await fetchMovie({ data: { id: Number(id) } }).catch(() => null);
-        if (m && !tv && m.media_type === "tv") setIsTv(true);
-      } else {
-        // Normalise TV shape → the rest of the JSX reads `title` / `release_date`.
+      let m: any = tv ? tvRes : (movieRes ?? tvRes);
+      if (m && tv) {
         m.title = m.name ?? m.original_name ?? m.title;
         m.release_date = m.first_air_date ?? m.release_date ?? null;
-        // First episode runtime as an approximation
-        m.runtime = Array.isArray(m.episode_run_time) && m.episode_run_time[0] ? m.episode_run_time[0] : null;
+        m.runtime = Array.isArray(m.episode_run_time) && m.episode_run_time[0]
+          ? m.episode_run_time[0]
+          : null;
       }
 
       // 3) Overlay admin edits
@@ -94,6 +103,7 @@ function MovieDetailInner({ id }: { id: string }) {
       .catch(() => alive && setSources([]));
     return () => { alive = false; };
   }, [id]);
+
 
   // Load season episodes when this is a TV series
   useEffect(() => {
@@ -229,21 +239,23 @@ function MovieDetailInner({ id }: { id: string }) {
             to="/app/movies/$id/watch"
             params={{ id: String(movie.id) }}
             search={{ season: 1, episode: 1 }}
-            className="w-full flex items-center justify-center gap-3 py-4 rounded-2xl bg-petal text-velvet font-bold text-sm tracking-wide shadow-[0_20px_60px_-20px] shadow-petal/60 active:scale-[0.98] transition-transform"
+            className="w-full flex items-center justify-center gap-3 py-4 rounded-2xl bg-petal text-velvet font-bold text-sm tracking-[0.2em] uppercase shadow-[0_20px_60px_-20px] shadow-petal/60 active:scale-[0.98] transition-transform"
           >
             <Play className="size-4 fill-velvet" />
-            PLAY S1·E1
+            Play Series · S1·E1
+            <span className="opacity-60 text-[10px] tracking-widest">Pilot</span>
           </Link>
         ) : (
           <Link
             to="/app/movies/$id/watch"
             params={{ id: String(movie.id) }}
-            className="w-full flex items-center justify-center gap-3 py-4 rounded-2xl bg-petal text-velvet font-bold text-sm tracking-wide shadow-[0_20px_60px_-20px] shadow-petal/60 active:scale-[0.98] transition-transform"
+            className="w-full flex items-center justify-center gap-3 py-4 rounded-2xl bg-petal text-velvet font-bold text-sm tracking-[0.2em] uppercase shadow-[0_20px_60px_-20px] shadow-petal/60 active:scale-[0.98] transition-transform"
           >
             <Play className="size-4 fill-velvet" />
-            PLAY MOVIE
+            Play Movie
           </Link>
         )}
+
 
         {/* Synopsis */}
         {movie.overview && (
@@ -343,27 +355,53 @@ function MovieDetailInner({ id }: { id: string }) {
           </div>
         )}
 
-        {/* Episodes — Netflix-style browser for series */}
+        {/* Episodes — editorial browser for series */}
         {isTv && movie.seasons?.length > 0 && (
-          <div className="mt-10">
-            <h3 className="text-[10px] font-bold tracking-[0.2em] uppercase text-candle-muted mb-4 flex items-center gap-3">
-              Episodes
-              <div className="h-px flex-1 bg-border" />
-              <select
-                value={selectedSeason}
-                onChange={(e) => setSelectedSeason(Number(e.target.value))}
-                className="text-[10px] bg-surface border border-border rounded-full px-3 py-1 text-candle normal-case tracking-normal"
-              >
-                {movie.seasons
-                  .filter((s: any) => s.season_number > 0)
-                  .map((s: any) => (
-                    <option key={s.season_number} value={s.season_number}>
+          <div className="mt-12">
+            <div className="mb-5 flex items-end justify-between gap-3">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-px h-6 bg-petal/50 shrink-0" />
+                <h3 className="font-serif italic text-2xl text-candle leading-none">Episodes</h3>
+              </div>
+              <span className="text-[10px] tracking-[0.2em] uppercase text-petal font-semibold shrink-0">
+                {seasonEps.length ? `${seasonEps.length} eps` : "…"}
+              </span>
+            </div>
+
+            {/* Season pill selector */}
+            <div className="flex gap-2 overflow-x-auto no-scrollbar mb-5 -mx-6 px-6 pb-1">
+              {movie.seasons
+                .filter((s: any) => s.season_number > 0)
+                .map((s: any) => {
+                  const active = selectedSeason === s.season_number;
+                  return (
+                    <button
+                      key={s.season_number}
+                      onClick={() => setSelectedSeason(s.season_number)}
+                      className={`shrink-0 px-4 py-2 rounded-full border text-xs font-medium transition-all ${
+                        active
+                          ? "border-petal bg-petal/10 text-petal shadow-[0_0_18px_-4px] shadow-petal/40"
+                          : "border-white/10 bg-white/5 text-candle-muted/70 italic hover:text-candle"
+                      }`}
+                    >
                       {s.name || `Season ${s.season_number}`}
-                    </option>
-                  ))}
-              </select>
-            </h3>
+                      {s.episode_count ? (
+                        <span className="ml-1.5 opacity-50 not-italic">· {s.episode_count}</span>
+                      ) : null}
+                    </button>
+                  );
+                })}
+            </div>
+
+            {/* Episode cards */}
             <div className="space-y-3">
+              {seasonEps.length === 0 && (
+                <>
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i} className="h-24 rounded-2xl bg-velvet/60 animate-pulse" />
+                  ))}
+                </>
+              )}
               {seasonEps.map((ep: any) => (
                 <Link
                   key={ep.episode_number}
@@ -373,44 +411,49 @@ function MovieDetailInner({ id }: { id: string }) {
                     season: String(selectedSeason),
                     episode: String(ep.episode_number),
                   }}
-                  className="flex gap-3 p-2 rounded-xl border border-border bg-surface hover:border-petal/60 transition"
+                  className="group flex gap-3 p-2.5 rounded-2xl border border-white/8 bg-gradient-to-br from-white/[0.04] to-transparent hover:border-petal/50 hover:from-petal/[0.06] transition-all"
                 >
-                  <div className="w-28 aspect-video rounded-lg overflow-hidden bg-velvet shrink-0 relative">
-                    {ep.still_path && (
+                  <div className="w-32 aspect-video rounded-xl overflow-hidden bg-velvet shrink-0 relative border border-white/5">
+                    {ep.still_path ? (
                       <img
                         src={`https://image.tmdb.org/t/p/w300${ep.still_path}`}
                         alt={ep.name}
                         loading="lazy"
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-2xl opacity-40">📺</div>
                     )}
-                    <div className="absolute inset-0 flex items-center justify-center bg-velvet/30 opacity-0 hover:opacity-100 transition">
-                      <Play className="size-6 fill-candle text-candle" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-velvet/70 to-transparent" />
+                    <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-black/60 backdrop-blur-sm text-[9px] font-bold tracking-widest text-petal">
+                      E{String(ep.episode_number).padStart(2, "0")}
+                    </div>
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+                      <div className="size-9 rounded-full bg-petal/90 flex items-center justify-center shadow-[0_0_20px_-2px] shadow-petal/70">
+                        <Play className="size-4 fill-velvet text-velvet" />
+                      </div>
                     </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-[10px] uppercase tracking-widest text-candle-muted">
-                      E{ep.episode_number}
-                      {ep.runtime ? ` · ${ep.runtime}m` : ""}
-                      {ep.air_date ? ` · ${ep.air_date.slice(0, 4)}` : ""}
-                    </div>
-                    <div className="text-sm font-semibold text-candle truncate">
+                  <div className="flex-1 min-w-0 py-0.5">
+                    <div className="font-serif italic text-base text-candle leading-tight truncate mb-1">
                       {ep.name || `Episode ${ep.episode_number}`}
                     </div>
+                    <div className="text-[9px] uppercase tracking-[0.2em] text-candle-muted/70 mb-1.5">
+                      {ep.runtime ? `${ep.runtime} min` : "TBA"}
+                      {ep.air_date ? ` · ${ep.air_date.slice(0, 4)}` : ""}
+                    </div>
                     {ep.overview && (
-                      <div className="text-[11px] text-candle-muted line-clamp-2 mt-0.5">
+                      <div className="text-[11px] text-candle/60 line-clamp-2 leading-relaxed">
                         {ep.overview}
                       </div>
                     )}
                   </div>
                 </Link>
               ))}
-              {seasonEps.length === 0 && (
-                <p className="text-[11px] text-candle-muted">Loading episodes…</p>
-              )}
             </div>
           </div>
         )}
+
 
         {/* Where to watch — editorial hairline section */}
         {sources.length > 0 && (
