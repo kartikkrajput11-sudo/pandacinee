@@ -488,53 +488,54 @@ function SearchHeader({
 
 function FeaturedHero({ movie, isTv = false }: { movie: TmdbMovie; isTv?: boolean }) {
   return (
-    <div className="relative h-[380px] w-full overflow-hidden">
+    <div className="relative h-[420px] w-full overflow-hidden">
       {movie.backdrop_path && (
         <img
-          src={poster(movie.backdrop_path, "w500")!}
+          src={poster(movie.backdrop_path, "w780")!}
           alt=""
-          className="absolute inset-0 w-full h-full object-cover opacity-70"
+          className="absolute inset-0 w-full h-full object-cover"
         />
       )}
-      <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-transparent to-transparent" />
       <Link
         to="/app"
-        className="absolute top-10 left-5 size-10 rounded-full bg-velvet/40 backdrop-blur-md border border-border flex items-center justify-center z-20"
+        className="absolute top-10 left-5 size-10 rounded-full bg-velvet/40 backdrop-blur-md border border-white/10 flex items-center justify-center z-20"
       >
         <ArrowLeft className="size-5 text-candle" />
       </Link>
-      <div className="absolute top-10 right-5 z-20">
-        <p className="text-[10px] uppercase tracking-widest text-petal text-right">Tonight</p>
-        <h1 className="font-serif text-2xl italic text-candle">Movies</h1>
+      <div className="absolute top-10 right-5 z-20 text-right">
+        <p className="text-[10px] uppercase tracking-[0.25em] text-petal">Tonight</p>
+        <h1 className="font-serif text-2xl italic text-candle leading-none mt-1">Movies</h1>
       </div>
-      <div className="absolute bottom-0 left-0 right-0 px-6 pb-6">
-        <p className="text-[10px] uppercase tracking-[0.2em] text-petal font-bold mb-2 flex items-center gap-2">
-          <Flame className="size-3" /> #1 Trending
-        </p>
-        <h2 className="font-serif font-semibold text-3xl leading-[0.95] text-candle mb-2 line-clamp-2">
+      <div className="absolute bottom-0 left-0 right-0 px-6 pb-7">
+        <div className="mb-3">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-petal text-velvet text-[10px] font-bold tracking-[0.2em] uppercase rounded-sm italic shadow-[0_0_18px_-2px] shadow-petal/60">
+            <Flame className="size-2.5" /> #1 Trending
+          </span>
+        </div>
+        <h2 className="font-serif italic text-5xl leading-[0.95] text-candle mb-4 tracking-tight line-clamp-2">
           {movie.title}
         </h2>
-        <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-candle-muted mb-4">
-          {movie.release_date && <span>{movie.release_date.slice(0, 4)}</span>}
-          {movie.vote_average ? (
-            <>
-              <span className="opacity-40">•</span>
-              <span>★ {movie.vote_average.toFixed(1)}</span>
-            </>
-          ) : null}
+        <div className="flex items-center gap-3">
+          <Link
+            to="/app/movies/$id"
+            params={{ id: String(movie.id) }}
+            className="inline-flex items-center gap-2 py-3 px-7 rounded-full bg-candle text-velvet font-semibold text-sm shadow-[0_20px_60px_-20px] shadow-black/60 hover:brightness-110 transition-all"
+          >
+            <Play className="size-4 fill-velvet" />
+            Watch Now
+          </Link>
+          <div className="text-[10px] uppercase tracking-[0.2em] text-candle-muted italic">
+            {movie.release_date && <span>{movie.release_date.slice(0, 4)}</span>}
+            {movie.vote_average ? <span className="ml-2 text-petal">★ {movie.vote_average.toFixed(1)}</span> : null}
+          </div>
         </div>
-        <Link
-          to="/app/movies/$id"
-          params={{ id: String(movie.id) }}
-          className="inline-flex items-center gap-2 py-3 px-6 rounded-full bg-petal text-velvet font-bold text-xs uppercase tracking-wider shadow-[0_20px_60px_-20px] shadow-petal/60"
-        >
-          <Play className="size-3.5 fill-velvet" />
-          Watch Now
-        </Link>
       </div>
     </div>
   );
 }
+
 
 function Rail({
   title, icon, movies, loading = false, variant = "poster", tvBadge = false,
