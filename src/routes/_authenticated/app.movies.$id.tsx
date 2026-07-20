@@ -239,21 +239,23 @@ function MovieDetailInner({ id }: { id: string }) {
             to="/app/movies/$id/watch"
             params={{ id: String(movie.id) }}
             search={{ season: 1, episode: 1 }}
-            className="w-full flex items-center justify-center gap-3 py-4 rounded-2xl bg-petal text-velvet font-bold text-sm tracking-wide shadow-[0_20px_60px_-20px] shadow-petal/60 active:scale-[0.98] transition-transform"
+            className="w-full flex items-center justify-center gap-3 py-4 rounded-2xl bg-petal text-velvet font-bold text-sm tracking-[0.2em] uppercase shadow-[0_20px_60px_-20px] shadow-petal/60 active:scale-[0.98] transition-transform"
           >
             <Play className="size-4 fill-velvet" />
-            PLAY S1·E1
+            Play Series · S1·E1
+            <span className="opacity-60 text-[10px] tracking-widest">Pilot</span>
           </Link>
         ) : (
           <Link
             to="/app/movies/$id/watch"
             params={{ id: String(movie.id) }}
-            className="w-full flex items-center justify-center gap-3 py-4 rounded-2xl bg-petal text-velvet font-bold text-sm tracking-wide shadow-[0_20px_60px_-20px] shadow-petal/60 active:scale-[0.98] transition-transform"
+            className="w-full flex items-center justify-center gap-3 py-4 rounded-2xl bg-petal text-velvet font-bold text-sm tracking-[0.2em] uppercase shadow-[0_20px_60px_-20px] shadow-petal/60 active:scale-[0.98] transition-transform"
           >
             <Play className="size-4 fill-velvet" />
-            PLAY MOVIE
+            Play Movie
           </Link>
         )}
+
 
         {/* Synopsis */}
         {movie.overview && (
