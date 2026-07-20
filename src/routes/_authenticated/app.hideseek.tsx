@@ -398,6 +398,7 @@ function HideSeekPage() {
       setSceneId(null);
       setSpot(null);
       setAttempts([]);
+      setWhispers([]);
       setFoundAt(null);
       const iHide = msg.hiderId === me.id;
       setPhase(iHide ? "hider_pick_scene" : "waiting");
@@ -410,6 +411,7 @@ function HideSeekPage() {
       setSpot({ x: msg.x, y: msg.y });
       setWhispers(msg.whispers ?? []);
       setAttempts([]);
+      setWhispers([]);
       setFoundAt(null);
       setPhase("seeker");
       return;
@@ -451,6 +453,7 @@ function HideSeekPage() {
     setSceneId(null);
     setSpot(null);
     setAttempts([]);
+    setWhispers([]);
     setFoundAt(null);
     setScores([0, 0]);
   }
@@ -462,6 +465,7 @@ function HideSeekPage() {
     setSceneId(null);
     setSpot(null);
     setAttempts([]);
+    setWhispers([]);
     setFoundAt(null);
     setPhase("hider_pick_scene");
   }
@@ -475,6 +479,7 @@ function HideSeekPage() {
     setSceneId(null);
     setSpot(null);
     setAttempts([]);
+    setWhispers([]);
     setFoundAt(null);
     send({ t: "start", from: me.id, hiderId: hider, round: 1 });
     setPhase(iHideFirst ? "hider_pick_scene" : "waiting");
@@ -566,6 +571,7 @@ function HideSeekPage() {
     setSceneId(null);
     setSpot(null);
     setAttempts([]);
+    setWhispers([]);
     setFoundAt(null);
     if (mode === "online" && me) {
       send({ t: "next_round", from: me.id, hiderId: nextHider, round: r });
