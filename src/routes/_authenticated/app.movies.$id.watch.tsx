@@ -196,7 +196,11 @@ function CatalogWatch({ id }: { id: string }) {
     clearPeerPreparing,
     peerSourceKind,
     setSourceKind,
+    peerBuffering,
+    sendBuffering,
+    startTogether,
   } = useWatchSync(me?.id ?? null, partner?.id ?? null, syncRoomId, isTv ? "tv" : "movie");
+
 
 
   const iAmHost = !!me && hostId === me.id;
@@ -648,7 +652,32 @@ function CatalogWatch({ id }: { id: string }) {
     }, 800);
   }, [customPlayerReady, runSuppressedPlayerAction]);
 
+  // Rewind-on-buffer (SyncPlay-style): pause locally while the partner is
+  // stalled; resume together via a short countdown when they recover.
+  const autoPausedForBufferRef = useRef(false);
+  useEffect(() => {
+    if (!isPandacine || peerSourceKind !== "pandacine") return;
+    const h = customPlayerRef.current;
+    if (!h) return;
+    if (peerBuffering) {
+      if (!h.isPaused()) {
+        autoPausedForBufferRef.current = true;
+        runSuppressedPlayerAction(() => h.pause());
+        toast.info(`${partner?.display_name?.split(" ")[0] ?? "Partner"} is buffering…`, { id: "peer-buffer", duration: 1500 });
+      }
+    } else if (autoPausedForBufferRef.current) {
+      autoPausedForBufferRef.current = false;
+      const t = h.currentTime();
+      sendCountdown(0.3, t);
+      window.setTimeout(() => {
+        runSuppressedPlayerAction(() => { h.seek(t); h.play(); });
+      }, 300);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [peerBuffering]);
+
   // -------- Storage-only sync gate --------
+
   // Real-time sync (seek, play/pause, drift) is only enabled when BOTH partners
   // have loaded the movie from Lovable Cloud storage (Pandacine source).
   // If either side is on a 3rd-party iframe, we can't reliably control it.
@@ -1062,7 +1091,9 @@ function CatalogWatch({ id }: { id: string }) {
                       });
                     }
                   }}
+                  onBufferingChange={sendBuffering}
                 />
+
               ) : (
                 <>
                   <iframe
@@ -1794,7 +1825,9 @@ function CustomWatch({ customId }: { customId: string }) {
   const {
     mine, peer, partnerOnline, publish, sendSeek, sendCountdown, countdown, clearCountdown,
     incomingSeek, clearIncomingSeek, hostId, claimHost, releaseHost, drift,
+    peerBuffering, sendBuffering, startTogether,
   } = useWatchSync(me?.id ?? null, partner?.id ?? null, `custom:${customId}`, "movie");
+
 
   const handleRef = useRef<CustomPlayerHandle | null>(null);
   const suppressRef = useRef(false);
@@ -1836,7 +1869,32 @@ function CustomWatch({ customId }: { customId: string }) {
     window.setTimeout(() => { suppressRef.current = false; }, ms);
   }, []);
 
+  // Rewind-on-buffer (SyncPlay-style): while the partner is stalled, auto-pause
+  // the local player. When they resume, kick a 300ms countdown so both restart
+  // on the same frame.
+  const autoPausedForBufferRef = useRef(false);
+  useEffect(() => {
+    const h = handleRef.current;
+    if (!h) return;
+    if (peerBuffering) {
+      if (!h.isPaused()) {
+        autoPausedForBufferRef.current = true;
+        runSuppressed(() => h.pause());
+        toast.info(`${partner?.display_name?.split(" ")[0] ?? "Partner"} is buffering…`, { id: "peer-buffer", duration: 1500 });
+      }
+    } else if (autoPausedForBufferRef.current) {
+      autoPausedForBufferRef.current = false;
+      const t = h.currentTime();
+      sendCountdown(0.3, t);
+      window.setTimeout(() => {
+        runSuppressed(() => { h.seek(t); h.play(); });
+      }, 300);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [peerBuffering]);
+
   // Manual seek request
+
   useEffect(() => {
     if (!incomingSeek) return;
     if (!handleRef.current) return;
@@ -2010,7 +2068,9 @@ function CustomWatch({ customId }: { customId: string }) {
                 toast.error("This uploaded file is not playable in the browser here.", { id: "custom-load-issue", duration: 4500 });
               }}
               onEvent={handleEvent}
+              onBufferingChange={sendBuffering}
             />
+
           ) : customLoadIssue ? (
             <div className="w-full h-full bg-black rounded-2xl flex items-center justify-center px-6 text-center text-candle-muted text-sm">
               This upload could not be played in the browser. Try another server or re-upload an MP4 encoded for web playback.

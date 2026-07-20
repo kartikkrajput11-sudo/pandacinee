@@ -41,7 +41,10 @@ type Props = {
   onLockedAttempt?: () => void;
   /** Called when the browser cannot get playable media data from the source. */
   onLoadIssue?: (reason: "timeout" | "error") => void;
+  /** Called whenever the local <video> stalls or resumes — used for SyncPlay-style buffer sync. */
+  onBufferingChange?: (state: "waiting" | "ready") => void;
 };
+
 
 function fmt(sec: number): string {
   if (!isFinite(sec) || sec <= 0) return "00:00";
@@ -55,7 +58,7 @@ function fmt(sec: number): string {
 
 const RATES = [0.5, 0.75, 1, 1.25, 1.5, 2];
 
-export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, locked = false, onLockedAttempt, onLoadIssue }: Props) {
+export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, locked = false, onLockedAttempt, onLoadIssue, onBufferingChange }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const onReadyRef = useRef(onReady);
@@ -79,22 +82,30 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
     };
   }, []);
 
+  // Ref-cache the callback so we don't add it to every stop/start dep array.
+  const onBufferingChangeRef = useRef(onBufferingChange);
+  useEffect(() => { onBufferingChangeRef.current = onBufferingChange; }, [onBufferingChange]);
+
   const stopBuffering = useCallback(() => {
     if (bufferTimer.current) {
       window.clearTimeout(bufferTimer.current);
       bufferTimer.current = null;
     }
     setBuffering(false);
+    onBufferingChangeRef.current?.("ready");
   }, []);
 
   const startBuffering = useCallback(() => {
     setBuffering(true);
+    onBufferingChangeRef.current?.("waiting");
     if (bufferTimer.current) window.clearTimeout(bufferTimer.current);
     bufferTimer.current = window.setTimeout(() => {
       setBuffering(false);
       setShowControls(true);
+      onBufferingChangeRef.current?.("ready");
     }, 6500);
   }, []);
+
 
   useEffect(() => {
     onReadyRef.current = onReady;

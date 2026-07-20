@@ -91,6 +91,8 @@ export function useWatchSync(
   const [presencePeerSourceKind, setPresencePeerSourceKind] = useState<SourceKind>("unknown");
   const [backendPeerSourceKind, setBackendPeerSourceKind] = useState<SourceKind>("unknown");
   const [peerPreparing, setPeerPreparing] = useState<{ time: number; ts: number } | null>(null);
+  const [peerBuffering, setPeerBuffering] = useState(false);
+
 
   const mineRef = useRef<Mine>(emptyMine());
   const channelRef = useRef<RealtimeChannel | null>(null);
@@ -263,6 +265,13 @@ export function useWatchSync(
         if (p.from === meId) return;
         setPeerPreparing({ time: p.time ?? 0, ts: Date.now() });
       })
+      .on("broadcast", { event: "buffer" }, ({ payload }) => {
+        // SyncPlay-style buffer signal — pause everyone while a peer is stalled.
+        const p = payload as { from: string; state: "waiting" | "ready" };
+        if (p.from === meId) return;
+        setPeerBuffering(p.state === "waiting");
+      })
+
       .subscribe(async (status) => {
         if (status === "SUBSCRIBED") {
           await ch.track({ userId: meId, joinedAt: joinedAtRef.current, ready: myReadyRef.current, sourceKind: mySourceKindRef.current });
@@ -318,7 +327,19 @@ export function useWatchSync(
     ch.send({ type: "broadcast", event: "prepare", payload: { from: meId, time } });
   }, [meId]);
 
+  // Buffer signal — call with "waiting" when local <video> stalls, "ready"
+  // when it resumes. Peers pause themselves while this is "waiting".
+  const lastBufferStateRef = useRef<"waiting" | "ready">("ready");
+  const sendBuffering = useCallback((state: "waiting" | "ready") => {
+    if (lastBufferStateRef.current === state) return;
+    lastBufferStateRef.current = state;
+    const ch = channelRef.current;
+    if (!ch || !meId) return;
+    ch.send({ type: "broadcast", event: "buffer", payload: { from: meId, state } });
+  }, [meId]);
+
   const clearPeerPreparing = useCallback(() => setPeerPreparing(null), []);
+
 
   const publish = useCallback((patch: Partial<Mine>) => {
     const now = Date.now();
@@ -364,6 +385,43 @@ export function useWatchSync(
     ch.send({ type: "broadcast", event: "countdown", payload });
     setCountdown({ time: payload.time, startAt });
   }, [meId]);
+
+  // SyncPlay-style ready-check handshake: mark self ready, tell peer to prepare
+  // to a target time, wait for peer ready + no buffer, then broadcast a
+  // countdown so both sides start on the same frame.
+  const startTogether = useCallback((time: number, opts?: { timeoutMs?: number; leadMs?: number }) => {
+    const timeoutMs = opts?.timeoutMs ?? 4000;
+    const leadMs = opts?.leadMs ?? 500;
+    return new Promise<boolean>((resolve) => {
+      const ch = channelRef.current;
+      if (!ch || !meId) { resolve(false); return; }
+      myReadyRef.current = true;
+      setMyReadyState(true);
+      ch.track({ userId: meId, joinedAt: joinedAtRef.current, ready: true, sourceKind: mySourceKindRef.current }).catch(() => {});
+      writeBackendState({ ready: true });
+      ch.send({ type: "broadcast", event: "prepare", payload: { from: meId, time } });
+      const started = Date.now();
+      const tick = window.setInterval(() => {
+        const peerOk = (presencePeerReady || backendPeerReady) && !peerBuffering;
+        if (peerOk) {
+          window.clearInterval(tick);
+          const startAt = Date.now() + leadMs;
+          ch.send({ type: "broadcast", event: "countdown", payload: { from: meId, time, startAt } });
+          setCountdown({ time, startAt });
+          resolve(true);
+        } else if (Date.now() - started > timeoutMs) {
+          window.clearInterval(tick);
+          // Fallback: start alone rather than block forever.
+          const startAt = Date.now() + leadMs;
+          ch.send({ type: "broadcast", event: "countdown", payload: { from: meId, time, startAt } });
+          setCountdown({ time, startAt });
+          resolve(false);
+        }
+      }, 80);
+    });
+  }, [meId, presencePeerReady, backendPeerReady, peerBuffering, writeBackendState]);
+
+
 
   const sendReaction = useCallback((emoji: string) => {
     const ch = channelRef.current;
@@ -420,5 +478,9 @@ export function useWatchSync(
     clearPeerPreparing,
     peerSourceKind,
     setSourceKind,
+    peerBuffering,
+    sendBuffering,
+    startTogether,
   };
 }
+
