@@ -325,7 +325,8 @@ function GroupChat() {
                       chat.toggleReaction(m.id, "❤️");
                       setHeartPopId(m.id);
                       if (navigator.vibrate) navigator.vibrate(15);
-                      setTimeout(() => setHeartPopId((v) => (v === m.id ? null : v)), 700);
+                      if (heartPopTimer.current) clearTimeout(heartPopTimer.current);
+                      heartPopTimer.current = setTimeout(() => setHeartPopId((v) => (v === m.id ? null : v)), 700);
                     } else {
                       lastTapRef.current = { id: m.id, at: now };
                     }
