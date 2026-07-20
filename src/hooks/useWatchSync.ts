@@ -478,5 +478,9 @@ export function useWatchSync(
     clearPeerPreparing,
     peerSourceKind,
     setSourceKind,
+    peerBuffering,
+    sendBuffering,
+    startTogether,
   };
 }
+
