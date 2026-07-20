@@ -524,6 +524,16 @@ function CatalogWatch({ id }: { id: string }) {
     if (typeof peer.episode === "number" && peer.episode !== episode) setEpisode(peer.episode);
   }, [peer, isTv, season, episode]);
 
+  // Stamp local receipt time for each new peer packet (clock-skew safe).
+  useEffect(() => {
+    if (!peer) return;
+    if (peerReceivedAtRef.current[peer.updatedAt] != null) return;
+    peerReceivedAtRef.current[peer.updatedAt] = Date.now();
+    // Trim to last 10 entries
+    const keys = Object.keys(peerReceivedAtRef.current).map(Number).sort((a, b) => b - a);
+    for (const k of keys.slice(10)) delete peerReceivedAtRef.current[k];
+  }, [peer]);
+
   // Mutual auto-sync: the latest play/pause/seek from either partner moves the other screen.
   // Only runs when BOTH partners loaded the movie from storage (Pandacine).
   useEffect(() => {
@@ -533,6 +543,7 @@ function CatalogWatch({ id }: { id: string }) {
     const evt = peer.event;
     // Only react to discrete transport events
     if (evt !== "play" && evt !== "pause" && evt !== "seeked" && evt !== "timeupdate" && evt !== "ratechange") return;
+
 
     // For third-party iframes we can't nudge; only apply on big drift.
     if (evt === "timeupdate" && !isPandacine) {
