@@ -80,6 +80,28 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/app/vault', builder: (_, __) => const VaultScreen()),
       GoRoute(path: '/app/daily', builder: (_, __) => const DailyScreen()),
       GoRoute(path: '/app/shop', builder: (_, __) => const ShopScreen()),
+      GoRoute(path: '/app/calls', builder: (_, __) => const CallsScreen()),
+      GoRoute(
+        path: '/app/call/:callId',
+        builder: (_, s) => CallRoomScreen(callId: s.pathParameters['callId']!),
+      ),
+      GoRoute(
+        path: '/app/watch/:roomId/:leaderId',
+        builder: (_, s) => WatchPartyScreen(
+          roomId: s.pathParameters['roomId']!,
+          leaderId: s.pathParameters['leaderId']!,
+        ),
+      ),
+      GoRoute(path: '/app/admin', builder: (_, __) => const AdminScreen()),
+      GoRoute(path: '/app/tour', builder: (_, __) => const TourScreen()),
+      GoRoute(
+        path: '/app/shared-media/dm/:peerId',
+        builder: (_, s) => SharedMediaScreen(peerId: s.pathParameters['peerId']!),
+      ),
+      GoRoute(
+        path: '/app/shared-media/group/:groupId',
+        builder: (_, s) => SharedMediaScreen(groupId: s.pathParameters['groupId']!),
+      ),
     ],
   );
 });

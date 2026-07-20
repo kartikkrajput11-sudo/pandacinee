@@ -53,6 +53,9 @@ class HomeScreen extends ConsumerWidget {
                 _card(context, 'Daily', 'Prompt & mood log', onTap: () => context.push('/app/daily')),
                 _card(context, 'Shop', 'Panda Coins & petals', onTap: () => context.push('/app/shop')),
                 _card(context, 'Locked chapter', 'Word verification', onTap: () => context.push('/app/locks')),
+                _card(context, 'Calls', 'Voice & video ringing', onTap: () => context.push('/app/calls')),
+                _card(context, 'Admin', 'Flags · animations · broadcast', onTap: () => context.push('/app/admin')),
+                _card(context, 'Walk-through', 'Tour signature features', onTap: () => context.push('/app/tour')),
                 const SizedBox(height: 30),
               ],
             );
