@@ -741,7 +741,15 @@ function PoolPage() {
 
       {/* Table */}
       <div className="relative z-10 max-w-6xl mx-auto px-3 pb-24 flex gap-3 items-stretch">
-        {/* Cue-stick grip pull replaces left-side slider */}
+        {/* Left-side power stick (works alongside the cue-butt grip) */}
+        <PowerStick
+          value={stickPower}
+          max={MAX_POWER}
+          disabled={!canShoot || !mouse}
+          onChange={setStickPower}
+          onFire={() => fireCue(stickPower)}
+        />
+
 
         <div
           className="relative flex-1 min-w-0 rounded-[36px] p-4 shadow-[0_30px_80px_-30px_rgba(0,0,0,0.7)]"
