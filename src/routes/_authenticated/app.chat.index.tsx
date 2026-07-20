@@ -49,51 +49,58 @@ function ChatList() {
 
   return (
     <div className="px-5 pt-10 pb-6">
-      <header className="flex items-center gap-3 mb-6">
-        <Link to="/app" className="text-candle-muted"><ArrowLeft className="size-5" /></Link>
-        <div className="flex-1">
-          <p className="text-[10px] uppercase tracking-widest text-petal">Whispers</p>
-          <h1 className="font-serif text-3xl italic">Chats</h1>
-        </div>
-        <Link to="/app/friends" className="size-10 rounded-full bg-surface border border-border flex items-center justify-center text-petal" aria-label="Friends">
-          <Users className="size-4" />
-        </Link>
-        <div className="relative">
-          <button
-            onClick={() => setMenuOpen((s) => !s)}
-            className="size-10 rounded-full bg-petal text-velvet flex items-center justify-center"
-            aria-label="New"
-          >
-            <Plus className="size-4" />
-          </button>
-          {menuOpen && (
-            <>
-              <div className="fixed inset-0 z-30" onClick={() => setMenuOpen(false)} />
-              <div className="absolute right-0 mt-2 w-52 bg-velvet border border-border rounded-2xl shadow-xl overflow-hidden z-40">
-                <button
-                  onClick={() => { setMenuOpen(false); setShowNewGroup(true); }}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-sm hover:bg-surface"
-                >
-                  <UsersRound className="size-4 text-petal" /> New group
-                </button>
-                <button
-                  onClick={() => { setMenuOpen(false); setJoinOpen(true); }}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-sm hover:bg-surface border-t border-border"
-                >
-                  <KeyRound className="size-4 text-petal" /> Join by code
-                </button>
-                <Link
-                  to="/app/friends"
-                  onClick={() => setMenuOpen(false)}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-sm hover:bg-surface border-t border-border"
-                >
-                  <Users className="size-4 text-petal" /> Add friend
-                </Link>
-              </div>
-            </>
-          )}
-        </div>
-      </header>
+      <EditorialPageHeader
+        eyebrow="Whispers"
+        title="Chats"
+        subtitle="Where your circles meet — partner, friends, and groups, all in one velvet room."
+        leading={
+          <Link to="/app" className="text-candle-muted p-2 -ml-2 rounded-full hover:bg-surface transition-colors">
+            <ArrowLeft className="size-5" />
+          </Link>
+        }
+        trailing={
+          <>
+            <Link to="/app/friends" className="size-10 rounded-full bg-surface border border-border flex items-center justify-center text-petal hover:border-petal/40 transition-colors" aria-label="Friends">
+              <Users className="size-4" />
+            </Link>
+            <div className="relative">
+              <button
+                onClick={() => setMenuOpen((s) => !s)}
+                className="size-10 rounded-full bg-petal text-velvet flex items-center justify-center petal-glow"
+                aria-label="New"
+              >
+                <Plus className="size-4" />
+              </button>
+              {menuOpen && (
+                <>
+                  <div className="fixed inset-0 z-30" onClick={() => setMenuOpen(false)} />
+                  <div className="absolute right-0 mt-2 w-52 bg-velvet border border-border rounded-2xl shadow-xl overflow-hidden z-40">
+                    <button
+                      onClick={() => { setMenuOpen(false); setShowNewGroup(true); }}
+                      className="w-full flex items-center gap-3 px-4 py-3 text-sm hover:bg-surface"
+                    >
+                      <UsersRound className="size-4 text-petal" /> New group
+                    </button>
+                    <button
+                      onClick={() => { setMenuOpen(false); setJoinOpen(true); }}
+                      className="w-full flex items-center gap-3 px-4 py-3 text-sm hover:bg-surface border-t border-border"
+                    >
+                      <KeyRound className="size-4 text-petal" /> Join by code
+                    </button>
+                    <Link
+                      to="/app/friends"
+                      onClick={() => setMenuOpen(false)}
+                      className="w-full flex items-center gap-3 px-4 py-3 text-sm hover:bg-surface border-t border-border"
+                    >
+                      <Users className="size-4 text-petal" /> Add friend
+                    </Link>
+                  </div>
+                </>
+              )}
+            </div>
+          </>
+        }
+      />
 
       {(isLoading || groupsLoading) && (
         <div className="text-center py-12 text-candle-muted text-sm">Loading…</div>
