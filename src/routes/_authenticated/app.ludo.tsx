@@ -74,14 +74,16 @@ function LudoPage() {
       setState(payload as State);
     });
     ch.on("broadcast", { event: "sync-request" }, () => {
-      // Whoever is Red re-broadcasts current state.
+      // Only Red (host) re-broadcasts so a late joiner can't clobber the game.
+      if (mySeat !== "red") return;
       setState((s) => {
         void ch.send({ type: "broadcast", event: "state", payload: s });
         return s;
       });
     });
     ch.subscribe((status) => {
-      if (status === "SUBSCRIBED") {
+      if (status === "SUBSCRIBED" && mySeat !== "red") {
+        // Only non-host asks for state; host is authoritative.
         void ch.send({ type: "broadcast", event: "sync-request", payload: {} });
       }
     });
@@ -90,7 +92,7 @@ function LudoPage() {
       supabase.removeChannel(ch);
       chRef.current = null;
     };
-  }, [mode, me?.id, partner?.id]);
+  }, [mode, me?.id, partner?.id, mySeat, matchId]);
 
   const broadcast = (next: State) => {
     if (mode === "partner" && chRef.current) {
@@ -102,9 +104,8 @@ function LudoPage() {
 
   const [rolling, setRolling] = useState(false);
   const [lastRoll, setLastRoll] = useState<number | null>(null);
-  const [demoWin, setDemoWin] = useState<{ n: number; who: Player } | null>(null);
-  const winTrigger = demoWin ? demoWin.n : state.winner ? `real-${state.winner}` : null;
-  const winWho = demoWin ? demoWin.who : state.winner;
+  const winTrigger = state.winner ? `real-${state.winner}` : null;
+  const winWho = state.winner;
   const handleRoll = () => {
 
     if (!canAct || state.winner || state.dice != null || rolling) return;
@@ -160,6 +161,9 @@ function LudoPage() {
   };
 
   const handleReset = () => {
+    if (mode === "partner" && !state.winner) {
+      if (!window.confirm("Reset the board? This wipes the match for both of you.")) return;
+    }
     const next = initialState();
     setState(next);
     broadcast(next);
@@ -336,7 +340,7 @@ function LudoPage() {
         <LudoWinAnimation
           trigger={winTrigger}
           winner={winWho ?? null}
-          onDone={() => setDemoWin(null)}
+          onDone={() => {}}
         />
 
         {mode === "partner" && me && partner && (
