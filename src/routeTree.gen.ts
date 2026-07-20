@@ -17,6 +17,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
+import { Route as ApiLivekitTokenRouteImport } from './routes/api/livekit-token'
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
 import { Route as AuthenticatedAppIndexRouteImport } from './routes/_authenticated/app.index'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
@@ -113,6 +114,11 @@ const IndexRoute = IndexRouteImport.update({
 const EmailUnsubscribeRoute = EmailUnsubscribeRouteImport.update({
   id: '/email/unsubscribe',
   path: '/email/unsubscribe',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiLivekitTokenRoute = ApiLivekitTokenRouteImport.update({
+  id: '/api/livekit-token',
+  path: '/api/livekit-token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAppRoute = AuthenticatedAppRouteImport.update({
@@ -447,6 +453,7 @@ export interface FileRoutesByFullPath {
   '/terms': typeof TermsRoute
   '/unsubscribe': typeof UnsubscribeRoute
   '/app': typeof AuthenticatedAppRouteWithChildren
+  '/api/livekit-token': typeof ApiLivekitTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/app/anniversary': typeof AuthenticatedAppAnniversaryRoute
   '/app/calls': typeof AuthenticatedAppCallsRoute
@@ -513,6 +520,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/terms': typeof TermsRoute
   '/unsubscribe': typeof UnsubscribeRoute
+  '/api/livekit-token': typeof ApiLivekitTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/app/anniversary': typeof AuthenticatedAppAnniversaryRoute
   '/app/calls': typeof AuthenticatedAppCallsRoute
@@ -580,6 +588,7 @@ export interface FileRoutesById {
   '/terms': typeof TermsRoute
   '/unsubscribe': typeof UnsubscribeRoute
   '/_authenticated/app': typeof AuthenticatedAppRouteWithChildren
+  '/api/livekit-token': typeof ApiLivekitTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/_authenticated/app/anniversary': typeof AuthenticatedAppAnniversaryRoute
   '/_authenticated/app/calls': typeof AuthenticatedAppCallsRoute
@@ -649,6 +658,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/unsubscribe'
     | '/app'
+    | '/api/livekit-token'
     | '/email/unsubscribe'
     | '/app/anniversary'
     | '/app/calls'
@@ -715,6 +725,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/terms'
     | '/unsubscribe'
+    | '/api/livekit-token'
     | '/email/unsubscribe'
     | '/app/anniversary'
     | '/app/calls'
@@ -781,6 +792,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/unsubscribe'
     | '/_authenticated/app'
+    | '/api/livekit-token'
     | '/email/unsubscribe'
     | '/_authenticated/app/anniversary'
     | '/_authenticated/app/calls'
@@ -849,6 +861,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   TermsRoute: typeof TermsRoute
   UnsubscribeRoute: typeof UnsubscribeRoute
+  ApiLivekitTokenRoute: typeof ApiLivekitTokenRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
@@ -914,6 +927,13 @@ declare module '@tanstack/react-router' {
       path: '/email/unsubscribe'
       fullPath: '/email/unsubscribe'
       preLoaderRoute: typeof EmailUnsubscribeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/livekit-token': {
+      id: '/api/livekit-token'
+      path: '/api/livekit-token'
+      fullPath: '/api/livekit-token'
+      preLoaderRoute: typeof ApiLivekitTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/app': {
@@ -1497,6 +1517,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   TermsRoute: TermsRoute,
   UnsubscribeRoute: UnsubscribeRoute,
+  ApiLivekitTokenRoute: ApiLivekitTokenRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
