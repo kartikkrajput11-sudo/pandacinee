@@ -394,16 +394,13 @@ function Me() {
           </Link>
 
           <button
-            onClick={() => {
-              window.localStorage.removeItem("pandacine-onboarded-v1");
-              window.location.reload();
-            }}
+            onClick={() => window.dispatchEvent(new CustomEvent("pandacine:open-tour"))}
             className="w-full p-5 mb-4 rounded-3xl border border-border bg-surface flex items-center gap-3 text-left hover:border-petal/40 transition-colors"
           >
-            <span className="text-xl">🐼</span>
+            <span className="text-xl">✦</span>
             <div className="flex-1">
-              <p className="text-[10px] uppercase tracking-widest text-candle-muted">Onboarding</p>
-              <p className="text-sm text-candle">Replay the intro tour</p>
+              <p className="text-[10px] uppercase tracking-widest text-candle-muted">Walk-through</p>
+              <p className="text-sm text-candle">Take a guided tour of the app</p>
             </div>
             <ChevronRight className="size-4 text-candle-muted" />
           </button>
