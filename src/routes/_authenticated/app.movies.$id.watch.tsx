@@ -151,6 +151,7 @@ function CatalogWatch({ id }: { id: string }) {
   const [friendPickerOpen, setFriendPickerOpen] = useState(false);
   const [waitingFor, setWaitingFor] = useState<{ id: string; name: string } | null>(null);
   const lastPublishRef = useRef(0);
+  const lastVidkingReloadRef = useRef(0);
 
   // TV series state (populated when the admin marked this TMDB id as media_type=tv)
   const [isTv, setIsTv] = useState(false);
@@ -539,26 +540,33 @@ function CatalogWatch({ id }: { id: string }) {
   }, [peer]);
 
   // Mutual auto-sync: the latest play/pause/seek from either partner moves the other screen.
-  // Only runs when BOTH partners loaded the movie from storage (Pandacine).
+  // Two modes:
+  //   • Pandacine ↔ Pandacine → tight sync via <video> handle (sub-second).
+  //   • Vidking ↔ Vidking     → soft sync via iframe reload with ?progress= param
+  //                              on drift > 3s or on play/pause/seeked.
   useEffect(() => {
     if (!peer || !partner || !me) return;
-    if (!isPandacine || peerSourceKind !== "pandacine") return;
+    // Only sync when BOTH sides are on the same kind of source.
+    const bothPandacine = isPandacine && peerSourceKind === "pandacine";
+    const bothIframe    = !isPandacine && peerSourceKind === "iframe";
+    if (!bothPandacine && !bothIframe) return;
     if (peer.updatedAt <= lastAppliedPeerEventRef.current) return;
     const evt = peer.event;
-    // Only react to discrete transport events
     if (evt !== "play" && evt !== "pause" && evt !== "seeked" && evt !== "timeupdate" && evt !== "ratechange") return;
 
-
-    // For third-party iframes we can't nudge; only apply on big drift.
-    if (evt === "timeupdate" && !isPandacine) {
+    // Iframe-mode drift gate — only react to timeupdate if we're > 3s off.
+    if (bothIframe && evt === "timeupdate") {
       const d = Math.abs(mine.currentTime - peer.currentTime);
-      if (d < 6) return;
+      if (d < 3) return;
+      // Rate-limit reloads to at most one every 8s to avoid thrash.
+      if (Date.now() - lastVidkingReloadRef.current < 8000) return;
     }
     lastAppliedPeerEventRef.current = peer.updatedAt;
 
     if (!started) {
       if (evt === "pause") return;
-      if (!isPandacine) {
+      if (bothIframe) {
+        lastVidkingReloadRef.current = Date.now();
         setStartAt(peer.currentTime);
         setPausedByHost(false);
         setStarted(true);
@@ -573,9 +581,8 @@ function CatalogWatch({ id }: { id: string }) {
       return;
     }
 
-    // If the partner's event arrives before this screen has mounted/buffered its
-    // own video, mount immediately and replay the action as soon as the handle is ready.
-    if (isPandacine && !customPlayerRef.current) {
+    // Pandacine can't be controlled until the handle mounts — mount + replay on ready.
+    if (bothPandacine && !customPlayerRef.current) {
       if (evt !== "pause") {
         pendingAutoJoinRef.current = peer.currentTime;
         setStartAt(peer.currentTime);
@@ -586,7 +593,7 @@ function CatalogWatch({ id }: { id: string }) {
     }
 
     // Pandacine tight sync: control the <video> via handle.
-    if (isPandacine && customPlayerRef.current) {
+    if (bothPandacine && customPlayerRef.current) {
       const h = customPlayerRef.current;
       const baseRate = (typeof peer.playbackRate === "number" && peer.playbackRate > 0) ? peer.playbackRate : 1;
       // Latency compensation using LOCAL receive time, not the host's clock.
@@ -597,7 +604,7 @@ function CatalogWatch({ id }: { id: string }) {
       const hostPlaying = evt !== "pause";
       const elapsed = hostPlaying ? Math.max(0, (now - receivedAt) / 1000) * baseRate : 0;
       const targetTime = peer.currentTime + elapsed;
-      const drift = h.currentTime() - targetTime; // positive => follower ahead
+      const drift = h.currentTime() - targetTime;
       const abs = Math.abs(drift);
 
       runSuppressedPlayerAction(() => {
@@ -614,11 +621,9 @@ function CatalogWatch({ id }: { id: string }) {
           return;
         }
         if (abs > 1.5) {
-          // Very gentle rate nudge — closes drift over ~5s. Restored on next update.
           const nudge = Math.max(-0.08, Math.min(0.08, -drift / 5));
           h.setPlaybackRate(Math.max(0.5, baseRate + nudge));
         } else {
-          // Within 1-2s tolerance — leave playback alone, restore host's base rate.
           h.setPlaybackRate(baseRate);
         }
         if (evt === "play") h.play();
@@ -628,13 +633,19 @@ function CatalogWatch({ id }: { id: string }) {
       return;
     }
 
-
-    if (evt === "pause") {
-      applySeek(peer.currentTime, { pause: true });
-      toast.info(`${partner?.display_name.split(" ")[0]} paused`);
-    } else if (evt === "play" || evt === "seeked") {
-      applySeek(peer.currentTime, { pause: false });
-      if (evt === "seeked") toast.info(`${partner?.display_name.split(" ")[0]} skipped`);
+    // Vidking iframe soft sync: reload with ?progress=<peerTime>.
+    // pausedByHost=true rewrites the URL to the no-autoplay variant → effectively pauses.
+    if (bothIframe) {
+      lastVidkingReloadRef.current = Date.now();
+      if (evt === "pause") {
+        applySeek(peer.currentTime, { pause: true });
+        toast.info(`${partner?.display_name.split(" ")[0]} paused`);
+      } else if (evt === "play" || evt === "seeked" || evt === "timeupdate") {
+        applySeek(peer.currentTime, { pause: false });
+        if (evt === "seeked") toast.info(`${partner?.display_name.split(" ")[0]} skipped`);
+        else if (evt === "play") toast.info(`${partner?.display_name.split(" ")[0]} resumed — starting together`);
+        else toast.info("Re-syncing with partner…");
+      }
     }
   }, [peer, me, mine.currentTime, applySeek, partner, isPandacine, peerSourceKind, started, customPlayerReady, runSuppressedPlayerAction]);
 
@@ -1216,6 +1227,18 @@ function CatalogWatch({ id }: { id: string }) {
                 <p className="text-xs text-candle-muted">Start the film together</p>
               </div>
             )}
+
+            {/* Vidking follower — partner paused mid-movie */}
+            {started && !isPandacine && pausedByHost && !gateActive && (
+              <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-velvet/75 backdrop-blur-sm pointer-events-none">
+                <span className="relative size-14 rounded-full flex items-center justify-center bg-petal/10 border border-petal/30">
+                  <Timer className="size-5 text-petal animate-pulse" />
+                </span>
+                <p className="text-[10px] uppercase tracking-[0.35em] text-petal">Paused</p>
+                <p className="text-sm text-candle">{partnerFirst} paused · resuming together at {fmtTime(startAt ?? 0)}</p>
+              </div>
+            )}
+
 
             {/* Follower waits for host to start */}
             {started && gateActive && bothReady && !iAmHost && pausedByHost && (
