@@ -57,6 +57,16 @@ export function setNotifUser(uid: string | null) {
   emit();
 }
 
+// Cross-tab sync: reload when another tab writes to our key.
+if (typeof window !== "undefined") {
+  window.addEventListener("storage", (e) => {
+    if (e.key === keyFor(currentUid)) {
+      load();
+      emit();
+    }
+  });
+}
+
 export function pushNotification(
   n: Omit<NotifItem, "id" | "createdAt" | "read"> & { id?: string },
 ) {
