@@ -280,7 +280,15 @@ export function useWatchSync(
         }
       });
 
+    // Slow the backend heartbeat when the tab is hidden — the peer only needs
+    // an eventual liveness signal, not a 1.5s cadence, when we're in another
+    // tab. This also avoids doubling writes during background prerenders.
     const heartbeat = window.setInterval(() => {
+      if (typeof document !== "undefined" && document.visibilityState === "hidden") {
+        // A slow keepalive so `last_seen_at` doesn't age past the 45s cutoff.
+        if ((Date.now() - lastBackendWriteRef.current) < 15_000) return;
+        lastBackendWriteRef.current = Date.now();
+      }
       writeBackendState();
       refreshBackendState();
     }, 1500);
