@@ -241,6 +241,15 @@ function ChatPeer() {
     el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
   }, []);
 
+  // Locally mark this thread as read whenever the last message id changes,
+  // so the unread badge on /app/chat clears even when the user has
+  // read receipts disabled (in which case messages.read_at is never written).
+  const lastMsgId = messages[messages.length - 1]?.id ?? null;
+  useEffect(() => {
+    if (!me?.id || !peer?.id) return;
+    markDmReadNow(me.id, peer.id);
+  }, [me?.id, peer?.id, lastMsgId]);
+
 
   // Trigger kiss / nudge FX for partner messages. Plays for anything that is
   // (a) freshly arrived (< 15s old) OR (b) still unread — so if the partner
