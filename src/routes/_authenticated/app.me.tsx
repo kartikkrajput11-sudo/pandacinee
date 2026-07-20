@@ -1,8 +1,9 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, LogOut, Heart, Copy, Camera, Save, Sun, Moon, Monitor, ChevronRight, Lock, Coins, Volume2, VolumeX, Eye, EyeOff, CheckCheck, Check } from "lucide-react";
+import { ArrowLeft, LogOut, Heart, Copy, Camera, Save, Sun, Moon, Monitor, ChevronRight, Lock, Coins, Volume2, VolumeX, Eye, EyeOff, CheckCheck, Check, Compass } from "lucide-react";
 import { EditorialPageHeader } from "@/components/editorial/SectionHeader";
+import { AppTour } from "@/components/AppTour";
 import { isSfxEnabled, setSfxEnabled, sfxReaction } from "@/lib/sfx";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -40,6 +41,8 @@ function Me() {
   const [partnerNickname, setPartnerNickname] = useState("");
   const [saving, setSaving] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [tourOpen, setTourOpen] = useState(false);
+
 
   useEffect(() => {
     if (!me) return;
@@ -421,11 +424,19 @@ function Me() {
           </div>
 
           <button
+            onClick={() => setTourOpen(true)}
+            className="w-full py-3.5 bg-surface border border-border rounded-2xl text-candle text-sm font-medium flex items-center justify-center gap-2 hover:border-petal/40 transition-colors mb-3"
+          >
+            <Compass className="size-4 text-petal" /> Take the guided tour
+          </button>
+
+          <button
             onClick={signOut}
             className="w-full py-3.5 bg-surface border border-border rounded-2xl text-candle text-sm font-medium flex items-center justify-center gap-2 hover:border-petal/40 transition-colors"
           >
             <LogOut className="size-4" /> Sign out
           </button>
+          <AppTour open={tourOpen} onClose={() => setTourOpen(false)} />
         </>
       )}
     </div>
