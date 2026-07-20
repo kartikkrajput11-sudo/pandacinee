@@ -660,6 +660,7 @@ function PoolPage() {
 
 
   const resetGame = () => {
+    if (partner && !window.confirm("Rack a new game? Your partner's board will reset too.")) return;
     const fresh = makeRack();
     ballsRef.current = fresh;
     setBalls(fresh);
@@ -673,6 +674,7 @@ function PoolPage() {
     movingRef.current = false;
     turnEndedRef.current = false;
     firstHitRef.current.id = null;
+    hasAuthoritativeRef.current = false;
     try { if (persistKey) localStorage.removeItem(persistKey); } catch { /* noop */ }
     // Notify partner to reset too
     channelRef.current?.send({ type: "broadcast", event: "reset", payload: { ts: Date.now() } });
