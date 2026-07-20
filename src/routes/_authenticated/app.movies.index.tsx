@@ -491,7 +491,7 @@ function FeaturedHero({ movie, isTv = false }: { movie: TmdbMovie; isTv?: boolea
     <div className="relative h-[420px] w-full overflow-hidden">
       {movie.backdrop_path && (
         <img
-          src={poster(movie.backdrop_path, "w780")!}
+          src={poster(movie.backdrop_path, "w500")!}
           alt=""
           className="absolute inset-0 w-full h-full object-cover"
         />
