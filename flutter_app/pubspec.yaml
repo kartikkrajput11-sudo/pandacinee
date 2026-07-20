@@ -32,6 +32,9 @@ dependencies:
   # Notifications (Phase 6)
   flutter_local_notifications: ^17.2.3
 
+  # Local prefs (Phase 10)
+  shared_preferences: ^2.3.2
+
 dev_dependencies:
   flutter_lints: ^4.0.0
 
