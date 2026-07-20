@@ -18,6 +18,8 @@ import 'screens/knowme_screen.dart';
 import 'screens/movies_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/affections_screen.dart';
+import 'screens/notifications_screen.dart';
+import 'screens/settings_screen.dart';
 import 'supabase_providers.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
