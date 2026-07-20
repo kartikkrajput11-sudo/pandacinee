@@ -534,11 +534,13 @@ function PoolPage() {
     }
 
     if (foul) {
+      turnRef.current = other;
       setTurn(other);
       setBallInHand(other);
-      setMessage(`${foulReason} — Player ${other + 1} has ball in hand`);
+      const msg = `${foulReason} — Player ${other + 1} has ball in hand`;
+      setMessage(msg);
       // Broadcast turn switch + ball-in-hand to partner
-      setTimeout(() => sendState(true), 0);
+      setTimeout(() => sendState(true, { turn: other, ballInHand: other, message: msg }), 0);
       return;
     }
 
@@ -546,14 +548,17 @@ function PoolPage() {
     const pocketedMine = myGroup ? pocketed.some((b) => b.group === myGroup) : pocketed.some(b => b.group === "solid" || b.group === "stripe");
     const shouldContinue = pocketedMine;
 
-    if (!shouldContinue) setTurn(other);
+    const nextTurn: Player = shouldContinue ? currentTurn : other;
+    if (!shouldContinue) {
+      turnRef.current = other;
+      setTurn(other);
+    }
     const numSunk = pocketed.filter(b => b.id !== 0 && b.id !== 8).length;
-    setMessage(
-      numSunk > 0
-        ? `Sunk ${numSunk}${shouldContinue ? " — go again" : ""}`
-        : "Miss",
-    );
-    setTimeout(() => sendState(true), 0);
+    const msg = numSunk > 0
+      ? `Sunk ${numSunk}${shouldContinue ? " — go again" : ""}`
+      : "Miss";
+    setMessage(msg);
+    setTimeout(() => sendState(true, { turn: nextTurn, assign: a, message: msg }), 0);
   };
   resolveTurnRef.current = resolveTurn;
 
