@@ -136,18 +136,20 @@ function ChatList() {
 
       {partnerThread && (
         <section className="mb-6">
-          <h3 className="text-[10px] uppercase tracking-widest text-petal mb-2 flex items-center gap-1">
-            <Heart className="size-2.5 fill-current" /> Your panda
-          </h3>
+          <EditorialSectionHeader
+            eyebrow="Your panda"
+            title={<><Heart className="inline size-4 text-petal fill-current mr-1 -mt-1" />Beloved</>}
+          />
           <PartnerCard thread={partnerThread} nickname={me?.partner_nickname ?? null} />
         </section>
       )}
 
       {(groups?.length ?? 0) > 0 && (
         <section className="mb-6">
-          <h3 className="text-[10px] uppercase tracking-widest text-candle-muted mb-2">
-            Circles · {groups?.length}
-          </h3>
+          <EditorialSectionHeader
+            eyebrow={`${groups?.length} circles`}
+            title="Circles"
+          />
           <div className="space-y-1.5">
             {groups!.map((g) => (
               <GroupCard key={g.group.id} thread={g} meId={me?.id ?? ""} partnerId={partnerId} />
@@ -158,9 +160,10 @@ function ChatList() {
 
       {friendThreads.length > 0 && (
         <section className="mb-6">
-          <h3 className="text-[10px] uppercase tracking-widest text-candle-muted mb-2">
-            Friends · {friendThreads.length}
-          </h3>
+          <EditorialSectionHeader
+            eyebrow={`${friendThreads.length} friends`}
+            title="Friends"
+          />
           <div className="space-y-1.5">
             {friendThreads.map((t) => (
               <FriendCard key={t.peer.id} thread={t} meId={me?.id} />
