@@ -1,11 +1,20 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:http/http.dart' as http;
 import 'package:livekit_client/livekit_client.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../theme.dart';
+
+// Points at the TanStack server route on the published site. Override in
+// dev with --dart-define=PANDACINE_API_BASE=https://project--...-dev.lovable.app
+const _apiBase = String.fromEnvironment(
+  'PANDACINE_API_BASE',
+  defaultValue: 'https://pandacinee.lovable.app',
+);
 
 /// Phase 21 — Native LiveKit call room.
 ///
@@ -51,12 +60,21 @@ class _LiveCallRoomScreenState extends ConsumerState<LiveCallRoomScreen> {
       }
     }
 
-    // 2. Mint token from edge function.
-    final tokenRes = await _client.functions.invoke('livekit_token', body: {
-      'call_id': widget.callId,
-      'room': 'calls-${widget.callId}',
-    });
-    final data = tokenRes.data as Map;
+    // 2. Mint token from TanStack server route.
+    final session = _client.auth.currentSession;
+    final res = await http.post(
+      Uri.parse('$_apiBase/api/livekit-token'),
+      headers: {
+        'Content-Type': 'application/json',
+        if (session != null) 'Authorization': 'Bearer ${session.accessToken}',
+      },
+      body: jsonEncode({'call_id': widget.callId, 'room': 'calls-${widget.callId}'}),
+    );
+    if (res.statusCode != 200) {
+      setState(() => _status = 'Token error: ${res.statusCode}');
+      return;
+    }
+    final data = jsonDecode(res.body) as Map<String, dynamic>;
     final url = data['url'] as String;
     final token = data['token'] as String;
 
