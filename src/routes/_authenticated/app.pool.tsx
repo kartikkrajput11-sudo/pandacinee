@@ -475,6 +475,38 @@ function PoolPage() {
     fireCue(power);
   };
 
+  // -------- Cue-stick grip drag (pull back along cue axis) --------
+  const gripDragRef = useRef<{ startX: number; startY: number; ux: number; uy: number } | null>(null);
+  const onGripDown = (e: ReactPointerEvent) => {
+    if (!canShoot || !cueBall || !mouse) return;
+    e.stopPropagation();
+    const p = toSvg(e.clientX, e.clientY);
+    const dx = mouse.x - cueBall.x;
+    const dy = mouse.y - cueBall.y;
+    const len = Math.hypot(dx, dy) || 1;
+    gripDragRef.current = { startX: p.x, startY: p.y, ux: dx / len, uy: dy / len };
+    (e.target as Element).setPointerCapture?.(e.pointerId);
+  };
+  const onGripMove = (e: ReactPointerEvent) => {
+    const g = gripDragRef.current;
+    if (!g) return;
+    e.stopPropagation();
+    const p = toSvg(e.clientX, e.clientY);
+    // Project displacement onto the outward cue-butt direction
+    const proj = (p.x - g.startX) * g.ux + (p.y - g.startY) * g.uy;
+    const pwr = Math.max(0, Math.min(MAX_POWER, proj * 0.35));
+    setStickPower(pwr);
+  };
+  const onGripUp = (e: ReactPointerEvent) => {
+    if (!gripDragRef.current) return;
+    e.stopPropagation();
+    const pwr = stickPower;
+    gripDragRef.current = null;
+    if (pwr >= 1) fireCue(pwr);
+    else setStickPower(0);
+  };
+
+
 
   // -------- Turn resolution --------
   // NOTE: called from the RAF loop (which captures the first-render closure),
