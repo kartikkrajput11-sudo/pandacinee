@@ -75,6 +75,9 @@ export function usePunishmentLock(meId: string | null, peerId: string | null) {
 
   useEffect(() => {
     if (!activeLock?.expires_at) return;
+    // Only the locker writes the "expired" status so both clients don't race
+    // to update the same row on timer tick.
+    if (activeLock.locker_id !== meId) return;
     const remaining = new Date(activeLock.expires_at).getTime() - Date.now();
     if (remaining <= 0) {
       db.from("punishment_locks").update({ status: "expired" }).eq("id", activeLock.id).then(() => {});
@@ -84,7 +87,7 @@ export function usePunishmentLock(meId: string | null, peerId: string | null) {
       db.from("punishment_locks").update({ status: "expired" }).eq("id", activeLock.id).then(() => {});
     }, remaining + 200);
     return () => window.clearTimeout(t);
-  }, [activeLock?.id, activeLock?.expires_at]);
+  }, [activeLock?.id, activeLock?.expires_at, activeLock?.locker_id, meId]);
 
   const iAmLocked = !!activeLock && activeLock.target_id === meId;
   const iAmLocker = !!activeLock && activeLock.locker_id === meId;
