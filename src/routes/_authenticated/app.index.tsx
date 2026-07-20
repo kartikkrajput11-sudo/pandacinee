@@ -10,6 +10,7 @@ import { MemoryOfTheDayCard } from "@/components/MemoryOfTheDayCard";
 import { Heart, ArrowRight, Users, LineChart, Clapperboard, BookHeart, Gift, Feather, Sparkles, Stars, Milestone, ListChecks } from "lucide-react";
 import { AvatarImg } from "@/components/AvatarImg";
 import NotificationCenter from "@/components/NotificationCenter";
+import { EditorialPageHeader, EditorialSectionHeader } from "@/components/editorial/SectionHeader";
 
 
 export const Route = createFileRoute("/_authenticated/app/")({
@@ -28,25 +29,35 @@ function Home() {
     <div className="relative px-5 pt-10 space-y-6">
       <Petals count={4} />
 
-      {/* Header */}
-      <header className="relative z-[120] flex items-start justify-between">
-        <div>
-          <p className="text-[10px] uppercase tracking-[0.22em] text-petal mb-1">{greeting}</p>
-          <h1 className="font-serif text-3xl italic leading-tight">
+      {/* Editorial hero header */}
+      <EditorialPageHeader
+        eyebrow={greeting}
+        title={
+          <>
+            <span className="text-candle-muted/70 not-italic text-xl md:text-2xl font-serif">
+              Hello,{" "}
+            </span>
             {isLoading ? "…" : profile?.display_name?.split(" ")[0] ?? "Friend"}
-          </h1>
-          {partner && (
-            <p className="text-xs text-candle-muted mt-1">
-              with {partnerName} <span className="text-petal">❤︎</span>
-            </p>
-          )}
-        </div>
-        <div className="flex items-center gap-3">
-          <NotificationCenter />
-          <Avatar profile={profile} />
-        </div>
-
-      </header>
+          </>
+        }
+        subtitle={
+          partner ? (
+            <>
+              with <span className="text-candle">{partnerName}</span>{" "}
+              <span className="text-petal">❤︎</span>
+            </>
+          ) : (
+            "A cinema for two — invite your panda to begin."
+          )
+        }
+        trailing={
+          <>
+            <NotificationCenter />
+            <Avatar profile={profile} />
+          </>
+        }
+        className="relative z-[120]"
+      />
 
       {/* Invite banner (no partner) */}
       {!partner && !isLoading && (
@@ -135,9 +146,7 @@ function Home() {
       {/* Section: Signature — luxury features for two */}
       {partner && (
         <section className="relative z-10">
-          <p className="text-[10px] uppercase tracking-[0.22em] text-candle-muted mb-3 px-1 flex items-center gap-2">
-            <span className="text-petal">✦</span> Signature
-          </p>
+          <EditorialSectionHeader eyebrow="✦ Chapter I" title="Signature" />
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
 
             <SignatureTile to="/app/letters" Icon={Feather} label="Love Letters" caption="Seal now, open later" swatch="from-[#c9a84c]/40 to-[#f0d78c]/10" />
@@ -150,7 +159,7 @@ function Home() {
 
       {/* Section: Together */}
       <section className="relative z-10">
-        <p className="text-[10px] uppercase tracking-[0.22em] text-candle-muted mb-3 px-1">Together</p>
+        <EditorialSectionHeader eyebrow="✦ Chapter II" title="Together" />
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
           <TileLink to="/app/movies" search={{ q: "" }} Icon={Clapperboard} label="Watch" caption="Tonight's pick" />
           <TileLink to="/app/memories" Icon={BookHeart} label="Memories" caption="Your archive" />

@@ -8,6 +8,7 @@ import { useGroups } from "@/hooks/useGroups";
 import { useJoinGroupByCode } from "@/hooks/useGroupAdmin";
 import { NewGroupDialog } from "@/components/chat/NewGroupDialog";
 import { UserAvatar } from "@/components/UserAvatar";
+import { EditorialPageHeader, EditorialSectionHeader } from "@/components/editorial/SectionHeader";
 
 export const Route = createFileRoute("/_authenticated/app/chat/")({
   component: ChatList,
@@ -48,51 +49,58 @@ function ChatList() {
 
   return (
     <div className="px-5 pt-10 pb-6">
-      <header className="flex items-center gap-3 mb-6">
-        <Link to="/app" className="text-candle-muted"><ArrowLeft className="size-5" /></Link>
-        <div className="flex-1">
-          <p className="text-[10px] uppercase tracking-widest text-petal">Whispers</p>
-          <h1 className="font-serif text-3xl italic">Chats</h1>
-        </div>
-        <Link to="/app/friends" className="size-10 rounded-full bg-surface border border-border flex items-center justify-center text-petal" aria-label="Friends">
-          <Users className="size-4" />
-        </Link>
-        <div className="relative">
-          <button
-            onClick={() => setMenuOpen((s) => !s)}
-            className="size-10 rounded-full bg-petal text-velvet flex items-center justify-center"
-            aria-label="New"
-          >
-            <Plus className="size-4" />
-          </button>
-          {menuOpen && (
-            <>
-              <div className="fixed inset-0 z-30" onClick={() => setMenuOpen(false)} />
-              <div className="absolute right-0 mt-2 w-52 bg-velvet border border-border rounded-2xl shadow-xl overflow-hidden z-40">
-                <button
-                  onClick={() => { setMenuOpen(false); setShowNewGroup(true); }}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-sm hover:bg-surface"
-                >
-                  <UsersRound className="size-4 text-petal" /> New group
-                </button>
-                <button
-                  onClick={() => { setMenuOpen(false); setJoinOpen(true); }}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-sm hover:bg-surface border-t border-border"
-                >
-                  <KeyRound className="size-4 text-petal" /> Join by code
-                </button>
-                <Link
-                  to="/app/friends"
-                  onClick={() => setMenuOpen(false)}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-sm hover:bg-surface border-t border-border"
-                >
-                  <Users className="size-4 text-petal" /> Add friend
-                </Link>
-              </div>
-            </>
-          )}
-        </div>
-      </header>
+      <EditorialPageHeader
+        eyebrow="Whispers"
+        title="Chats"
+        subtitle="Where your circles meet — partner, friends, and groups, all in one velvet room."
+        leading={
+          <Link to="/app" className="text-candle-muted p-2 -ml-2 rounded-full hover:bg-surface transition-colors">
+            <ArrowLeft className="size-5" />
+          </Link>
+        }
+        trailing={
+          <>
+            <Link to="/app/friends" className="size-10 rounded-full bg-surface border border-border flex items-center justify-center text-petal hover:border-petal/40 transition-colors" aria-label="Friends">
+              <Users className="size-4" />
+            </Link>
+            <div className="relative">
+              <button
+                onClick={() => setMenuOpen((s) => !s)}
+                className="size-10 rounded-full bg-petal text-velvet flex items-center justify-center petal-glow"
+                aria-label="New"
+              >
+                <Plus className="size-4" />
+              </button>
+              {menuOpen && (
+                <>
+                  <div className="fixed inset-0 z-30" onClick={() => setMenuOpen(false)} />
+                  <div className="absolute right-0 mt-2 w-52 bg-velvet border border-border rounded-2xl shadow-xl overflow-hidden z-40">
+                    <button
+                      onClick={() => { setMenuOpen(false); setShowNewGroup(true); }}
+                      className="w-full flex items-center gap-3 px-4 py-3 text-sm hover:bg-surface"
+                    >
+                      <UsersRound className="size-4 text-petal" /> New group
+                    </button>
+                    <button
+                      onClick={() => { setMenuOpen(false); setJoinOpen(true); }}
+                      className="w-full flex items-center gap-3 px-4 py-3 text-sm hover:bg-surface border-t border-border"
+                    >
+                      <KeyRound className="size-4 text-petal" /> Join by code
+                    </button>
+                    <Link
+                      to="/app/friends"
+                      onClick={() => setMenuOpen(false)}
+                      className="w-full flex items-center gap-3 px-4 py-3 text-sm hover:bg-surface border-t border-border"
+                    >
+                      <Users className="size-4 text-petal" /> Add friend
+                    </Link>
+                  </div>
+                </>
+              )}
+            </div>
+          </>
+        }
+      />
 
       {(isLoading || groupsLoading) && (
         <div className="text-center py-12 text-candle-muted text-sm">Loading…</div>
@@ -128,18 +136,20 @@ function ChatList() {
 
       {partnerThread && (
         <section className="mb-6">
-          <h3 className="text-[10px] uppercase tracking-widest text-petal mb-2 flex items-center gap-1">
-            <Heart className="size-2.5 fill-current" /> Your panda
-          </h3>
+          <EditorialSectionHeader
+            eyebrow="Your panda"
+            title={<><Heart className="inline size-4 text-petal fill-current mr-1 -mt-1" />Beloved</>}
+          />
           <PartnerCard thread={partnerThread} nickname={me?.partner_nickname ?? null} />
         </section>
       )}
 
       {(groups?.length ?? 0) > 0 && (
         <section className="mb-6">
-          <h3 className="text-[10px] uppercase tracking-widest text-candle-muted mb-2">
-            Circles · {groups?.length}
-          </h3>
+          <EditorialSectionHeader
+            eyebrow={`${groups?.length} circles`}
+            title="Circles"
+          />
           <div className="space-y-1.5">
             {groups!.map((g) => (
               <GroupCard key={g.group.id} thread={g} meId={me?.id ?? ""} partnerId={partnerId} />
@@ -150,9 +160,10 @@ function ChatList() {
 
       {friendThreads.length > 0 && (
         <section className="mb-6">
-          <h3 className="text-[10px] uppercase tracking-widest text-candle-muted mb-2">
-            Friends · {friendThreads.length}
-          </h3>
+          <EditorialSectionHeader
+            eyebrow={`${friendThreads.length} friends`}
+            title="Friends"
+          />
           <div className="space-y-1.5">
             {friendThreads.map((t) => (
               <FriendCard key={t.peer.id} thread={t} meId={me?.id} />
