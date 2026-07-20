@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 
 import '../supabase_providers.dart';
 import '../theme.dart';
+import 'notifications_screen.dart';
+import 'streak_card.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -22,8 +24,15 @@ class HomeScreen extends ConsumerWidget {
             return ListView(
               padding: const EdgeInsets.fromLTRB(24, 32, 24, 32),
               children: [
-                Text('Chapter · Home', style: eyebrow()),
-                const SizedBox(height: 10),
+                Row(children: [
+                  Expanded(child: Text('Chapter · Home', style: eyebrow())),
+                  const NotificationBell(),
+                  IconButton(
+                    icon: const Icon(Icons.settings_outlined, color: AppColors.candle),
+                    onPressed: () => context.push('/app/settings'),
+                  ),
+                ]),
+                const SizedBox(height: 4),
                 Text('Hello, $name', style: serifItalic(size: 40))
                     .animate().fadeIn().slideY(begin: .1),
                 const SizedBox(height: 8),
@@ -31,20 +40,15 @@ class HomeScreen extends ConsumerWidget {
                   'Your velvet room is ready.',
                   style: TextStyle(color: AppColors.candleMuted),
                 ),
-                const SizedBox(height: 28),
+                const SizedBox(height: 22),
+                const StreakCard(),
+                const SizedBox(height: 24),
                 _card(context, 'Chats', 'DMs, groups, affections', onTap: () => context.push('/app/chats')),
                 _card(context, 'Play', 'Chess, Ludo, Uno, Pool…', onTap: () => context.push('/app/play')),
                 _card(context, 'Movies', 'Watch in lock-step', onTap: () => context.push('/app/movies')),
                 _card(context, 'Profile', 'Badges & achievements', onTap: () => context.push('/app/me')),
                 _card(context, 'Affections', 'Kiss · Hug · Headpat…', onTap: () => context.push('/app/affections')),
-                const SizedBox(height: 40),
-                Center(
-                  child: TextButton(
-                    onPressed: () => ref.read(supabaseProvider).auth.signOut(),
-                    child: const Text('Sign out',
-                        style: TextStyle(color: AppColors.candleMuted)),
-                  ),
-                ),
+                const SizedBox(height: 30),
               ],
             );
           },
