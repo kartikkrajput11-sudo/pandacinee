@@ -122,7 +122,7 @@ class _GroupBubble extends StatelessWidget {
   Widget build(BuildContext context) {
     final avatar = CircleAvatar(
       radius: 14,
-      backgroundColor: AubergineNoir.plumDeep,
+      backgroundColor: AppColors.surface,
       backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl!) : null,
       child: avatarUrl == null
           ? Text(senderName[0].toUpperCase(), style: const TextStyle(fontSize: 12))
@@ -133,7 +133,7 @@ class _GroupBubble extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.7),
       decoration: BoxDecoration(
-        color: mine ? AubergineNoir.coral.withOpacity(0.85) : AubergineNoir.plumDeep,
+        color: mine ? AppColors.coral.withOpacity(0.85) : AppColors.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: const Color(0x22FFFFFF)),
       ),
@@ -145,7 +145,7 @@ class _GroupBubble extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 4),
               child: Text(senderName,
                   style: const TextStyle(
-                      color: AubergineNoir.coral,
+                      color: AppColors.coral,
                       fontSize: 12,
                       fontWeight: FontWeight.w600)),
             ),
@@ -189,7 +189,7 @@ class _GroupComposer extends StatelessWidget {
                 decoration: InputDecoration(
                   hintText: 'Message group…',
                   filled: true,
-                  fillColor: AubergineNoir.plumDeep,
+                  fillColor: AppColors.surface,
                   contentPadding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   border: OutlineInputBorder(
@@ -201,7 +201,7 @@ class _GroupComposer extends StatelessWidget {
             ),
             const SizedBox(width: 8),
             Material(
-              color: AubergineNoir.coral,
+              color: AppColors.coral,
               shape: const CircleBorder(),
               child: InkWell(
                 customBorder: const CircleBorder(),

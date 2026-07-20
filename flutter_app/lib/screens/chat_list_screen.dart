@@ -17,9 +17,9 @@ class ChatListScreen extends ConsumerWidget {
         appBar: AppBar(
           title: const Text('Chats'),
           bottom: const TabBar(
-            indicatorColor: AubergineNoir.coral,
-            labelColor: AubergineNoir.coral,
-            unselectedLabelColor: AubergineNoir.mist,
+            indicatorColor: AppColors.coral,
+            labelColor: AppColors.coral,
+            unselectedLabelColor: AppColors.candleMuted,
             tabs: [Tab(text: 'Direct'), Tab(text: 'Groups')],
           ),
         ),
@@ -57,7 +57,7 @@ class _DirectTab extends ConsumerWidget {
                 onTap: () => context.push('/app/chat/${t.otherId}'),
                 leading: CircleAvatar(
                   radius: 24,
-                  backgroundColor: AubergineNoir.plumDeep,
+                  backgroundColor: AppColors.surface,
                   backgroundImage: t.avatarUrl != null ? NetworkImage(t.avatarUrl!) : null,
                   child: t.avatarUrl == null
                       ? Text((t.displayName ?? t.username ?? '?')[0].toUpperCase())
@@ -68,11 +68,11 @@ class _DirectTab extends ConsumerWidget {
                   t.lastMessage ?? '',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: AubergineNoir.mist),
+                  style: const TextStyle(color: AppColors.candleMuted),
                 ),
                 trailing: t.lastAt != null
                     ? Text(_timeShort(t.lastAt!),
-                        style: const TextStyle(color: AubergineNoir.mist, fontSize: 12))
+                        style: const TextStyle(color: AppColors.candleMuted, fontSize: 12))
                     : null,
               );
             },
@@ -107,7 +107,7 @@ class _GroupsTab extends ConsumerWidget {
               onTap: () => context.push('/app/group/${g['id']}'),
               leading: CircleAvatar(
                 radius: 24,
-                backgroundColor: AubergineNoir.plumDeep,
+                backgroundColor: AppColors.surface,
                 backgroundImage:
                     g['avatar_url'] != null ? NetworkImage(g['avatar_url']) : null,
                 child: g['avatar_url'] == null
@@ -116,7 +116,7 @@ class _GroupsTab extends ConsumerWidget {
               ),
               title: Text(g['name'] ?? 'Unnamed group'),
               subtitle: Text('Code: ${g['code'] ?? '—'}',
-                  style: const TextStyle(color: AubergineNoir.mist)),
+                  style: const TextStyle(color: AppColors.candleMuted)),
             );
           },
         );
@@ -136,7 +136,7 @@ class _EmptyState extends StatelessWidget {
         child: Text(
           text,
           textAlign: TextAlign.center,
-          style: const TextStyle(color: AubergineNoir.mist),
+          style: const TextStyle(color: AppColors.candleMuted),
         ),
       ),
     );

@@ -68,7 +68,7 @@ class _DmScreenState extends ConsumerState<DmScreen> {
           children: [
             CircleAvatar(
               radius: 18,
-              backgroundColor: AubergineNoir.plumDeep,
+              backgroundColor: AppColors.surface,
               backgroundImage:
                   _other?['avatar_url'] != null ? NetworkImage(_other!['avatar_url']) : null,
               child: _other?['avatar_url'] == null
@@ -133,7 +133,7 @@ class _Bubble extends StatelessWidget {
         constraints:
             BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
         decoration: BoxDecoration(
-          color: mine ? AubergineNoir.coral.withOpacity(0.85) : AubergineNoir.plumDeep,
+          color: mine ? AppColors.coral.withOpacity(0.85) : AppColors.surface,
           borderRadius: BorderRadius.only(
             topLeft: const Radius.circular(18),
             topRight: const Radius.circular(18),
@@ -174,7 +174,7 @@ class _Composer extends StatelessWidget {
                 decoration: InputDecoration(
                   hintText: 'Message…',
                   filled: true,
-                  fillColor: AubergineNoir.plumDeep,
+                  fillColor: AppColors.surface,
                   contentPadding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   border: OutlineInputBorder(
@@ -186,7 +186,7 @@ class _Composer extends StatelessWidget {
             ),
             const SizedBox(width: 8),
             Material(
-              color: AubergineNoir.coral,
+              color: AppColors.coral,
               shape: const CircleBorder(),
               child: InkWell(
                 customBorder: const CircleBorder(),
