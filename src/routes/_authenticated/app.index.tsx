@@ -29,25 +29,35 @@ function Home() {
     <div className="relative px-5 pt-10 space-y-6">
       <Petals count={4} />
 
-      {/* Header */}
-      <header className="relative z-[120] flex items-start justify-between">
-        <div>
-          <p className="text-[10px] uppercase tracking-[0.22em] text-petal mb-1">{greeting}</p>
-          <h1 className="font-serif text-3xl italic leading-tight">
+      {/* Editorial hero header */}
+      <EditorialPageHeader
+        eyebrow={greeting}
+        title={
+          <>
+            <span className="text-candle-muted/70 not-italic text-xl md:text-2xl font-serif">
+              Hello,{" "}
+            </span>
             {isLoading ? "…" : profile?.display_name?.split(" ")[0] ?? "Friend"}
-          </h1>
-          {partner && (
-            <p className="text-xs text-candle-muted mt-1">
-              with {partnerName} <span className="text-petal">❤︎</span>
-            </p>
-          )}
-        </div>
-        <div className="flex items-center gap-3">
-          <NotificationCenter />
-          <Avatar profile={profile} />
-        </div>
-
-      </header>
+          </>
+        }
+        subtitle={
+          partner ? (
+            <>
+              with <span className="text-candle">{partnerName}</span>{" "}
+              <span className="text-petal">❤︎</span>
+            </>
+          ) : (
+            "A cinema for two — invite your panda to begin."
+          )
+        }
+        trailing={
+          <>
+            <NotificationCenter />
+            <Avatar profile={profile} />
+          </>
+        }
+        className="relative z-[120]"
+      />
 
       {/* Invite banner (no partner) */}
       {!partner && !isLoading && (
