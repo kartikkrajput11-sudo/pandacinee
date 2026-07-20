@@ -26,18 +26,10 @@ function Home() {
   const greeting = useGreeting();
   const partnerName = partner ? (profile?.partner_nickname || partner.display_name) : "your panda";
 
-  const [tourOpen, setTourOpen] = useState(false);
-  useEffect(() => {
-    if (!isLoading && profile && !hasSeenTour()) {
-      const t = setTimeout(() => setTourOpen(true), 600);
-      return () => clearTimeout(t);
-    }
-  }, [isLoading, profile]);
-
   return (
     <div className="relative px-5 pt-10 space-y-6">
-      <AppTour open={tourOpen} onClose={() => setTourOpen(false)} />
       <Petals count={4} />
+
 
 
       {/* Editorial hero header */}
