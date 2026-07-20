@@ -289,7 +289,8 @@ type PeerMsg =
   | { t: "guess"; from: string; attempt: number; x: number; y: number }
   | { t: "round_end"; from: string; scores: [number, number]; foundAt: number | null }
   | { t: "next_round"; from: string; hiderId: string; round: number }
-  | { t: "finish"; from: string; scores: [number, number] };
+  | { t: "finish"; from: string; scores: [number, number] }
+  | { t: "reset"; from: string };
 
 /* Whisper suggestion prompts — hider taps to auto-fill, or writes their own. */
 const WHISPER_PROMPTS = [
