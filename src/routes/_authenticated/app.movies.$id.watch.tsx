@@ -196,7 +196,11 @@ function CatalogWatch({ id }: { id: string }) {
     clearPeerPreparing,
     peerSourceKind,
     setSourceKind,
+    peerBuffering,
+    sendBuffering,
+    startTogether,
   } = useWatchSync(me?.id ?? null, partner?.id ?? null, syncRoomId, isTv ? "tv" : "movie");
+
 
 
   const iAmHost = !!me && hostId === me.id;
