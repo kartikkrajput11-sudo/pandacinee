@@ -430,14 +430,15 @@ function HideSeekPage() {
     }
 
     if (msg.t === "round_end") {
-      setScores(msg.scores);
+      // Sender's array is in their own [me, partner] perspective — flip for us.
+      setScores([msg.scores[1], msg.scores[0]]);
       setFoundAt(msg.foundAt);
       setPhase("round_result");
       return;
     }
 
     if (msg.t === "finish") {
-      setScores(msg.scores);
+      setScores([msg.scores[1], msg.scores[0]]);
       setPhase("final");
       return;
     }
