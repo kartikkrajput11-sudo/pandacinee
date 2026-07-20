@@ -632,12 +632,15 @@ function GenreChip({ label, icon, genre }: { label: string; icon: React.ReactNod
 
 function CustomRail({ title, movies }: { title: string; movies: CustomMovieRow[] }) {
   return (
-    <section className="mt-8">
-      <h3 className="text-[10px] font-bold tracking-[0.2em] uppercase text-candle-muted mb-4 flex items-center gap-2.5">
-        <Sparkles className="size-3.5 text-petal" />
-        <span>{title}</span>
-        <div className="h-px flex-1 bg-border" />
-      </h3>
+    <section className="mt-10">
+      <div className="mb-4 flex items-end justify-between gap-3">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="w-px h-6 bg-petal/50 shrink-0" />
+          <h3 className="font-serif italic text-2xl text-candle leading-none truncate">{title}</h3>
+        </div>
+        <span className="text-[10px] tracking-[0.2em] uppercase text-petal font-semibold shrink-0">Fresh</span>
+      </div>
+
       <div className="flex gap-3 overflow-x-auto no-scrollbar -mx-5 px-5 pb-2">
         {movies.map((m) => (
           <Link
