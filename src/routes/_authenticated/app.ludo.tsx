@@ -74,7 +74,8 @@ function LudoPage() {
       setState(payload as State);
     });
     ch.on("broadcast", { event: "sync-request" }, () => {
-      // Whoever is Red re-broadcasts current state.
+      // Only Red (host) re-broadcasts so a late joiner can't clobber the game.
+      if (mySeat !== "red") return;
       setState((s) => {
         void ch.send({ type: "broadcast", event: "state", payload: s });
         return s;
