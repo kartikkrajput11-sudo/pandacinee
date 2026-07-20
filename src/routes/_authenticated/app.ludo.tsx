@@ -337,7 +337,7 @@ function LudoPage() {
         <LudoWinAnimation
           trigger={winTrigger}
           winner={winWho ?? null}
-          onDone={() => setDemoWin(null)}
+          onDone={() => {}}
         />
 
         {mode === "partner" && me && partner && (
