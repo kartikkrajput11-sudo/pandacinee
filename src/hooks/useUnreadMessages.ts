@@ -26,12 +26,17 @@ export function useUnreadMessages() {
     const fetchCount = async () => {
       const { data: dmRows } = await supabase
         .from("messages")
-        .select("sender_id")
+        .select("sender_id,created_at,read_at")
         .eq("receiver_id", userId)
-        .is("read_at", null)
-        .is("deleted_at", null);
+        .is("deleted_at", null)
+        .order("created_at", { ascending: false })
+        .limit(400);
       if (cancelled) return;
-      const dmSenders = new Set((dmRows ?? []).map((r) => r.sender_id));
+      const dmSenders = new Set(
+        (dmRows ?? [])
+          .filter((r) => isDmMessageUnread(userId, r.sender_id, r.created_at, r.read_at))
+          .map((r) => r.sender_id),
+      );
 
       const { data: myGroups } = await supabase
         .from("chat_group_members")
