@@ -356,34 +356,41 @@ function PoolPage() {
 
   useEffect(() => {
     let last = performance.now();
+    let lastBroadcast = 0;
     const loop = (t: number) => {
       const dt = Math.min(32, t - last); last = t;
       // Only the authoritative seat simulates. Solo (mySeat null) always simulates.
       if (isMyTurnRef.current) {
-        const steps = Math.max(1, Math.round(dt / 16));
-        for (let i = 0; i < steps; i++) {
-          step(
-            ballsRef.current,
-            () => sfxPoolRail(),
-            () => sfxPoolClick(),
-            (b) => {
-              sfxPoolPocket();
-              setPocketedThisTurn((s) => [...s, b]);
-            },
-            firstHitRef.current,
-          );
-        }
-        const stillMoving = anyMoving(ballsRef.current);
-        setBalls([...ballsRef.current]);
-        if (stillMoving) {
-          movingRef.current = true;
-          sendState();
-        }
-        if (!stillMoving && movingRef.current && !turnEndedRef.current) {
-          movingRef.current = false;
-          turnEndedRef.current = true;
-          setTimeout(() => resolveTurnRef.current(), 0);
-
+        const moving = movingRef.current || anyMoving(ballsRef.current);
+        if (moving) {
+          const steps = Math.max(1, Math.round(dt / 16));
+          for (let i = 0; i < steps; i++) {
+            step(
+              ballsRef.current,
+              () => sfxPoolRail(),
+              () => sfxPoolClick(),
+              (b) => {
+                sfxPoolPocket();
+                setPocketedThisTurn((s) => [...s, b]);
+              },
+              firstHitRef.current,
+            );
+          }
+          const stillMoving = anyMoving(ballsRef.current);
+          setBalls([...ballsRef.current]);
+          if (stillMoving) {
+            movingRef.current = true;
+            // Throttle broadcasts during motion to ~12Hz to reduce lag
+            if (t - lastBroadcast > 80) {
+              lastBroadcast = t;
+              sendState();
+            }
+          }
+          if (!stillMoving && movingRef.current && !turnEndedRef.current) {
+            movingRef.current = false;
+            turnEndedRef.current = true;
+            setTimeout(() => resolveTurnRef.current(), 0);
+          }
         }
       }
       rafRef.current = requestAnimationFrame(loop);
@@ -392,6 +399,7 @@ function PoolPage() {
     return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
 
   const cueBall = balls.find((b) => b.id === 0);
   const canShoot = !winner && cueBall && !anyMoving(balls) && ballInHand === null && isMyTurn;
