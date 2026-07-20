@@ -26,6 +26,11 @@ import 'screens/punishment_lock_screen.dart';
 import 'screens/vault_screen.dart';
 import 'screens/daily_screen.dart';
 import 'screens/shop_screen.dart';
+import 'screens/calls_screen.dart';
+import 'screens/watch_party_screen.dart';
+import 'screens/admin_screen.dart';
+import 'screens/tour_screen.dart';
+import 'screens/shared_media_screen.dart';
 import 'supabase_providers.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -75,6 +80,28 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/app/vault', builder: (_, __) => const VaultScreen()),
       GoRoute(path: '/app/daily', builder: (_, __) => const DailyScreen()),
       GoRoute(path: '/app/shop', builder: (_, __) => const ShopScreen()),
+      GoRoute(path: '/app/calls', builder: (_, __) => const CallsScreen()),
+      GoRoute(
+        path: '/app/call/:callId',
+        builder: (_, s) => CallRoomScreen(callId: s.pathParameters['callId']!),
+      ),
+      GoRoute(
+        path: '/app/watch/:roomId/:leaderId',
+        builder: (_, s) => WatchPartyScreen(
+          roomId: s.pathParameters['roomId']!,
+          leaderId: s.pathParameters['leaderId']!,
+        ),
+      ),
+      GoRoute(path: '/app/admin', builder: (_, __) => const AdminScreen()),
+      GoRoute(path: '/app/tour', builder: (_, __) => const TourScreen()),
+      GoRoute(
+        path: '/app/shared-media/dm/:peerId',
+        builder: (_, s) => SharedMediaScreen(peerId: s.pathParameters['peerId']!),
+      ),
+      GoRoute(
+        path: '/app/shared-media/group/:groupId',
+        builder: (_, s) => SharedMediaScreen(groupId: s.pathParameters['groupId']!),
+      ),
     ],
   );
 });
