@@ -13,6 +13,9 @@ import 'screens/chess_screen.dart';
 import 'screens/ludo_screen.dart';
 import 'screens/uno_screen.dart';
 import 'screens/pool_screen.dart';
+import 'screens/hideseek_screen.dart';
+import 'screens/knowme_screen.dart';
+import 'screens/movies_screen.dart';
 import 'supabase_providers.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -46,6 +49,9 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/app/play/ludo', builder: (_, __) => const LudoScreen()),
       GoRoute(path: '/app/play/uno', builder: (_, __) => const UnoScreen()),
       GoRoute(path: '/app/play/pool', builder: (_, __) => const PoolScreen()),
+      GoRoute(path: '/app/play/hideseek', builder: (_, __) => const HideSeekScreen()),
+      GoRoute(path: '/app/play/knowme', builder: (_, __) => const KnowMeScreen()),
+      GoRoute(path: '/app/movies', builder: (_, __) => const MoviesScreen()),
     ],
   );
 });
