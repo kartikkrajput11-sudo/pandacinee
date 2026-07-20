@@ -407,41 +407,39 @@ function FilterBar({
   ];
   const ratingOptions = [0, 6, 7, 8, 9];
   return (
-    <div className="mb-2 space-y-2">
-      <div className="flex items-center gap-1.5">
+    <div className="mb-4 space-y-4">
+      <div className="flex items-center gap-8 border-b border-white/5">
         {typeOptions.map((opt) => {
           const active = type === opt.id;
           return (
             <button
               key={opt.id}
               onClick={() => onType(opt.id)}
-              className={`inline-flex items-center gap-1.5 h-8 px-3 rounded-full text-[11px] font-semibold uppercase tracking-widest border transition-all ${
-                active
-                  ? "bg-petal text-velvet border-petal shadow-[0_6px_18px_-6px_rgba(238,130,175,0.55)]"
-                  : "bg-surface border-border text-candle-muted hover:text-candle hover:border-petal/40"
+              className={`relative pb-3 text-sm font-medium transition-colors ${
+                active ? "text-candle" : "text-candle-muted/60 hover:text-candle"
               }`}
             >
-              {opt.icon}
               {opt.label}
+              {active && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-petal rounded-full shadow-[0_0_10px] shadow-petal/60" />}
             </button>
           );
         })}
       </div>
-      <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
-        <span className="text-[10px] uppercase tracking-widest text-candle-muted shrink-0">Rating</span>
+      <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
         {ratingOptions.map((r) => {
           const active = minRating === r;
+          const label = r === 0 ? "All Ratings" : r >= 8 ? `${r}.0+ Score` : `${r}.0+ Score`;
           return (
             <button
               key={r}
               onClick={() => onMinRating(r)}
-              className={`shrink-0 inline-flex items-center gap-0.5 h-7 px-2.5 rounded-full text-[11px] border transition-all ${
+              className={`shrink-0 px-4 py-2 rounded-full border text-xs font-medium transition-all ${
                 active
-                  ? "bg-petal/15 border-petal text-petal"
-                  : "bg-surface border-border text-candle-muted hover:text-candle hover:border-petal/40"
+                  ? "border-petal bg-petal/5 text-petal"
+                  : "border-white/10 bg-white/5 text-candle-muted/70 italic tracking-wide hover:text-candle"
               }`}
             >
-              {r === 0 ? "Any" : (<><Star className="size-2.5 fill-petal text-petal" />{r}+</>)}
+              {label}
             </button>
           );
         })}
@@ -449,6 +447,7 @@ function FilterBar({
     </div>
   );
 }
+
 
 function SearchHeader({
   input, setInput, onSubmit, onClear, inline = false,
