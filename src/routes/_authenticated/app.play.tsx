@@ -56,6 +56,7 @@ function Play() {
 
   return (
     <div className="pt-10 px-5">
+      <div data-tour="play-hero">
       <EditorialPageHeader
         eyebrow="Couple games"
         title="Play together"
@@ -66,6 +67,7 @@ function Play() {
           </Link>
         }
       />
+      </div>
 
       {!partner && (
         <div className="p-5 mb-5 rounded-3xl border border-petal/30 bg-petal-soft">
@@ -76,7 +78,8 @@ function Play() {
       )}
 
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 max-w-5xl mx-auto">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 max-w-5xl mx-auto" data-tour="play-grid">
+
 
         {GAME_KINDS.map((kind) => {
           const g = GAMES[kind];
