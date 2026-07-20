@@ -314,6 +314,7 @@ function PoolPage() {
     const now = performance.now();
     if (!force && now - lastSendRef.current < 45) return;
     lastSendRef.current = now;
+    hasAuthoritativeRef.current = true;
     ch.send({
       type: "broadcast",
       event: "state",
