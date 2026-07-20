@@ -61,6 +61,7 @@ function AppShell() {
       >
         <BottomNav />
       </div>
+      <AppTour open={tourOpen} onClose={() => setTourOpen(false)} />
     </div>
   );
 }
