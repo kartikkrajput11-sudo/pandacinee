@@ -469,18 +469,21 @@ function SearchHeader({
           </div>
         </header>
       )}
-      <form onSubmit={onSubmit} className="mb-6 flex items-center gap-2 px-4 h-11 rounded-full bg-surface border border-border">
-        <Search className="size-4 text-candle-muted" />
-        <input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Search any movie…"
-          className="flex-1 bg-transparent outline-none text-sm text-candle placeholder:text-candle-muted"
-        />
-        {input && (
-          <button type="button" onClick={onClear} className="text-xs text-petal">Clear</button>
-        )}
+      <form onSubmit={onSubmit} className={`mb-5 relative ${inline ? "sticky top-0 z-40 -mx-5 px-5 py-4 bg-background/80 backdrop-blur-2xl" : ""}`}>
+        <div className="relative">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-candle-muted/50" />
+          <input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Search titles, genres…"
+            className="w-full bg-white/5 border border-white/10 rounded-2xl py-3.5 pl-11 pr-16 text-sm text-candle placeholder:text-candle-muted/40 focus:outline-none focus:border-petal/40 transition-all shadow-inner"
+          />
+          {input && (
+            <button type="button" onClick={onClear} className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-petal">Clear</button>
+          )}
+        </div>
       </form>
+
     </>
   );
 }
