@@ -1071,3 +1071,100 @@ function TrayRow({ label, balls, highlight = false }: { label: string; balls: Ba
   );
 }
 
+
+function PowerStick({
+  value,
+  max,
+  disabled,
+  onChange,
+  onFire,
+}: {
+  value: number;
+  max: number;
+  disabled: boolean;
+  onChange: (v: number) => void;
+  onFire: () => void;
+}) {
+  const trackRef = useRef<HTMLDivElement | null>(null);
+  const draggingRef = useRef(false);
+  const pct = Math.max(0, Math.min(1, value / max));
+
+  const setFromClientY = (clientY: number) => {
+    const el = trackRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const p = 1 - (clientY - rect.top) / rect.height;
+    const clamped = Math.max(0, Math.min(1, p));
+    onChange(clamped * max);
+  };
+
+  const onDown = (e: ReactPointerEvent) => {
+    if (disabled) return;
+    draggingRef.current = true;
+    (e.target as Element).setPointerCapture?.(e.pointerId);
+    setFromClientY(e.clientY);
+  };
+  const onMove = (e: ReactPointerEvent) => {
+    if (!draggingRef.current) return;
+    setFromClientY(e.clientY);
+  };
+  const onUp = () => { draggingRef.current = false; };
+
+  return (
+    <div className="shrink-0 flex flex-col items-center gap-2 sm:gap-3 select-none">
+      <div className="text-[9px] uppercase tracking-[0.2em] text-petal/80">Power</div>
+      <div
+        ref={trackRef}
+        onPointerDown={onDown}
+        onPointerMove={onMove}
+        onPointerUp={onUp}
+        onPointerCancel={onUp}
+        className={`relative w-8 sm:w-10 flex-1 min-h-[220px] sm:min-h-[280px] rounded-full border touch-none ${
+          disabled ? "opacity-45 cursor-not-allowed" : "cursor-grab active:cursor-grabbing"
+        }`}
+        style={{
+          background: "linear-gradient(180deg, rgba(212,162,74,0.15) 0%, rgba(0,0,0,0.55) 100%)",
+          borderColor: "rgba(212,162,74,0.35)",
+          boxShadow: "inset 0 2px 8px rgba(0,0,0,0.6)",
+        }}
+      >
+        <div
+          className="absolute left-0 right-0 bottom-0 rounded-full transition-[height] duration-75"
+          style={{
+            height: `${pct * 100}%`,
+            background: `linear-gradient(180deg,
+              ${pct > 0.85 ? "#ff4d4d" : pct > 0.6 ? "#f0a020" : "#d4a24a"} 0%,
+              ${pct > 0.85 ? "#b21414" : pct > 0.6 ? "#a25a10" : "#7a5220"} 100%)`,
+            boxShadow: pct > 0.7 ? "0 0 18px -2px rgba(240,160,32,0.7)" : undefined,
+          }}
+        />
+        {[0.25, 0.5, 0.75].map((f) => (
+          <div key={f} className="absolute left-1 right-1 h-px bg-white/25" style={{ bottom: `${f * 100}%` }} />
+        ))}
+        <div
+          className="absolute left-1/2 -translate-x-1/2 w-[130%] h-4 sm:h-5 rounded-full border pointer-events-none"
+          style={{
+            bottom: `calc(${pct * 100}% - 0.5rem)`,
+            background: "linear-gradient(180deg, #f5e2b6, #b58a4a)",
+            borderColor: "rgba(0,0,0,0.4)",
+            boxShadow: "0 2px 6px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.55)",
+          }}
+        />
+        <div className="absolute -right-6 top-1/2 -translate-y-1/2 text-[10px] font-mono text-petal/80 tabular-nums rotate-90 origin-center whitespace-nowrap">
+          {Math.round(pct * 100)}%
+        </div>
+      </div>
+      <button
+        disabled={disabled || value < 1}
+        onClick={onFire}
+        className="w-full rounded-full px-2 py-2 text-[10px] uppercase tracking-[0.18em] font-serif italic font-semibold text-white shadow-md transition disabled:opacity-40 disabled:cursor-not-allowed active:scale-95"
+        style={{
+          background: "linear-gradient(180deg, #d4a24a 0%, #7a4a1a 100%)",
+          border: "1px solid rgba(255,220,150,0.4)",
+        }}
+      >
+        Strike
+      </button>
+    </div>
+  );
+}
