@@ -668,6 +668,7 @@ function PoolPage() {
     movingRef.current = false;
     turnEndedRef.current = false;
     firstHitRef.current.id = null;
+    try { if (persistKey) localStorage.removeItem(persistKey); } catch { /* noop */ }
     // Notify partner to reset too
     channelRef.current?.send({ type: "broadcast", event: "reset", payload: { ts: Date.now() } });
   };
