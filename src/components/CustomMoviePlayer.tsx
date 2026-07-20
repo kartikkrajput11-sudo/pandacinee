@@ -379,7 +379,6 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
         }}
         onWaiting={startBuffering}
         onStalled={startBuffering}
-        onSeeking={startBuffering}
         onSuspend={stopBuffering}
         onPlaying={stopBuffering}
         onError={() => {
