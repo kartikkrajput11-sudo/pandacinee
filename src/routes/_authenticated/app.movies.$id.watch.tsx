@@ -1800,6 +1800,9 @@ function CustomWatch({ customId }: { customId: string }) {
   const suppressRef = useRef(false);
   const lastAppliedPeerEventRef = useRef<number>(0);
   const lastPublishRef = useRef(0);
+  // Local receipt time per peer packet — avoids clock-skew drift.
+  const peerReceivedAtRef = useRef<Record<number, number>>({});
+
 
   const iAmHost = !!me && hostId === me.id;
   const partnerIsHost = !!partner && hostId === partner.id;
