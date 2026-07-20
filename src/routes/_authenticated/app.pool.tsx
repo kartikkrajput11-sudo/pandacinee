@@ -888,7 +888,9 @@ function PoolPage() {
                   <g key={i} transform={`translate(${x} 0)`}>
                     <path d="M 0 -2 L 2.5 0 L 0 2 L -2.5 0 Z" fill="#d4a24a" opacity={0.7} />
                   </g>
+                ))}
                 {/* Draggable grip — pull backward along cue axis to charge power */}
+
                 <g
                   onPointerDown={onGripDown}
                   onPointerMove={onGripMove}
