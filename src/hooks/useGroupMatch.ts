@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 export type GroupMatchRow = {
@@ -97,12 +97,24 @@ export function useGroupMatch(matchId: string | null, meId: string | null) {
     void load();
   }, [load]);
 
+  // Debounce reloads triggered by realtime changes so a burst of participant
+  // seat/role updates (join, seat swap, role change) doesn't fan out into a
+  // stampede of 4-query refetches.
+  const reloadTimerRef = useRef<number | null>(null);
+  const scheduleReload = useCallback(() => {
+    if (reloadTimerRef.current !== null) return;
+    reloadTimerRef.current = window.setTimeout(() => {
+      reloadTimerRef.current = null;
+      void load();
+    }, 200);
+  }, [load]);
+
   useEffect(() => {
     if (!matchId) return;
     const ch = supabase
       .channel(`gm-${matchId}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "group_matches", filter: `id=eq.${matchId}` }, () => void load())
-      .on("postgres_changes", { event: "*", schema: "public", table: "group_match_participants", filter: `match_id=eq.${matchId}` }, () => void load())
+      .on("postgres_changes", { event: "*", schema: "public", table: "group_matches", filter: `id=eq.${matchId}` }, scheduleReload)
+      .on("postgres_changes", { event: "*", schema: "public", table: "group_match_participants", filter: `match_id=eq.${matchId}` }, scheduleReload)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "observer_messages", filter: `match_id=eq.${matchId}` }, (payload) => {
         setObserverMessages((prev) => {
           const row = payload.new as MatchMessage;
@@ -119,9 +131,13 @@ export function useGroupMatch(matchId: string | null, meId: string | null) {
       })
       .subscribe();
     return () => {
+      if (reloadTimerRef.current !== null) {
+        window.clearTimeout(reloadTimerRef.current);
+        reloadTimerRef.current = null;
+      }
       supabase.removeChannel(ch);
     };
-  }, [matchId, load]);
+  }, [matchId, scheduleReload]);
 
   const myRole = meId ? participants.find((p) => p.user_id === meId)?.role ?? null : null;
   const players = participants.filter((p) => p.role === "player").sort((a, b) => (a.seat ?? 0) - (b.seat ?? 0));

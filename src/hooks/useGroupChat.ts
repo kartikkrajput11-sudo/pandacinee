@@ -73,14 +73,27 @@ export function useGroupChat(groupId: string | null, meId: string | null) {
     void loadMessages();
   }, [loadMessages, meId, groupId]);
 
+  // Only load reactions once after the initial message load — realtime keeps
+  // them fresh afterwards. Reloading on every message insert caused an N+1
+  // fetch storm in busy groups.
+  const reactionsLoadedRef = useRef(false);
   useEffect(() => {
-    if (initialLoaded.current) void loadReactions();
+    if (initialLoaded.current && !reactionsLoadedRef.current) {
+      reactionsLoadedRef.current = true;
+      void loadReactions();
+    }
     if (meId && groupId && messages.length > 0) {
       const latest = messages[messages.length - 1]?.created_at;
       if (latest) setGroupLastRead(meId, groupId, latest);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [messages.length, groupId, meId]);
+
+  // Reset the reactions-loaded gate when the group changes so the next
+  // group's reactions get fetched exactly once.
+  useEffect(() => {
+    reactionsLoadedRef.current = false;
+  }, [groupId]);
 
 
   // Realtime
