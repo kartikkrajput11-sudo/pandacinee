@@ -1,0 +1,39 @@
+name: pandacine
+description: PANDACINE — private velvet room for two.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.4.0 <4.0.0'
+  flutter: ">=3.24.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+
+  # Routing
+  go_router: ^14.2.7
+
+  # State
+  flutter_riverpod: ^2.5.1
+
+  # Backend
+  supabase_flutter: ^2.5.11
+
+  # UI / motion
+  google_fonts: ^6.2.1
+  flutter_animate: ^4.5.0
+
+  # Media / player (Phase 5)
+  webview_flutter: ^4.8.0
+  cached_network_image: ^3.4.1
+
+  # Notifications (Phase 6)
+  flutter_local_notifications: ^17.2.3
+
+dev_dependencies:
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
