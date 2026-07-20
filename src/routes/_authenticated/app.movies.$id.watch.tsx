@@ -571,10 +571,13 @@ function CatalogWatch({ id }: { id: string }) {
     if (isPandacine && customPlayerRef.current) {
       const h = customPlayerRef.current;
       const baseRate = (typeof peer.playbackRate === "number" && peer.playbackRate > 0) ? peer.playbackRate : 1;
-      // Latency compensation: peer.currentTime is timestamped at peer.updatedAt.
-      // If the host is playing, advance it by the elapsed wall-clock.
+      // Latency compensation using LOCAL receive time, not the host's clock.
+      // (Cross-machine clocks drift; mixing them causes the follower to
+      // permanently believe it's behind → the "auto fast" 1.1×–1.25× glitch.)
+      const now = Date.now();
+      const receivedAt = peerReceivedAtRef.current[peer.updatedAt] ?? now;
       const hostPlaying = evt !== "pause";
-      const elapsed = hostPlaying ? Math.max(0, (Date.now() - peer.updatedAt) / 1000) * baseRate : 0;
+      const elapsed = hostPlaying ? Math.max(0, (now - receivedAt) / 1000) * baseRate : 0;
       const targetTime = peer.currentTime + elapsed;
       const drift = h.currentTime() - targetTime; // positive => follower ahead
       const abs = Math.abs(drift);
@@ -592,9 +595,9 @@ function CatalogWatch({ id }: { id: string }) {
           if (evt === "play" || hostPlaying) h.play();
           return;
         }
-        if (abs > 0.12) {
-          // Proportional rate nudge — closes drift in ~2s. Held until next peer update.
-          const nudge = Math.max(-0.25, Math.min(0.25, -drift / 2));
+        if (abs > 0.25) {
+          // Proportional rate nudge — closes drift in ~2s. Restored on next update.
+          const nudge = Math.max(-0.15, Math.min(0.15, -drift / 2));
           h.setPlaybackRate(Math.max(0.5, baseRate + nudge));
         } else {
           // In sync — restore host's base rate.
@@ -606,6 +609,7 @@ function CatalogWatch({ id }: { id: string }) {
       if (evt === "pause") toast.info(`${partner?.display_name.split(" ")[0]} paused`);
       return;
     }
+
 
     if (evt === "pause") {
       applySeek(peer.currentTime, { pause: true });
