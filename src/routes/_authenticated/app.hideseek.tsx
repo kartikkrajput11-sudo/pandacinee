@@ -5,6 +5,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { useMatchOpponent } from "@/hooks/useMatchOpponent";
 import { supabase } from "@/integrations/supabase/client";
 import { sfxKiss, sfxPollVote, sfxReaction } from "@/lib/sfx";
+import { toast } from "sonner";
 import { GameChat } from "@/components/games/GameChat";
 import { GroupPlayersBar } from "@/components/games/GroupPlayersBar";
 
