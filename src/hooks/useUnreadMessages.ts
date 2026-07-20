@@ -95,6 +95,7 @@ export function useUnreadMessages() {
     const onRead = () => scheduleFetch();
     const onFocus = () => scheduleFetch();
     window.addEventListener("group-read-updated", onRead);
+    window.addEventListener("dm-read-updated", onRead);
     window.addEventListener("focus", onFocus);
 
     return () => {
@@ -102,6 +103,7 @@ export function useUnreadMessages() {
       if (debounceRef.current) clearTimeout(debounceRef.current);
       supabase.removeChannel(channel);
       window.removeEventListener("group-read-updated", onRead);
+      window.removeEventListener("dm-read-updated", onRead);
       window.removeEventListener("focus", onFocus);
     };
   }, [userId]);
