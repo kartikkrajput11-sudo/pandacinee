@@ -187,6 +187,7 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
 
   async function sendText(e?: React.FormEvent) {
     e?.preventDefault();
+    if (sending) return; // guard against Enter-key double submits while first send is in flight
     const content = text.trim();
     if (!content) return;
     setSending(true);
@@ -207,6 +208,7 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
       setSending(false);
     }
   }
+
 
   async function sendEmoji(emoji: string, asSticker: boolean) {
     if (asSticker) {
