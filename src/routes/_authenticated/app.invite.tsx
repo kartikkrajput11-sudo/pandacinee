@@ -20,15 +20,24 @@ function Invite() {
 
   async function copy() {
     if (!me) return;
-    await navigator.clipboard.writeText(me.invite_code);
-    toast.success("Invite code copied");
+    try {
+      await navigator.clipboard.writeText(me.invite_code);
+      toast.success("Invite code copied");
+    } catch {
+      toast.error("Couldn't copy — long-press the code to select it");
+    }
   }
 
   async function pair(e: React.FormEvent) {
     e.preventDefault();
-    if (!code.trim()) return;
+    const trimmed = code.trim().toUpperCase();
+    if (!trimmed) return;
+    if (me && trimmed === me.invite_code) {
+      toast.error("That's your own code — share it with your partner");
+      return;
+    }
     setPairing(true);
-    const { error } = await supabase.rpc("pair_with_invite_code", { _code: code.trim() });
+    const { error } = await supabase.rpc("pair_with_invite_code", { _code: trimmed });
     setPairing(false);
     if (error) {
       toast.error(error.message);
@@ -100,7 +109,7 @@ function Invite() {
             />
             <button
               type="submit"
-              disabled={pairing || code.length < 4}
+              disabled={pairing || code.trim().length < 6}
               className="w-full py-3.5 bg-petal text-velvet rounded-full font-semibold text-sm petal-glow disabled:opacity-40"
             >
               {pairing ? "Pairing…" : "Pair"}
