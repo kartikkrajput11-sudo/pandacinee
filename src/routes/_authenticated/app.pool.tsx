@@ -409,7 +409,7 @@ function PoolPage() {
   }, []);
 
   // -------- Ball-in-hand placement --------
-  const onSvgMove = (e: React.PointerEvent) => {
+  const onSvgMove = (e: ReactPointerEvent) => {
     const p = toSvg(e.clientX, e.clientY);
     if (ballInHand !== null && ballInHand === turn && isMyTurn) {
       const cx = Math.max(R, Math.min(W - R, p.x));
@@ -428,7 +428,7 @@ function PoolPage() {
       setPower(Math.min(MAX_POWER, dist * 0.08));
     }
   };
-  const onSvgDown = (e: React.PointerEvent) => {
+  const onSvgDown = (e: ReactPointerEvent) => {
     const p = toSvg(e.clientX, e.clientY);
     if (ballInHand !== null && ballInHand === turn && isMyTurn) {
       const cx = Math.max(R, Math.min(W - R, p.x));
@@ -1034,13 +1034,13 @@ function PowerStick({
     onChange(clamped * max);
   };
 
-  const onDown = (e: React.PointerEvent) => {
+  const onDown = (e: ReactPointerEvent) => {
     if (disabled) return;
     draggingRef.current = true;
     (e.target as Element).setPointerCapture?.(e.pointerId);
     setFromClientY(e.clientY);
   };
-  const onMove = (e: React.PointerEvent) => {
+  const onMove = (e: ReactPointerEvent) => {
     if (!draggingRef.current) return;
     setFromClientY(e.clientY);
   };
