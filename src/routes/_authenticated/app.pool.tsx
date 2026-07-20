@@ -268,11 +268,12 @@ function PoolPage() {
   const isMyTurnRef = useRef(isMyTurn);
   isMyTurnRef.current = isMyTurn;
 
-  const sendState = useCallback((force = false) => {
+  const sendState = useCallback((force = false, overrides?: { turn?: Player; ballInHand?: Player | null; assign?: [Assignment, Assignment]; winner?: Player | null; message?: string; matchScore?: [number, number] }) => {
     const ch = channelRef.current;
     if (!ch || remoteApplyingRef.current) return;
+    const effTurn = overrides?.turn ?? turnRef.current;
     // Only current-turn seat is authoritative for state
-    if (mySeatRef.current !== null && mySeatRef.current !== turnRef.current && !force) return;
+    if (mySeatRef.current !== null && mySeatRef.current !== turnRef.current && overrides?.turn === undefined && !force) return;
     const now = performance.now();
     if (!force && now - lastSendRef.current < 45) return;
     lastSendRef.current = now;
@@ -287,12 +288,12 @@ function PoolPage() {
           pocketed: b.pocketed, sinkT: b.sinkT,
           pocketX: b.pocketX, pocketY: b.pocketY,
         })),
-        turn: turnRef.current,
-        assign,
-        ballInHand,
-        winner,
-        message,
-        matchScore,
+        turn: effTurn,
+        assign: overrides?.assign ?? assign,
+        ballInHand: overrides?.ballInHand !== undefined ? overrides.ballInHand : ballInHand,
+        winner: overrides?.winner !== undefined ? overrides.winner : winner,
+        message: overrides?.message ?? message,
+        matchScore: overrides?.matchScore ?? matchScore,
       },
     });
   }, [assign, ballInHand, winner, message, matchScore]);
