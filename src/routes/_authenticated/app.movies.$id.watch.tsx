@@ -1228,6 +1228,18 @@ function CatalogWatch({ id }: { id: string }) {
               </div>
             )}
 
+            {/* Vidking follower — partner paused mid-movie */}
+            {started && !isPandacine && pausedByHost && !gateActive && (
+              <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-velvet/75 backdrop-blur-sm pointer-events-none">
+                <span className="relative size-14 rounded-full flex items-center justify-center bg-petal/10 border border-petal/30">
+                  <Timer className="size-5 text-petal animate-pulse" />
+                </span>
+                <p className="text-[10px] uppercase tracking-[0.35em] text-petal">Paused</p>
+                <p className="text-sm text-candle">{partnerFirst} paused · resuming together at {fmtTime(startAt ?? 0)}</p>
+              </div>
+            )}
+
+
             {/* Follower waits for host to start */}
             {started && gateActive && bothReady && !iAmHost && pausedByHost && (
               <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-velvet/70 backdrop-blur-sm pointer-events-none">
