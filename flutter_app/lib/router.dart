@@ -10,6 +10,9 @@ import 'screens/home_screen.dart';
 import 'screens/play_hub_screen.dart';
 import 'screens/rps_screen.dart';
 import 'screens/chess_screen.dart';
+import 'screens/ludo_screen.dart';
+import 'screens/uno_screen.dart';
+import 'screens/pool_screen.dart';
 import 'supabase_providers.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
