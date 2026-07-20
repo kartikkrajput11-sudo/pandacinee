@@ -22,6 +22,9 @@ export function useGroupChat(groupId: string | null, meId: string | null) {
   const [reactions, setReactions] = useState<ReactionRow[]>([]);
   const [loading, setLoading] = useState(true);
   const initialLoaded = useRef(false);
+  // Track current message ids in a ref so realtime handlers can filter without
+  // being in the channel's useEffect dependency list (prevents resubscribe storms).
+  const messageIdsRef = useRef<Set<string>>(new Set());
 
   const loadMessages = useCallback(async () => {
     if (!groupId) return;
@@ -45,8 +48,7 @@ export function useGroupChat(groupId: string | null, meId: string | null) {
 
   const loadReactions = useCallback(async () => {
     if (!groupId) return;
-    // Load reactions for all currently loaded message ids
-    const ids = messages.map((m) => m.id);
+    const ids = Array.from(messageIdsRef.current);
     if (ids.length === 0) {
       setReactions([]);
       return;
@@ -56,13 +58,19 @@ export function useGroupChat(groupId: string | null, meId: string | null) {
       .select("id,message_id,user_id,emoji")
       .in("message_id", ids);
     setReactions((data ?? []) as ReactionRow[]);
-  }, [groupId, messages]);
+  }, [groupId]);
+
+  // Keep the message-id ref in sync with the messages array.
+  useEffect(() => {
+    messageIdsRef.current = new Set(messages.map((m) => m.id));
+  }, [messages]);
 
   useEffect(() => {
     setLoading(true);
     initialLoaded.current = false;
     setMessages([]);
     setReactions([]);
+    messageIdsRef.current = new Set();
     if (meId && groupId) markGroupReadNow(meId, groupId);
     void loadMessages();
   }, [loadMessages, meId, groupId]);
@@ -106,7 +114,13 @@ export function useGroupChat(groupId: string | null, meId: string | null) {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "message_reactions" },
-        () => void loadReactions(),
+        (payload) => {
+          // Only refetch if the reaction belongs to a message in this group's loaded set.
+          const row: any = (payload as any).new ?? (payload as any).old;
+          const mid = row?.message_id;
+          if (!mid || !messageIdsRef.current.has(mid)) return;
+          void loadReactions();
+        },
       )
       .subscribe();
     return () => {
