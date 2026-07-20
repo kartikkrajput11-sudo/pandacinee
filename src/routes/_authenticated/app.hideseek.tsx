@@ -447,7 +447,7 @@ function HideSeekPage() {
 
   /* ── flow control ── */
 
-  function resetAll() {
+  function doResetLocal() {
     setPhase("intro");
     setRound(1);
     setHiderId(null);
@@ -457,6 +457,14 @@ function HideSeekPage() {
     setWhispers([]);
     setFoundAt(null);
     setScores([0, 0]);
+  }
+
+  function resetAll() {
+    if (mode === "online" && phase !== "intro" && phase !== "final") {
+      if (!window.confirm("Reset the match? This clears the game for both of you.")) return;
+      if (me) send({ t: "reset", from: me.id });
+    }
+    doResetLocal();
   }
 
   function startLocal() {
