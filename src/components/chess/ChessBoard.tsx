@@ -33,8 +33,10 @@ export function ChessBoard({ chess, orientation, canMoveColor, lastMove, onMove 
     const last = hist[hist.length - 1];
     if (!last || !last.captured) return;
     const dir = orientation === "w" ? 1 : -1;
+    // Offset from destination BACK toward the source square (both axes use from - to).
+    // Board rows are drawn top-down (rank 8 at top), so a rank increase moves visually UP → negate dy.
     const dx = (FILES.indexOf(lastMove.from[0] as typeof FILES[number]) - FILES.indexOf(lastMove.to[0] as typeof FILES[number])) * dir * 100;
-    const dy = (parseInt(lastMove.to[1]) - parseInt(lastMove.from[1])) * dir * 100;
+    const dy = (parseInt(lastMove.from[1]) - parseInt(lastMove.to[1])) * -1 * dir * 100;
     const victimColor: Color = last.color === "w" ? "b" : "w";
     const cap: Capture = { id: Date.now(), sq: lastMove.to, color: victimColor, type: last.captured as PieceSymbol, dx, dy };
     setCapture(cap);
