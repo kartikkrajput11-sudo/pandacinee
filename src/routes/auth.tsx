@@ -125,10 +125,14 @@ function AuthPage() {
             <div className="relative rounded-3xl bg-surface/70 backdrop-blur-xl border border-border/60 p-7 overflow-hidden">
               <div aria-hidden className="pointer-events-none absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-petal/70 to-transparent animate-auth-shimmer" />
               <div className="text-center mb-8" style={{ animation: "auth-rise 0.7s ease-out both", animationDelay: "80ms" }}>
+                <p className="text-[10px] uppercase tracking-[0.4em] text-petal/90 mb-3">
+                  {mode === "signin" ? "Chapter · Return" : "Chapter · One"}
+                </p>
                 <h1 className="font-serif text-4xl italic mb-2 bg-gradient-to-b from-candle to-candle-muted bg-clip-text text-transparent">
                   {mode === "signin" ? "Welcome back" : "Begin your story"}
                 </h1>
-                <p className="text-sm text-candle-muted">
+                <div aria-hidden className="mx-auto my-3 h-px w-16 bg-gradient-to-r from-transparent via-petal/70 to-transparent" />
+                <p className="text-sm text-candle-muted italic font-serif">
                   {mode === "signin" ? "Your panda has been waiting." : "Two pandas, one cozy living room."}
                 </p>
               </div>
