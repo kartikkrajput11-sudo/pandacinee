@@ -36,11 +36,14 @@ export function useGroupChat(groupId: string | null, meId: string | null) {
     if (error) {
       console.error("group messages load failed", error);
       setMessages([]);
+      messageIdsRef.current = new Set();
     } else {
       const rows = ((data ?? []) as GroupMessage[])
         .filter((m) => !m.deleted_at)
         .sort((a, b) => a.created_at.localeCompare(b.created_at));
       setMessages(rows);
+      // Sync the id ref synchronously so reaction realtime events aren't dropped.
+      messageIdsRef.current = new Set(rows.map((m) => m.id));
     }
     setLoading(false);
     initialLoaded.current = true;
@@ -60,11 +63,6 @@ export function useGroupChat(groupId: string | null, meId: string | null) {
     setReactions((data ?? []) as ReactionRow[]);
   }, [groupId]);
 
-  // Keep the message-id ref in sync with the messages array.
-  useEffect(() => {
-    messageIdsRef.current = new Set(messages.map((m) => m.id));
-  }, [messages]);
-
   useEffect(() => {
     setLoading(true);
     initialLoaded.current = false;
@@ -77,13 +75,13 @@ export function useGroupChat(groupId: string | null, meId: string | null) {
 
   useEffect(() => {
     if (initialLoaded.current) void loadReactions();
-    // Mark latest message timestamp as read for this user/group
     if (meId && groupId && messages.length > 0) {
       const latest = messages[messages.length - 1]?.created_at;
       if (latest) setGroupLastRead(meId, groupId, latest);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [messages.length, groupId, meId]);
+
 
   // Realtime
   useEffect(() => {
