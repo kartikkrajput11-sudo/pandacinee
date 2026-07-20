@@ -5,6 +5,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { useMatchOpponent } from "@/hooks/useMatchOpponent";
 import { supabase } from "@/integrations/supabase/client";
 import { sfxKiss, sfxPollVote, sfxReaction } from "@/lib/sfx";
+import { toast } from "sonner";
 import { GameChat } from "@/components/games/GameChat";
 import { GroupPlayersBar } from "@/components/games/GroupPlayersBar";
 
@@ -289,7 +290,8 @@ type PeerMsg =
   | { t: "guess"; from: string; attempt: number; x: number; y: number }
   | { t: "round_end"; from: string; scores: [number, number]; foundAt: number | null }
   | { t: "next_round"; from: string; hiderId: string; round: number }
-  | { t: "finish"; from: string; scores: [number, number] };
+  | { t: "finish"; from: string; scores: [number, number] }
+  | { t: "reset"; from: string };
 
 /* Whisper suggestion prompts — hider taps to auto-fill, or writes their own. */
 const WHISPER_PROMPTS = [
@@ -430,14 +432,21 @@ function HideSeekPage() {
     }
 
     if (msg.t === "round_end") {
-      setScores(msg.scores);
+      // Sender's array is in their own [me, partner] perspective — flip for us.
+      setScores([msg.scores[1], msg.scores[0]]);
       setFoundAt(msg.foundAt);
       setPhase("round_result");
       return;
     }
 
+    if (msg.t === "reset") {
+      doResetLocal();
+      toast("Your partner reset the match.");
+      return;
+    }
+
     if (msg.t === "finish") {
-      setScores(msg.scores);
+      setScores([msg.scores[1], msg.scores[0]]);
       setPhase("final");
       return;
     }
@@ -445,7 +454,7 @@ function HideSeekPage() {
 
   /* ── flow control ── */
 
-  function resetAll() {
+  function doResetLocal() {
     setPhase("intro");
     setRound(1);
     setHiderId(null);
@@ -455,6 +464,14 @@ function HideSeekPage() {
     setWhispers([]);
     setFoundAt(null);
     setScores([0, 0]);
+  }
+
+  function resetAll() {
+    if (mode === "online" && phase !== "intro" && phase !== "final") {
+      if (!window.confirm("Reset the match? This clears the game for both of you.")) return;
+      if (me) send({ t: "reset", from: me.id });
+    }
+    doResetLocal();
   }
 
   function startLocal() {
