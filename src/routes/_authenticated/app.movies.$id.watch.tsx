@@ -151,6 +151,7 @@ function CatalogWatch({ id }: { id: string }) {
   const [friendPickerOpen, setFriendPickerOpen] = useState(false);
   const [waitingFor, setWaitingFor] = useState<{ id: string; name: string } | null>(null);
   const lastPublishRef = useRef(0);
+  const lastVidkingReloadRef = useRef(0);
 
   // TV series state (populated when the admin marked this TMDB id as media_type=tv)
   const [isTv, setIsTv] = useState(false);
