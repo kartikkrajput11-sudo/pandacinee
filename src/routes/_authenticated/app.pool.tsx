@@ -238,6 +238,7 @@ function PoolPage() {
   const [mouse, setMouse] = useState<{ x: number; y: number } | null>(null);
   const [drag, setDrag] = useState<{ startX: number; startY: number } | null>(null);
   const [power, setPower] = useState(0);
+  const [stickPower, setStickPower] = useState(0);
   const [placingCue, setPlacingCue] = useState<{ x: number; y: number } | null>(null);
 
   const ballsRef = useRef(balls);
