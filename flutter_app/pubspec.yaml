@@ -35,6 +35,14 @@ dependencies:
   # Local prefs (Phase 10)
   shared_preferences: ^2.3.2
 
+  # Realtime AV (Phase 21 — LiveKit native binding)
+  livekit_client: ^2.3.0
+  permission_handler: ^11.3.1
+
+  # Release polish (Phase 21)
+  package_info_plus: ^8.0.2
+  url_launcher: ^6.3.0
+
 dev_dependencies:
   flutter_lints: ^4.0.0
 

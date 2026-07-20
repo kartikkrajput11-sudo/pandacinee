@@ -31,6 +31,7 @@ import 'screens/watch_party_screen.dart';
 import 'screens/admin_screen.dart';
 import 'screens/tour_screen.dart';
 import 'screens/shared_media_screen.dart';
+import 'screens/live_call_room_screen.dart';
 import 'supabase_providers.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
