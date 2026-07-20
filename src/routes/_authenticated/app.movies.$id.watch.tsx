@@ -1906,10 +1906,12 @@ function CustomWatch({ customId }: { customId: string }) {
     if (suppressRef.current) return;
     const isDiscrete = evt.event === "play" || evt.event === "pause" || evt.event === "seeked" || evt.event === "ended" || evt.event === "ratechange";
     if (isDiscrete && partner && !hostId) claimHost();
-    if (!isDiscrete && Date.now() - lastPublishRef.current < 500) return;
+    // Host publishes every 250ms during play (tight follower drift), instantly on discrete events.
+    if (!isDiscrete && Date.now() - lastPublishRef.current < 250) return;
     lastPublishRef.current = Date.now();
     publish({ event: evt.event, currentTime: evt.currentTime, duration: evt.duration, sourceIdx: 0, playbackRate: evt.playbackRate });
   }
+
 
   const syncToPartner = () => {
     if (!peer) return;
