@@ -3,11 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'screens/auth_screen.dart';
+import 'screens/chat_list_screen.dart';
+import 'screens/dm_screen.dart';
+import 'screens/group_screen.dart';
 import 'screens/home_screen.dart';
 import 'supabase_providers.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
-  final auth = ref.watch(authStateProvider);
+  ref.watch(authStateProvider);
 
   return GoRouter(
     initialLocation: '/app',
@@ -22,6 +25,15 @@ final routerProvider = Provider<GoRouter>((ref) {
     routes: [
       GoRoute(path: '/auth', builder: (_, __) => const AuthScreen()),
       GoRoute(path: '/app', builder: (_, __) => const HomeScreen()),
+      GoRoute(path: '/app/chats', builder: (_, __) => const ChatListScreen()),
+      GoRoute(
+        path: '/app/chat/:otherId',
+        builder: (_, s) => DmScreen(otherId: s.pathParameters['otherId']!),
+      ),
+      GoRoute(
+        path: '/app/group/:groupId',
+        builder: (_, s) => GroupScreen(groupId: s.pathParameters['groupId']!),
+      ),
     ],
   );
 });
