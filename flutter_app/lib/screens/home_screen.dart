@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../supabase_providers.dart';
 import '../theme.dart';
@@ -31,10 +32,10 @@ class HomeScreen extends ConsumerWidget {
                   style: TextStyle(color: AppColors.candleMuted),
                 ),
                 const SizedBox(height: 28),
-                _card('Chats', 'DMs, groups, affections'),
-                _card('Play', 'Chess, Ludo, Uno, Pool…'),
-                _card('Movies', 'Watch in lock-step'),
-                _card('Profile', 'Badges & achievements'),
+                _card(context, 'Chats', 'DMs, groups, affections', onTap: () => context.push('/app/chats')),
+                _card(context, 'Play', 'Chess, Ludo, Uno, Pool…'),
+                _card(context, 'Movies', 'Watch in lock-step'),
+                _card(context, 'Profile', 'Badges & achievements'),
                 const SizedBox(height: 40),
                 Center(
                   child: TextButton(
@@ -51,32 +52,41 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  Widget _card(String title, String subtitle) => Container(
-        margin: const EdgeInsets.only(bottom: 14),
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
+  Widget _card(BuildContext context, String title, String subtitle, {VoidCallback? onTap}) =>
+      Padding(
+        padding: const EdgeInsets.only(bottom: 14),
+        child: Material(
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.border),
-        ),
-        child: Row(
-          children: [
-            Container(width: 4, height: 32, color: AppColors.coral),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(20),
+            child: Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: Row(
                 children: [
-                  Text(title,
-                      style: serifItalic(size: 22, color: AppColors.candle)),
-                  const SizedBox(height: 2),
-                  Text(subtitle,
-                      style: const TextStyle(color: AppColors.candleMuted, fontSize: 13)),
+                  Container(width: 4, height: 32, color: AppColors.coral),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(title, style: serifItalic(size: 22, color: AppColors.candle)),
+                        const SizedBox(height: 2),
+                        Text(subtitle,
+                            style: const TextStyle(color: AppColors.candleMuted, fontSize: 13)),
+                      ],
+                    ),
+                  ),
+                  const Icon(Icons.arrow_forward, color: AppColors.petal, size: 18),
                 ],
               ),
             ),
-            const Icon(Icons.arrow_forward, color: AppColors.petal, size: 18),
-          ],
+          ),
         ),
       );
 }
