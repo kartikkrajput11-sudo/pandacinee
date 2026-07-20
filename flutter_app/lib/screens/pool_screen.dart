@@ -24,7 +24,7 @@ class _Ball {
   _Ball(this.id, this.x, this.y, this.color);
 }
 
-class _PoolScreenState extends ConsumerState<PoolScreen> with SingleTickerProviderStateMixin {
+class _PoolScreenState extends ConsumerState<PoolScreen> {
   static const _W = 400.0;
   static const _H = 220.0;
   static const _R = 8.0;
