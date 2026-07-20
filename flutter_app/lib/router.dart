@@ -26,6 +26,11 @@ import 'screens/punishment_lock_screen.dart';
 import 'screens/vault_screen.dart';
 import 'screens/daily_screen.dart';
 import 'screens/shop_screen.dart';
+import 'screens/calls_screen.dart';
+import 'screens/watch_party_screen.dart';
+import 'screens/admin_screen.dart';
+import 'screens/tour_screen.dart';
+import 'screens/shared_media_screen.dart';
 import 'supabase_providers.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
