@@ -438,6 +438,12 @@ function HideSeekPage() {
       return;
     }
 
+    if (msg.t === "reset") {
+      doResetLocal();
+      toast("Your partner reset the match.");
+      return;
+    }
+
     if (msg.t === "finish") {
       setScores([msg.scores[1], msg.scores[0]]);
       setPhase("final");
