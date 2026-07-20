@@ -117,11 +117,17 @@ function KnowMePage() {
     if (!me) return;
     if (msg.from === me.id) return;
     if (msg.t === "hello") {
-      // Re-announce role if already set
-      if (setterId) send({ t: "start", from: me.id, seed, count, setterId });
+      // Only the setter re-announces role, so a guesser's reconnect can't
+      // trigger a stale `start` that resets the setter's progress.
+      if (setterId && me.id === setterId) {
+        send({ t: "start", from: me.id, seed, count, setterId });
+      }
       return;
     }
     if (msg.t === "start") {
+      // Ignore re-announcements for a round we're already playing —
+      // otherwise a hello->start echo wipes our answers/guesses.
+      if (msg.seed === seed && msg.setterId === setterId && msg.count === count) return;
       setSeed(msg.seed);
       setCount(msg.count);
       setSetterId(msg.setterId);
