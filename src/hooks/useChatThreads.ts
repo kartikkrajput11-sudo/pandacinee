@@ -74,7 +74,9 @@ export function useChatThreads() {
               (m.sender_id === pid && m.receiver_id === me),
           );
           const last = peerMsgs[0] ?? null;
-          const unread = peerMsgs.filter((m) => m.sender_id === pid && !m.read_at).length;
+          const unread = peerMsgs.filter(
+            (m) => m.sender_id === pid && isDmMessageUnread(me, pid, m.created_at, m.read_at),
+          ).length;
           return {
             peer: {
               id: p.id,
