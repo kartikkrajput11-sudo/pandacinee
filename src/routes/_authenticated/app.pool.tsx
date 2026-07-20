@@ -248,13 +248,14 @@ function PoolPage() {
   const [winner, setWinner] = useState<Player | null>(persisted?.winner ?? null);
   const [message, setMessage] = useState<string>(persisted?.message ?? "Break!");
   const [ballInHand, setBallInHand] = useState<Player | null>(persisted?.ballInHand ?? null);
+  const scoreKey = persistKey ? `${persistKey}:score` : "pool:score";
   const [matchScore, setMatchScore] = useState<[number, number]>(() => {
-    try { const s = localStorage.getItem("pool:score"); if (s) return JSON.parse(s); } catch { /* noop */ }
+    try { const s = localStorage.getItem(scoreKey); if (s) return JSON.parse(s); } catch { /* noop */ }
     return [0, 0];
   });
   useEffect(() => {
-    try { localStorage.setItem("pool:score", JSON.stringify(matchScore)); } catch { /* noop */ }
-  }, [matchScore]);
+    try { localStorage.setItem(scoreKey, JSON.stringify(matchScore)); } catch { /* noop */ }
+  }, [scoreKey, matchScore]);
 
   // Persist mid-game snapshot for resume
   useEffect(() => {
@@ -293,6 +294,7 @@ function PoolPage() {
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const remoteApplyingRef = useRef(false);
   const lastSendRef = useRef(0);
+  const hasAuthoritativeRef = useRef(false);
   const [partnerOnline, setPartnerOnline] = useState(false);
   const turnRef = useRef<Player>(0);
   turnRef.current = turn;
@@ -312,6 +314,7 @@ function PoolPage() {
     const now = performance.now();
     if (!force && now - lastSendRef.current < 45) return;
     lastSendRef.current = now;
+    hasAuthoritativeRef.current = true;
     ch.send({
       type: "broadcast",
       event: "state",
@@ -358,6 +361,8 @@ function PoolPage() {
       setWinner(payload.winner);
       setMessage(payload.message);
       if (payload.matchScore) setMatchScore(payload.matchScore);
+      // Receiving a valid state means we now hold the authoritative snapshot too
+      hasAuthoritativeRef.current = true;
       // Reset local sim flags — authoritative sender manages them
       movingRef.current = anyMoving(incoming);
       turnEndedRef.current = false;
@@ -376,10 +381,10 @@ function PoolPage() {
       setTimeout(() => { remoteApplyingRef.current = false; }, 0);
     });
     ch.on("broadcast", { event: "hello" }, () => {
-      // A peer joined/rejoined — the current turn holder rebroadcasts full state so they resume mid-game
-      if (mySeatRef.current === null || mySeatRef.current === turnRef.current) {
-        setTimeout(() => sendState(true), 50);
-      }
+      // Only peers with an authoritative snapshot answer — a rejoining peer with
+      // stale/fresh local state must never clobber the live match.
+      if (!hasAuthoritativeRef.current) return;
+      setTimeout(() => sendState(true), 60);
     });
     ch.on("presence", { event: "sync" }, () => {
       const state = ch.presenceState();
@@ -655,6 +660,7 @@ function PoolPage() {
 
 
   const resetGame = () => {
+    if (partner && !window.confirm("Rack a new game? Your partner's board will reset too.")) return;
     const fresh = makeRack();
     ballsRef.current = fresh;
     setBalls(fresh);
@@ -668,6 +674,7 @@ function PoolPage() {
     movingRef.current = false;
     turnEndedRef.current = false;
     firstHitRef.current.id = null;
+    hasAuthoritativeRef.current = false;
     try { if (persistKey) localStorage.removeItem(persistKey); } catch { /* noop */ }
     // Notify partner to reset too
     channelRef.current?.send({ type: "broadcast", event: "reset", payload: { ts: Date.now() } });
