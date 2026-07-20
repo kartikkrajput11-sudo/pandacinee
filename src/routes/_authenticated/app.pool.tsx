@@ -246,6 +246,13 @@ function PoolPage() {
   const rafRef = useRef<number | null>(null);
   const turnEndedRef = useRef(false);
   const firstHitRef = useRef<FirstHit>({ id: null });
+  // Refs for state read inside resolveTurn (RAF loop closes over first render)
+  const pocketedThisTurnRef = useRef<Ball[]>([]);
+  pocketedThisTurnRef.current = pocketedThisTurn;
+  const assignRef = useRef<[Assignment, Assignment]>(assign);
+  assignRef.current = assign;
+  const resolveTurnRef = useRef<() => void>(() => {});
+
 
   // -------- Realtime sync --------
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
