@@ -8,6 +8,7 @@ import { useGroups } from "@/hooks/useGroups";
 import { useJoinGroupByCode } from "@/hooks/useGroupAdmin";
 import { NewGroupDialog } from "@/components/chat/NewGroupDialog";
 import { UserAvatar } from "@/components/UserAvatar";
+import { EditorialPageHeader, EditorialSectionHeader } from "@/components/editorial/SectionHeader";
 
 export const Route = createFileRoute("/_authenticated/app/chat/")({
   component: ChatList,
