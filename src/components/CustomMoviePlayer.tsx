@@ -41,7 +41,10 @@ type Props = {
   onLockedAttempt?: () => void;
   /** Called when the browser cannot get playable media data from the source. */
   onLoadIssue?: (reason: "timeout" | "error") => void;
+  /** Called whenever the local <video> stalls or resumes — used for SyncPlay-style buffer sync. */
+  onBufferingChange?: (state: "waiting" | "ready") => void;
 };
+
 
 function fmt(sec: number): string {
   if (!isFinite(sec) || sec <= 0) return "00:00";
