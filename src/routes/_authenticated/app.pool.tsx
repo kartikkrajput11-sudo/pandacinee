@@ -219,13 +219,35 @@ function PoolPage() {
   }, [me?.id, partner?.id]);
 
 
-  const [balls, setBalls] = useState<Ball[]>(() => makeRack());
-  const [turn, setTurn] = useState<Player>(0);
-  const [assign, setAssign] = useState<[Assignment, Assignment]>([null, null]);
+  // Hydrate persisted mid-game state (per-room) so refresh/navigation resumes
+  const persistKey = roomKey ? `pool:state:${roomKey}` : "";
+  const persisted = useMemo(() => {
+    if (!persistKey) return null;
+    try {
+      const raw = localStorage.getItem(persistKey);
+      if (!raw) return null;
+      const s = JSON.parse(raw);
+      if (!s || !Array.isArray(s.balls)) return null;
+      return s as {
+        balls: Ball[]; turn: Player; assign: [Assignment, Assignment];
+        winner: Player | null; message: string; ballInHand: Player | null;
+      };
+    } catch { return null; }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [persistKey]);
+
+  const [balls, setBalls] = useState<Ball[]>(() => {
+    if (persisted?.balls) {
+      return persisted.balls.map((b) => ({ ...b, group: groupOf(b.id), color: BALL_COLORS[b.id] }));
+    }
+    return makeRack();
+  });
+  const [turn, setTurn] = useState<Player>(persisted?.turn ?? 0);
+  const [assign, setAssign] = useState<[Assignment, Assignment]>(persisted?.assign ?? [null, null]);
   const [pocketedThisTurn, setPocketedThisTurn] = useState<Ball[]>([]);
-  const [winner, setWinner] = useState<Player | null>(null);
-  const [message, setMessage] = useState<string>("Break!");
-  const [ballInHand, setBallInHand] = useState<Player | null>(null);
+  const [winner, setWinner] = useState<Player | null>(persisted?.winner ?? null);
+  const [message, setMessage] = useState<string>(persisted?.message ?? "Break!");
+  const [ballInHand, setBallInHand] = useState<Player | null>(persisted?.ballInHand ?? null);
   const [matchScore, setMatchScore] = useState<[number, number]>(() => {
     try { const s = localStorage.getItem("pool:score"); if (s) return JSON.parse(s); } catch { /* noop */ }
     return [0, 0];
@@ -233,6 +255,18 @@ function PoolPage() {
   useEffect(() => {
     try { localStorage.setItem("pool:score", JSON.stringify(matchScore)); } catch { /* noop */ }
   }, [matchScore]);
+
+  // Persist mid-game snapshot for resume
+  useEffect(() => {
+    if (!persistKey) return;
+    try {
+      localStorage.setItem(persistKey, JSON.stringify({
+        balls: balls.map(b => ({ id: b.id, x: b.x, y: b.y, vx: 0, vy: 0, pocketed: b.pocketed, sinkT: b.sinkT, pocketX: b.pocketX, pocketY: b.pocketY })),
+        turn, assign, winner, message, ballInHand,
+      }));
+    } catch { /* noop */ }
+  }, [persistKey, balls, turn, assign, winner, message, ballInHand]);
+
 
   const svgRef = useRef<SVGSVGElement | null>(null);
   const [mouse, setMouse] = useState<{ x: number; y: number } | null>(null);
@@ -341,6 +375,12 @@ function PoolPage() {
       firstHitRef.current.id = null;
       setTimeout(() => { remoteApplyingRef.current = false; }, 0);
     });
+    ch.on("broadcast", { event: "hello" }, () => {
+      // A peer joined/rejoined — the current turn holder rebroadcasts full state so they resume mid-game
+      if (mySeatRef.current === null || mySeatRef.current === turnRef.current) {
+        setTimeout(() => sendState(true), 50);
+      }
+    });
     ch.on("presence", { event: "sync" }, () => {
       const state = ch.presenceState();
       const others = Object.keys(state).filter(k => k !== me?.id);
@@ -349,10 +389,13 @@ function PoolPage() {
     ch.subscribe(async (status) => {
       if (status === "SUBSCRIBED") {
         await ch.track({ seat: mySeatRef.current, at: Date.now() });
+        // Ask any peer already in the room to send us the current state
+        ch.send({ type: "broadcast", event: "hello", payload: { from: mySeatRef.current, at: Date.now() } });
       }
     });
     return () => { supabase.removeChannel(ch); channelRef.current = null; };
   }, [roomKey, me?.id]);
+
 
   useEffect(() => {
     let last = performance.now();
@@ -625,6 +668,7 @@ function PoolPage() {
     movingRef.current = false;
     turnEndedRef.current = false;
     firstHitRef.current.id = null;
+    try { if (persistKey) localStorage.removeItem(persistKey); } catch { /* noop */ }
     // Notify partner to reset too
     channelRef.current?.send({ type: "broadcast", event: "reset", payload: { ts: Date.now() } });
   };
