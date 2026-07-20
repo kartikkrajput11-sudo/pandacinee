@@ -91,10 +91,10 @@ export const Route = createFileRoute('/api/public/push-dispatch')({
           '@/integrations/supabase/client.server'
         );
 
-        const { data: tokens } = await supabaseAdmin
+        const { data: tokens } = await (supabaseAdmin as any)
           .from('device_tokens')
           .select('token')
-          .eq('user_id', parsed.user_id);
+          .eq('user_id', parsed.user_id) as { data: { token: string }[] | null };
 
         if (!tokens || tokens.length === 0) {
           return Response.json({ sent: 0 });
