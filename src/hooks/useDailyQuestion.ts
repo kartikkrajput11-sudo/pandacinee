@@ -65,18 +65,38 @@ export function useDailyQuestion(meId: string | null, partnerId: string | null) 
 
   useEffect(() => {
     if (!meId) return;
-    const ch = supabase
-      .channel(`answers-${meId}`)
+    let debounce: ReturnType<typeof setTimeout> | null = null;
+    const schedule = () => {
+      if (debounce) return;
+      debounce = setTimeout(() => {
+        debounce = null;
+        qc.invalidateQueries({ queryKey: ["daily-question"] });
+      }, 300);
+    };
+    const chMe = supabase
+      .channel(`answers-me-${meId}`)
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "daily_answers" },
-        () => qc.invalidateQueries({ queryKey: ["daily-question"] }),
+        { event: "*", schema: "public", table: "daily_answers", filter: `user_id=eq.${meId}` },
+        schedule,
       )
       .subscribe();
+    const chPartner = partnerId
+      ? supabase
+          .channel(`answers-partner-${partnerId}`)
+          .on(
+            "postgres_changes",
+            { event: "*", schema: "public", table: "daily_answers", filter: `user_id=eq.${partnerId}` },
+            schedule,
+          )
+          .subscribe()
+      : null;
     return () => {
-      supabase.removeChannel(ch);
+      if (debounce) clearTimeout(debounce);
+      supabase.removeChannel(chMe);
+      if (chPartner) supabase.removeChannel(chPartner);
     };
-  }, [meId, qc]);
+  }, [meId, partnerId, qc]);
 
   return {
     question: q.data?.question ?? null,
