@@ -41,6 +41,8 @@ function Me() {
   const [partnerNickname, setPartnerNickname] = useState("");
   const [saving, setSaving] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [tourOpen, setTourOpen] = useState(false);
+
 
   useEffect(() => {
     if (!me) return;
