@@ -375,6 +375,12 @@ function PoolPage() {
       firstHitRef.current.id = null;
       setTimeout(() => { remoteApplyingRef.current = false; }, 0);
     });
+    ch.on("broadcast", { event: "hello" }, () => {
+      // A peer joined/rejoined — the current turn holder rebroadcasts full state so they resume mid-game
+      if (mySeatRef.current === null || mySeatRef.current === turnRef.current) {
+        setTimeout(() => sendState(true), 50);
+      }
+    });
     ch.on("presence", { event: "sync" }, () => {
       const state = ch.presenceState();
       const others = Object.keys(state).filter(k => k !== me?.id);
@@ -383,10 +389,13 @@ function PoolPage() {
     ch.subscribe(async (status) => {
       if (status === "SUBSCRIBED") {
         await ch.track({ seat: mySeatRef.current, at: Date.now() });
+        // Ask any peer already in the room to send us the current state
+        ch.send({ type: "broadcast", event: "hello", payload: { from: mySeatRef.current, at: Date.now() } });
       }
     });
     return () => { supabase.removeChannel(ch); channelRef.current = null; };
   }, [roomKey, me?.id]);
+
 
   useEffect(() => {
     let last = performance.now();
