@@ -242,6 +242,9 @@ export function useLiveKitCall(opts: {
       );
       if (camPub?.track instanceof LocalVideoTrack) {
         await camPub.track.replaceTrack(newTrack.mediaStreamTrack);
+        // replaceTrack copies the raw MediaStreamTrack into the existing publication;
+        // the wrapper we created is now orphaned, so release it explicitly.
+        try { newTrack.stop(); } catch { /* ignore */ }
       } else {
         await lp.publishTrack(newTrack, { source: Track.Source.Camera });
       }
