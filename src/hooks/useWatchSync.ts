@@ -386,6 +386,43 @@ export function useWatchSync(
     setCountdown({ time: payload.time, startAt });
   }, [meId]);
 
+  // SyncPlay-style ready-check handshake: mark self ready, tell peer to prepare
+  // to a target time, wait for peer ready + no buffer, then broadcast a
+  // countdown so both sides start on the same frame.
+  const startTogether = useCallback((time: number, opts?: { timeoutMs?: number; leadMs?: number }) => {
+    const timeoutMs = opts?.timeoutMs ?? 4000;
+    const leadMs = opts?.leadMs ?? 500;
+    return new Promise<boolean>((resolve) => {
+      const ch = channelRef.current;
+      if (!ch || !meId) { resolve(false); return; }
+      myReadyRef.current = true;
+      setMyReadyState(true);
+      ch.track({ userId: meId, joinedAt: joinedAtRef.current, ready: true, sourceKind: mySourceKindRef.current }).catch(() => {});
+      writeBackendState({ ready: true });
+      ch.send({ type: "broadcast", event: "prepare", payload: { from: meId, time } });
+      const started = Date.now();
+      const tick = window.setInterval(() => {
+        const peerOk = (presencePeerReady || backendPeerReady) && !peerBuffering;
+        if (peerOk) {
+          window.clearInterval(tick);
+          const startAt = Date.now() + leadMs;
+          ch.send({ type: "broadcast", event: "countdown", payload: { from: meId, time, startAt } });
+          setCountdown({ time, startAt });
+          resolve(true);
+        } else if (Date.now() - started > timeoutMs) {
+          window.clearInterval(tick);
+          // Fallback: start alone rather than block forever.
+          const startAt = Date.now() + leadMs;
+          ch.send({ type: "broadcast", event: "countdown", payload: { from: meId, time, startAt } });
+          setCountdown({ time, startAt });
+          resolve(false);
+        }
+      }, 80);
+    });
+  }, [meId, presencePeerReady, backendPeerReady, peerBuffering, writeBackendState]);
+
+
+
   const sendReaction = useCallback((emoji: string) => {
     const ch = channelRef.current;
     if (!ch || !meId) return;
