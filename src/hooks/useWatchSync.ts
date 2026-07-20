@@ -327,7 +327,19 @@ export function useWatchSync(
     ch.send({ type: "broadcast", event: "prepare", payload: { from: meId, time } });
   }, [meId]);
 
+  // Buffer signal — call with "waiting" when local <video> stalls, "ready"
+  // when it resumes. Peers pause themselves while this is "waiting".
+  const lastBufferStateRef = useRef<"waiting" | "ready">("ready");
+  const sendBuffering = useCallback((state: "waiting" | "ready") => {
+    if (lastBufferStateRef.current === state) return;
+    lastBufferStateRef.current = state;
+    const ch = channelRef.current;
+    if (!ch || !meId) return;
+    ch.send({ type: "broadcast", event: "buffer", payload: { from: meId, state } });
+  }, [meId]);
+
   const clearPeerPreparing = useCallback(() => setPeerPreparing(null), []);
+
 
   const publish = useCallback((patch: Partial<Mine>) => {
     const now = Date.now();
