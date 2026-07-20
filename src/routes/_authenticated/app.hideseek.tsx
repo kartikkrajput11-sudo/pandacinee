@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { ArrowLeft, RotateCcw, Eye, EyeOff, Sparkles, Users, Wifi } from "lucide-react";
+import { ArrowLeft, RotateCcw, Eye, EyeOff, Sparkles, Users, Wifi, MessageCircle, Lock } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
 import { useMatchOpponent } from "@/hooks/useMatchOpponent";
 import { supabase } from "@/integrations/supabase/client";
@@ -279,17 +279,31 @@ function nearestLabel(scene: Scene, pt: Pt): string {
 type Mode = "local" | "online";
 type Phase =
   | "intro" | "lobby" | "waiting"
-  | "hider_pick_scene" | "hider_pick_spot" | "hider_watch"
+  | "hider_pick_scene" | "hider_pick_spot" | "hider_pick_whispers" | "hider_watch"
   | "handoff" | "seeker" | "round_result" | "final";
 
 type PeerMsg =
   | { t: "hello"; from: string }
   | { t: "start"; from: string; hiderId: string; round: number }
-  | { t: "hide"; from: string; sceneId: string; x: number; y: number }
+  | { t: "hide"; from: string; sceneId: string; x: number; y: number; whispers: string[] }
   | { t: "guess"; from: string; attempt: number; x: number; y: number }
   | { t: "round_end"; from: string; scores: [number, number]; foundAt: number | null }
   | { t: "next_round"; from: string; hiderId: string; round: number }
   | { t: "finish"; from: string; scores: [number, number] };
+
+/* Whisper suggestion prompts — hider taps to auto-fill, or writes their own. */
+const WHISPER_PROMPTS = [
+  "I can almost touch the wall from here.",
+  "Something wooden is right beside me.",
+  "I'm not near the middle of the room.",
+  "Light barely reaches this corner.",
+  "I hear echoes when I breathe.",
+  "There's something soft under my paws.",
+  "I'm closer to the top of the map.",
+  "Cold stone is nearby.",
+  "I can see the whole room from here.",
+  "The nearest furniture is small.",
+];
 
 /* ────────────────────────  Component  ──────────────────────── */
 
@@ -313,6 +327,7 @@ function HideSeekPage() {
   const [attempts, setAttempts] = useState<Pt[]>([]);          // seeker's clicks
   const [scores, setScores] = useState<[number, number]>([0, 0]);
   const [foundAt, setFoundAt] = useState<number | null>(null); // 0-based attempt idx
+  const [whispers, setWhispers] = useState<string[]>([]); // hider's 3 hints for the round
 
   const scene = useMemo(() => SCENES.find((s) => s.id === sceneId) ?? null, [sceneId]);
 
@@ -383,6 +398,7 @@ function HideSeekPage() {
       setSceneId(null);
       setSpot(null);
       setAttempts([]);
+      setWhispers([]);
       setFoundAt(null);
       const iHide = msg.hiderId === me.id;
       setPhase(iHide ? "hider_pick_scene" : "waiting");
@@ -390,9 +406,10 @@ function HideSeekPage() {
     }
 
     if (msg.t === "hide") {
-      // I'm the seeker — receive scene + hider's point
+      // I'm the seeker — receive scene + hider's point + whispers
       setSceneId(msg.sceneId);
       setSpot({ x: msg.x, y: msg.y });
+      setWhispers(msg.whispers ?? []);
       setAttempts([]);
       setFoundAt(null);
       setPhase("seeker");
@@ -435,6 +452,7 @@ function HideSeekPage() {
     setSceneId(null);
     setSpot(null);
     setAttempts([]);
+    setWhispers([]);
     setFoundAt(null);
     setScores([0, 0]);
   }
@@ -446,6 +464,7 @@ function HideSeekPage() {
     setSceneId(null);
     setSpot(null);
     setAttempts([]);
+    setWhispers([]);
     setFoundAt(null);
     setPhase("hider_pick_scene");
   }
@@ -459,6 +478,7 @@ function HideSeekPage() {
     setSceneId(null);
     setSpot(null);
     setAttempts([]);
+    setWhispers([]);
     setFoundAt(null);
     send({ t: "start", from: me.id, hiderId: hider, round: 1 });
     setPhase(iHideFirst ? "hider_pick_scene" : "waiting");
@@ -473,8 +493,15 @@ function HideSeekPage() {
   function pickSpot(pt: Pt) {
     sfxPollVote();
     setSpot(pt);
-    if (mode === "online" && me && sceneId != null) {
-      send({ t: "hide", from: me.id, sceneId, x: pt.x, y: pt.y });
+    setWhispers([]);
+    setPhase("hider_pick_whispers");
+  }
+
+  function submitWhispers(ws: string[]) {
+    sfxReaction();
+    setWhispers(ws);
+    if (mode === "online" && me && sceneId != null && spot) {
+      send({ t: "hide", from: me.id, sceneId, x: spot.x, y: spot.y, whispers: ws });
       setPhase("hider_watch");
     } else {
       setPhase("handoff");
@@ -543,6 +570,7 @@ function HideSeekPage() {
     setSceneId(null);
     setSpot(null);
     setAttempts([]);
+    setWhispers([]);
     setFoundAt(null);
     if (mode === "online" && me) {
       send({ t: "next_round", from: me.id, hiderId: nextHider, round: r });
@@ -635,6 +663,15 @@ function HideSeekPage() {
           <PickSpot scene={scene} onPick={pickSpot} onBack={() => setPhase("hider_pick_scene")} />
         )}
 
+        {phase === "hider_pick_whispers" && scene && spot != null && (
+          <PickWhispers
+            scene={scene}
+            spot={spot}
+            onBack={() => setPhase("hider_pick_spot")}
+            onSubmit={submitWhispers}
+          />
+        )}
+
         {phase === "handoff" && (
           <Handoff
             hiderName={hiderName}
@@ -647,7 +684,7 @@ function HideSeekPage() {
         )}
 
         {phase === "hider_watch" && scene && spot != null && (
-          <HiderWatch scene={scene} spot={spot} attempts={attempts} seekerName={seekerName} />
+          <HiderWatch scene={scene} spot={spot} attempts={attempts} whispers={whispers} seekerName={seekerName} />
         )}
 
         {phase === "seeker" && scene && spot != null && (
@@ -655,6 +692,7 @@ function HideSeekPage() {
             scene={scene}
             spot={spot}
             attempts={attempts}
+            whispers={whispers}
             onGuess={seekerGuess}
             hiderName={hiderName}
           />
@@ -998,7 +1036,8 @@ function Handoff({ hiderName, seekerName, onReady }: { hiderName: string; seeker
   );
 }
 
-function HiderWatch({ scene, spot, attempts, seekerName }: { scene: Scene; spot: Pt; attempts: Pt[]; seekerName: string }) {
+function HiderWatch({ scene, spot, attempts, whispers, seekerName }: { scene: Scene; spot: Pt; attempts: Pt[]; whispers: string[]; seekerName: string }) {
+  const revealed = Math.min(whispers.length, attempts.length + 1);
   return (
     <div className="space-y-3">
       <div className="text-center">
@@ -1012,6 +1051,20 @@ function HiderWatch({ scene, spot, attempts, seekerName }: { scene: Scene; spot:
           <AttemptMark key={i} pt={a} index={i} hit={distance(a, spot) <= HIT_RADIUS} />
         ))}
       </RoomFrame>
+
+      {whispers.length > 0 && (
+        <div className="rounded-2xl border border-petal/30 bg-petal-soft/20 p-4">
+          <p className="text-[10px] uppercase tracking-widest text-petal mb-2">Your whispers</p>
+          <ul className="space-y-1.5 text-sm">
+            {whispers.map((w, i) => (
+              <li key={i} className={`flex items-start gap-2 ${i < revealed ? "text-candle" : "text-candle-muted/60"}`}>
+                <span className="mt-0.5">{i < revealed ? <MessageCircle className="size-3.5 text-petal" /> : <Lock className="size-3.5" />}</span>
+                <span className="italic">"{w}"</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div className="rounded-2xl border border-border bg-surface p-4">
         <p className="text-[10px] uppercase tracking-widest text-candle-muted mb-2">Search log</p>
@@ -1035,13 +1088,85 @@ function HiderWatch({ scene, spot, attempts, seekerName }: { scene: Scene; spot:
   );
 }
 
-function SeekerBoard({ scene, spot, attempts, onGuess, hiderName }: {
-  scene: Scene; spot: Pt; attempts: Pt[]; onGuess: (pt: Pt) => void; hiderName: string;
+function PickWhispers({ scene, spot, onBack, onSubmit }: {
+  scene: Scene; spot: Pt; onBack: () => void; onSubmit: (ws: string[]) => void;
+}) {
+  const [ws, setWs] = useState<string[]>(["", "", ""]);
+  const filled = ws.filter((w) => w.trim().length > 0).length;
+  const canSubmit = filled === 3;
+
+  function setAt(i: number, v: string) {
+    setWs((prev) => prev.map((w, idx) => (idx === i ? v.slice(0, 90) : w)));
+  }
+  function fillPrompt(i: number, text: string) {
+    setAt(i, text);
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <button onClick={onBack} className="text-[11px] uppercase tracking-widest text-candle-muted hover:text-candle">← Move spot</button>
+        <p className="font-serif italic text-lg">Leave 3 whispers</p>
+        <span className="text-[11px] text-candle-muted">{filled}/3</span>
+      </div>
+
+      <p className="text-center text-xs text-candle-muted">
+        Drop three secret hints. The seeker unlocks one before each guess — the truer the whisper, the fairer the hunt.
+      </p>
+
+      <div className="rounded-2xl overflow-hidden border border-border">
+        <RoomFrame scene={scene} compact>
+          <HidingMarker pt={spot} pulse />
+        </RoomFrame>
+      </div>
+
+      {[0, 1, 2].map((i) => (
+        <div key={i} className="rounded-2xl border border-border bg-surface p-3 space-y-2">
+          <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.28em] text-petal">
+            <MessageCircle className="size-3.5" /> Whisper {i + 1}
+          </div>
+          <textarea
+            value={ws[i]}
+            onChange={(e) => setAt(i, e.target.value)}
+            placeholder="Give a hint about your hiding place…"
+            rows={2}
+            maxLength={90}
+            className="w-full bg-transparent text-sm text-candle placeholder:text-candle-muted/50 outline-none resize-none"
+          />
+          <div className="flex flex-wrap gap-1.5">
+            {WHISPER_PROMPTS.slice(i * 3, i * 3 + 3).map((p) => (
+              <button
+                key={p}
+                onClick={() => fillPrompt(i, p)}
+                className="text-[10px] px-2 py-1 rounded-full border border-border text-candle-muted hover:border-petal/60 hover:text-candle transition-colors"
+              >
+                {p}
+              </button>
+            ))}
+          </div>
+        </div>
+      ))}
+
+      <button
+        onClick={() => canSubmit && onSubmit(ws.map((w) => w.trim()))}
+        disabled={!canSubmit}
+        className="w-full py-3 rounded-2xl bg-gradient-to-br from-petal to-rose-500 text-velvet font-medium tracking-wide shadow-lg shadow-petal/20 disabled:opacity-40"
+      >
+        {canSubmit ? "Seal whispers & hide" : `Write ${3 - filled} more whisper${3 - filled === 1 ? "" : "s"}`}
+      </button>
+    </div>
+  );
+}
+
+function SeekerBoard({ scene, spot, attempts, whispers, onGuess, hiderName }: {
+  scene: Scene; spot: Pt; attempts: Pt[]; whispers: string[]; onGuess: (pt: Pt) => void; hiderName: string;
 }) {
   const lastAttempt = attempts.length > 0 ? attempts[attempts.length - 1] : null;
   const lastHeat = lastAttempt ? heatFor(lastAttempt, spot) : null;
   const remaining = MAX_ATTEMPTS - attempts.length;
   const done = remaining <= 0 || (lastAttempt && distance(lastAttempt, spot) <= HIT_RADIUS);
+  // Reveal one whisper before each guess: attempts.length + 1, capped at whispers.length.
+  const revealed = Math.min(whispers.length, attempts.length + 1);
 
   return (
     <div className="space-y-3">
@@ -1050,6 +1175,27 @@ function SeekerBoard({ scene, spot, attempts, onGuess, hiderName }: {
         <p className="font-serif italic text-xl">{scene.name}</p>
         <p className="text-xs text-candle-muted mt-1">{remaining} {remaining === 1 ? "guess" : "guesses"} left</p>
       </div>
+
+      {whispers.length > 0 && (
+        <div className="rounded-2xl border border-petal/30 bg-gradient-to-br from-petal-soft/30 to-surface/60 backdrop-blur p-4 space-y-2">
+          <p className="text-[10px] uppercase tracking-[0.28em] text-petal flex items-center gap-1.5">
+            <MessageCircle className="size-3.5" /> Whispers from {hiderName}
+          </p>
+          <ul className="space-y-1.5">
+            {whispers.map((w, i) => {
+              const locked = i >= revealed;
+              return (
+                <li key={i} className={`flex items-start gap-2 text-sm ${locked ? "text-candle-muted/50" : "text-candle"}`}>
+                  <span className="mt-1">{locked ? <Lock className="size-3.5" /> : <span className="text-petal">✦</span>}</span>
+                  <span className={locked ? "italic" : "italic"}>
+                    {locked ? `Unlocks after guess ${i}` : `"${w}"`}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
 
       {lastHeat && (
         <div className={`text-center rounded-2xl border border-border bg-surface/60 backdrop-blur p-3 ${lastHeat.cls}`}>
@@ -1070,7 +1216,7 @@ function SeekerBoard({ scene, spot, attempts, onGuess, hiderName }: {
         </RoomFrame>
       </div>
 
-      <p className="text-center text-[11px] text-candle-muted italic">Tap anywhere on the map. Warmer means close, burning means dead-on.</p>
+      <p className="text-center text-[11px] text-candle-muted italic">Tap the map to guess. Each miss unlocks a new whisper.</p>
     </div>
   );
 }
