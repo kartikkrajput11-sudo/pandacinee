@@ -613,12 +613,14 @@ function PoolPage() {
     const dy = mouse.y - cueBall.y;
     const len = Math.hypot(dx, dy) || 1;
     const ux = dx / len, uy = dy / len;
-    const pullback = drag ? Math.min(60, power * 4) : 20;
+    const effectivePower = Math.max(power, stickPower);
+    const pullback = drag || stickPower > 0 ? Math.min(90, effectivePower * 5) : 20;
     const tipX = cueBall.x + ux * (R + 8 + pullback);
     const tipY = cueBall.y + uy * (R + 8 + pullback);
     const angleDeg = Math.atan2(uy, ux) * 180 / Math.PI;
-    return { tipX, tipY, angleDeg };
-  }, [cueBall, mouse, canShoot, drag, power]);
+    return { tipX, tipY, angleDeg, ux, uy };
+  }, [cueBall, mouse, canShoot, drag, power, stickPower]);
+
 
   const solidsLeft = balls.filter((b) => !b.pocketed && b.group === "solid").length;
   const stripesLeft = balls.filter((b) => !b.pocketed && b.group === "stripe").length;
