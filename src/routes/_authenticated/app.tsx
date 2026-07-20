@@ -14,11 +14,25 @@ export const Route = createFileRoute("/_authenticated/app")({
 
 function AppShell() {
   usePresenceHeartbeat();
-  const { data } = useProfile();
+  const { data, isLoading } = useProfile();
   useGamePresence(data?.profile?.id, data?.partner?.id);
   const { pathname } = useLocation();
   // Only show bottom nav on the home page; every other page has its own back button
   const hideNav = pathname !== "/app";
+
+  // Global guided tour lives here so it survives navigation between pages
+  const [tourOpen, setTourOpen] = useState(false);
+  useEffect(() => {
+    if (!isLoading && data?.profile && !hasSeenTour()) {
+      const t = setTimeout(() => setTourOpen(true), 700);
+      return () => clearTimeout(t);
+    }
+  }, [isLoading, data?.profile]);
+  useEffect(() => {
+    const onOpen = () => setTourOpen(true);
+    window.addEventListener("pandacine:open-tour", onOpen);
+    return () => window.removeEventListener("pandacine:open-tour", onOpen);
+  }, []);
 
   return (
     <div className={`relative min-h-screen velvet-bg ${hideNav ? "" : "pb-28"}`}>
