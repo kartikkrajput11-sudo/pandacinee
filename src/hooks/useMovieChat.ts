@@ -68,6 +68,10 @@ export function useMovieChat(
     channelRef.current = ch;
 
     return () => {
+      if (typingTimer.current) {
+        window.clearTimeout(typingTimer.current);
+        typingTimer.current = null;
+      }
       supabase.removeChannel(ch);
       channelRef.current = null;
       setMessages([]);
