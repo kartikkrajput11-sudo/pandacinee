@@ -123,9 +123,10 @@ function GroupChat() {
     return map;
   }, [chat.reactions]);
 
+  const lastMessageId = chat.messages[chat.messages.length - 1]?.id ?? null;
   useEffect(() => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: "smooth" });
-  }, [chat.messages.length]);
+  }, [lastMessageId]);
 
   async function handleSend() {
     const trimmed = text.trim();
