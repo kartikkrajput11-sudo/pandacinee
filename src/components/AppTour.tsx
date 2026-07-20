@@ -107,12 +107,12 @@ export function AppTour({ open, onClose }: { open: boolean; onClose: () => void 
   const [i, setI] = useState(0);
   const [rect, setRect] = useState<DOMRect | null>(null);
   const [ready, setReady] = useState(false);
+  const [tipSize, setTipSize] = useState<{ w: number; h: number }>({ w: 360, h: 220 });
+  const tipRef = useRef<HTMLDivElement | null>(null);
   const total = STEPS.length;
   const returnTo = useRef<string>("/app");
 
   // Remember where user was so we can return them after tour.
-  // IMPORTANT: only depend on `open` — depending on pathname would reset
-  // the step index every time the tour navigates to the next page.
   useEffect(() => {
     if (open) {
       returnTo.current = router.state.location.pathname || "/app";
@@ -135,9 +135,11 @@ export function AppTour({ open, onClose }: { open: boolean; onClose: () => void 
       const el = await waitForEl(step.selector, 5000);
       if (cancelled) return;
       if (el) {
-        el.scrollIntoView({ behavior: "smooth", block: "center" });
-        // wait for smooth scroll to settle
-        await new Promise((r) => setTimeout(r, 350));
+        // scroll so the element sits in the upper third — leaves room for the tooltip below
+        const r = el.getBoundingClientRect();
+        const targetY = window.scrollY + r.top - Math.max(80, window.innerHeight * 0.22);
+        window.scrollTo({ top: Math.max(0, targetY), behavior: "smooth" });
+        await new Promise((r) => setTimeout(r, 420));
         if (cancelled) return;
         setRect(el.getBoundingClientRect());
       }
@@ -146,22 +148,37 @@ export function AppTour({ open, onClose }: { open: boolean; onClose: () => void 
     return () => { cancelled = true; };
   }, [i, open, router]);
 
-  // Track scroll / resize for spotlight
+  // Track scroll / resize for spotlight — rAF for smoothness
   useLayoutEffect(() => {
     if (!open) return;
+    let raf = 0;
     const update = () => {
       const el = document.querySelector(STEPS[i].selector) as HTMLElement | null;
       if (el) setRect(el.getBoundingClientRect());
+      raf = requestAnimationFrame(update);
     };
-    window.addEventListener("scroll", update, true);
-    window.addEventListener("resize", update);
-    const id = window.setInterval(update, 500);
-    return () => {
-      window.removeEventListener("scroll", update, true);
-      window.removeEventListener("resize", update);
-      window.clearInterval(id);
-    };
+    raf = requestAnimationFrame(update);
+    return () => cancelAnimationFrame(raf);
   }, [i, open]);
+
+  // Measure tooltip so we can place it without overlapping the spotlight
+  useLayoutEffect(() => {
+    if (!open || !tipRef.current) return;
+    const measure = () => {
+      const el = tipRef.current;
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      setTipSize((prev) =>
+        Math.abs(prev.w - r.width) > 1 || Math.abs(prev.h - r.height) > 1
+          ? { w: r.width, h: r.height }
+          : prev,
+      );
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(tipRef.current);
+    return () => ro.disconnect();
+  }, [open, i, ready]);
 
   // Keyboard
   useEffect(() => {
@@ -181,7 +198,6 @@ export function AppTour({ open, onClose }: { open: boolean; onClose: () => void 
   function finish() {
     markTourSeen();
     onClose();
-    // return user to home so they land somewhere friendly
     try { router.navigate({ to: returnTo.current as never }); } catch { /* ignore */ }
   }
 
@@ -193,28 +209,49 @@ export function AppTour({ open, onClose }: { open: boolean; onClose: () => void 
     ? { x: rect.left - pad, y: rect.top - pad, w: rect.width + pad * 2, h: rect.height + pad * 2 }
     : null;
 
-  // Tooltip placement
   const vw = window.innerWidth;
   const vh = window.innerHeight;
-  const tooltipW = Math.min(400, vw - 32);
-  let tipX = 16;
-  let tipY = vh - 240;
+  const gutter = 16;
+  const tooltipW = Math.min(400, vw - gutter * 2);
+  const tipH = tipSize.h || 220;
+  const topBarH = 56; // reserve space for top progress bar
+
+  let tipX = gutter;
+  let tipY = vh - tipH - gutter;
   let arrow: "up" | "down" | null = null;
+
   if (spot) {
-    const preferBottom = step.placement === "bottom"
-      || (step.placement !== "top" && spot.y + spot.h < vh / 2);
-    if (preferBottom) {
-      tipY = Math.min(vh - 220, spot.y + spot.h + 16);
+    const spaceBelow = vh - (spot.y + spot.h) - gutter;
+    const spaceAbove = spot.y - topBarH - gutter;
+    const wantsBottom = step.placement === "bottom";
+    const wantsTop = step.placement === "top";
+    const preferBottom = wantsBottom
+      ? spaceBelow >= 120 || spaceBelow >= spaceAbove
+      : wantsTop
+        ? !(spaceAbove >= 120) && spaceBelow > spaceAbove
+        : spaceBelow >= spaceAbove;
+
+    if (preferBottom && spaceBelow >= 120) {
+      tipY = spot.y + spot.h + 14;
       arrow = "up";
-    } else {
-      tipY = Math.max(16, spot.y - 200);
+    } else if (spaceAbove >= 120) {
+      tipY = spot.y - tipH - 14;
       arrow = "down";
+    } else {
+      // no room on either side — pin to bottom without arrow
+      tipY = vh - tipH - gutter;
+      arrow = null;
     }
+    tipY = Math.max(topBarH + gutter, Math.min(tipY, vh - tipH - gutter));
     tipX = Math.min(
-      Math.max(16, spot.x + spot.w / 2 - tooltipW / 2),
-      vw - tooltipW - 16,
+      Math.max(gutter, spot.x + spot.w / 2 - tooltipW / 2),
+      vw - tooltipW - gutter,
     );
+  } else {
+    // no target — center-bottom
+    tipX = Math.max(gutter, (vw - tooltipW) / 2);
   }
+
 
   return createPortal(
     <div className="fixed inset-0 z-[300] animate-fade-in">
@@ -248,7 +285,13 @@ export function AppTour({ open, onClose }: { open: boolean; onClose: () => void 
       {spot && (
         <div
           className="pointer-events-none absolute rounded-[20px] border border-petal/70 shadow-[0_0_0_2px_rgba(236,120,155,0.25),0_0_40px_10px_rgba(236,120,155,0.35)] animate-pulse"
-          style={{ left: spot.x, top: spot.y, width: spot.w, height: spot.h }}
+          style={{
+            left: spot.x,
+            top: spot.y,
+            width: spot.w,
+            height: spot.h,
+            transition: "left 220ms cubic-bezier(.22,.61,.36,1), top 220ms cubic-bezier(.22,.61,.36,1), width 220ms cubic-bezier(.22,.61,.36,1), height 220ms cubic-bezier(.22,.61,.36,1)",
+          }}
         />
       )}
 
@@ -281,9 +324,14 @@ export function AppTour({ open, onClose }: { open: boolean; onClose: () => void 
 
       {/* Tooltip card */}
       <div
-        key={i}
+        ref={tipRef}
         className="absolute animate-fade-in"
-        style={{ left: tipX, top: tipY, width: tooltipW }}
+        style={{
+          left: tipX,
+          top: tipY,
+          width: tooltipW,
+          transition: "left 220ms cubic-bezier(.22,.61,.36,1), top 220ms cubic-bezier(.22,.61,.36,1)",
+        }}
       >
         {arrow === "up" && spot && (
           <div
