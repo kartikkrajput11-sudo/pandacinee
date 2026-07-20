@@ -31,6 +31,7 @@ import 'screens/watch_party_screen.dart';
 import 'screens/admin_screen.dart';
 import 'screens/tour_screen.dart';
 import 'screens/shared_media_screen.dart';
+import 'screens/live_call_room_screen.dart';
 import 'supabase_providers.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -84,6 +85,13 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/app/call/:callId',
         builder: (_, s) => CallRoomScreen(callId: s.pathParameters['callId']!),
+      ),
+      GoRoute(
+        path: '/app/call/:callId/live',
+        builder: (_, s) => LiveCallRoomScreen(
+          callId: s.pathParameters['callId']!,
+          video: (s.uri.queryParameters['video'] ?? '0') == '1',
+        ),
       ),
       GoRoute(
         path: '/app/watch/:roomId/:leaderId',
