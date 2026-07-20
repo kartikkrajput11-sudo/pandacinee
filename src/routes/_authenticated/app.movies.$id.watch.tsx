@@ -204,6 +204,9 @@ function CatalogWatch({ id }: { id: string }) {
   const lastAppliedPeerEventRef = useRef<number>(0);
   const customPlayerRef = useRef<CustomPlayerHandle | null>(null);
   const suppressPlayerEventRef = useRef(false);
+  // Local receipt time per peer packet — avoids clock-skew drift.
+  const peerReceivedAtRef = useRef<Record<number, number>>({});
+
   const pendingAutoJoinRef = useRef<number | null>(null);
 
   // Auto-dismiss the "waiting for friend" overlay once they actually join the room
