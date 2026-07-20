@@ -161,6 +161,9 @@ function LudoPage() {
   };
 
   const handleReset = () => {
+    if (mode === "partner" && !state.winner) {
+      if (!window.confirm("Reset the board? This wipes the match for both of you.")) return;
+    }
     const next = initialState();
     setState(next);
     broadcast(next);
