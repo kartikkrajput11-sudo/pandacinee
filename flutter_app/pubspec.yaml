@@ -44,7 +44,7 @@ dependencies:
   url_launcher: ^6.3.0
   http: ^1.2.2
 
-  # Phase 22 — Push + background call ringing
+  # Phase 22–25 — Push, deep-linking, and offline cache
   firebase_core: ^3.6.0
   firebase_messaging: ^15.1.3
 
