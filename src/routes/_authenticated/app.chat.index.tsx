@@ -103,6 +103,9 @@ function ChatList() {
           </>
         }
       />
+      </div>
+
+
 
       {(isLoading || groupsLoading) && (
         <div className="text-center py-12 text-candle-muted text-sm">Loading…</div>
