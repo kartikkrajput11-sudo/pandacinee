@@ -110,13 +110,16 @@ export function AppTour({ open, onClose }: { open: boolean; onClose: () => void 
   const total = STEPS.length;
   const returnTo = useRef<string>("/app");
 
-  // Remember where user was so we can return them after tour
+  // Remember where user was so we can return them after tour.
+  // IMPORTANT: only depend on `open` — depending on pathname would reset
+  // the step index every time the tour navigates to the next page.
   useEffect(() => {
     if (open) {
       returnTo.current = router.state.location.pathname || "/app";
       setI(0);
     }
-  }, [open, router.state.location.pathname]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   // Navigate + locate target for each step
   useEffect(() => {
