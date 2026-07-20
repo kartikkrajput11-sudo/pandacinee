@@ -39,6 +39,8 @@ export function useChat(meId: string | null, partnerId: string | null) {
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const typingTimer = useRef<number | null>(null);
   const lastTypingSent = useRef(0);
+  const readReceiptsEnabledRef = useRef<boolean | null>(null);
+
 
   const fetchMessages = useCallback(
     async (before?: string) => {
@@ -114,25 +116,31 @@ export function useChat(meId: string | null, partnerId: string | null) {
     });
 
     ch.subscribe(async (status) => {
-      if (status === "SUBSCRIBED") {
-        // Respect the user's Activity status setting — if hidden, never broadcast presence.
-        const { data: mine } = await supabase
-          .from("profiles")
-          .select("activity_visible")
-          .eq("id", meId)
-          .maybeSingle();
-        if ((mine as any)?.activity_visible === false) return;
-        await ch.track({ online_at: Date.now() });
-      }
+      if (status !== "SUBSCRIBED" || cancelled) return;
+      // Respect the user's Activity status setting — if hidden, never broadcast presence.
+      const { data: mine } = await supabase
+        .from("profiles")
+        .select("activity_visible,read_receipts_enabled")
+        .eq("id", meId)
+        .maybeSingle();
+      readReceiptsEnabledRef.current = (mine as any)?.read_receipts_enabled !== false;
+      if (cancelled) return;
+      if ((mine as any)?.activity_visible === false) return;
+      await ch.track({ online_at: Date.now() });
     });
     channelRef.current = ch;
 
+
     return () => {
       cancelled = true;
+      if (typingTimer.current) window.clearTimeout(typingTimer.current);
+      typingTimer.current = null;
       supabase.removeChannel(ch);
       channelRef.current = null;
+      readReceiptsEnabledRef.current = null;
     };
   }, [fetchMessages, meId, partnerId]);
+
 
   const loadOlder = useCallback(async () => {
     if (!meId || !partnerId || loadingOlder || !hasMore || messages.length === 0) return;
@@ -146,22 +154,33 @@ export function useChat(meId: string | null, partnerId: string | null) {
     }
   }, [fetchMessages, hasMore, loadingOlder, meId, messages, partnerId]);
 
-  // mark partner's unread as read — but only if the user has seen receipts enabled
+  // mark partner's unread as read — but only if the user has read receipts enabled
   useEffect(() => {
     if (!meId || !partnerId) return;
     const unread = messages.filter((m) => m.sender_id === partnerId && m.receiver_id === meId && !m.read_at);
     if (unread.length === 0) return;
     const ids = unread.map((m) => m.id);
     (async () => {
-      const { data: mine } = await supabase
-        .from("profiles")
-        .select("read_receipts_enabled")
-        .eq("id", meId)
-        .maybeSingle();
-      if ((mine as any)?.read_receipts_enabled === false) return;
-      await supabase.from("messages").update({ read_at: new Date().toISOString() }).in("id", ids);
+      // Use cached preference set on channel subscribe; only hit the DB if unknown.
+      let enabled = readReceiptsEnabledRef.current;
+      if (enabled === null) {
+        const { data: mine } = await supabase
+          .from("profiles")
+          .select("read_receipts_enabled")
+          .eq("id", meId)
+          .maybeSingle();
+        enabled = (mine as any)?.read_receipts_enabled !== false;
+        readReceiptsEnabledRef.current = enabled;
+      }
+      if (!enabled) return;
+      await supabase
+        .from("messages")
+        .update({ read_at: new Date().toISOString() })
+        .in("id", ids)
+        .is("read_at", null);
     })();
   }, [messages, meId, partnerId]);
+
 
   // Reap expired messages (real vanish)
   useEffect(() => {
