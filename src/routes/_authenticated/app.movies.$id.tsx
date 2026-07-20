@@ -51,30 +51,39 @@ function MovieDetailInner({ id }: { id: string }) {
   useEffect(() => {
     let alive = true;
     (async () => {
-      // 1) Check admin override to know if this is a series (media_type=tv)
+      // 1) Admin override tells us the intended media type
       const { data: ov } = await supabase
         .from("custom_movies")
         .select("title, overview, poster_url, backdrop_url, runtime, media_type")
         .eq("tmdb_id", Number(id))
         .maybeSingle();
-      const tv = ov?.media_type === "tv";
+
+      // 2) Fetch both endpoints in parallel — TMDB uses distinct id spaces for
+      //    movies vs TV, so either or both can succeed. We pick TV when the
+      //    admin marked it, when only TV resolves, or when TV has real season
+      //    data and the movie result is thin.
+      const [movieRes, tvRes] = await Promise.all([
+        fetchMovie({ data: { id: Number(id) } }).catch(() => null),
+        fetchTv({ data: { id: Number(id) } }).catch(() => null),
+      ]);
       if (!alive) return;
+
+      const tvHasSeasons = !!(tvRes && Array.isArray(tvRes.seasons) && tvRes.seasons.length);
+      const movieLooksReal = !!(movieRes && (movieRes.release_date || movieRes.runtime));
+      const preferTv =
+        ov?.media_type === "tv" ||
+        (tvHasSeasons && !movieLooksReal) ||
+        (tvHasSeasons && movieRes?.media_type === "tv");
+      const tv = preferTv && !!tvRes;
       setIsTv(tv);
 
-      // 2) Fetch the right TMDB endpoint. Fall back to movie if TV 404s.
-      let m: any = null;
-      if (tv) {
-        m = await fetchTv({ data: { id: Number(id) } }).catch(() => null);
-      }
-      if (!m) {
-        m = await fetchMovie({ data: { id: Number(id) } }).catch(() => null);
-        if (m && !tv && m.media_type === "tv") setIsTv(true);
-      } else {
-        // Normalise TV shape → the rest of the JSX reads `title` / `release_date`.
+      let m: any = tv ? tvRes : (movieRes ?? tvRes);
+      if (m && tv) {
         m.title = m.name ?? m.original_name ?? m.title;
         m.release_date = m.first_air_date ?? m.release_date ?? null;
-        // First episode runtime as an approximation
-        m.runtime = Array.isArray(m.episode_run_time) && m.episode_run_time[0] ? m.episode_run_time[0] : null;
+        m.runtime = Array.isArray(m.episode_run_time) && m.episode_run_time[0]
+          ? m.episode_run_time[0]
+          : null;
       }
 
       // 3) Overlay admin edits
@@ -94,6 +103,7 @@ function MovieDetailInner({ id }: { id: string }) {
       .catch(() => alive && setSources([]));
     return () => { alive = false; };
   }, [id]);
+
 
   // Load season episodes when this is a TV series
   useEffect(() => {
