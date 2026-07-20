@@ -4,6 +4,8 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'deep_link_service.dart';
+
 /// Phase 22 — Push notifications + background call ringing.
 ///
 /// Wires Firebase Cloud Messaging to Supabase so that:
@@ -39,11 +41,10 @@ class PushService {
     if (_ready) return;
     await Firebase.initializeApp();
 
-    // Local notifications (used to draw ringing UI from FCM data payloads)
-    const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
-    await _fln.initialize(
-      const InitializationSettings(android: androidInit),
-    );
+    // Local notifications (used to draw ringing UI from FCM data payloads).
+    // Phase 23 — DeepLinkService also registers the tap handler and processes
+    // any cold-start notification.
+    await DeepLinkService.instance.attach(fln: _fln);
 
     final android =
         _fln.resolvePlatformSpecificImplementation<
