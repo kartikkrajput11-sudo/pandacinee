@@ -448,25 +448,32 @@ function PoolPage() {
     setDrag({ startX: p.x, startY: p.y });
     setMouse(p);
   };
-  const onSvgUp = () => {
-    if (!drag || !cueBall || !mouse) { setDrag(null); return; }
-    if (power < 1) { setDrag(null); setPower(0); return; }
+  const fireCue = useCallback((pwr: number) => {
+    if (!cueBall || !mouse || !canShoot) return;
+    if (pwr < 1) return;
     const dx = cueBall.x - mouse.x;
     const dy = cueBall.y - mouse.y;
     const len = Math.hypot(dx, dy) || 1;
-    cueBall.vx = (dx / len) * power;
-    cueBall.vy = (dy / len) * power;
+    cueBall.vx = (dx / len) * pwr;
+    cueBall.vy = (dy / len) * pwr;
     sfxPoolCue();
     setBalls([...ballsRef.current]);
     setDrag(null);
     setPower(0);
+    setStickPower(0);
     setPocketedThisTurn([]);
     firstHitRef.current.id = null;
     turnEndedRef.current = false;
     movingRef.current = true;
-    // Broadcast the initial cue-strike so partner sees motion begin instantly
     setTimeout(() => sendState(true), 0);
+  }, [cueBall, mouse, canShoot, sendState]);
+
+  const onSvgUp = () => {
+    if (!drag || !cueBall || !mouse) { setDrag(null); return; }
+    if (power < 1) { setDrag(null); setPower(0); return; }
+    fireCue(power);
   };
+
 
   // -------- Turn resolution --------
   // NOTE: called from the RAF loop (which captures the first-render closure),
