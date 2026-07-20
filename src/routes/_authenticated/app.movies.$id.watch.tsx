@@ -1844,11 +1844,18 @@ function CustomWatch({ customId }: { customId: string }) {
     clearIncomingSeek();
   }, [incomingSeek, clearIncomingSeek, playerReady, runSuppressed]);
 
-  // Mutual sync — latency-compensated drift correction. peer.currentTime is
-  // sampled at peer.updatedAt; project it forward to "now" using the peer's
-  // playback rate so followers land where the host actually is, not where they
-  // were 200-400ms ago. Small drift → gentle playbackRate nudge (closes gap in
-  // ~2s, imperceptible). Large drift → hard seek.
+  // Stamp local receipt time for each new peer packet (clock-skew safe).
+  useEffect(() => {
+    if (!peer) return;
+    if (peerReceivedAtRef.current[peer.updatedAt] != null) return;
+    peerReceivedAtRef.current[peer.updatedAt] = Date.now();
+    const keys = Object.keys(peerReceivedAtRef.current).map(Number).sort((a, b) => b - a);
+    for (const k of keys.slice(10)) delete peerReceivedAtRef.current[k];
+  }, [peer]);
+
+  // Mutual sync — latency-compensated drift correction. Uses LOCAL receipt
+  // time (not the host's wall clock) so cross-machine clock skew can't push
+  // the follower into a permanent playbackRate nudge (the "auto fast" bug).
   useEffect(() => {
     if (!peer || !partner) return;
     if (peer.updatedAt <= lastAppliedPeerEventRef.current) return;
@@ -1858,29 +1865,32 @@ function CustomWatch({ customId }: { customId: string }) {
     if (evt !== "play" && evt !== "pause" && evt !== "seeked" && evt !== "timeupdate" && evt !== "ratechange") return;
 
     const baseRate = (typeof peer.playbackRate === "number" && peer.playbackRate > 0) ? peer.playbackRate : 1;
+    const now = Date.now();
+    const receivedAt = peerReceivedAtRef.current[peer.updatedAt] ?? now;
     const hostPlaying = evt !== "pause";
-    const elapsed = hostPlaying ? Math.max(0, (Date.now() - peer.updatedAt) / 1000) * baseRate : 0;
+    const elapsed = hostPlaying ? Math.max(0, (now - receivedAt) / 1000) * baseRate : 0;
     const targetTime = peer.currentTime + elapsed;
     const drift = h.currentTime() - targetTime; // >0 => follower ahead
 
     if (evt === "timeupdate") {
       const abs = Math.abs(drift);
-      if (abs < 0.2) return; // already tight enough — do nothing
+      if (abs < 0.35) return; // dead-band — avoid constant micro-nudges
       lastAppliedPeerEventRef.current = peer.updatedAt;
       runSuppressed(() => {
         if (abs > 1.2) {
           h.seek(targetTime);
           h.setPlaybackRate(baseRate);
         } else {
-          // Proportional rate nudge, capped at ±0.25. Closes drift in ~2s.
-          const nudge = Math.max(-0.25, Math.min(0.25, -drift / 2));
-          h.setPlaybackRate(Math.max(0.25, baseRate + nudge));
+          // Gentle rate nudge, capped at ±0.15 — closes drift over ~2-3s.
+          const nudge = Math.max(-0.15, Math.min(0.15, -drift / 2));
+          h.setPlaybackRate(Math.max(0.5, baseRate + nudge));
           window.setTimeout(() => {
             handleRef.current?.setPlaybackRate(baseRate);
           }, 1400);
         }
       }, 250);
       return;
+
     }
 
     // Discrete event — align exactly, then match play/pause state.
