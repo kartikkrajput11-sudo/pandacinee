@@ -35,7 +35,8 @@ class HomeScreen extends ConsumerWidget {
                 _card(context, 'Chats', 'DMs, groups, affections', onTap: () => context.push('/app/chats')),
                 _card(context, 'Play', 'Chess, Ludo, Uno, Pool…', onTap: () => context.push('/app/play')),
                 _card(context, 'Movies', 'Watch in lock-step', onTap: () => context.push('/app/movies')),
-                _card(context, 'Profile', 'Badges & achievements'),
+                _card(context, 'Profile', 'Badges & achievements', onTap: () => context.push('/app/me')),
+                _card(context, 'Affections', 'Kiss · Hug · Headpat…', onTap: () => context.push('/app/affections')),
                 const SizedBox(height: 40),
                 Center(
                   child: TextButton(

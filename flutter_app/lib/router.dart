@@ -16,6 +16,8 @@ import 'screens/pool_screen.dart';
 import 'screens/hideseek_screen.dart';
 import 'screens/knowme_screen.dart';
 import 'screens/movies_screen.dart';
+import 'screens/profile_screen.dart';
+import 'screens/affections_screen.dart';
 import 'supabase_providers.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -52,6 +54,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/app/play/hideseek', builder: (_, __) => const HideSeekScreen()),
       GoRoute(path: '/app/play/knowme', builder: (_, __) => const KnowMeScreen()),
       GoRoute(path: '/app/movies', builder: (_, __) => const MoviesScreen()),
+      GoRoute(path: '/app/me', builder: (_, __) => const ProfileScreen()),
+      GoRoute(path: '/app/affections', builder: (_, __) => const AffectionsScreen()),
     ],
   );
 });
