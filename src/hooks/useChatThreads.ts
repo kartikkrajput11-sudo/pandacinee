@@ -25,6 +25,7 @@ export function useChatThreads() {
   const qc = useQueryClient();
   const q = useQuery({
     queryKey: ["chat-threads"],
+    staleTime: 15_000,
     queryFn: async (): Promise<ThreadRow[]> => {
       const { data: u } = await supabase.auth.getUser();
       if (!u.user) return [];
@@ -105,14 +106,53 @@ export function useChatThreads() {
   });
 
   useEffect(() => {
-    const ch = supabase
-      .channel("threads-rt")
-      .on("postgres_changes", { event: "*", schema: "public", table: "messages" }, () => {
+    let cancelled = false;
+    const channels: ReturnType<typeof supabase.channel>[] = [];
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const scheduleInvalidate = () => {
+      if (debounceTimer) return;
+      debounceTimer = setTimeout(() => {
+        debounceTimer = null;
         qc.invalidateQueries({ queryKey: ["chat-threads"] });
-      })
-      .subscribe();
+      }, 400);
+    };
+
+    (async () => {
+      const { data: u } = await supabase.auth.getUser();
+      if (!u.user || cancelled) return;
+      const meId = u.user.id;
+
+      // Scope realtime to messages that involve me only, and debounce refetches
+      // so a burst of inserts doesn't hammer the DB.
+      const asSender = supabase
+        .channel(`threads-rt-sender-${meId}`)
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "messages", filter: `sender_id=eq.${meId}` },
+          scheduleInvalidate,
+        )
+        .subscribe();
+      const asReceiver = supabase
+        .channel(`threads-rt-receiver-${meId}`)
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "messages", filter: `receiver_id=eq.${meId}` },
+          scheduleInvalidate,
+        )
+        .subscribe();
+      if (cancelled) {
+        supabase.removeChannel(asSender);
+        supabase.removeChannel(asReceiver);
+        return;
+      }
+      channels.push(asSender, asReceiver);
+    })();
+
     return () => {
-      supabase.removeChannel(ch);
+      cancelled = true;
+      if (debounceTimer) clearTimeout(debounceTimer);
+      for (const c of channels) supabase.removeChannel(c);
     };
   }, [qc]);
 
