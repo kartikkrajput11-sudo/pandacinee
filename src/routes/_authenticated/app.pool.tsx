@@ -475,6 +475,38 @@ function PoolPage() {
     fireCue(power);
   };
 
+  // -------- Cue-stick grip drag (pull back along cue axis) --------
+  const gripDragRef = useRef<{ startX: number; startY: number; ux: number; uy: number } | null>(null);
+  const onGripDown = (e: ReactPointerEvent) => {
+    if (!canShoot || !cueBall || !mouse) return;
+    e.stopPropagation();
+    const p = toSvg(e.clientX, e.clientY);
+    const dx = mouse.x - cueBall.x;
+    const dy = mouse.y - cueBall.y;
+    const len = Math.hypot(dx, dy) || 1;
+    gripDragRef.current = { startX: p.x, startY: p.y, ux: dx / len, uy: dy / len };
+    (e.target as Element).setPointerCapture?.(e.pointerId);
+  };
+  const onGripMove = (e: ReactPointerEvent) => {
+    const g = gripDragRef.current;
+    if (!g) return;
+    e.stopPropagation();
+    const p = toSvg(e.clientX, e.clientY);
+    // Project displacement onto the outward cue-butt direction
+    const proj = (p.x - g.startX) * g.ux + (p.y - g.startY) * g.uy;
+    const pwr = Math.max(0, Math.min(MAX_POWER, proj * 0.35));
+    setStickPower(pwr);
+  };
+  const onGripUp = (e: ReactPointerEvent) => {
+    if (!gripDragRef.current) return;
+    e.stopPropagation();
+    const pwr = stickPower;
+    gripDragRef.current = null;
+    if (pwr >= 1) fireCue(pwr);
+    else setStickPower(0);
+  };
+
+
 
   // -------- Turn resolution --------
   // NOTE: called from the RAF loop (which captures the first-render closure),
@@ -613,12 +645,14 @@ function PoolPage() {
     const dy = mouse.y - cueBall.y;
     const len = Math.hypot(dx, dy) || 1;
     const ux = dx / len, uy = dy / len;
-    const pullback = drag ? Math.min(60, power * 4) : 20;
+    const effectivePower = Math.max(power, stickPower);
+    const pullback = drag || stickPower > 0 ? Math.min(90, effectivePower * 5) : 20;
     const tipX = cueBall.x + ux * (R + 8 + pullback);
     const tipY = cueBall.y + uy * (R + 8 + pullback);
     const angleDeg = Math.atan2(uy, ux) * 180 / Math.PI;
-    return { tipX, tipY, angleDeg };
-  }, [cueBall, mouse, canShoot, drag, power]);
+    return { tipX, tipY, angleDeg, ux, uy };
+  }, [cueBall, mouse, canShoot, drag, power, stickPower]);
+
 
   const solidsLeft = balls.filter((b) => !b.pocketed && b.group === "solid").length;
   const stripesLeft = balls.filter((b) => !b.pocketed && b.group === "stripe").length;
@@ -707,14 +741,8 @@ function PoolPage() {
 
       {/* Table */}
       <div className="relative z-10 max-w-6xl mx-auto px-3 pb-24 flex gap-3 items-stretch">
-        {/* Left-side power stick */}
-        <PowerStick
-          value={stickPower}
-          max={MAX_POWER}
-          disabled={!canShoot || !mouse}
-          onChange={setStickPower}
-          onFire={() => fireCue(stickPower)}
-        />
+        {/* Cue-stick grip pull replaces left-side slider */}
+
         <div
           className="relative flex-1 min-w-0 rounded-[36px] p-4 shadow-[0_30px_80px_-30px_rgba(0,0,0,0.7)]"
           style={{
@@ -861,8 +889,35 @@ function PoolPage() {
                     <path d="M 0 -2 L 2.5 0 L 0 2 L -2.5 0 Z" fill="#d4a24a" opacity={0.7} />
                   </g>
                 ))}
+                {/* Draggable grip — pull backward along cue axis to charge power */}
+
+                <g
+                  onPointerDown={onGripDown}
+                  onPointerMove={onGripMove}
+                  onPointerUp={onGripUp}
+                  onPointerCancel={onGripUp}
+                  style={{ cursor: "grab", touchAction: "none" }}
+                >
+                  {/* Invisible enlarged hit target along the butt */}
+                  <rect x={195} y={-14} width={62} height={28} fill="transparent" />
+                  {/* Visible ring around butt */}
+                  <circle cx={253} cy={0} r={10} fill="rgba(212,162,74,0.18)" stroke="#d4a24a" strokeWidth={1.2} />
+                  <circle cx={253} cy={0} r={4.5} fill="#f5d688" stroke="#7a4a1a" strokeWidth={0.8} />
+                </g>
               </g>
             )}
+
+            {/* Aim-locked power readout above cue ball while pulling */}
+            {cuePreview && stickPower > 0 && cueBall && (
+              <g transform={`translate(${cueBall.x} ${cueBall.y - 34})`}>
+                <rect x={-44} y={-7} width={88} height={12} rx={6} fill="rgba(0,0,0,0.6)" />
+                <rect
+                  x={-42} y={-5} width={(stickPower / MAX_POWER) * 84} height={8} rx={4}
+                  fill={stickPower / MAX_POWER > 0.85 ? "#ff4d4d" : stickPower / MAX_POWER > 0.6 ? "#f0a020" : "#d4a24a"}
+                />
+              </g>
+            )}
+
 
             {/* Ball-in-hand ghost preview */}
             {ballInHand === turn && placingCue && (
@@ -1008,106 +1063,3 @@ function TrayRow({ label, balls, highlight = false }: { label: string; balls: Ba
   );
 }
 
-function PowerStick({
-  value,
-  max,
-  disabled,
-  onChange,
-  onFire,
-}: {
-  value: number;
-  max: number;
-  disabled: boolean;
-  onChange: (v: number) => void;
-  onFire: () => void;
-}) {
-  const trackRef = useRef<HTMLDivElement | null>(null);
-  const draggingRef = useRef(false);
-  const pct = Math.max(0, Math.min(1, value / max));
-
-  const setFromClientY = (clientY: number) => {
-    const el = trackRef.current;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    const p = 1 - (clientY - rect.top) / rect.height;
-    const clamped = Math.max(0, Math.min(1, p));
-    onChange(clamped * max);
-  };
-
-  const onDown = (e: ReactPointerEvent) => {
-    if (disabled) return;
-    draggingRef.current = true;
-    (e.target as Element).setPointerCapture?.(e.pointerId);
-    setFromClientY(e.clientY);
-  };
-  const onMove = (e: ReactPointerEvent) => {
-    if (!draggingRef.current) return;
-    setFromClientY(e.clientY);
-  };
-  const onUp = () => { draggingRef.current = false; };
-
-  return (
-    <div className="shrink-0 flex flex-col items-center gap-2 sm:gap-3 select-none">
-      <div className="text-[9px] uppercase tracking-[0.2em] text-petal/80">Power</div>
-      <div
-        ref={trackRef}
-        onPointerDown={onDown}
-        onPointerMove={onMove}
-        onPointerUp={onUp}
-        onPointerCancel={onUp}
-        className={`relative w-8 sm:w-10 flex-1 min-h-[220px] sm:min-h-[280px] rounded-full border touch-none ${
-          disabled ? "opacity-45 cursor-not-allowed" : "cursor-grab active:cursor-grabbing"
-        }`}
-        style={{
-          background: "linear-gradient(180deg, rgba(212,162,74,0.15) 0%, rgba(0,0,0,0.55) 100%)",
-          borderColor: "rgba(212,162,74,0.35)",
-          boxShadow: "inset 0 2px 8px rgba(0,0,0,0.6)",
-        }}
-      >
-        {/* Filled portion */}
-        <div
-          className="absolute left-0 right-0 bottom-0 rounded-full transition-[height] duration-75"
-          style={{
-            height: `${pct * 100}%`,
-            background: `linear-gradient(180deg,
-              ${pct > 0.85 ? "#ff4d4d" : pct > 0.6 ? "#f0a020" : "#d4a24a"} 0%,
-              ${pct > 0.85 ? "#b21414" : pct > 0.6 ? "#a25a10" : "#7a5220"} 100%)`,
-            boxShadow: pct > 0.7 ? "0 0 18px -2px rgba(240,160,32,0.7)" : undefined,
-          }}
-        />
-        {/* Tick marks */}
-        {[0.25, 0.5, 0.75].map((f) => (
-          <div
-            key={f}
-            className="absolute left-1 right-1 h-px bg-white/25"
-            style={{ bottom: `${f * 100}%` }}
-          />
-        ))}
-        {/* Knob */}
-        <div
-          className="absolute left-1/2 -translate-x-1/2 w-[130%] h-4 sm:h-5 rounded-full border pointer-events-none"
-          style={{
-            bottom: `calc(${pct * 100}% - 0.5rem)`,
-            background: "linear-gradient(180deg, #f5e2b6, #b58a4a)",
-            borderColor: "rgba(0,0,0,0.4)",
-            boxShadow: "0 2px 6px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.55)",
-          }}
-        />
-        <div className="absolute -right-6 top-1/2 -translate-y-1/2 text-[10px] font-mono text-petal/80 tabular-nums rotate-90 origin-center whitespace-nowrap">
-          {Math.round(pct * 100)}%
-        </div>
-      </div>
-      <button
-        disabled={disabled || value < 1}
-        onClick={onFire}
-        className="w-full rounded-full px-2 py-2 text-[10px] uppercase tracking-[0.18em] font-serif italic font-semibold text-white shadow-md transition disabled:opacity-40 disabled:cursor-not-allowed active:scale-95"
-        style={{
-          background: "linear-gradient(180deg, #d4a24a 0%, #7a4a1a 100%)",
-          border: "1px solid rgba(255,220,150,0.4)",
-        }}
-      >
-        Strike
-      </button>
-    </div>
-  );
-}
