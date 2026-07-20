@@ -74,7 +74,18 @@ function GroupChat() {
   const imgRef = useRef<HTMLInputElement>(null);
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastTapRef = useRef<{ id: string; at: number }>({ id: "", at: 0 });
+  const heartPopTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [heartPopId, setHeartPopId] = useState<string | null>(null);
+
+  // Unmount cleanup for all pending timers
+  useEffect(() => {
+    return () => {
+      if (longPressTimer.current) clearTimeout(longPressTimer.current);
+      if (bubbleIdleRef.current) clearTimeout(bubbleIdleRef.current);
+      if (bubbleCloseRef.current) clearTimeout(bubbleCloseRef.current);
+      if (heartPopTimer.current) clearTimeout(heartPopTimer.current);
+    };
+  }, []);
 
   const group = groupData?.group;
   const members = groupData?.members ?? [];
