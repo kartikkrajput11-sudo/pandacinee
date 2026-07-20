@@ -1932,19 +1932,19 @@ function CustomWatch({ customId }: { customId: string }) {
 
     if (evt === "timeupdate") {
       const abs = Math.abs(drift);
-      if (abs < 0.35) return; // dead-band — avoid constant micro-nudges
+      if (abs < 1.5) return; // 1-2s tolerance — no micro-nudges, no reseeks
       lastAppliedPeerEventRef.current = peer.updatedAt;
       runSuppressed(() => {
-        if (abs > 1.2) {
+        if (abs > 3.0) {
           h.seek(targetTime);
           h.setPlaybackRate(baseRate);
         } else {
-          // Gentle rate nudge, capped at ±0.15 — closes drift over ~2-3s.
-          const nudge = Math.max(-0.15, Math.min(0.15, -drift / 2));
+          // Very gentle rate nudge — closes drift over ~5s. Restored on next update.
+          const nudge = Math.max(-0.08, Math.min(0.08, -drift / 5));
           h.setPlaybackRate(Math.max(0.5, baseRate + nudge));
           window.setTimeout(() => {
             handleRef.current?.setPlaybackRate(baseRate);
-          }, 1400);
+          }, 2500);
         }
       }, 250);
       return;
