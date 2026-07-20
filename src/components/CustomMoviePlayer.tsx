@@ -82,22 +82,30 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
     };
   }, []);
 
+  // Ref-cache the callback so we don't add it to every stop/start dep array.
+  const onBufferingChangeRef = useRef(onBufferingChange);
+  useEffect(() => { onBufferingChangeRef.current = onBufferingChange; }, [onBufferingChange]);
+
   const stopBuffering = useCallback(() => {
     if (bufferTimer.current) {
       window.clearTimeout(bufferTimer.current);
       bufferTimer.current = null;
     }
     setBuffering(false);
+    onBufferingChangeRef.current?.("ready");
   }, []);
 
   const startBuffering = useCallback(() => {
     setBuffering(true);
+    onBufferingChangeRef.current?.("waiting");
     if (bufferTimer.current) window.clearTimeout(bufferTimer.current);
     bufferTimer.current = window.setTimeout(() => {
       setBuffering(false);
       setShowControls(true);
+      onBufferingChangeRef.current?.("ready");
     }, 6500);
   }, []);
+
 
   useEffect(() => {
     onReadyRef.current = onReady;
