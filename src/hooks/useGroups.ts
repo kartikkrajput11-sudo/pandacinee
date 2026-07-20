@@ -105,23 +105,27 @@ export function useGroups() {
   });
 
   useEffect(() => {
+    let debounce: ReturnType<typeof setTimeout> | null = null;
+    const invalidate = () => {
+      if (debounce) clearTimeout(debounce);
+      debounce = setTimeout(() => {
+        qc.invalidateQueries({ queryKey: ["groups"] });
+      }, 400);
+    };
     const ch = supabase
       .channel("groups-rt")
-      .on("postgres_changes", { event: "*", schema: "public", table: "chat_groups" }, () =>
-        qc.invalidateQueries({ queryKey: ["groups"] }),
-      )
-      .on("postgres_changes", { event: "*", schema: "public", table: "chat_group_members" }, () =>
-        qc.invalidateQueries({ queryKey: ["groups"] }),
-      )
+      .on("postgres_changes", { event: "*", schema: "public", table: "chat_groups" }, invalidate)
+      .on("postgres_changes", { event: "*", schema: "public", table: "chat_group_members" }, invalidate)
       .on("postgres_changes", { event: "*", schema: "public", table: "messages" }, (payload) => {
         const row = (payload.new ?? payload.old) as { group_id?: string | null };
-        if (row.group_id) qc.invalidateQueries({ queryKey: ["groups"] });
+        if (row.group_id) invalidate();
       })
       .subscribe();
 
-    const onGroupRead = () => qc.invalidateQueries({ queryKey: ["groups"] });
+    const onGroupRead = () => invalidate();
     window.addEventListener("group-read-updated", onGroupRead);
     return () => {
+      if (debounce) clearTimeout(debounce);
       supabase.removeChannel(ch);
       window.removeEventListener("group-read-updated", onGroupRead);
     };
@@ -166,20 +170,28 @@ export function useGroup(groupId: string | null) {
 
   useEffect(() => {
     if (!groupId) return;
+    let debounce: ReturnType<typeof setTimeout> | null = null;
+    const invalidate = () => {
+      if (debounce) clearTimeout(debounce);
+      debounce = setTimeout(() => {
+        qc.invalidateQueries({ queryKey: ["group", groupId] });
+      }, 300);
+    };
     const ch = supabase
       .channel(`group-${groupId}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "chat_groups", filter: `id=eq.${groupId}` },
-        () => qc.invalidateQueries({ queryKey: ["group", groupId] }),
+        invalidate,
       )
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "chat_group_members", filter: `group_id=eq.${groupId}` },
-        () => qc.invalidateQueries({ queryKey: ["group", groupId] }),
+        invalidate,
       )
       .subscribe();
     return () => {
+      if (debounce) clearTimeout(debounce);
       supabase.removeChannel(ch);
     };
   }, [groupId, qc]);
