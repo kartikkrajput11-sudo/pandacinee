@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { GAMES, GAME_KINDS, type GameKind } from "@/lib/games";
+import { EditorialPageHeader } from "@/components/editorial/SectionHeader";
 import { useProfile } from "@/hooks/useProfile";
 import { useGamePresence } from "@/hooks/useGamePresence";
 import { AvatarImg } from "@/components/AvatarImg";
