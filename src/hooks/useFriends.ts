@@ -46,28 +46,37 @@ export function useFriendships() {
   useEffect(() => {
     let cancelled = false;
     let channel: ReturnType<typeof supabase.channel> | null = null;
+    let debounce: ReturnType<typeof setTimeout> | null = null;
+    const schedule = () => {
+      if (debounce) return;
+      debounce = setTimeout(() => {
+        debounce = null;
+        qc.invalidateQueries({ queryKey: ["friendships"] });
+      }, 300);
+    };
 
     (async () => {
       const { data: u } = await supabase.auth.getUser();
       if (cancelled || !u.user) return;
       const uid = u.user.id;
       channel = supabase
-        .channel(`friendships-rt:${uid}:${crypto.randomUUID()}`)
+        .channel(`friendships-rt:${uid}`)
         .on(
           "postgres_changes",
           { event: "*", schema: "public", table: "friendships", filter: `requester_id=eq.${uid}` },
-          () => qc.invalidateQueries({ queryKey: ["friendships"] })
+          schedule,
         )
         .on(
           "postgres_changes",
           { event: "*", schema: "public", table: "friendships", filter: `addressee_id=eq.${uid}` },
-          () => qc.invalidateQueries({ queryKey: ["friendships"] })
+          schedule,
         )
         .subscribe();
     })();
 
     return () => {
       cancelled = true;
+      if (debounce) clearTimeout(debounce);
       if (channel) supabase.removeChannel(channel);
     };
   }, [qc]);
