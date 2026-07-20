@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { useProfile } from "@/hooks/useProfile";
 import { Petals } from "@/components/Petals";
 import { CountdownCard } from "@/components/CountdownCard";
@@ -7,10 +8,12 @@ import { DailyQuestionCard } from "@/components/DailyQuestionCard";
 import { PartnerPresenceCard } from "@/components/PartnerPresenceCard";
 
 import { MemoryOfTheDayCard } from "@/components/MemoryOfTheDayCard";
-import { Heart, ArrowRight, Users, LineChart, Clapperboard, BookHeart, Gift, Feather, Sparkles, Stars, Milestone, ListChecks } from "lucide-react";
+import { Heart, ArrowRight, Users, LineChart, Clapperboard, BookHeart, Gift, Feather, Sparkles, Stars, Milestone, ListChecks, Compass } from "lucide-react";
 import { AvatarImg } from "@/components/AvatarImg";
 import NotificationCenter from "@/components/NotificationCenter";
 import { EditorialPageHeader, EditorialSectionHeader } from "@/components/editorial/SectionHeader";
+import { AppTour, hasSeenTour } from "@/components/AppTour";
+
 
 
 export const Route = createFileRoute("/_authenticated/app/")({
@@ -25,9 +28,19 @@ function Home() {
   const greeting = useGreeting();
   const partnerName = partner ? (profile?.partner_nickname || partner.display_name) : "your panda";
 
+  const [tourOpen, setTourOpen] = useState(false);
+  useEffect(() => {
+    if (!isLoading && profile && !hasSeenTour()) {
+      const t = setTimeout(() => setTourOpen(true), 600);
+      return () => clearTimeout(t);
+    }
+  }, [isLoading, profile]);
+
   return (
     <div className="relative px-5 pt-10 space-y-6">
+      <AppTour open={tourOpen} onClose={() => setTourOpen(false)} />
       <Petals count={4} />
+
 
       {/* Editorial hero header */}
       <EditorialPageHeader
