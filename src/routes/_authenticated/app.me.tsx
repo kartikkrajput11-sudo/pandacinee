@@ -3,7 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, LogOut, Heart, Copy, Camera, Save, Sun, Moon, Monitor, ChevronRight, Lock, Coins, Volume2, VolumeX, Eye, EyeOff, CheckCheck, Check, Compass } from "lucide-react";
 import { EditorialPageHeader } from "@/components/editorial/SectionHeader";
-import { AppTour } from "@/components/AppTour";
+
 import { isSfxEnabled, setSfxEnabled, sfxReaction } from "@/lib/sfx";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
