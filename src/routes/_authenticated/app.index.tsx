@@ -146,9 +146,7 @@ function Home() {
       {/* Section: Signature — luxury features for two */}
       {partner && (
         <section className="relative z-10">
-          <p className="text-[10px] uppercase tracking-[0.22em] text-candle-muted mb-3 px-1 flex items-center gap-2">
-            <span className="text-petal">✦</span> Signature
-          </p>
+          <EditorialSectionHeader eyebrow="✦ Chapter I" title="Signature" />
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
 
             <SignatureTile to="/app/letters" Icon={Feather} label="Love Letters" caption="Seal now, open later" swatch="from-[#c9a84c]/40 to-[#f0d78c]/10" />
@@ -161,7 +159,7 @@ function Home() {
 
       {/* Section: Together */}
       <section className="relative z-10">
-        <p className="text-[10px] uppercase tracking-[0.22em] text-candle-muted mb-3 px-1">Together</p>
+        <EditorialSectionHeader eyebrow="✦ Chapter II" title="Together" />
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
           <TileLink to="/app/movies" search={{ q: "" }} Icon={Clapperboard} label="Watch" caption="Tonight's pick" />
           <TileLink to="/app/memories" Icon={BookHeart} label="Memories" caption="Your archive" />
