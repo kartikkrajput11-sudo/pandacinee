@@ -1094,7 +1094,10 @@ function CatalogWatch({ id }: { id: string }) {
                     if (suppressPlayerEventRef.current) return;
                     const now = Date.now();
                     const isDiscrete = evt.event === "play" || evt.event === "pause" || evt.event === "seeked" || evt.event === "ended" || evt.event === "ratechange";
-                    if (isDiscrete && partner && !hostId) claimHost();
+                    const claimingNow = isDiscrete && partner && !hostId && !!me;
+                    if (claimingNow) claimHost();
+                    // Host-only broadcast: followers listen but never publish.
+                    if (!iAmHost && !claimingNow) return;
                     // Tighter publish cadence for Pandacine host so followers stay ±100ms.
                     if (isDiscrete || now - lastPublishRef.current > 500) {
                       lastPublishRef.current = now;
