@@ -279,17 +279,31 @@ function nearestLabel(scene: Scene, pt: Pt): string {
 type Mode = "local" | "online";
 type Phase =
   | "intro" | "lobby" | "waiting"
-  | "hider_pick_scene" | "hider_pick_spot" | "hider_watch"
+  | "hider_pick_scene" | "hider_pick_spot" | "hider_pick_whispers" | "hider_watch"
   | "handoff" | "seeker" | "round_result" | "final";
 
 type PeerMsg =
   | { t: "hello"; from: string }
   | { t: "start"; from: string; hiderId: string; round: number }
-  | { t: "hide"; from: string; sceneId: string; x: number; y: number }
+  | { t: "hide"; from: string; sceneId: string; x: number; y: number; whispers: string[] }
   | { t: "guess"; from: string; attempt: number; x: number; y: number }
   | { t: "round_end"; from: string; scores: [number, number]; foundAt: number | null }
   | { t: "next_round"; from: string; hiderId: string; round: number }
   | { t: "finish"; from: string; scores: [number, number] };
+
+/* Whisper suggestion prompts — hider taps to auto-fill, or writes their own. */
+const WHISPER_PROMPTS = [
+  "I can almost touch the wall from here.",
+  "Something wooden is right beside me.",
+  "I'm not near the middle of the room.",
+  "Light barely reaches this corner.",
+  "I hear echoes when I breathe.",
+  "There's something soft under my paws.",
+  "I'm closer to the top of the map.",
+  "Cold stone is nearby.",
+  "I can see the whole room from here.",
+  "The nearest furniture is small.",
+];
 
 /* ────────────────────────  Component  ──────────────────────── */
 
