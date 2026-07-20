@@ -327,6 +327,7 @@ function HideSeekPage() {
   const [attempts, setAttempts] = useState<Pt[]>([]);          // seeker's clicks
   const [scores, setScores] = useState<[number, number]>([0, 0]);
   const [foundAt, setFoundAt] = useState<number | null>(null); // 0-based attempt idx
+  const [whispers, setWhispers] = useState<string[]>([]); // hider's 3 hints for the round
 
   const scene = useMemo(() => SCENES.find((s) => s.id === sceneId) ?? null, [sceneId]);
 
