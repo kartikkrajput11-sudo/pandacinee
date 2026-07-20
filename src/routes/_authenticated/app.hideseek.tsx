@@ -1036,7 +1036,8 @@ function Handoff({ hiderName, seekerName, onReady }: { hiderName: string; seeker
   );
 }
 
-function HiderWatch({ scene, spot, attempts, seekerName }: { scene: Scene; spot: Pt; attempts: Pt[]; seekerName: string }) {
+function HiderWatch({ scene, spot, attempts, whispers, seekerName }: { scene: Scene; spot: Pt; attempts: Pt[]; whispers: string[]; seekerName: string }) {
+  const revealed = Math.min(whispers.length, attempts.length + 1);
   return (
     <div className="space-y-3">
       <div className="text-center">
@@ -1050,6 +1051,20 @@ function HiderWatch({ scene, spot, attempts, seekerName }: { scene: Scene; spot:
           <AttemptMark key={i} pt={a} index={i} hit={distance(a, spot) <= HIT_RADIUS} />
         ))}
       </RoomFrame>
+
+      {whispers.length > 0 && (
+        <div className="rounded-2xl border border-petal/30 bg-petal-soft/20 p-4">
+          <p className="text-[10px] uppercase tracking-widest text-petal mb-2">Your whispers</p>
+          <ul className="space-y-1.5 text-sm">
+            {whispers.map((w, i) => (
+              <li key={i} className={`flex items-start gap-2 ${i < revealed ? "text-candle" : "text-candle-muted/60"}`}>
+                <span className="mt-0.5">{i < revealed ? <MessageCircle className="size-3.5 text-petal" /> : <Lock className="size-3.5" />}</span>
+                <span className="italic">"{w}"</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div className="rounded-2xl border border-border bg-surface p-4">
         <p className="text-[10px] uppercase tracking-widest text-candle-muted mb-2">Search log</p>
@@ -1069,6 +1084,76 @@ function HiderWatch({ scene, spot, attempts, seekerName }: { scene: Scene; spot:
           </ul>
         )}
       </div>
+    </div>
+  );
+}
+
+function PickWhispers({ scene, spot, onBack, onSubmit }: {
+  scene: Scene; spot: Pt; onBack: () => void; onSubmit: (ws: string[]) => void;
+}) {
+  const [ws, setWs] = useState<string[]>(["", "", ""]);
+  const filled = ws.filter((w) => w.trim().length > 0).length;
+  const canSubmit = filled === 3;
+
+  function setAt(i: number, v: string) {
+    setWs((prev) => prev.map((w, idx) => (idx === i ? v.slice(0, 90) : w)));
+  }
+  function fillPrompt(i: number, text: string) {
+    setAt(i, text);
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <button onClick={onBack} className="text-[11px] uppercase tracking-widest text-candle-muted hover:text-candle">← Move spot</button>
+        <p className="font-serif italic text-lg">Leave 3 whispers</p>
+        <span className="text-[11px] text-candle-muted">{filled}/3</span>
+      </div>
+
+      <p className="text-center text-xs text-candle-muted">
+        Drop three secret hints. The seeker unlocks one before each guess — the truer the whisper, the fairer the hunt.
+      </p>
+
+      <div className="rounded-2xl overflow-hidden border border-border">
+        <RoomFrame scene={scene} compact>
+          <HidingMarker pt={spot} pulse />
+        </RoomFrame>
+      </div>
+
+      {[0, 1, 2].map((i) => (
+        <div key={i} className="rounded-2xl border border-border bg-surface p-3 space-y-2">
+          <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.28em] text-petal">
+            <MessageCircle className="size-3.5" /> Whisper {i + 1}
+          </div>
+          <textarea
+            value={ws[i]}
+            onChange={(e) => setAt(i, e.target.value)}
+            placeholder="Give a hint about your hiding place…"
+            rows={2}
+            maxLength={90}
+            className="w-full bg-transparent text-sm text-candle placeholder:text-candle-muted/50 outline-none resize-none"
+          />
+          <div className="flex flex-wrap gap-1.5">
+            {WHISPER_PROMPTS.slice(i * 3, i * 3 + 3).map((p) => (
+              <button
+                key={p}
+                onClick={() => fillPrompt(i, p)}
+                className="text-[10px] px-2 py-1 rounded-full border border-border text-candle-muted hover:border-petal/60 hover:text-candle transition-colors"
+              >
+                {p}
+              </button>
+            ))}
+          </div>
+        </div>
+      ))}
+
+      <button
+        onClick={() => canSubmit && onSubmit(ws.map((w) => w.trim()))}
+        disabled={!canSubmit}
+        className="w-full py-3 rounded-2xl bg-gradient-to-br from-petal to-rose-500 text-velvet font-medium tracking-wide shadow-lg shadow-petal/20 disabled:opacity-40"
+      >
+        {canSubmit ? "Seal whispers & hide" : `Write ${3 - filled} more whisper${3 - filled === 1 ? "" : "s"}`}
+      </button>
     </div>
   );
 }
