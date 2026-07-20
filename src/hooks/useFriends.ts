@@ -82,6 +82,22 @@ export function useFriendActions() {
       mutationFn: async (addresseeId: string) => {
         const { data: u } = await supabase.auth.getUser();
         if (!u.user) throw new Error("Not signed in");
+        if (addresseeId === u.user.id) throw new Error("You can't send a friend request to yourself");
+        // Guard against duplicate friendships in either direction so we surface
+        // a friendly error instead of a raw unique-constraint violation.
+        const { data: existing } = await supabase
+          .from("friendships")
+          .select("id,status,requester_id,addressee_id")
+          .or(
+            `and(requester_id.eq.${u.user.id},addressee_id.eq.${addresseeId}),` +
+            `and(requester_id.eq.${addresseeId},addressee_id.eq.${u.user.id})`
+          )
+          .maybeSingle();
+        if (existing) {
+          if (existing.status === "accepted") throw new Error("You're already friends");
+          if (existing.status === "blocked") throw new Error("Unable to send request");
+          throw new Error("A friend request is already pending");
+        }
         const { error } = await supabase.from("friendships").insert({
           requester_id: u.user.id,
           addressee_id: addresseeId,
