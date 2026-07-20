@@ -248,13 +248,14 @@ function PoolPage() {
   const [winner, setWinner] = useState<Player | null>(persisted?.winner ?? null);
   const [message, setMessage] = useState<string>(persisted?.message ?? "Break!");
   const [ballInHand, setBallInHand] = useState<Player | null>(persisted?.ballInHand ?? null);
+  const scoreKey = persistKey ? `${persistKey}:score` : "pool:score";
   const [matchScore, setMatchScore] = useState<[number, number]>(() => {
-    try { const s = localStorage.getItem("pool:score"); if (s) return JSON.parse(s); } catch { /* noop */ }
+    try { const s = localStorage.getItem(scoreKey); if (s) return JSON.parse(s); } catch { /* noop */ }
     return [0, 0];
   });
   useEffect(() => {
-    try { localStorage.setItem("pool:score", JSON.stringify(matchScore)); } catch { /* noop */ }
-  }, [matchScore]);
+    try { localStorage.setItem(scoreKey, JSON.stringify(matchScore)); } catch { /* noop */ }
+  }, [scoreKey, matchScore]);
 
   // Persist mid-game snapshot for resume
   useEffect(() => {
