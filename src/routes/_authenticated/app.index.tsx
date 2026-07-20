@@ -43,6 +43,7 @@ function Home() {
 
 
       {/* Editorial hero header */}
+      <div data-tour="home-hero">
       <EditorialPageHeader
         eyebrow={greeting}
         title={
@@ -65,12 +66,14 @@ function Home() {
         }
         trailing={
           <>
-            <NotificationCenter />
+            <span data-tour="home-notify"><NotificationCenter /></span>
             <Avatar profile={profile} />
           </>
         }
         className="relative z-[120]"
       />
+      </div>
+
 
       {/* Invite banner (no partner) */}
       {!partner && !isLoading && (
@@ -158,7 +161,7 @@ function Home() {
 
       {/* Section: Signature — luxury features for two */}
       {partner && (
-        <section className="relative z-10">
+        <section className="relative z-10" data-tour="home-signature">
           <EditorialSectionHeader eyebrow="✦ Chapter I" title="Signature" />
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
 
@@ -168,6 +171,7 @@ function Home() {
             <SignatureTile to="/app/watchlist" Icon={ListChecks} label="Watchlist" caption="Shared queue" swatch="from-[#f0d78c]/40 to-[#c9a84c]/10" />
           </div>
         </section>
+
       )}
 
       {/* Section: Together */}

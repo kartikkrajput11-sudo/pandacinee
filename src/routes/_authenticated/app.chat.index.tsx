@@ -49,10 +49,12 @@ function ChatList() {
 
   return (
     <div className="px-5 pt-10 pb-6">
+      <div data-tour="chat-hero">
       <EditorialPageHeader
         eyebrow="Whispers"
         title="Chats"
         subtitle="Where your circles meet — partner, friends, and groups, all in one velvet room."
+
         leading={
           <Link to="/app" className="text-candle-muted p-2 -ml-2 rounded-full hover:bg-surface transition-colors">
             <ArrowLeft className="size-5" />

@@ -241,7 +241,7 @@ function Me() {
             </span>
           </Link>
 
-          <AchievementBadges userId={me.id} equippedOnly />
+          <div data-tour="me-badges"><AchievementBadges userId={me.id} equippedOnly /></div>
 
           <EquipTagsSection
             userId={me.id}

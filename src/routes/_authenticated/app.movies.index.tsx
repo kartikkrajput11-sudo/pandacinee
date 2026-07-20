@@ -261,8 +261,9 @@ function Movies() {
     <div className="pb-28 min-h-screen bg-background">
       {/* Featured hero */}
       {featured && (
-        <FeaturedHero movie={featured} isTv={type === "tv"} />
+        <div data-tour="movies-hero"><FeaturedHero movie={featured} isTv={type === "tv"} /></div>
       )}
+
 
       <div className="px-5">
         <SearchHeader
