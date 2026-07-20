@@ -411,7 +411,6 @@ function HideSeekPage() {
       setSpot({ x: msg.x, y: msg.y });
       setWhispers(msg.whispers ?? []);
       setAttempts([]);
-      setWhispers([]);
       setFoundAt(null);
       setPhase("seeker");
       return;
