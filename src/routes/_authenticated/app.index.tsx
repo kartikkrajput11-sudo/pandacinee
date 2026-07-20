@@ -1,5 +1,4 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
 import { useProfile } from "@/hooks/useProfile";
 import { Petals } from "@/components/Petals";
 import { CountdownCard } from "@/components/CountdownCard";
@@ -12,7 +11,6 @@ import { Heart, ArrowRight, Users, LineChart, Clapperboard, BookHeart, Gift, Fea
 import { AvatarImg } from "@/components/AvatarImg";
 import NotificationCenter from "@/components/NotificationCenter";
 import { EditorialPageHeader, EditorialSectionHeader } from "@/components/editorial/SectionHeader";
-import { AppTour, hasSeenTour } from "@/components/AppTour";
 
 
 
