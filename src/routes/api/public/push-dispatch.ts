@@ -133,7 +133,7 @@ export const Route = createFileRoute('/api/public/push-dispatch')({
             if (res.ok) sent += 1;
             else if (res.status === 404 || res.status === 400) {
               // Token is dead — prune it.
-              await supabaseAdmin
+              await (supabaseAdmin as any)
                 .from('device_tokens')
                 .delete()
                 .eq('token', token);
