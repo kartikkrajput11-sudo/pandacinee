@@ -187,6 +187,7 @@ export function useLiveKitCall(opts: {
 
     return () => {
       cancelled = true;
+      teardownRef.current = true;
       const room = roomRef.current;
       if (room) { void room.disconnect(); roomRef.current = null; }
       localStreamRef.current?.getTracks().forEach((t) => t.stop());
