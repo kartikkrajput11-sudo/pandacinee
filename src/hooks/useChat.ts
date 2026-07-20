@@ -116,18 +116,20 @@ export function useChat(meId: string | null, partnerId: string | null) {
     });
 
     ch.subscribe(async (status) => {
-      if (status === "SUBSCRIBED") {
-        // Respect the user's Activity status setting — if hidden, never broadcast presence.
-        const { data: mine } = await supabase
-          .from("profiles")
-          .select("activity_visible")
-          .eq("id", meId)
-          .maybeSingle();
-        if ((mine as any)?.activity_visible === false) return;
-        await ch.track({ online_at: Date.now() });
-      }
+      if (status !== "SUBSCRIBED" || cancelled) return;
+      // Respect the user's Activity status setting — if hidden, never broadcast presence.
+      const { data: mine } = await supabase
+        .from("profiles")
+        .select("activity_visible,read_receipts_enabled")
+        .eq("id", meId)
+        .maybeSingle();
+      readReceiptsEnabledRef.current = (mine as any)?.read_receipts_enabled !== false;
+      if (cancelled) return;
+      if ((mine as any)?.activity_visible === false) return;
+      await ch.track({ online_at: Date.now() });
     });
     channelRef.current = ch;
+
 
     return () => {
       cancelled = true;
