@@ -888,9 +888,34 @@ function PoolPage() {
                   <g key={i} transform={`translate(${x} 0)`}>
                     <path d="M 0 -2 L 2.5 0 L 0 2 L -2.5 0 Z" fill="#d4a24a" opacity={0.7} />
                   </g>
-                ))}
+                {/* Draggable grip — pull backward along cue axis to charge power */}
+                <g
+                  onPointerDown={onGripDown}
+                  onPointerMove={onGripMove}
+                  onPointerUp={onGripUp}
+                  onPointerCancel={onGripUp}
+                  style={{ cursor: "grab", touchAction: "none" }}
+                >
+                  {/* Invisible enlarged hit target along the butt */}
+                  <rect x={195} y={-14} width={62} height={28} fill="transparent" />
+                  {/* Visible ring around butt */}
+                  <circle cx={253} cy={0} r={10} fill="rgba(212,162,74,0.18)" stroke="#d4a24a" strokeWidth={1.2} />
+                  <circle cx={253} cy={0} r={4.5} fill="#f5d688" stroke="#7a4a1a" strokeWidth={0.8} />
+                </g>
               </g>
             )}
+
+            {/* Aim-locked power readout above cue ball while pulling */}
+            {cuePreview && stickPower > 0 && cueBall && (
+              <g transform={`translate(${cueBall.x} ${cueBall.y - 34})`}>
+                <rect x={-44} y={-7} width={88} height={12} rx={6} fill="rgba(0,0,0,0.6)" />
+                <rect
+                  x={-42} y={-5} width={(stickPower / MAX_POWER) * 84} height={8} rx={4}
+                  fill={stickPower / MAX_POWER > 0.85 ? "#ff4d4d" : stickPower / MAX_POWER > 0.6 ? "#f0a020" : "#d4a24a"}
+                />
+              </g>
+            )}
+
 
             {/* Ball-in-hand ghost preview */}
             {ballInHand === turn && placingCue && (
