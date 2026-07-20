@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { isGroupMessageUnread } from "@/lib/groupRead";
+import { isDmMessageUnread } from "@/lib/dmRead";
 
 export function useUnreadMessages() {
   const [count, setCount] = useState(0);
