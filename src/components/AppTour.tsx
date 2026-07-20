@@ -1,11 +1,9 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import {
-  X, ArrowRight, ArrowLeft, Sparkles, Heart, Lock, Trophy,
-  Clapperboard, Gamepad2, UsersRound, MessageCircleHeart, BellRing, Feather,
-} from "lucide-react";
+import { useRouter } from "@tanstack/react-router";
+import { X, ArrowRight, ArrowLeft, Sparkles } from "lucide-react";
 
-const KEY = "pandacine-tour-v1";
+const KEY = "pandacine-tour-v2";
 
 export function hasSeenTour(): boolean {
   try { return localStorage.getItem(KEY) === "1"; } catch { return false; }
@@ -14,323 +12,346 @@ export function markTourSeen() {
   try { localStorage.setItem(KEY, "1"); } catch { /* ignore */ }
 }
 
-type Chapter = {
+type Step = {
+  route: string;                          // navigate here before showing
+  selector: string;                       // data-tour target on that page
   eyebrow: string;
   title: string;
   body: string;
-  Icon: typeof Heart;
-  accent: string; // token hint for gradient
-  visual: React.ReactNode;
+  placement?: "top" | "bottom" | "auto";
 };
 
-const CHAPTERS: Chapter[] = [
+const STEPS: Step[] = [
   {
+    route: "/app",
+    selector: '[data-tour="home-hero"]',
     eyebrow: "Chapter · One",
-    title: "A cinema built for two",
-    body: "Welcome to PANDACINE — a private velvet room where two pandas watch, chat, play, and remember together.",
-    Icon: Sparkles,
-    accent: "from-petal/40 via-primary/20 to-transparent",
-    visual: <PandasVisual />,
+    title: "Welcome to PANDACINE",
+    body: "Your private velvet room. Everything for you and your panda lives right here.",
+    placement: "bottom",
   },
   {
-    eyebrow: "Affection",
-    title: "Send more than words",
-    body: "Kiss, hug, headpat, handhold, boop, nudge — animated affections drift across your partner's screen with soft chiptune sounds.",
-    Icon: Heart,
-    accent: "from-petal/50 via-petal/20 to-transparent",
-    visual: <AffectionsVisual />,
+    route: "/app",
+    selector: '[data-tour="home-notify"]',
+    eyebrow: "Always with you",
+    title: "Notifications",
+    body: "The bell lights up whenever your panda writes, calls, or invites you — anywhere in the app.",
+    placement: "bottom",
   },
   {
-    eyebrow: "Discipline · Gentle",
-    title: "Locked chats",
-    body: "Set a punishment lock — words to type, categories to complete. Copy-paste disabled, case-insensitive matching. Unlock together and celebrate.",
-    Icon: Lock,
-    accent: "from-primary/40 via-primary/15 to-transparent",
-    visual: <LockVisual />,
+    route: "/app",
+    selector: '[data-tour="home-signature"]',
+    eyebrow: "Rituals",
+    title: "Signature little things",
+    body: "Love letters, timeline, constellation, watchlist — small daily rituals that make it feel like home.",
+    placement: "top",
   },
   {
-    eyebrow: "Honor",
-    title: "Badges & achievements",
-    body: "Earn tags for daily streaks, movie nights, game wins, and memories. Equip up to three honors on your profile for your panda to see.",
-    Icon: Trophy,
-    accent: "from-amber-300/40 via-petal/15 to-transparent",
-    visual: <BadgesVisual />,
+    route: "/app/chat",
+    selector: '[data-tour="chat-hero"]',
+    eyebrow: "Whispers",
+    title: "Chats & groups",
+    body: "Send affections (kiss, hug, headpat, boop), lock chats, share voice notes, pin messages, forward media. In groups, your partner's messages glow softly.",
+    placement: "bottom",
   },
   {
-    eyebrow: "Together in the dark",
-    title: "Movies, synced",
-    body: "Watch films and series in lock-step. Ready-check handshakes, rewind-on-buffer, and gentle drift correction — as if you were on the same couch.",
-    Icon: Clapperboard,
-    accent: "from-accent/40 via-petal/15 to-transparent",
-    visual: <MovieVisual />,
-  },
-  {
+    route: "/app/play",
+    selector: '[data-tour="play-grid"]',
     eyebrow: "Playtime",
     title: "Games for two — and eight",
-    body: "Chess, Ludo, Uno, 8-Ball Pool, Hide & Seek, Know-Me, Scribble. Play duels or seat up to eight friends in a group match. Observers can chat too.",
-    Icon: Gamepad2,
-    accent: "from-emerald-300/30 via-petal/15 to-transparent",
-    visual: <GamesVisual />,
+    body: "Chess, Ludo, Uno, 8-Ball Pool, Hide & Seek, Know-Me, Scribble. Duels for two, or seat up to eight friends. Observers can chat too.",
+    placement: "top",
   },
   {
-    eyebrow: "Circles",
-    title: "Groups with a partner glow",
-    body: "In group chats, your partner's messages glow softly — you'll always spot them. Vote in polls, share voice notes, plan events, host game tables.",
-    Icon: UsersRound,
-    accent: "from-petal/40 via-primary/20 to-transparent",
-    visual: <GroupVisual />,
+    route: "/app/movies",
+    selector: '[data-tour="movies-hero"]',
+    eyebrow: "In the dark",
+    title: "Movies & series, synced",
+    body: "Watch films together in lock-step: ready-check handshakes, rewind-on-buffer, and gentle drift correction — as if you were on the same couch.",
+    placement: "bottom",
   },
   {
-    eyebrow: "Rituals",
-    title: "Everyday little things",
-    body: "Daily question, mood bar, streak, memory-of-the-day, love letters, timeline, and anniversary confetti — small rituals that make it feel like home.",
-    Icon: Feather,
-    accent: "from-petal/40 via-accent/20 to-transparent",
-    visual: <RitualsVisual />,
+    route: "/app/me",
+    selector: '[data-tour="me-badges"]',
+    eyebrow: "Honor",
+    title: "Badges & achievements",
+    body: "Earn tags for streaks, movie nights, and wins. Equip up to three honors on your profile for your panda to see.",
+    placement: "top",
   },
   {
-    eyebrow: "Always with you",
-    title: "Notifications everywhere",
-    body: "A soft slide-in from the right whenever your panda writes, calls, or invites you — anywhere you are in the app.",
-    Icon: BellRing,
-    accent: "from-petal/40 via-primary/15 to-transparent",
-    visual: <NotifyVisual />,
+    route: "/app",
+    selector: '[data-tour="home-hero"]',
+    eyebrow: "Ready",
+    title: "You're all set",
+    body: "That's the whole cinema. Wander in — your panda is waiting.",
+    placement: "bottom",
   },
 ];
 
-export function AppTour({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const [i, setI] = useState(0);
-  const total = CHAPTERS.length;
+/* Wait for an element matching selector, up to timeout ms. */
+function waitForEl(selector: string, timeout = 4000): Promise<HTMLElement | null> {
+  return new Promise((resolve) => {
+    const start = performance.now();
+    const tick = () => {
+      const el = document.querySelector(selector) as HTMLElement | null;
+      if (el) return resolve(el);
+      if (performance.now() - start > timeout) return resolve(null);
+      requestAnimationFrame(tick);
+    };
+    tick();
+  });
+}
 
-  useEffect(() => { if (open) setI(0); }, [open]);
+export function AppTour({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const router = useRouter();
+  const [i, setI] = useState(0);
+  const [rect, setRect] = useState<DOMRect | null>(null);
+  const [ready, setReady] = useState(false);
+  const total = STEPS.length;
+  const returnTo = useRef<string>("/app");
+
+  // Remember where user was so we can return them after tour
+  useEffect(() => {
+    if (open) {
+      returnTo.current = router.state.location.pathname || "/app";
+      setI(0);
+    }
+  }, [open, router.state.location.pathname]);
+
+  // Navigate + locate target for each step
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    setReady(false);
+    setRect(null);
+    const step = STEPS[i];
+    (async () => {
+      if (router.state.location.pathname !== step.route) {
+        try { await router.navigate({ to: step.route as never }); } catch { /* ignore */ }
+      }
+      const el = await waitForEl(step.selector, 5000);
+      if (cancelled) return;
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+        // wait for smooth scroll to settle
+        await new Promise((r) => setTimeout(r, 350));
+        if (cancelled) return;
+        setRect(el.getBoundingClientRect());
+      }
+      setReady(true);
+    })();
+    return () => { cancelled = true; };
+  }, [i, open, router]);
+
+  // Track scroll / resize for spotlight
+  useLayoutEffect(() => {
+    if (!open) return;
+    const update = () => {
+      const el = document.querySelector(STEPS[i].selector) as HTMLElement | null;
+      if (el) setRect(el.getBoundingClientRect());
+    };
+    window.addEventListener("scroll", update, true);
+    window.addEventListener("resize", update);
+    const id = window.setInterval(update, 500);
+    return () => {
+      window.removeEventListener("scroll", update, true);
+      window.removeEventListener("resize", update);
+      window.clearInterval(id);
+    };
+  }, [i, open]);
+
+  // Keyboard
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") finish();
-      if (e.key === "ArrowRight") setI((v) => Math.min(total - 1, v + 1));
-      if (e.key === "ArrowLeft") setI((v) => Math.max(0, v - 1));
+      if (e.key === "ArrowRight") next();
+      if (e.key === "ArrowLeft") prev();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
+  }, [open, i]);
 
-  const c = CHAPTERS[i];
-  const progress = useMemo(() => ((i + 1) / total) * 100, [i, total]);
-
+  function next() { setI((v) => Math.min(total - 1, v + 1)); }
+  function prev() { setI((v) => Math.max(0, v - 1)); }
   function finish() {
     markTourSeen();
     onClose();
+    // return user to home so they land somewhere friendly
+    try { router.navigate({ to: returnTo.current as never }); } catch { /* ignore */ }
   }
 
   if (!open || typeof document === "undefined") return null;
 
+  const step = STEPS[i];
+  const pad = 10;
+  const spot = rect
+    ? { x: rect.left - pad, y: rect.top - pad, w: rect.width + pad * 2, h: rect.height + pad * 2 }
+    : null;
+
+  // Tooltip placement
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const tooltipW = Math.min(400, vw - 32);
+  let tipX = 16;
+  let tipY = vh - 240;
+  let arrow: "up" | "down" | null = null;
+  if (spot) {
+    const preferBottom = step.placement === "bottom"
+      || (step.placement !== "top" && spot.y + spot.h < vh / 2);
+    if (preferBottom) {
+      tipY = Math.min(vh - 220, spot.y + spot.h + 16);
+      arrow = "up";
+    } else {
+      tipY = Math.max(16, spot.y - 200);
+      arrow = "down";
+    }
+    tipX = Math.min(
+      Math.max(16, spot.x + spot.w / 2 - tooltipW / 2),
+      vw - tooltipW - 16,
+    );
+  }
+
   return createPortal(
-    <div className="fixed inset-0 z-[300] bg-velvet/95 backdrop-blur-xl flex items-center justify-center px-4 py-6 animate-fade-in overflow-y-auto">
-      {/* Ambient bloom */}
-      <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className={`absolute -top-40 -left-32 h-[520px] w-[520px] rounded-full bg-gradient-radial ${c.accent} blur-3xl opacity-70 transition-all duration-700`} />
-        <div className="absolute -bottom-48 -right-24 h-[500px] w-[500px] rounded-full bg-primary/15 blur-3xl" />
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-[620px] w-[620px] rounded-full border border-petal/10" />
+    <div className="fixed inset-0 z-[300] animate-fade-in">
+      {/* Spotlight overlay via SVG mask */}
+      <svg className="absolute inset-0 w-full h-full pointer-events-auto" aria-hidden>
+        <defs>
+          <mask id="tour-spot">
+            <rect width="100%" height="100%" fill="white" />
+            {spot && (
+              <rect
+                x={spot.x}
+                y={spot.y}
+                width={spot.w}
+                height={spot.h}
+                rx={20}
+                ry={20}
+                fill="black"
+              />
+            )}
+          </mask>
+        </defs>
+        <rect
+          width="100%"
+          height="100%"
+          fill="rgba(10, 6, 14, 0.78)"
+          mask="url(#tour-spot)"
+        />
+      </svg>
+
+      {/* Glowing ring around spotlight */}
+      {spot && (
+        <div
+          className="pointer-events-none absolute rounded-[20px] border border-petal/70 shadow-[0_0_0_2px_rgba(236,120,155,0.25),0_0_40px_10px_rgba(236,120,155,0.35)] animate-pulse"
+          style={{ left: spot.x, top: spot.y, width: spot.w, height: spot.h }}
+        />
+      )}
+
+      {/* Top bar: skip + progress */}
+      <div className="absolute top-4 left-0 right-0 flex items-center justify-between px-4 z-10">
+        <button
+          onClick={finish}
+          className="text-[11px] uppercase tracking-[0.3em] text-candle-muted hover:text-petal"
+        >
+          Skip tour
+        </button>
+        <div className="flex items-center gap-1.5">
+          {STEPS.map((_, idx) => (
+            <button
+              key={idx}
+              onClick={() => setI(idx)}
+              className={`h-1.5 rounded-full transition-all ${idx === i ? "w-6 bg-petal" : idx < i ? "w-2.5 bg-petal/60" : "w-2.5 bg-border"}`}
+              aria-label={`Step ${idx + 1}`}
+            />
+          ))}
+        </div>
+        <button
+          onClick={finish}
+          className="size-9 rounded-full bg-surface/80 border border-border text-candle-muted hover:text-petal flex items-center justify-center"
+          aria-label="Close tour"
+        >
+          <X className="size-4" />
+        </button>
       </div>
 
-      <button
-        onClick={finish}
-        className="absolute top-5 right-5 size-10 rounded-full bg-surface/80 border border-border text-candle-muted hover:text-petal flex items-center justify-center z-10"
-        aria-label="Close tour"
+      {/* Tooltip card */}
+      <div
+        key={i}
+        className="absolute animate-fade-in"
+        style={{ left: tipX, top: tipY, width: tooltipW }}
       >
-        <X className="size-4" />
-      </button>
-
-      <button
-        onClick={finish}
-        className="absolute top-6 left-5 text-[11px] uppercase tracking-[0.3em] text-candle-muted hover:text-petal z-10"
-      >
-        Skip tour
-      </button>
-
-      {/* Card */}
-      <div key={i} className="relative w-full max-w-2xl animate-auth-card">
-        <div className="rounded-3xl p-[1px] bg-gradient-to-b from-petal/40 via-petal/10 to-transparent shadow-[0_40px_120px_-40px_rgba(0,0,0,0.7)]">
-          <div className="relative rounded-3xl bg-surface/70 backdrop-blur-2xl border border-border/60 p-7 md:p-10 overflow-hidden">
+        {arrow === "up" && spot && (
+          <div
+            aria-hidden
+            className="absolute -top-2 w-4 h-4 rotate-45 bg-surface border-l border-t border-petal/40"
+            style={{
+              left: Math.min(
+                Math.max(16, spot.x + spot.w / 2 - tipX - 8),
+                tooltipW - 24,
+              ),
+            }}
+          />
+        )}
+        {arrow === "down" && spot && (
+          <div
+            aria-hidden
+            className="absolute -bottom-2 w-4 h-4 rotate-45 bg-surface border-r border-b border-petal/40"
+            style={{
+              left: Math.min(
+                Math.max(16, spot.x + spot.w / 2 - tipX - 8),
+                tooltipW - 24,
+              ),
+            }}
+          />
+        )}
+        <div className="relative rounded-3xl p-[1px] bg-gradient-to-b from-petal/50 via-petal/15 to-transparent shadow-[0_30px_100px_-30px_rgba(0,0,0,0.9)]">
+          <div className="relative rounded-3xl bg-surface/95 backdrop-blur-xl border border-petal/30 p-5 overflow-hidden">
             <div aria-hidden className="pointer-events-none absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-petal/70 to-transparent" />
-
-            {/* Progress dots */}
-            <div className="flex items-center gap-1.5 mb-6">
-              {CHAPTERS.map((_, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setI(idx)}
-                  className={`h-1.5 rounded-full transition-all ${idx === i ? "w-8 bg-petal" : idx < i ? "w-3 bg-petal/60" : "w-3 bg-border"}`}
-                  aria-label={`Chapter ${idx + 1}`}
-                />
-              ))}
+            <div className="flex items-center gap-2 mb-2">
+              <Sparkles className="size-3.5 text-petal" />
+              <p className="text-[10px] uppercase tracking-[0.32em] text-petal/90">{step.eyebrow}</p>
             </div>
+            <h2 className="font-serif italic text-2xl leading-tight text-candle mb-2">
+              {step.title}
+            </h2>
+            <div aria-hidden className="h-px w-12 bg-gradient-to-r from-petal/70 via-petal/30 to-transparent mb-3" />
+            <p className="text-sm text-candle-muted leading-relaxed">{step.body}</p>
 
-            <div className="grid md:grid-cols-[1fr_1fr] gap-8 items-center">
-              {/* Visual */}
-              <div className="relative aspect-square rounded-3xl bg-gradient-to-br from-velvet to-surface/60 border border-border/40 overflow-hidden flex items-center justify-center">
-                <div className={`absolute inset-0 bg-gradient-radial ${c.accent} opacity-60`} />
-                <div className="relative">{c.visual}</div>
-              </div>
-
-              {/* Copy */}
-              <div>
-                <p className="text-[10px] uppercase tracking-[0.35em] text-petal/90 mb-3">{c.eyebrow}</p>
-                <h2 className="font-serif italic text-3xl md:text-4xl leading-[1.05] text-candle mb-3">
-                  {c.title}
-                </h2>
-                <div aria-hidden className="h-px w-16 bg-gradient-to-r from-petal/70 via-petal/30 to-transparent mb-4" />
-                <p className="text-sm md:text-base text-candle-muted leading-relaxed">
-                  {c.body}
-                </p>
-
-                {/* Controls */}
-                <div className="flex items-center gap-2 mt-8">
-                  <button
-                    onClick={() => setI((v) => Math.max(0, v - 1))}
-                    disabled={i === 0}
-                    className="size-11 rounded-full bg-surface border border-border text-candle-muted hover:text-petal disabled:opacity-30 flex items-center justify-center"
-                    aria-label="Previous"
-                  >
-                    <ArrowLeft className="size-4" />
-                  </button>
-                  {i < total - 1 ? (
-                    <button
-                      onClick={() => setI((v) => Math.min(total - 1, v + 1))}
-                      className="group relative flex-1 py-3 bg-petal text-velvet rounded-full font-semibold text-sm petal-glow overflow-hidden"
-                    >
-                      <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/40 to-transparent" aria-hidden />
-                      <span className="relative flex items-center justify-center gap-2">
-                        Continue <ArrowRight className="size-4" />
-                      </span>
-                    </button>
-                  ) : (
-                    <button
-                      onClick={finish}
-                      className="flex-1 py-3 bg-petal text-velvet rounded-full font-semibold text-sm petal-glow flex items-center justify-center gap-2"
-                    >
-                      <Heart className="size-4 fill-current" /> Enter PANDACINE
-                    </button>
-                  )}
-                </div>
-
-                <div className="mt-4 flex items-center gap-3">
-                  <span className="text-[10px] uppercase tracking-widest text-candle-muted">
-                    Chapter {i + 1} / {total}
-                  </span>
-                  <div className="flex-1 h-px bg-border" />
-                  <span className="text-[10px] uppercase tracking-widest text-candle-muted">
-                    {Math.round(progress)}%
-                  </span>
-                </div>
-              </div>
+            <div className="flex items-center gap-2 mt-5">
+              <button
+                onClick={prev}
+                disabled={i === 0}
+                className="size-10 rounded-full bg-velvet border border-border text-candle-muted hover:text-petal disabled:opacity-30 flex items-center justify-center"
+                aria-label="Previous"
+              >
+                <ArrowLeft className="size-4" />
+              </button>
+              {i < total - 1 ? (
+                <button
+                  onClick={next}
+                  disabled={!ready}
+                  className="flex-1 py-2.5 bg-petal text-velvet rounded-full font-semibold text-sm petal-glow flex items-center justify-center gap-2 disabled:opacity-60"
+                >
+                  Continue <ArrowRight className="size-4" />
+                </button>
+              ) : (
+                <button
+                  onClick={finish}
+                  className="flex-1 py-2.5 bg-petal text-velvet rounded-full font-semibold text-sm petal-glow flex items-center justify-center gap-2"
+                >
+                  Enter PANDACINE
+                </button>
+              )}
+              <span className="text-[10px] uppercase tracking-widest text-candle-muted whitespace-nowrap px-1">
+                {i + 1} / {total}
+              </span>
             </div>
           </div>
         </div>
       </div>
     </div>,
     document.body,
-  );
-}
-
-/* ============ Mini visuals ============ */
-
-function PandasVisual() {
-  return (
-    <div className="relative flex items-center gap-1 text-6xl">
-      <span className="animate-[float_3s_ease-in-out_infinite]">🐼</span>
-      <MessageCircleHeart className="size-6 text-petal animate-pulse" />
-      <span className="animate-[float_3s_ease-in-out_infinite_0.6s]">🐼</span>
-    </div>
-  );
-}
-function AffectionsVisual() {
-  return (
-    <div className="relative grid grid-cols-3 gap-3 text-3xl">
-      {["💋", "🤗", "✋", "🫶", "👉", "🐾"].map((e, i) => (
-        <span key={i} className="animate-[float_2.4s_ease-in-out_infinite]" style={{ animationDelay: `${i * 0.15}s` }}>{e}</span>
-      ))}
-    </div>
-  );
-}
-function LockVisual() {
-  return (
-    <div className="relative flex flex-col items-center gap-2">
-      <Lock className="size-16 text-petal animate-pulse" />
-      <div className="flex gap-1">
-        {["b", "e", "l", "o", "v", "e", "d"].map((c, i) => (
-          <span key={i} className="size-6 rounded bg-surface border border-petal/40 flex items-center justify-center text-xs font-mono uppercase text-petal animate-fade-in" style={{ animationDelay: `${i * 0.08}s` }}>{c}</span>
-        ))}
-      </div>
-    </div>
-  );
-}
-function BadgesVisual() {
-  return (
-    <div className="flex flex-wrap gap-2 justify-center max-w-[220px]">
-      {["🏆", "🔥", "🎬", "♟️", "💌", "⭐", "🌙", "🎨"].map((e, i) => (
-        <div key={i} className="size-11 rounded-full bg-surface border border-petal/30 flex items-center justify-center text-lg animate-scale-in" style={{ animationDelay: `${i * 0.06}s` }}>{e}</div>
-      ))}
-    </div>
-  );
-}
-function MovieVisual() {
-  return (
-    <div className="relative w-40 h-24 rounded-lg bg-black border border-petal/40 overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/40 via-petal/30 to-accent/30 animate-pulse" />
-      <Clapperboard className="absolute inset-0 m-auto size-10 text-white/90" />
-      <div className="absolute bottom-1 left-1 right-1 h-1 rounded bg-white/20 overflow-hidden">
-        <div className="h-full w-2/3 bg-petal animate-pulse" />
-      </div>
-    </div>
-  );
-}
-function GamesVisual() {
-  return (
-    <div className="grid grid-cols-3 gap-2 text-3xl">
-      {["♟️", "🎲", "🎴", "🎱", "🕵️", "❓", "🎨", "🏆", "🐼"].map((e, i) => (
-        <span key={i} className="size-12 rounded-xl bg-surface border border-border flex items-center justify-center animate-fade-in" style={{ animationDelay: `${i * 0.05}s` }}>{e}</span>
-      ))}
-    </div>
-  );
-}
-function GroupVisual() {
-  return (
-    <div className="w-56 space-y-2">
-      <div className="p-2 rounded-xl bg-surface border border-border text-xs text-candle-muted">Alex: gm 🐼</div>
-      <div className="p-2 rounded-xl bg-petal-soft/60 border border-petal/50 shadow-[0_0_18px_rgba(236,120,155,0.35)] text-xs text-candle relative">
-        <span className="absolute -top-1 -left-1 text-[9px] uppercase tracking-widest text-petal">Partner</span>
-        Sam: miss you 💗
-      </div>
-      <div className="p-2 rounded-xl bg-surface border border-border text-xs text-candle-muted">Jamie: same</div>
-    </div>
-  );
-}
-function RitualsVisual() {
-  return (
-    <div className="grid grid-cols-2 gap-2 text-2xl">
-      {[
-        { e: "🌅", l: "Daily Q" },
-        { e: "😊", l: "Mood" },
-        { e: "🔥", l: "Streak" },
-        { e: "💌", l: "Letters" },
-      ].map((x, i) => (
-        <div key={i} className="p-2 rounded-xl bg-surface border border-border flex items-center gap-2 animate-fade-in" style={{ animationDelay: `${i * 0.08}s` }}>
-          <span>{x.e}</span>
-          <span className="text-[10px] uppercase tracking-widest text-candle-muted">{x.l}</span>
-        </div>
-      ))}
-    </div>
-  );
-}
-function NotifyVisual() {
-  return (
-    <div className="relative w-56 h-32">
-      <div className="absolute right-0 top-4 w-52 p-3 rounded-2xl bg-surface border border-petal/40 shadow-[0_20px_60px_-20px_rgba(236,120,155,0.4)] animate-[slide-in-right_0.6s_ease-out]">
-        <p className="text-[10px] uppercase tracking-widest text-petal">New message</p>
-        <p className="text-xs text-candle mt-1">🐼 come here…</p>
-      </div>
-    </div>
   );
 }
