@@ -773,7 +773,7 @@ function PoolPage() {
             onPointerDown={onSvgDown}
             onPointerUp={onSvgUp}
             onPointerCancel={() => setDrag(null)}
-            onPointerLeave={() => { setMouse(null); if (drag) setDrag(null); }}
+            onPointerLeave={() => { if (drag) setDrag(null); }}
             
           >
             <defs>
