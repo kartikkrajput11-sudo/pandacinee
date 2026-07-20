@@ -1,5 +1,4 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
 import { useProfile } from "@/hooks/useProfile";
 import { Petals } from "@/components/Petals";
 import { CountdownCard } from "@/components/CountdownCard";
@@ -12,7 +11,6 @@ import { Heart, ArrowRight, Users, LineChart, Clapperboard, BookHeart, Gift, Fea
 import { AvatarImg } from "@/components/AvatarImg";
 import NotificationCenter from "@/components/NotificationCenter";
 import { EditorialPageHeader, EditorialSectionHeader } from "@/components/editorial/SectionHeader";
-import { AppTour, hasSeenTour } from "@/components/AppTour";
 
 
 
@@ -28,18 +26,10 @@ function Home() {
   const greeting = useGreeting();
   const partnerName = partner ? (profile?.partner_nickname || partner.display_name) : "your panda";
 
-  const [tourOpen, setTourOpen] = useState(false);
-  useEffect(() => {
-    if (!isLoading && profile && !hasSeenTour()) {
-      const t = setTimeout(() => setTourOpen(true), 600);
-      return () => clearTimeout(t);
-    }
-  }, [isLoading, profile]);
-
   return (
     <div className="relative px-5 pt-10 space-y-6">
-      <AppTour open={tourOpen} onClose={() => setTourOpen(false)} />
       <Petals count={4} />
+
 
 
       {/* Editorial hero header */}
@@ -67,7 +57,7 @@ function Home() {
         trailing={
           <>
             <button
-              onClick={() => setTourOpen(true)}
+              onClick={() => window.dispatchEvent(new Event("pandacine:open-tour"))}
               className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface/70 border border-petal/40 text-[10px] uppercase tracking-[0.28em] text-petal hover:bg-petal/10 transition"
               aria-label="Start guided tour"
             >
