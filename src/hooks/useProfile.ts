@@ -24,6 +24,13 @@ export type Profile = {
 export function useProfile() {
   return useQuery({
     queryKey: ["profile", "me"],
+    // Profile/partner data changes rarely relative to how often the hook mounts.
+    // A 30s stale window collapses the mount-storm during route/page transitions
+    // without hiding real edits — explicit mutations still call
+    // qc.invalidateQueries(["profile","me"]) to force a refresh.
+    staleTime: 30_000,
+    gcTime: 5 * 60_000,
+    refetchOnWindowFocus: false,
     queryFn: async (): Promise<{ profile: Profile | null; partner: Profile | null }> => {
       const { data: userRes } = await supabase.auth.getUser();
       if (!userRes.user) return { profile: null, partner: null };
