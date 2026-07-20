@@ -19,8 +19,8 @@ const _games = [
   _Game('ludo', 'Ludo', 'Spring-arc tokens, velvet board', Icons.casino, ready: true),
   _Game('uno', 'Uno', 'Table talk & card bursts', Icons.style, ready: true),
   _Game('pool', '8-Ball Pool', 'Cue-pull power, turn-based', Icons.sports_bar, ready: true),
-  _Game('hideseek', 'Hide & Seek', 'Whisper hints & proximity', Icons.visibility_off),
-  _Game('knowme', 'How Well Do You Know Me?', 'Setter & guesser rounds', Icons.favorite),
+  _Game('hideseek', 'Hide & Seek', 'Whisper hints & proximity', Icons.visibility_off, ready: true),
+  _Game('knowme', 'How Well Do You Know Me?', 'Setter & guesser rounds', Icons.favorite, ready: true),
 ];
 
 class PlayHubScreen extends ConsumerWidget {
