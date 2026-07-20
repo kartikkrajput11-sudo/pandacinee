@@ -5,24 +5,28 @@ import { supabase } from "@/integrations/supabase/client";
  * Keeps the current user's profiles.last_seen_at fresh so we can show a
  * reliable "Active X ago" status. Pings on mount, every 45s while visible,
  * on focus/visibilitychange, and on tab close (best-effort).
+ *
+ * Efficiency notes:
+ *  - The `activity_visible` preference is fetched once on mount and refreshed
+ *    via a realtime subscription. The previous version re-read the profile
+ *    on every heartbeat (multiple times/minute), which was wasteful.
+ *  - A 20s minimum gap between writes coalesces bursts of focus/visibility
+ *    events into a single update.
  */
 export function usePresenceHeartbeat() {
   useEffect(() => {
     let cancelled = false;
     let uid: string | null = null;
+    let activityVisible = true;
+    let lastWriteAt = 0;
 
-    const ping = async () => {
+    const ping = async (opts?: { force?: boolean }) => {
       if (cancelled || !uid) return;
+      if (!activityVisible) return;
+      const now = Date.now();
+      if (!opts?.force && now - lastWriteAt < 20_000) return;
+      lastWriteAt = now;
       try {
-        // Respect the user's activity-visible preference: if they've turned
-        // off "Show my activity", stop refreshing last_seen_at so partners
-        // only see a stale/hidden state.
-        const { data: prof } = await supabase
-          .from("profiles")
-          .select("activity_visible")
-          .eq("id", uid)
-          .maybeSingle();
-        if ((prof as any)?.activity_visible === false) return;
         await supabase
           .from("profiles")
           .update({ last_seen_at: new Date().toISOString() })
@@ -32,10 +36,34 @@ export function usePresenceHeartbeat() {
       }
     };
 
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+
     (async () => {
       const { data } = await supabase.auth.getUser();
       uid = data.user?.id ?? null;
-      if (uid) ping();
+      if (!uid || cancelled) return;
+
+      const { data: prof } = await supabase
+        .from("profiles")
+        .select("activity_visible")
+        .eq("id", uid)
+        .maybeSingle();
+      activityVisible = (prof as any)?.activity_visible !== false;
+      if (activityVisible) ping({ force: true });
+
+      // Watch the preference so toggling it in Settings takes effect
+      // without a page reload.
+      channel = supabase
+        .channel(`presence-pref-${uid}`)
+        .on(
+          "postgres_changes",
+          { event: "UPDATE", schema: "public", table: "profiles", filter: `id=eq.${uid}` },
+          (payload) => {
+            const next = (payload.new as any)?.activity_visible;
+            if (typeof next === "boolean") activityVisible = next;
+          },
+        )
+        .subscribe();
     })();
 
     const interval = window.setInterval(() => {
@@ -58,6 +86,7 @@ export function usePresenceHeartbeat() {
       window.removeEventListener("focus", onFocus);
       window.removeEventListener("pagehide", onHide);
       document.removeEventListener("visibilitychange", onVis);
+      if (channel) supabase.removeChannel(channel);
     };
   }, []);
 }
