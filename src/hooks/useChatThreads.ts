@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { isDmMessageUnread } from "@/lib/dmRead";
 
 export type ThreadRow = {
   peer: {
@@ -73,7 +74,9 @@ export function useChatThreads() {
               (m.sender_id === pid && m.receiver_id === me),
           );
           const last = peerMsgs[0] ?? null;
-          const unread = peerMsgs.filter((m) => m.sender_id === pid && !m.read_at).length;
+          const unread = peerMsgs.filter(
+            (m) => m.sender_id === pid && isDmMessageUnread(me, pid, m.created_at, m.read_at),
+          ).length;
           return {
             peer: {
               id: p.id,
@@ -149,9 +152,15 @@ export function useChatThreads() {
       channels.push(asSender, asReceiver);
     })();
 
+    // Refetch when a DM thread is locally marked as read (works even when
+    // read receipts are disabled and messages.read_at is never written).
+    const onDmRead = () => scheduleInvalidate();
+    window.addEventListener("dm-read-updated", onDmRead);
+
     return () => {
       cancelled = true;
       if (debounceTimer) clearTimeout(debounceTimer);
+      window.removeEventListener("dm-read-updated", onDmRead);
       for (const c of channels) supabase.removeChannel(c);
     };
   }, [qc]);

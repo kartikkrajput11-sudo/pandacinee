@@ -28,6 +28,7 @@ import { typeMeta } from "@/lib/punishment";
 import { UserAvatar } from "@/components/UserAvatar";
 import { ForwardDialog, canForward } from "@/components/chat/ForwardDialog";
 import { SharedMediaDrawer } from "@/components/chat/SharedMediaDrawer";
+import { markDmReadNow } from "@/lib/dmRead";
 
 
 
@@ -239,6 +240,15 @@ function ChatPeer() {
     if (!el) return;
     el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
   }, []);
+
+  // Locally mark this thread as read whenever the last message id changes,
+  // so the unread badge on /app/chat clears even when the user has
+  // read receipts disabled (in which case messages.read_at is never written).
+  const lastMsgId = messages[messages.length - 1]?.id ?? null;
+  useEffect(() => {
+    if (!me?.id || !peer?.id) return;
+    markDmReadNow(me.id, peer.id);
+  }, [me?.id, peer?.id, lastMsgId]);
 
 
   // Trigger kiss / nudge FX for partner messages. Plays for anything that is

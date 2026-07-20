@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { isGroupMessageUnread } from "@/lib/groupRead";
+import { isDmMessageUnread } from "@/lib/dmRead";
 
 export function useUnreadMessages() {
   const [count, setCount] = useState(0);
@@ -25,12 +26,17 @@ export function useUnreadMessages() {
     const fetchCount = async () => {
       const { data: dmRows } = await supabase
         .from("messages")
-        .select("sender_id")
+        .select("sender_id,created_at,read_at")
         .eq("receiver_id", userId)
-        .is("read_at", null)
-        .is("deleted_at", null);
+        .is("deleted_at", null)
+        .order("created_at", { ascending: false })
+        .limit(400);
       if (cancelled) return;
-      const dmSenders = new Set((dmRows ?? []).map((r) => r.sender_id));
+      const dmSenders = new Set(
+        (dmRows ?? [])
+          .filter((r) => isDmMessageUnread(userId, r.sender_id, r.created_at, r.read_at))
+          .map((r) => r.sender_id),
+      );
 
       const { data: myGroups } = await supabase
         .from("chat_group_members")
@@ -89,6 +95,7 @@ export function useUnreadMessages() {
     const onRead = () => scheduleFetch();
     const onFocus = () => scheduleFetch();
     window.addEventListener("group-read-updated", onRead);
+    window.addEventListener("dm-read-updated", onRead);
     window.addEventListener("focus", onFocus);
 
     return () => {
@@ -96,6 +103,7 @@ export function useUnreadMessages() {
       if (debounceRef.current) clearTimeout(debounceRef.current);
       supabase.removeChannel(channel);
       window.removeEventListener("group-read-updated", onRead);
+      window.removeEventListener("dm-read-updated", onRead);
       window.removeEventListener("focus", onFocus);
     };
   }, [userId]);
