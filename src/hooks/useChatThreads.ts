@@ -152,9 +152,15 @@ export function useChatThreads() {
       channels.push(asSender, asReceiver);
     })();
 
+    // Refetch when a DM thread is locally marked as read (works even when
+    // read receipts are disabled and messages.read_at is never written).
+    const onDmRead = () => scheduleInvalidate();
+    window.addEventListener("dm-read-updated", onDmRead);
+
     return () => {
       cancelled = true;
       if (debounceTimer) clearTimeout(debounceTimer);
+      window.removeEventListener("dm-read-updated", onDmRead);
       for (const c of channels) supabase.removeChannel(c);
     };
   }, [qc]);
