@@ -95,8 +95,10 @@ export function useGroupChat(groupId: string | null, meId: string | null) {
           const row = payload.new as GroupMessage;
           if (row.deleted_at) return;
           if (meId && row.sender_id !== meId) sfxReceive();
+          messageIdsRef.current.add(row.id);
           setMessages((prev) => (prev.some((m) => m.id === row.id) ? prev : [...prev, row]));
         },
+
       )
       .on(
         "postgres_changes",
