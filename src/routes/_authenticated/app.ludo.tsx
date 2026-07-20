@@ -82,7 +82,8 @@ function LudoPage() {
       });
     });
     ch.subscribe((status) => {
-      if (status === "SUBSCRIBED") {
+      if (status === "SUBSCRIBED" && mySeat !== "red") {
+        // Only non-host asks for state; host is authoritative.
         void ch.send({ type: "broadcast", event: "sync-request", payload: {} });
       }
     });
@@ -91,7 +92,7 @@ function LudoPage() {
       supabase.removeChannel(ch);
       chRef.current = null;
     };
-  }, [mode, me?.id, partner?.id]);
+  }, [mode, me?.id, partner?.id, mySeat, matchId]);
 
   const broadcast = (next: State) => {
     if (mode === "partner" && chRef.current) {
