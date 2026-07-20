@@ -57,12 +57,24 @@ export function setNotifUser(uid: string | null) {
   emit();
 }
 
+// Cross-tab sync: reload when another tab writes to our key.
+if (typeof window !== "undefined") {
+  window.addEventListener("storage", (e) => {
+    if (e.key === keyFor(currentUid)) {
+      load();
+      emit();
+    }
+  });
+}
+
 export function pushNotification(
   n: Omit<NotifItem, "id" | "createdAt" | "read"> & { id?: string },
 ) {
   const id = n.id ?? `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-  // De-dupe by id if it recurs
-  items = items.filter((x) => x.id !== id);
+  // De-dupe by id — preserve prior read/createdAt so a re-broadcast doesn't
+  // resurrect an already-dismissed notification as unread.
+  const prior = items.find((x) => x.id === id);
+  if (prior) return; // already tracked; nothing to do
   items.unshift({
     ...n,
     id,
