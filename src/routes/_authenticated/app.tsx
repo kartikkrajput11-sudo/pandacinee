@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { BottomNav } from "@/components/BottomNav";
 import { IncomingCallListener } from "@/components/IncomingCallListener";
 import { OnboardingFlow } from "@/components/OnboardingFlow";
-import { AppTour, hasSeenTour } from "@/components/AppTour";
+import { AppTour } from "@/components/AppTour";
 import { usePresenceHeartbeat } from "@/hooks/usePresenceHeartbeat";
 import { useGamePresence } from "@/hooks/useGamePresence";
 import { useProfile } from "@/hooks/useProfile";
