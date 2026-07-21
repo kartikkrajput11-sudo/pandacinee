@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { generateText, Output, NoObjectGeneratedError } from "ai";
 import { z } from "zod";
-import { createLovableAiGatewayProvider } from "./ai-gateway.server";
+import { createGameAiProvider } from "./ai-gateway.server";
 
 const INTENSITIES = ["sweet", "playful", "spicy", "deep"] as const;
 type Intensity = (typeof INTENSITIES)[number];
@@ -147,10 +147,8 @@ export const generateGameCard = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data }) => {
-    const key = process.env.LOVABLE_API_KEY;
-    if (!key) throw new Error("AI is not configured");
     const cfg = KIND_PROMPTS[data.kind];
-    const gateway = createLovableAiGatewayProvider(key);
+    const { provider, model: modelId } = createGameAiProvider();
     const seed = Math.floor(Math.random() * 1_000_000);
     const prompt =
       data.kind === "truth-or-dare" && data.type && cfg.userTyped
@@ -159,7 +157,7 @@ export const generateGameCard = createServerFn({ method: "POST" })
 
     try {
       const { output } = await generateText({
-        model: gateway("google/gemini-2.5-flash"),
+        model: provider(modelId),
         system: cfg.system,
         prompt,
         output: Output.object({ schema: cfg.schema as z.ZodType<any> }),
@@ -212,9 +210,7 @@ export const generateLoveQuiz = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data }) => {
-    const key = process.env.LOVABLE_API_KEY;
-    if (!key) throw new Error("AI is not configured");
-    const gateway = createLovableAiGatewayProvider(key);
+    const { provider, model: modelId } = createGameAiProvider();
     const seed = data.seed ?? Math.floor(Math.random() * 1_000_000);
 
     const system =
@@ -225,7 +221,7 @@ export const generateLoveQuiz = createServerFn({ method: "POST" })
 
     try {
       const { output } = await generateText({
-        model: gateway("google/gemini-2.5-flash"),
+        model: provider(modelId),
         system,
         prompt,
         output: Output.object({ schema: QuizSchema as z.ZodType<any> }),

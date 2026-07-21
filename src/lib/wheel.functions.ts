@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { generateText, Output, NoObjectGeneratedError } from "ai";
 import { z } from "zod";
-import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
+import { createGameAiProvider } from "@/lib/ai-gateway.server";
 
 const TMDB = "https://api.themoviedb.org/3";
 
@@ -44,9 +44,7 @@ export const wheelAiSuggest = createServerFn({ method: "POST" })
     count: Math.max(4, Math.min(8, d.count ?? 6)),
   }))
   .handler(async ({ data }) => {
-    const key = process.env.LOVABLE_API_KEY;
-    if (!key) throw new Error("Missing LOVABLE_API_KEY");
-    const gateway = createLovableAiGatewayProvider(key);
+    const { provider, model: modelId } = createGameAiProvider();
 
     const vibePrompt = data.vibe.trim()
       ? `Vibe: ${data.vibe.trim()}.`
@@ -55,7 +53,7 @@ export const wheelAiSuggest = createServerFn({ method: "POST" })
     let titles: string[] = [];
     try {
       const { output } = await generateText({
-        model: gateway("google/gemini-2.5-flash"),
+        model: provider(modelId),
         output: Output.object({
           schema: z.object({
             titles: z.array(z.string()),
