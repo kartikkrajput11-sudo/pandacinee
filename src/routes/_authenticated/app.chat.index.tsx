@@ -56,8 +56,12 @@ function ChatList() {
         subtitle="Where your circles meet — partner, friends, and groups, all in one velvet room."
 
         leading={
-          <Link to="/app" className="text-candle-muted p-2 -ml-2 rounded-full hover:bg-surface transition-colors">
-            <ArrowLeft className="size-5" />
+          <Link
+            to="/app"
+            aria-label="Back"
+            className="size-10 rounded-full bg-surface border border-border flex items-center justify-center text-candle-muted hover:text-candle hover:border-petal/40 transition-colors [-webkit-tap-highlight-color:transparent]"
+          >
+            <ArrowLeft className="size-4" />
           </Link>
         }
         trailing={
