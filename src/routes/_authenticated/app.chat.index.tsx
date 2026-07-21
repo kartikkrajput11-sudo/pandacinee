@@ -131,19 +131,6 @@ function ChatList() {
       />
       </div>
 
-      {/* Stat ribbon */}
-      {!totalEmpty && (
-        <div className="flex items-center gap-2 mb-4 flex-wrap">
-          <Chip label={`${(groups?.length ?? 0)} circles`} icon={<UsersRound className="size-3" />} />
-          <Chip label={`${friendThreads.length} friends`} icon={<Users className="size-3" />} />
-          {totalUnread > 0 && (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-petal text-velvet text-[11px] font-semibold shadow-[0_0_12px_rgba(236,120,155,0.45)]">
-              <Sparkles className="size-3" />
-              {totalUnread} unread
-            </span>
-          )}
-        </div>
-      )}
 
       {/* Search */}
       {!totalEmpty && (
