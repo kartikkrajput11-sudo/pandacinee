@@ -76,7 +76,6 @@ function ChatList() {
       <EditorialPageHeader
         eyebrow="Whispers"
         title="Chats"
-        subtitle="Where your circles meet — partner, friends, and groups, all in one velvet room."
         leading={
           <Link
             to="/app"
