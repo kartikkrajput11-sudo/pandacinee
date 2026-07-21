@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, LogOut, Heart, Copy, Camera, Save, Sun, Moon, Monitor, ChevronRight, Lock, Coins, Volume2, VolumeX, Eye, EyeOff, CheckCheck, Check, Compass, Sparkles, Loader2 } from "lucide-react";
 import { EditorialPageHeader } from "@/components/editorial/SectionHeader";
@@ -13,6 +14,18 @@ import { CATEGORY_SETTINGS } from "@/lib/punishment";
 import { AchievementBadges } from "@/components/AchievementBadges";
 import { AvatarImg } from "@/components/AvatarImg";
 import { TAG_BY_KEY } from "@/lib/achievements";
+import { generateAiAvatar } from "@/lib/ai-avatar.functions";
+
+const AI_AVATAR_STYLES: Array<{ key: string; label: string; hint: string }> = [
+  { key: "anime", label: "Chibi anime", hint: "Kawaii sticker portrait" },
+  { key: "watercolor", label: "Watercolor", hint: "Soft romantic bloom" },
+  { key: "oil", label: "Oil painting", hint: "Renaissance mood" },
+  { key: "cinematic", label: "Cinematic", hint: "Film-still portrait" },
+  { key: "royal", label: "Royal", hint: "Velvet & gold filigree" },
+  { key: "neon", label: "Neon noir", hint: "Cyber magenta rim light" },
+  { key: "storybook", label: "Storybook", hint: "Whimsical gouache" },
+  { key: "vintage", label: "Vintage film", hint: "35mm nostalgia" },
+];
 
 export const Route = createFileRoute("/_authenticated/app/me")({
   component: Me,
