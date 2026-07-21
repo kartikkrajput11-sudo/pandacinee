@@ -40,6 +40,15 @@ function GroupChat() {
   const partnerId = profileData?.partner?.id ?? null;
   const { data: groupData } = useGroup(groupId);
   const chat = useGroupChat(groupId, meId);
+  const latestMsgAt = chat.messages.length > 0 ? chat.messages[chat.messages.length - 1].created_at : null;
+  const { reads } = useGroupReads(groupId, meId, latestMsgAt);
+  const lastMineId = useMemo(() => {
+    for (let i = chat.messages.length - 1; i >= 0; i--) {
+      const m = chat.messages[i];
+      if (m.sender_id === meId && !m.deleted_at) return m.id;
+    }
+    return null;
+  }, [chat.messages, meId]);
 
   const [text, setText] = useState("");
   const [replyTo, setReplyTo] = useState<GroupMessage | null>(null);
