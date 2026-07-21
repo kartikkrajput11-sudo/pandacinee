@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, LogOut, Heart, Copy, Camera, Save, Sun, Moon, Monitor, ChevronRight, Lock, Coins, Volume2, VolumeX, Eye, EyeOff, CheckCheck, Check, Compass } from "lucide-react";
+import { ArrowLeft, LogOut, Heart, Copy, Camera, Save, Sun, Moon, Monitor, ChevronRight, Lock, Coins, Volume2, VolumeX, Eye, EyeOff, CheckCheck, Check, Compass, Sparkles, Loader2 } from "lucide-react";
 import { EditorialPageHeader } from "@/components/editorial/SectionHeader";
 
 import { isSfxEnabled, setSfxEnabled, sfxReaction } from "@/lib/sfx";
@@ -41,6 +41,10 @@ function Me() {
   const [partnerNickname, setPartnerNickname] = useState("");
   const [saving, setSaving] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [aiOpen, setAiOpen] = useState(false);
+  const [aiPrompt, setAiPrompt] = useState("");
+  const [aiBusy, setAiBusy] = useState(false);
+
   
 
 
@@ -179,6 +183,40 @@ function Me() {
     }
   }
 
+  async function generateAvatarFromPrompt() {
+    if (!me) return;
+    const prompt = aiPrompt.trim();
+    if (!prompt) {
+      toast.error("Describe the avatar you want");
+      return;
+    }
+    setAiBusy(true);
+    try {
+      const res = await fetch("/api/generate-avatar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt }),
+      });
+      if (!res.ok) {
+        const msg = await res.text().catch(() => "");
+        throw new Error(msg || `Failed (${res.status})`);
+      }
+      const { b64_json } = (await res.json()) as { b64_json: string };
+      const bin = atob(b64_json);
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      const blob = new Blob([bytes], { type: "image/png" });
+      const file = new File([blob], "avatar.png", { type: "image/png" });
+      await uploadAvatar(file);
+      setAiOpen(false);
+      setAiPrompt("");
+    } catch (err: any) {
+      toast.error(err?.message ?? "Couldn't generate avatar");
+    } finally {
+      setAiBusy(false);
+    }
+  }
+
   return (
     <div className="pt-10 px-5">
       <EditorialPageHeader
@@ -225,8 +263,59 @@ function Me() {
             <div className="min-w-0 flex-1">
               <p className="font-serif text-2xl italic truncate">{me.display_name}</p>
               <p className="text-sm text-candle-muted truncate">@{me.username}</p>
+              <button
+                onClick={() => setAiOpen(true)}
+                className="mt-1.5 inline-flex items-center gap-1.5 text-xs text-petal hover:text-petal/80 transition-colors"
+              >
+                <Sparkles className="size-3.5" />
+                Generate with AI
+              </button>
             </div>
           </div>
+
+          {aiOpen ? (
+            <div
+              className="fixed inset-0 z-[80] bg-velvet/70 backdrop-blur-md flex items-center justify-center p-5"
+              onClick={() => !aiBusy && setAiOpen(false)}
+            >
+              <div
+                className="w-full max-w-md rounded-3xl bg-surface border border-petal/20 p-5 shadow-2xl"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-center gap-2 mb-3">
+                  <Sparkles className="size-4 text-petal" />
+                  <h3 className="font-serif italic text-xl">AI avatar</h3>
+                </div>
+                <p className="text-xs text-candle-muted mb-3">
+                  Describe your dream portrait — style, mood, colors. A soft luxury framing is added automatically.
+                </p>
+                <textarea
+                  value={aiPrompt}
+                  onChange={(e) => setAiPrompt(e.target.value)}
+                  disabled={aiBusy}
+                  placeholder="e.g. a moody watercolor of a red panda in a velvet cloak, candlelight"
+                  className="w-full h-28 bg-velvet border border-border rounded-2xl px-4 py-3 text-candle text-sm resize-none"
+                />
+                <div className="flex justify-end gap-2 mt-3">
+                  <button
+                    onClick={() => setAiOpen(false)}
+                    disabled={aiBusy}
+                    className="px-4 py-2 rounded-full text-sm text-candle-muted hover:text-candle disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={generateAvatarFromPrompt}
+                    disabled={aiBusy || !aiPrompt.trim()}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-petal text-velvet text-sm font-medium disabled:opacity-50"
+                  >
+                    {aiBusy ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
+                    {aiBusy ? "Painting…" : "Generate"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : null}
 
           <Link
             to="/app/shop"
