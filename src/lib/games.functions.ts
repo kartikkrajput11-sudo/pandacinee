@@ -164,10 +164,14 @@ export const generateGameCard = createServerFn({ method: "POST" })
       });
       return { card: output, seed };
     } catch (err: any) {
-      // Gemini often returns a bare string / prose despite response_format: json_object.
-      // Recover from the raw text when possible before failing.
-      if (NoObjectGeneratedError.isInstance?.(err) || err?.text) {
-        const raw = String(err.text ?? "");
+      const raw: string = String(
+        err?.text ??
+          err?.response?.text ??
+          err?.cause?.text ??
+          err?.responseBody ??
+          "",
+      );
+      if (raw) {
         const extracted = tryExtractJson(raw);
         if (extracted) {
           const parsed = cfg.schema.safeParse(extracted);
@@ -179,6 +183,29 @@ export const generateGameCard = createServerFn({ method: "POST" })
           if (parsed.success) return { card: parsed.data, seed };
         }
       }
+
+      // Retry once in plain-text mode — Llama models on Groq are more reliable
+      // without the SDK's structured-output wrapper.
+      try {
+        const { text } = await generateText({
+          model: provider(modelId),
+          system: cfg.system,
+          prompt: prompt + "\nReturn ONLY the raw JSON object. No prose, no code fences.",
+        });
+        const extracted = tryExtractJson(text);
+        if (extracted) {
+          const parsed = cfg.schema.safeParse(extracted);
+          if (parsed.success) return { card: parsed.data, seed };
+        }
+        if (cfg.fallback) {
+          const fb = cfg.fallback(text);
+          const parsed = cfg.schema.safeParse(fb);
+          if (parsed.success) return { card: parsed.data, seed };
+        }
+      } catch {
+        /* fall through */
+      }
+
       const msg = String(err?.message ?? "");
       const status = err?.statusCode ?? err?.status ?? err?.response?.status;
       if (status === 429 || /\b429\b|rate.?limit/i.test(msg))
@@ -186,7 +213,7 @@ export const generateGameCard = createServerFn({ method: "POST" })
       if (status === 402 || /\b402\b|credit|payment required|insufficient/i.test(msg))
         throw new Error("AI credits exhausted. Ask the workspace owner to top up credits.");
       console.error("[generateGameCard] failed:", status, msg, err);
-      throw new Error(msg ? `AI error: ${msg.slice(0, 140)}` : "AI couldn't generate a card. Try again.");
+      throw new Error("AI couldn't generate a card. Try again.");
     }
   });
 
