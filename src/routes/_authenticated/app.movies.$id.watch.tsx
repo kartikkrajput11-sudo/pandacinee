@@ -1144,14 +1144,25 @@ function CatalogWatch({ id }: { id: string }) {
             {started ? (
               isPandacine && pandacine ? (
                 toEmbedUrl(pandacine.videoSrc) ? (
-                  <iframe
-                    key={`pandacine-embed-${iframeKey}`}
-                    src={toEmbedUrl(pandacine.videoSrc)!}
-                    className="absolute inset-0 w-full h-full bg-black"
-                    allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
-                    allowFullScreen
-                    onLoad={() => { setPlayerLoading(false); setReady(true); }}
-                  />
+                  <>
+                    <iframe
+                      key={`pandacine-embed-${iframeKey}`}
+                      src={toEmbedUrl(pandacine.videoSrc)!}
+                      className="absolute inset-0 w-full h-full bg-black"
+                      allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+                      allowFullScreen
+                      onLoad={() => { setPlayerLoading(false); setReady(true); }}
+                    />
+                    <a
+                      href={pandacine.videoSrc}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="absolute bottom-3 right-3 z-20 px-3 py-1.5 rounded-full text-[11px] tracking-wide bg-black/70 border border-white/15 text-white/85 hover:text-white backdrop-blur"
+                    >
+                      Open in Drive ↗
+                    </a>
+                  </>
+
                 ) : (
                 <CustomMoviePlayer
                   key={`pandacine-${iframeKey}`}
@@ -2167,12 +2178,25 @@ function CustomWatch({ customId }: { customId: string }) {
             </>
           ) : videoSrc ? (
             toEmbedUrl(videoSrc) ? (
-              <iframe
-                src={toEmbedUrl(videoSrc)!}
-                className="w-full h-full rounded-2xl bg-black"
-                allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
-                allowFullScreen
-              />
+              <div className="relative w-full h-full">
+                <iframe
+                  src={toEmbedUrl(videoSrc)!}
+                  className="w-full h-full rounded-2xl bg-black"
+                  allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+                  allowFullScreen
+                />
+                <a
+                  href={videoSrc}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="absolute bottom-3 right-3 z-20 px-3 py-1.5 rounded-full text-[11px] tracking-wide bg-black/70 border border-white/15 text-white/85 hover:text-white backdrop-blur"
+                >
+                  Open in Drive ↗
+                </a>
+                <div className="pointer-events-none absolute top-3 left-3 z-20 px-3 py-1.5 rounded-full text-[10px] tracking-widest uppercase bg-black/60 border border-petal/30 text-petal/90 backdrop-blur">
+                  Google Drive
+                </div>
+              </div>
             ) : (
             <CustomMoviePlayer
               src={videoSrc}
