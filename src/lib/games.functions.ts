@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { generateText, Output, NoObjectGeneratedError } from "ai";
 import { z } from "zod";
-import { createLovableAiGatewayProvider } from "./ai-gateway.server";
+import { createGameAiProvider } from "./ai-gateway.server";
 
 const INTENSITIES = ["sweet", "playful", "spicy", "deep"] as const;
 type Intensity = (typeof INTENSITIES)[number];
