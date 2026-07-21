@@ -885,7 +885,7 @@ function CatalogWatch({ id }: { id: string }) {
       <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 bg-gradient-to-b from-velvet/90 via-velvet to-velvet" />
 
       {/* Header */}
-      <header className="px-5 pb-4 flex items-center gap-3 max-w-6xl mx-auto">
+      <header className={`px-5 pb-4 flex items-center gap-3 max-w-6xl mx-auto transition-opacity duration-500 ${cinemaMode ? "opacity-0 pointer-events-none h-0 overflow-hidden pb-0" : "opacity-100"}`}>
 
         <Link to="/app/movies/$id" params={{ id }} className="size-9 rounded-full bg-surface/70 backdrop-blur border border-border flex items-center justify-center text-candle">
           <ArrowLeft className="size-4" />
