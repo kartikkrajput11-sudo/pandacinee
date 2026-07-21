@@ -11,6 +11,7 @@ import {
   setNotifUser,
   subscribeNotifications,
 } from "@/lib/notifications";
+import { AvatarImg } from "@/components/AvatarImg";
 
 function timeAgo(ts: number): string {
   const diff = Math.max(0, Date.now() - ts);
@@ -163,11 +164,9 @@ export default function NotificationCenter() {
                       className="flex w-full items-start gap-3 px-3.5 py-3 text-left transition hover:bg-petal/5"
                     >
                       <div className="relative shrink-0">
-                        {n.icon && n.icon.startsWith("http") ? (
-                          // avatar
-                          <img
+                        {n.icon && (n.icon.startsWith("http") || /\.(png|jpe?g|webp|gif|avif)$/i.test(n.icon)) ? (
+                          <AvatarImg
                             src={n.icon}
-                            alt=""
                             className="h-10 w-10 rounded-full border border-petal/40 object-cover"
                           />
                         ) : (
