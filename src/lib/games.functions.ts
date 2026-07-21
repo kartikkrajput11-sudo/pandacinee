@@ -182,10 +182,13 @@ export const generateGameCard = createServerFn({ method: "POST" })
         }
       }
       const msg = String(err?.message ?? "");
-      if (msg.includes("429")) throw new Error("AI is busy — try again in a moment.");
-      if (msg.includes("402"))
-        throw new Error("AI credits exhausted. Add credits to keep playing.");
-      throw new Error("AI couldn't generate a card. Try again.");
+      const status = err?.statusCode ?? err?.status ?? err?.response?.status;
+      if (status === 429 || /\b429\b|rate.?limit/i.test(msg))
+        throw new Error("AI is busy — try again in a moment.");
+      if (status === 402 || /\b402\b|credit|payment required|insufficient/i.test(msg))
+        throw new Error("AI credits exhausted. Ask the workspace owner to top up credits.");
+      console.error("[generateGameCard] failed:", status, msg, err);
+      throw new Error(msg ? `AI error: ${msg.slice(0, 140)}` : "AI couldn't generate a card. Try again.");
     }
   });
 
