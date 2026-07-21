@@ -14,7 +14,7 @@ export const Route = createFileRoute("/_authenticated/app")({
 
 function AppShell() {
   usePresenceHeartbeat();
-  const { data, isLoading } = useProfile();
+  const { data } = useProfile();
   useGamePresence(data?.profile?.id, data?.partner?.id);
   const { pathname } = useLocation();
   // Only show bottom nav on the home page; every other page has its own back button
