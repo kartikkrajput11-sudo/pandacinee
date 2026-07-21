@@ -18,7 +18,6 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
 import { Route as ApiLivekitTokenRouteImport } from './routes/api/livekit-token'
-import { Route as ApiGenerateAvatarRouteImport } from './routes/api/generate-avatar'
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
 import { Route as AuthenticatedAppIndexRouteImport } from './routes/_authenticated/app.index'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
@@ -121,11 +120,6 @@ const EmailUnsubscribeRoute = EmailUnsubscribeRouteImport.update({
 const ApiLivekitTokenRoute = ApiLivekitTokenRouteImport.update({
   id: '/api/livekit-token',
   path: '/api/livekit-token',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiGenerateAvatarRoute = ApiGenerateAvatarRouteImport.update({
-  id: '/api/generate-avatar',
-  path: '/api/generate-avatar',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAppRoute = AuthenticatedAppRouteImport.update({
@@ -465,7 +459,6 @@ export interface FileRoutesByFullPath {
   '/terms': typeof TermsRoute
   '/unsubscribe': typeof UnsubscribeRoute
   '/app': typeof AuthenticatedAppRouteWithChildren
-  '/api/generate-avatar': typeof ApiGenerateAvatarRoute
   '/api/livekit-token': typeof ApiLivekitTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/app/anniversary': typeof AuthenticatedAppAnniversaryRoute
@@ -534,7 +527,6 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/terms': typeof TermsRoute
   '/unsubscribe': typeof UnsubscribeRoute
-  '/api/generate-avatar': typeof ApiGenerateAvatarRoute
   '/api/livekit-token': typeof ApiLivekitTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/app/anniversary': typeof AuthenticatedAppAnniversaryRoute
@@ -604,7 +596,6 @@ export interface FileRoutesById {
   '/terms': typeof TermsRoute
   '/unsubscribe': typeof UnsubscribeRoute
   '/_authenticated/app': typeof AuthenticatedAppRouteWithChildren
-  '/api/generate-avatar': typeof ApiGenerateAvatarRoute
   '/api/livekit-token': typeof ApiLivekitTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/_authenticated/app/anniversary': typeof AuthenticatedAppAnniversaryRoute
@@ -676,7 +667,6 @@ export interface FileRouteTypes {
     | '/terms'
     | '/unsubscribe'
     | '/app'
-    | '/api/generate-avatar'
     | '/api/livekit-token'
     | '/email/unsubscribe'
     | '/app/anniversary'
@@ -745,7 +735,6 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/terms'
     | '/unsubscribe'
-    | '/api/generate-avatar'
     | '/api/livekit-token'
     | '/email/unsubscribe'
     | '/app/anniversary'
@@ -814,7 +803,6 @@ export interface FileRouteTypes {
     | '/terms'
     | '/unsubscribe'
     | '/_authenticated/app'
-    | '/api/generate-avatar'
     | '/api/livekit-token'
     | '/email/unsubscribe'
     | '/_authenticated/app/anniversary'
@@ -885,7 +873,6 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   TermsRoute: typeof TermsRoute
   UnsubscribeRoute: typeof UnsubscribeRoute
-  ApiGenerateAvatarRoute: typeof ApiGenerateAvatarRoute
   ApiLivekitTokenRoute: typeof ApiLivekitTokenRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
   ApiPublicPushDispatchRoute: typeof ApiPublicPushDispatchRoute
@@ -960,13 +947,6 @@ declare module '@tanstack/react-router' {
       path: '/api/livekit-token'
       fullPath: '/api/livekit-token'
       preLoaderRoute: typeof ApiLivekitTokenRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/generate-avatar': {
-      id: '/api/generate-avatar'
-      path: '/api/generate-avatar'
-      fullPath: '/api/generate-avatar'
-      preLoaderRoute: typeof ApiGenerateAvatarRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/app': {
@@ -1557,7 +1537,6 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   TermsRoute: TermsRoute,
   UnsubscribeRoute: UnsubscribeRoute,
-  ApiGenerateAvatarRoute: ApiGenerateAvatarRoute,
   ApiLivekitTokenRoute: ApiLivekitTokenRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
   ApiPublicPushDispatchRoute: ApiPublicPushDispatchRoute,
