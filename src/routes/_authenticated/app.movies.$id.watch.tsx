@@ -1193,7 +1193,7 @@ function CatalogWatch({ id }: { id: string }) {
                   }}
                   onBufferingChange={sendBuffering}
                 />
-
+                )
               ) : (
                 <>
                   <iframe
