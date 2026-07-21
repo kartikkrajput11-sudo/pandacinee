@@ -210,9 +210,7 @@ export const generateLoveQuiz = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data }) => {
-    const key = process.env.LOVABLE_API_KEY;
-    if (!key) throw new Error("AI is not configured");
-    const gateway = createLovableAiGatewayProvider(key);
+    const { provider, model: modelId } = createGameAiProvider();
     const seed = data.seed ?? Math.floor(Math.random() * 1_000_000);
 
     const system =
@@ -223,7 +221,7 @@ export const generateLoveQuiz = createServerFn({ method: "POST" })
 
     try {
       const { output } = await generateText({
-        model: gateway("google/gemini-2.5-flash"),
+        model: provider(modelId),
         system,
         prompt,
         output: Output.object({ schema: QuizSchema as z.ZodType<any> }),
