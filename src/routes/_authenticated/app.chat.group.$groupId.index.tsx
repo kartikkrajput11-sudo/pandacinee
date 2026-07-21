@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { useProfile } from "@/hooks/useProfile";
 import { useGroup } from "@/hooks/useGroups";
 import { useGroupChat, type GroupMessage } from "@/hooks/useGroupChat";
+import { useGroupReads, seenByForMessage } from "@/hooks/useGroupReads";
 import { supabase } from "@/integrations/supabase/client";
 import { uploadChatMedia, signMedia } from "@/lib/chat";
 import { startGroupCall } from "@/lib/callActions";
@@ -39,6 +40,15 @@ function GroupChat() {
   const partnerId = profileData?.partner?.id ?? null;
   const { data: groupData } = useGroup(groupId);
   const chat = useGroupChat(groupId, meId);
+  const latestMsgAt = chat.messages.length > 0 ? chat.messages[chat.messages.length - 1].created_at : null;
+  const { reads } = useGroupReads(groupId, meId, latestMsgAt);
+  const lastMineId = useMemo(() => {
+    for (let i = chat.messages.length - 1; i >= 0; i--) {
+      const m = chat.messages[i];
+      if (m.sender_id === meId && !m.deleted_at) return m.id;
+    }
+    return null;
+  }, [chat.messages, meId]);
 
   const [text, setText] = useState("");
   const [replyTo, setReplyTo] = useState<GroupMessage | null>(null);
@@ -390,6 +400,46 @@ function GroupChat() {
                     ))}
                   </div>
                 )}
+
+                {/* Seen by (on my last message only) */}
+                {mine && m.id === lastMineId && (() => {
+                  const seenIds = seenByForMessage(reads, m.created_at, m.sender_id, meId);
+                  if (seenIds.length === 0) {
+                    return (
+                      <p className="text-[10px] text-candle-muted/70 mt-1 px-1 italic">Sent</p>
+                    );
+                  }
+                  const shown = seenIds.slice(0, 4);
+                  const extra = seenIds.length - shown.length;
+                  const names = seenIds
+                    .map((uid) => memberById.get(uid)?.display_name)
+                    .filter(Boolean)
+                    .slice(0, 3)
+                    .join(", ");
+                  return (
+                    <div
+                      className="flex items-center gap-1.5 mt-1 px-1 text-[10px] text-candle-muted"
+                      title={`Seen by ${names}${extra > 0 ? ` +${extra} more` : ""}`}
+                    >
+                      <span className="italic">Seen by</span>
+                      <div className="flex -space-x-1.5">
+                        {shown.map((uid) => {
+                          const p = memberById.get(uid);
+                          return (
+                            <UserAvatar
+                              key={uid}
+                              src={p?.avatar_url}
+                              name={p?.display_name}
+                              className="size-4 ring-1 ring-velvet"
+                              userId={uid}
+                            />
+                          );
+                        })}
+                      </div>
+                      {extra > 0 && <span className="text-petal">+{extra}</span>}
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           );
