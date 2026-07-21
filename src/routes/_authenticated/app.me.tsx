@@ -1,8 +1,7 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, LogOut, Heart, Copy, Camera, Save, Sun, Moon, Monitor, ChevronRight, Lock, Coins, Volume2, VolumeX, Eye, EyeOff, CheckCheck, Check, Compass, Sparkles, Loader2 } from "lucide-react";
+import { ArrowLeft, LogOut, Heart, Copy, Camera, Save, Sun, Moon, Monitor, ChevronRight, Lock, Coins, Volume2, VolumeX, Eye, EyeOff, CheckCheck, Check, Compass } from "lucide-react";
 import { EditorialPageHeader } from "@/components/editorial/SectionHeader";
 
 import { isSfxEnabled, setSfxEnabled, sfxReaction } from "@/lib/sfx";
@@ -14,18 +13,6 @@ import { CATEGORY_SETTINGS } from "@/lib/punishment";
 import { AchievementBadges } from "@/components/AchievementBadges";
 import { AvatarImg } from "@/components/AvatarImg";
 import { TAG_BY_KEY } from "@/lib/achievements";
-import { generateAiAvatar } from "@/lib/ai-avatar.functions";
-
-const AI_AVATAR_STYLES: Array<{ key: string; label: string; hint: string }> = [
-  { key: "anime", label: "Chibi anime", hint: "Kawaii sticker portrait" },
-  { key: "watercolor", label: "Watercolor", hint: "Soft romantic bloom" },
-  { key: "oil", label: "Oil painting", hint: "Renaissance mood" },
-  { key: "cinematic", label: "Cinematic", hint: "Film-still portrait" },
-  { key: "royal", label: "Royal", hint: "Velvet & gold filigree" },
-  { key: "neon", label: "Neon noir", hint: "Cyber magenta rim light" },
-  { key: "storybook", label: "Storybook", hint: "Whimsical gouache" },
-  { key: "vintage", label: "Vintage film", hint: "35mm nostalgia" },
-];
 
 export const Route = createFileRoute("/_authenticated/app/me")({
   component: Me,
@@ -54,12 +41,6 @@ function Me() {
   const [partnerNickname, setPartnerNickname] = useState("");
   const [saving, setSaving] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [aiOpen, setAiOpen] = useState(false);
-  const [aiStyle, setAiStyle] = useState<string>("anime");
-  const [aiExtra, setAiExtra] = useState("");
-  const [aiBusy, setAiBusy] = useState(false);
-  const genAvatarFn = useServerFn(generateAiAvatar);
-
   
 
 
@@ -198,22 +179,6 @@ function Me() {
     }
   }
 
-  async function generateAvatarFromPrompt() {
-    if (!me) return;
-    setAiBusy(true);
-    try {
-      await genAvatarFn({ data: { style: aiStyle, extra: aiExtra.trim() || undefined } });
-      toast.success("Avatar updated");
-      queryClient.invalidateQueries({ queryKey: ["profile"] });
-      setAiOpen(false);
-      setAiExtra("");
-    } catch (err: any) {
-      toast.error(err?.message ?? "Couldn't generate avatar");
-    } finally {
-      setAiBusy(false);
-    }
-  }
-
   return (
     <div className="pt-10 px-5">
       <EditorialPageHeader
@@ -260,79 +225,8 @@ function Me() {
             <div className="min-w-0 flex-1">
               <p className="font-serif text-2xl italic truncate">{me.display_name}</p>
               <p className="text-sm text-candle-muted truncate">@{me.username}</p>
-              <button
-                onClick={() => setAiOpen(true)}
-                className="mt-1.5 inline-flex items-center gap-1.5 text-xs text-petal hover:text-petal/80 transition-colors"
-              >
-                <Sparkles className="size-3.5" />
-                Generate with AI
-              </button>
             </div>
           </div>
-
-          {aiOpen ? (
-            <div
-              className="fixed inset-0 z-[80] bg-velvet/70 backdrop-blur-md flex items-center justify-center p-5"
-              onClick={() => !aiBusy && setAiOpen(false)}
-            >
-              <div
-                className="w-full max-w-md rounded-3xl bg-surface border border-petal/20 p-5 shadow-2xl"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <div className="flex items-center gap-2 mb-3">
-                  <Sparkles className="size-4 text-petal" />
-                  <h3 className="font-serif italic text-xl">AI avatar</h3>
-                </div>
-                <p className="text-xs text-candle-muted mb-3">
-                  Uses your uploaded profile photo as reference — the AI keeps your likeness and repaints it in a new style.
-                </p>
-                <div className="grid grid-cols-2 gap-2 mb-3">
-                  {AI_AVATAR_STYLES.map((s) => {
-                    const active = aiStyle === s.key;
-                    return (
-                      <button
-                        key={s.key}
-                        onClick={() => setAiStyle(s.key)}
-                        disabled={aiBusy}
-                        className={`text-left rounded-2xl border px-3 py-2 transition-all ${
-                          active
-                            ? "border-petal bg-petal-soft/40"
-                            : "border-border bg-velvet/40 hover:border-petal/40"
-                        }`}
-                      >
-                        <p className="text-sm font-medium text-candle">{s.label}</p>
-                        <p className="text-[10px] text-candle-muted">{s.hint}</p>
-                      </button>
-                    );
-                  })}
-                </div>
-                <input
-                  value={aiExtra}
-                  onChange={(e) => setAiExtra(e.target.value)}
-                  disabled={aiBusy}
-                  placeholder="Optional extra direction (mood, colors, accessories)"
-                  className="w-full bg-velvet border border-border rounded-2xl px-4 py-3 text-candle text-sm mb-3"
-                />
-                <div className="flex justify-end gap-2">
-                  <button
-                    onClick={() => setAiOpen(false)}
-                    disabled={aiBusy}
-                    className="px-4 py-2 rounded-full text-sm text-candle-muted hover:text-candle disabled:opacity-50"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={generateAvatarFromPrompt}
-                    disabled={aiBusy}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-petal text-velvet text-sm font-medium disabled:opacity-50"
-                  >
-                    {aiBusy ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
-                    {aiBusy ? "Painting…" : "Generate"}
-                  </button>
-                </div>
-              </div>
-            </div>
-          ) : null}
 
           <Link
             to="/app/shop"

@@ -16,15 +16,6 @@ export function createLovableAiGatewayProvider(apiKey: string) {
  * Returns { provider, model } — pass `provider(model)` to the AI SDK.
  */
 export function createGameAiProvider(): { provider: ReturnType<typeof createOpenAICompatible>; model: string } {
-  const groqKey = process.env.GROQ_API_KEY;
-  if (groqKey) {
-    const provider = createOpenAICompatible({
-      name: "groq",
-      baseURL: "https://api.groq.com/openai/v1",
-      headers: { Authorization: `Bearer ${groqKey}` },
-    });
-    return { provider, model: "llama-3.3-70b-versatile" };
-  }
   const openaiKey = process.env.OPENAI_API_KEY;
   if (openaiKey) {
     const provider = createOpenAICompatible({
@@ -35,6 +26,6 @@ export function createGameAiProvider(): { provider: ReturnType<typeof createOpen
     return { provider, model: "gpt-4o-mini" };
   }
   const lovableKey = process.env.LOVABLE_API_KEY;
-  if (!lovableKey) throw new Error("AI is not configured (no GROQ_API_KEY, OPENAI_API_KEY or LOVABLE_API_KEY)");
+  if (!lovableKey) throw new Error("AI is not configured (no OPENAI_API_KEY or LOVABLE_API_KEY)");
   return { provider: createLovableAiGatewayProvider(lovableKey), model: "google/gemini-2.5-flash" };
 }
