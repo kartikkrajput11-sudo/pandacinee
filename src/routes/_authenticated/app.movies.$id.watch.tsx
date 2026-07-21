@@ -38,6 +38,7 @@ import { WatchTogetherPanel } from "@/components/watch/WatchTogetherPanel";
 
 import { useWatchSync, fmtTime } from "@/hooks/useWatchSync";
 import { CustomMoviePlayer, type CustomPlayerHandle } from "@/components/CustomMoviePlayer";
+import { toEmbedUrl } from "@/lib/video-url";
 import { useFriendships } from "@/hooks/useFriends";
 import { AvatarImg } from "@/components/AvatarImg";
 
@@ -1142,6 +1143,16 @@ function CatalogWatch({ id }: { id: string }) {
 
             {started ? (
               isPandacine && pandacine ? (
+                toEmbedUrl(pandacine.videoSrc) ? (
+                  <iframe
+                    key={`pandacine-embed-${iframeKey}`}
+                    src={toEmbedUrl(pandacine.videoSrc)!}
+                    className="absolute inset-0 w-full h-full bg-black"
+                    allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+                    allowFullScreen
+                    onLoad={() => { setPlayerLoading(false); setReady(true); }}
+                  />
+                ) : (
                 <CustomMoviePlayer
                   key={`pandacine-${iframeKey}`}
                   src={pandacine.videoSrc}
@@ -1182,7 +1193,7 @@ function CatalogWatch({ id }: { id: string }) {
                   }}
                   onBufferingChange={sendBuffering}
                 />
-
+                )
               ) : (
                 <>
                   <iframe
@@ -2155,6 +2166,14 @@ function CustomWatch({ customId }: { customId: string }) {
               )}
             </>
           ) : videoSrc ? (
+            toEmbedUrl(videoSrc) ? (
+              <iframe
+                src={toEmbedUrl(videoSrc)!}
+                className="w-full h-full rounded-2xl bg-black"
+                allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+                allowFullScreen
+              />
+            ) : (
             <CustomMoviePlayer
               src={videoSrc}
               poster={movie?.backdrop_url ?? movie?.poster_url ?? null}
@@ -2171,6 +2190,8 @@ function CustomWatch({ customId }: { customId: string }) {
               onEvent={handleEvent}
               onBufferingChange={sendBuffering}
             />
+            )
+
 
           ) : customLoadIssue ? (
             <div className="w-full h-full bg-black rounded-2xl flex items-center justify-center px-6 text-center text-candle-muted text-sm">
