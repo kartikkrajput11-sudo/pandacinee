@@ -71,6 +71,45 @@ export const generateAiAvatar = createServerFn({ method: "POST" })
     const styleKey = data.style.toLowerCase();
     const stylePrompt = STYLE_PROMPTS[styleKey] ?? data.style;
 
+    // Step 1 — Groq vision analyzes the photo for a faithful likeness brief.
+    let likeness = "";
+    const groqKey = process.env.GROQ_API_KEY;
+    if (groqKey) {
+      try {
+        const gRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${groqKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "meta-llama/llama-4-scout-17b-16e-instruct",
+            temperature: 0.2,
+            max_tokens: 320,
+            messages: [
+              {
+                role: "user",
+                content: [
+                  {
+                    type: "text",
+                    text: "Describe this person's appearance for a portrait artist in 6-8 short bullet lines. Cover: hair (color, length, style, parting, bangs), skin tone, face shape, jawline, eye shape and color, eyebrows, facial hair if any, glasses (frame shape/color/thickness), earrings/piercings/necklaces. No names, no clothes, no background, no personality. Output plain bullets only.",
+                  },
+                  { type: "image_url", image_url: { url: dataUrl } },
+                ],
+              },
+            ],
+          }),
+        });
+        if (gRes.ok) {
+          const gj = (await gRes.json()) as any;
+          const txt = gj?.choices?.[0]?.message?.content;
+          if (typeof txt === "string") likeness = txt.trim().slice(0, 1200);
+        }
+      } catch {
+        // Non-fatal — fall back to pure Gemini reference matching.
+      }
+    }
+
     const prompt = `Ultra-luxury profile portrait for a private couple's app.
 Style: ${stylePrompt}.
 Faithful likeness — study the reference photo carefully and reproduce EXACTLY:
@@ -80,7 +119,7 @@ Faithful likeness — study the reference photo carefully and reproduce EXACTLY:
   • facial hair if present (density and shape)
   • eyeglasses / sunglasses (same frame shape, color, thickness)
   • earrings / piercings / necklaces / distinctive accessories
-Do NOT change gender, age bracket or ethnicity. Do NOT invent hairstyles or glasses that aren't in the photo.
+${likeness ? `Verified likeness brief (from vision analysis of the reference — treat as authoritative):\n${likeness}\n` : ""}Do NOT change gender, age bracket or ethnicity. Do NOT invent hairstyles or glasses that aren't in the photo.
 Composition: centered head-and-shoulders, subject fills most of the frame, square 1:1 framing.
 Background: soft luxurious vignette that complements the subject — no scenery, no text, no watermark, no logo.
 ${data.extra ? `Extra direction: ${data.extra}.` : ""}`;
