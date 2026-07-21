@@ -11,6 +11,7 @@ import {
   setNotifUser,
   subscribeNotifications,
 } from "@/lib/notifications";
+import { AvatarImg } from "@/components/AvatarImg";
 
 function timeAgo(ts: number): string {
   const diff = Math.max(0, Date.now() - ts);
