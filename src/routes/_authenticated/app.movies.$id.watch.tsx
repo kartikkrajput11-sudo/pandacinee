@@ -2166,6 +2166,14 @@ function CustomWatch({ customId }: { customId: string }) {
               )}
             </>
           ) : videoSrc ? (
+            toEmbedUrl(videoSrc) ? (
+              <iframe
+                src={toEmbedUrl(videoSrc)!}
+                className="w-full h-full rounded-2xl bg-black"
+                allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+                allowFullScreen
+              />
+            ) : (
             <CustomMoviePlayer
               src={videoSrc}
               poster={movie?.backdrop_url ?? movie?.poster_url ?? null}
@@ -2182,6 +2190,8 @@ function CustomWatch({ customId }: { customId: string }) {
               onEvent={handleEvent}
               onBufferingChange={sendBuffering}
             />
+            )
+
 
           ) : customLoadIssue ? (
             <div className="w-full h-full bg-black rounded-2xl flex items-center justify-center px-6 text-center text-candle-muted text-sm">
