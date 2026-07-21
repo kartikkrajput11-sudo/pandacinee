@@ -284,16 +284,36 @@ function Me() {
                   <h3 className="font-serif italic text-xl">AI avatar</h3>
                 </div>
                 <p className="text-xs text-candle-muted mb-3">
-                  Describe your dream portrait — style, mood, colors. A soft luxury framing is added automatically.
+                  Uses your uploaded profile photo as reference — the AI keeps your likeness and repaints it in a new style.
                 </p>
-                <textarea
-                  value={aiPrompt}
-                  onChange={(e) => setAiPrompt(e.target.value)}
+                <div className="grid grid-cols-2 gap-2 mb-3">
+                  {AI_AVATAR_STYLES.map((s) => {
+                    const active = aiStyle === s.key;
+                    return (
+                      <button
+                        key={s.key}
+                        onClick={() => setAiStyle(s.key)}
+                        disabled={aiBusy}
+                        className={`text-left rounded-2xl border px-3 py-2 transition-all ${
+                          active
+                            ? "border-petal bg-petal-soft/40"
+                            : "border-border bg-velvet/40 hover:border-petal/40"
+                        }`}
+                      >
+                        <p className="text-sm font-medium text-candle">{s.label}</p>
+                        <p className="text-[10px] text-candle-muted">{s.hint}</p>
+                      </button>
+                    );
+                  })}
+                </div>
+                <input
+                  value={aiExtra}
+                  onChange={(e) => setAiExtra(e.target.value)}
                   disabled={aiBusy}
-                  placeholder="e.g. a moody watercolor of a red panda in a velvet cloak, candlelight"
-                  className="w-full h-28 bg-velvet border border-border rounded-2xl px-4 py-3 text-candle text-sm resize-none"
+                  placeholder="Optional extra direction (mood, colors, accessories)"
+                  className="w-full bg-velvet border border-border rounded-2xl px-4 py-3 text-candle text-sm mb-3"
                 />
-                <div className="flex justify-end gap-2 mt-3">
+                <div className="flex justify-end gap-2">
                   <button
                     onClick={() => setAiOpen(false)}
                     disabled={aiBusy}
@@ -303,7 +323,7 @@ function Me() {
                   </button>
                   <button
                     onClick={generateAvatarFromPrompt}
-                    disabled={aiBusy || !aiPrompt.trim()}
+                    disabled={aiBusy}
                     className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-petal text-velvet text-sm font-medium disabled:opacity-50"
                   >
                     {aiBusy ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
