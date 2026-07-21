@@ -200,31 +200,13 @@ function Me() {
 
   async function generateAvatarFromPrompt() {
     if (!me) return;
-    const prompt = aiPrompt.trim();
-    if (!prompt) {
-      toast.error("Describe the avatar you want");
-      return;
-    }
     setAiBusy(true);
     try {
-      const res = await fetch("/api/generate-avatar", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt }),
-      });
-      if (!res.ok) {
-        const msg = await res.text().catch(() => "");
-        throw new Error(msg || `Failed (${res.status})`);
-      }
-      const { b64_json } = (await res.json()) as { b64_json: string };
-      const bin = atob(b64_json);
-      const bytes = new Uint8Array(bin.length);
-      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-      const blob = new Blob([bytes], { type: "image/png" });
-      const file = new File([blob], "avatar.png", { type: "image/png" });
-      await uploadAvatar(file);
+      await genAvatarFn({ data: { style: aiStyle, extra: aiExtra.trim() || undefined } });
+      toast.success("Avatar updated");
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
       setAiOpen(false);
-      setAiPrompt("");
+      setAiExtra("");
     } catch (err: any) {
       toast.error(err?.message ?? "Couldn't generate avatar");
     } finally {
