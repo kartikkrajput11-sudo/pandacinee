@@ -1143,6 +1143,16 @@ function CatalogWatch({ id }: { id: string }) {
 
             {started ? (
               isPandacine && pandacine ? (
+                toEmbedUrl(pandacine.videoSrc) ? (
+                  <iframe
+                    key={`pandacine-embed-${iframeKey}`}
+                    src={toEmbedUrl(pandacine.videoSrc)!}
+                    className="absolute inset-0 w-full h-full bg-black"
+                    allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+                    allowFullScreen
+                    onLoad={() => { setPlayerLoading(false); setReady(true); }}
+                  />
+                ) : (
                 <CustomMoviePlayer
                   key={`pandacine-${iframeKey}`}
                   src={pandacine.videoSrc}
