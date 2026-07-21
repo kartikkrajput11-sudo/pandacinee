@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { generateText, Output, NoObjectGeneratedError } from "ai";
 import { z } from "zod";
-import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
+import { createGameAiProvider } from "@/lib/ai-gateway.server";
 
 const TMDB = "https://api.themoviedb.org/3";
 
