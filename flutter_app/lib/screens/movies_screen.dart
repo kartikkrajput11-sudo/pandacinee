@@ -53,9 +53,9 @@ class MoviesScreen extends ConsumerWidget {
         borderRadius: BorderRadius.circular(18),
         child: InkWell(
           borderRadius: BorderRadius.circular(18),
-          onTap: () => Navigator.push(context, MaterialPageRoute(
-            builder: (_) => WatchPartyScreen(movie: m),
-          )),
+          onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Open ${m.title} from a partner invite to sync.')),
+          ),
           child: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
