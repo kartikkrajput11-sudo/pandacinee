@@ -55,8 +55,10 @@ function Me() {
   const [saving, setSaving] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [aiOpen, setAiOpen] = useState(false);
-  const [aiPrompt, setAiPrompt] = useState("");
+  const [aiStyle, setAiStyle] = useState<string>("anime");
+  const [aiExtra, setAiExtra] = useState("");
   const [aiBusy, setAiBusy] = useState(false);
+  const genAvatarFn = useServerFn(generateAiAvatar);
 
   
 
