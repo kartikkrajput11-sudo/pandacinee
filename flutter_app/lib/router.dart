@@ -15,7 +15,7 @@ import 'screens/uno_screen.dart';
 import 'screens/pool_screen.dart';
 import 'screens/hideseek_screen.dart';
 import 'screens/knowme_screen.dart';
-import 'screens/movies_screen.dart' hide WatchPartyScreen;
+import 'screens/movies_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/affections_screen.dart';
 import 'screens/notifications_screen.dart';
@@ -95,7 +95,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/app/watch/:roomId/:leaderId',
-        builder: (_, s) => watch_party.WatchPartyScreen(
+        builder: (_, s) => watch_party.WatchPartyRoomScreen(
           roomId: s.pathParameters['roomId']!,
           leaderId: s.pathParameters['leaderId']!,
         ),

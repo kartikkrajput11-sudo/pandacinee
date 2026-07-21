@@ -10,15 +10,15 @@ import '../theme.dart';
 /// Mirrors the web `useWatchSync` hook: leader publishes {position, paused,
 /// updatedAt} @ ~1Hz, followers apply corrections when drift > 1.5s (soft) or
 /// > 3s (hard seek). No feedback loop: only leader emits state.
-class WatchPartyScreen extends ConsumerStatefulWidget {
-  const WatchPartyScreen({super.key, required this.roomId, required this.leaderId});
+class WatchPartyRoomScreen extends ConsumerStatefulWidget {
+  const WatchPartyRoomScreen({super.key, required this.roomId, required this.leaderId});
   final String roomId;
   final String leaderId;
   @override
-  ConsumerState<WatchPartyScreen> createState() => _WatchPartyScreenState();
+  ConsumerState<WatchPartyRoomScreen> createState() => _WatchPartyRoomScreenState();
 }
 
-class _WatchPartyScreenState extends ConsumerState<WatchPartyScreen> {
+class _WatchPartyRoomScreenState extends ConsumerState<WatchPartyRoomScreen> {
   final _client = Supabase.instance.client;
   RealtimeChannel? _channel;
   Timer? _tick;
