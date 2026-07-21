@@ -411,17 +411,16 @@ function GroupChat() {
                   }
                   const shown = seenIds.slice(0, 4);
                   const extra = seenIds.length - shown.length;
-                  const names = seenIds
+                  const title = seenIds
                     .map((uid) => memberById.get(uid)?.display_name)
-                    .filter(Boolean)
-                    .slice(0, 3)
+                    .filter((n): n is string => Boolean(n))
                     .join(", ");
                   return (
                     <div
-                      className="flex items-center gap-1.5 mt-1 px-1 text-[10px] text-candle-muted"
-                      title={`Seen by ${names}${extra > 0 ? ` +${extra} more` : ""}`}
+                      className="flex items-center gap-1.5 mt-1 px-1 text-[10px] text-candle-muted/80"
+                      title={title ? `Seen by ${title}` : "Seen"}
                     >
-                      <span className="italic">Seen by</span>
+                      <span className="italic tracking-wide">Seen</span>
                       <div className="flex -space-x-1.5">
                         {shown.map((uid) => {
                           const p = memberById.get(uid);
