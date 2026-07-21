@@ -1063,6 +1063,66 @@ function CatalogWatch({ id }: { id: string }) {
           </div>
         )}
 
+        {/* Player chrome — cinema, sleep timer, fullscreen */}
+        <div className="mb-2 flex items-center justify-end gap-1.5">
+          <div className="relative group/sleep">
+            <button
+              className={`h-8 px-3 rounded-full border text-[10px] uppercase tracking-[0.25em] flex items-center gap-1.5 transition ${
+                sleepMinutes != null
+                  ? "bg-petal/15 border-petal/50 text-petal"
+                  : "bg-surface/60 border-border text-candle-muted hover:text-petal hover:border-petal/40"
+              }`}
+              onClick={(e) => {
+                const menu = (e.currentTarget.parentElement?.querySelector("[data-sleep-menu]") as HTMLElement | null);
+                if (menu) menu.classList.toggle("hidden");
+              }}
+              aria-label="Sleep timer"
+            >
+              <Moon className="size-3" />
+              {sleepMinutes != null ? `${sleepMinutes}m` : "Sleep"}
+            </button>
+            <div data-sleep-menu className="hidden absolute right-0 top-full mt-2 z-30 w-40 rounded-2xl bg-velvet border border-border shadow-2xl shadow-black/60 overflow-hidden">
+              {[15, 30, 45, 60].map((m) => (
+                <button
+                  key={m}
+                  onClick={(e) => { setSleep(m); (e.currentTarget.parentElement as HTMLElement)?.classList.add("hidden"); }}
+                  className={`w-full px-3 py-2 text-left text-xs hover:bg-petal/10 flex items-center justify-between ${sleepMinutes === m ? "text-petal" : "text-candle"}`}
+                >
+                  <span>In {m} minutes</span>
+                  {sleepMinutes === m && <Check className="size-3" />}
+                </button>
+              ))}
+              {sleepMinutes != null && (
+                <button
+                  onClick={(e) => { setSleep(null); (e.currentTarget.parentElement as HTMLElement)?.classList.add("hidden"); }}
+                  className="w-full px-3 py-2 text-left text-xs text-candle-muted hover:bg-petal/10 border-t border-border/60"
+                >
+                  Turn off
+                </button>
+              )}
+            </div>
+          </div>
+          <button
+            onClick={() => setCinemaMode((v) => !v)}
+            className={`h-8 px-3 rounded-full border text-[10px] uppercase tracking-[0.25em] flex items-center gap-1.5 transition ${
+              cinemaMode
+                ? "bg-petal text-velvet border-petal shadow-lg shadow-petal/30"
+                : "bg-surface/60 border-border text-candle-muted hover:text-petal hover:border-petal/40"
+            }`}
+            aria-pressed={cinemaMode}
+          >
+            <Sparkles className="size-3" />
+            Cinema
+          </button>
+          <button
+            onClick={openFullscreen}
+            className="h-8 w-8 rounded-full bg-surface/60 border border-border text-candle-muted hover:text-petal hover:border-petal/40 flex items-center justify-center transition"
+            aria-label="Fullscreen"
+          >
+            <Maximize2 className="size-3.5" />
+          </button>
+        </div>
+
         {/* Player — framed like a cinema screen */}
         <div className="relative group/player">
           {/* Layered petal halo — slow, breathing */}
