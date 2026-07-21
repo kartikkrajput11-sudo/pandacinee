@@ -38,6 +38,7 @@ import { WatchTogetherPanel } from "@/components/watch/WatchTogetherPanel";
 
 import { useWatchSync, fmtTime } from "@/hooks/useWatchSync";
 import { CustomMoviePlayer, type CustomPlayerHandle } from "@/components/CustomMoviePlayer";
+import { toEmbedUrl } from "@/lib/video-url";
 import { useFriendships } from "@/hooks/useFriends";
 import { AvatarImg } from "@/components/AvatarImg";
 
