@@ -214,6 +214,11 @@ function CatalogWatch({ id }: { id: string }) {
   const lastAppliedPeerEventRef = useRef<number>(0);
   const customPlayerRef = useRef<CustomPlayerHandle | null>(null);
   const suppressPlayerEventRef = useRef(false);
+  // Tracks the host's last-known playback state so a stale `timeupdate`
+  // packet (arriving after `pause` due to network reordering) can't
+  // resurrect a follower — which was leaving mp4 audio playing while the
+  // video sat visually paused.
+  const hostPausedRef = useRef(false);
   // Local receipt time per peer packet — avoids clock-skew drift.
   const peerReceivedAtRef = useRef<Record<number, number>>({});
 
@@ -621,32 +626,43 @@ function CatalogWatch({ id }: { id: string }) {
     if (bothPandacine && customPlayerRef.current) {
       const h = customPlayerRef.current;
       const baseRate = (typeof peer.playbackRate === "number" && peer.playbackRate > 0) ? peer.playbackRate : 1;
+      // Track host paused-state across events so stale timeupdates can't
+      // force-resume audio on the follower.
+      if (evt === "pause") hostPausedRef.current = true;
+      else if (evt === "play" || evt === "seeked") hostPausedRef.current = false;
       // Latency compensation using LOCAL receive time, not the host's clock.
       // (Cross-machine clocks drift; mixing them causes the follower to
       // permanently believe it's behind → the "auto fast" 1.1×–1.25× glitch.)
       const now = Date.now();
       const receivedAt = peerReceivedAtRef.current[peer.updatedAt] ?? now;
-      const hostPlaying = evt !== "pause";
+      const hostPlaying = !hostPausedRef.current;
       const elapsed = hostPlaying ? Math.max(0, (now - receivedAt) / 1000) * baseRate : 0;
       const targetTime = peer.currentTime + elapsed;
       const drift = h.currentTime() - targetTime;
       const abs = Math.abs(drift);
 
       runSuppressedPlayerAction(() => {
-        if (evt === "pause") {
+        if (evt === "pause" || hostPausedRef.current) {
+          // Pause FIRST so decoded audio samples don't leak out during the
+          // subsequent seek — that was the "sound continues, video pauses"
+          // bug on uploaded mp4 sources.
+          h.pause();
           h.setPlaybackRate(baseRate);
           h.seek(peer.currentTime);
-          h.pause();
+          // Belt-and-braces: some browsers keep the audio track alive for a
+          // few hundred ms after pause+seek. Muting for a tick guarantees
+          // silence and un-mutes cleanly when the host resumes.
+          h.setMuted(true);
+          window.setTimeout(() => { if (hostPausedRef.current) h.pause(); }, 120);
           return;
         }
-        // Respect a local intentional pause: don't force-resume from a
-        // timeupdate drift-correction while we're paused. Only an explicit
-        // peer "play" or "seeked" event may un-pause us.
+        // Host is playing — unmute if we muted during a prior pause.
+        if (h.isMuted()) h.setMuted(false);
         const locallyPaused = h.isPaused();
         if (evt === "seeked" || abs > 3.0) {
           h.seek(targetTime);
           h.setPlaybackRate(baseRate);
-          if (((evt === "play" || evt === "seeked") && hostPlaying) || (followerLocked && locallyPaused && evt === "timeupdate")) h.play();
+          if (((evt === "play" || evt === "seeked") && hostPlaying) || (followerLocked && locallyPaused && evt === "timeupdate" && !hostPausedRef.current)) h.play();
           return;
         }
         if (abs > 1.5 && !locallyPaused) {
@@ -655,7 +671,7 @@ function CatalogWatch({ id }: { id: string }) {
         } else if (!locallyPaused) {
           h.setPlaybackRate(baseRate);
         }
-        if (evt === "play" || (followerLocked && locallyPaused && evt === "timeupdate")) h.play();
+        if (evt === "play" || (followerLocked && locallyPaused && evt === "timeupdate" && !hostPausedRef.current)) h.play();
       });
       if (evt === "seeked") toast.info(`${partner?.display_name.split(" ")[0]} skipped`);
       if (evt === "pause") toast.info(`${partner?.display_name.split(" ")[0]} paused`);
