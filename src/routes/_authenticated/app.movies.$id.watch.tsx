@@ -1086,18 +1086,18 @@ function CatalogWatch({ id }: { id: string }) {
               />
             </div>
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 text-xs">
+              <div className="flex items-center gap-2 text-xs min-w-0">
                 <span className="text-candle font-semibold truncate">{partnerFirst}</span>
                 {partnerOnline ? (
-                  <span className="text-green-400 text-[10px] flex items-center gap-1"><Wifi className="size-2.5"/>in the room</span>
+                  <span className="shrink-0 text-green-400 text-[10px] flex items-center gap-1"><Wifi className="size-2.5"/>live</span>
                 ) : (
-                  <span className="text-candle-muted text-[10px] flex items-center gap-1"><WifiOff className="size-2.5"/>waiting</span>
+                  <span className="shrink-0 text-candle-muted text-[10px] flex items-center gap-1"><WifiOff className="size-2.5"/>away</span>
                 )}
                 {peer && (
-                  <span className="text-candle-muted text-[10px] ml-auto flex items-center gap-1">
+                  <span className="shrink-0 ml-auto text-candle-muted text-[10px] flex items-center gap-1 tabular-nums">
                     <CircleDot className={`size-2.5 ${peer.event === "play" ? "text-green-400" : peer.event === "pause" ? "text-amber-400" : "text-candle-muted"}`} />
-                    {peer.event === "play" ? "Playing" : peer.event === "pause" ? "Paused" : peer.event}
-                    · {fmtTime(peer.currentTime)}
+                    <span className="hidden sm:inline">{peer.event === "play" ? "Playing" : peer.event === "pause" ? "Paused" : peer.event}</span>
+                    <span>{fmtTime(peer.currentTime)}</span>
                   </span>
                 )}
               </div>
@@ -1112,16 +1112,17 @@ function CatalogWatch({ id }: { id: string }) {
                   />
                 )}
               </div>
-              <div className="mt-1 flex items-center justify-between text-[10px] text-candle-muted">
-                <span>You · {fmtTime(mine.currentTime)}</span>
+              <div className="mt-1 flex items-center gap-2 text-[10px] text-candle-muted tabular-nums">
+                <span className="shrink-0">You {fmtTime(mine.currentTime)}</span>
                 {driftAbs != null && (
-                  <span className={inSync ? "text-green-400" : driftAbs > 15 ? "text-rose-400" : "text-amber-400"}>
-                    {inSync ? "in sync ✓" : `${drift! > 0 ? "ahead" : "behind"} ${fmtTime(driftAbs)}`}
+                  <span className={`shrink-0 mx-auto px-1.5 py-0.5 rounded-full ${inSync ? "text-green-400 bg-green-400/10" : driftAbs > 15 ? "text-rose-400 bg-rose-400/10" : "text-amber-400 bg-amber-400/10"}`}>
+                    {inSync ? "in sync" : `${drift! > 0 ? "▲" : "▼"} ${fmtTime(driftAbs)}`}
                   </span>
                 )}
-                <span>{mine.duration ? fmtTime(mine.duration) : "--:--"}</span>
+                <span className="shrink-0 ml-auto">{mine.duration ? fmtTime(mine.duration) : "--:--"}</span>
               </div>
             </div>
+
           </div>
         )}
 
