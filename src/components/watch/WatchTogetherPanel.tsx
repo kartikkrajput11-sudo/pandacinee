@@ -121,27 +121,30 @@ export function WatchTogetherPanel({
     setFloaters((f) => [...f, { id, emoji, x }]);
     window.setTimeout(() => setFloaters((f) => f.filter((it) => it.id !== id)), 3000);
   }
+  // Dedicated ephemeral broadcast channel for on-screen reactions.
+  // Reactions never enter the chat transcript — they only float on the video.
+  const reactionChanRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  useEffect(() => {
+    if (!me.id || !partner.id || !movieId) return;
+    const topic = `movie-reactions:${mediaType}:${movieId}:${[me.id, partner.id].sort().join(":")}`;
+    const ch = supabase.channel(topic, { config: { broadcast: { self: false } } });
+    ch.on("broadcast", { event: "reaction" }, ({ payload }) => {
+      const emoji = (payload as { emoji?: string })?.emoji;
+      if (emoji) spawnFloater(emoji);
+    });
+    ch.subscribe();
+    reactionChanRef.current = ch;
+    return () => {
+      supabase.removeChannel(ch);
+      reactionChanRef.current = null;
+    };
+  }, [me.id, partner.id, movieId, mediaType]);
+
   function burstReaction(emoji: string) {
     spawnFloater(emoji);
-    send(emoji, "sticker").catch(() => {});
+    reactionChanRef.current?.send({ type: "broadcast", event: "reaction", payload: { emoji } });
   }
 
-  // When partner sends a sticker (reaction), float it on our screen too.
-  const lastStickerRef = useRef<string | null>(null);
-  useEffect(() => {
-    for (let i = messages.length - 1; i >= 0; i--) {
-      const m = messages[i];
-      if (m.sender_id !== partner.id || m.type !== "sticker") continue;
-      if (lastStickerRef.current === m.id) break;
-      lastStickerRef.current = m.id;
-      spawnFloater(m.content);
-      break;
-    }
-    // Prime on first mount so we don't burst historical stickers
-    if (lastStickerRef.current === null && messages.length > 0) {
-      lastStickerRef.current = messages[messages.length - 1].id;
-    }
-  }, [messages, partner.id]);
 
   const content = (
     <>
