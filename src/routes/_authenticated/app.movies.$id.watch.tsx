@@ -207,6 +207,7 @@ function CatalogWatch({ id }: { id: string }) {
 
   const iAmHost = !!me && hostId === me.id;
   const partnerIsHost = !!partner && hostId === partner.id;
+  const followerLocked = !!partnerIsHost;
   const lastAppliedPeerEventRef = useRef<number>(0);
   const customPlayerRef = useRef<CustomPlayerHandle | null>(null);
   const suppressPlayerEventRef = useRef(false);
@@ -214,6 +215,7 @@ function CatalogWatch({ id }: { id: string }) {
   const peerReceivedAtRef = useRef<Record<number, number>>({});
 
   const pendingAutoJoinRef = useRef<number | null>(null);
+  const pendingAutoJoinPlayRef = useRef(false);
 
   // Auto-dismiss the "waiting for friend" overlay once they actually join the room
   useEffect(() => {
@@ -582,6 +584,7 @@ function CatalogWatch({ id }: { id: string }) {
         setIframeKey((k) => k + 1);
         return;
       }
+      pendingAutoJoinPlayRef.current = true;
       pendingAutoJoinRef.current = peer.currentTime;
       setStartAt(peer.currentTime);
       setStarted(true);
@@ -592,6 +595,7 @@ function CatalogWatch({ id }: { id: string }) {
     // Pandacine can't be controlled until the handle mounts — mount + replay on ready.
     if (bothPandacine && !customPlayerRef.current) {
       if (evt !== "pause") {
+        pendingAutoJoinPlayRef.current = true;
         pendingAutoJoinRef.current = peer.currentTime;
         setStartAt(peer.currentTime);
         setStarted(true);
@@ -629,7 +633,7 @@ function CatalogWatch({ id }: { id: string }) {
         if (evt === "seeked" || abs > 3.0) {
           h.seek(targetTime);
           h.setPlaybackRate(baseRate);
-          if ((evt === "play" || evt === "seeked") && hostPlaying) h.play();
+          if (((evt === "play" || evt === "seeked") && hostPlaying) || (followerLocked && locallyPaused && evt === "timeupdate")) h.play();
           return;
         }
         if (abs > 1.5 && !locallyPaused) {
@@ -638,7 +642,7 @@ function CatalogWatch({ id }: { id: string }) {
         } else if (!locallyPaused) {
           h.setPlaybackRate(baseRate);
         }
-        if (evt === "play") h.play();
+        if (evt === "play" || (followerLocked && locallyPaused && evt === "timeupdate")) h.play();
       });
       if (evt === "seeked") toast.info(`${partner?.display_name.split(" ")[0]} skipped`);
       if (evt === "pause") toast.info(`${partner?.display_name.split(" ")[0]} paused`);
@@ -659,19 +663,22 @@ function CatalogWatch({ id }: { id: string }) {
         else toast.info("Re-syncing with partner…");
       }
     }
-  }, [peer, me, mine.currentTime, applySeek, partner, isPandacine, peerSourceKind, started, customPlayerReady, runSuppressedPlayerAction]);
+  }, [peer, me, mine.currentTime, applySeek, partner, isPandacine, peerSourceKind, started, customPlayerReady, runSuppressedPlayerAction, followerLocked]);
 
-  // When the custom player mounts after an auto-join, mute + seek + play.
+  // When the custom player mounts after an auto-join, seek first, then only play
+  // if this mount was caused by a host sync event — not by a follower tap.
   useEffect(() => {
     if (pendingAutoJoinRef.current == null) return;
     const h = customPlayerRef.current;
     if (!h) return;
     const t = pendingAutoJoinRef.current;
+    const shouldPlay = pendingAutoJoinPlayRef.current;
     pendingAutoJoinRef.current = null;
+    pendingAutoJoinPlayRef.current = false;
     runSuppressedPlayerAction(() => {
       h.setMuted(false);
       h.seek(t);
-      h.play();
+      if (shouldPlay) h.play();
     }, 800);
   }, [customPlayerReady, runSuppressedPlayerAction]);
 
@@ -798,6 +805,11 @@ function CatalogWatch({ id }: { id: string }) {
   }
 
   function switchSource(i: number) {
+    if (followerLocked) {
+      toast.info(`Server is controlled by ${partnerFirst}.`, { id: "source-locked", duration: 1800 });
+      setSourceMenuOpen(false);
+      return;
+    }
     setSourceIdx(i);
     setSourceMenuOpen(false);
     setStarted(true);
@@ -809,6 +821,10 @@ function CatalogWatch({ id }: { id: string }) {
 
 
   function startCountdown(seconds = 4) {
+    if (followerLocked) {
+      toast.info(`Playback is controlled by ${partnerFirst}.`, { id: "countdown-locked", duration: 1800 });
+      return;
+    }
     const syncTime = peer && peer.currentTime > mine.currentTime ? peer.currentTime : mine.currentTime;
     sendCountdown(seconds, syncTime > 5 ? syncTime : undefined);
   }
@@ -820,6 +836,10 @@ function CatalogWatch({ id }: { id: string }) {
   }
 
   function pullPartnerHere() {
+    if (followerLocked) {
+      toast.info(`Playback is controlled by ${partnerFirst}.`, { id: "pull-locked", duration: 1800 });
+      return;
+    }
     sendSeek(mine.currentTime);
     toast.success("Sync request sent 💞");
   }
@@ -1173,9 +1193,9 @@ function CatalogWatch({ id }: { id: string }) {
                   src={pandacine.videoSrc}
                   poster={backdropUrl}
                   startAt={startAt}
-                    locked={false}
+                    locked={followerLocked}
                   onLockedAttempt={() => {
-                    toast.info("Playback is controlled by your partner.", { id: "locked-attempt", duration: 1800 });
+                    toast.info(`Playback is controlled by ${partnerFirst}.`, { id: "locked-attempt", duration: 1800 });
                   }}
                   onReady={(h) => {
                     customPlayerRef.current = h;
@@ -1186,13 +1206,13 @@ function CatalogWatch({ id }: { id: string }) {
                   
                   onEvent={(evt) => {
                     if (suppressPlayerEventRef.current) return;
+                    if (followerLocked) return;
                     const now = Date.now();
                     const isDiscrete = evt.event === "play" || evt.event === "pause" || evt.event === "seeked" || evt.event === "ended" || evt.event === "ratechange";
                     const claimingNow = isDiscrete && partner && !hostId && !!me;
                     if (claimingNow) claimHost();
-                    // Discrete play/pause/seek is bidirectional — either partner
-                    // can control playback. Continuous timeupdate stays host-only
-                    // so followers don't fight the host's clock.
+                    // Once a host exists, only the host publishes controls;
+                    // followers only mirror to avoid independent audio paths.
                     if (!iAmHost && !claimingNow && !isDiscrete) return;
                     if (isDiscrete || now - lastPublishRef.current > 500) {
                       lastPublishRef.current = now;
@@ -1234,10 +1254,15 @@ function CatalogWatch({ id }: { id: string }) {
             ) : (
               <button
                 onClick={() => {
-                  // Each viewer loads their own Supabase-signed stream and starts
-                  // independently. The sync channel keeps timelines aligned via
-                  // drift correction — no cross-viewer "ready" coupling.
                   if (gateActive && !partnerIsHost && !hostId) claimHost();
+                  if (partnerIsHost && peer) {
+                    pendingAutoJoinPlayRef.current = false;
+                    pendingAutoJoinRef.current = peer.event !== "pause" ? peer.currentTime : null;
+                    setStartAt(peer.currentTime);
+                    setPausedByHost(peer.event === "pause");
+                  } else {
+                    setPausedByHost(false);
+                  }
                   setStarted(true);
                   setPlayerLoading(true);
                 }}
@@ -1291,9 +1316,6 @@ function CatalogWatch({ id }: { id: string }) {
                 </div>
               </div>
             )}
-
-            {/* No ready-gate: each viewer plays their own Supabase stream
-                independently. Drift correction below keeps timelines aligned. */}
 
             {/* Partner online but not on the storage source — sync is disabled */}
             {started && !!partner && partnerOnline && isPandacine && peerSourceKind !== "pandacine" && peerSourceKind !== "unknown" && (
@@ -1416,20 +1438,24 @@ function CatalogWatch({ id }: { id: string }) {
               </div>
 
               <div className="mb-2 flex items-center gap-2">
-                {!iAmHost ? (
+                {!iAmHost && !hostId ? (
                   <button
                     onClick={claimHost}
                     className="flex-1 h-10 rounded-full bg-petal text-velvet text-xs font-semibold flex items-center justify-center gap-1.5 shadow-lg shadow-petal/30"
                   >
                     <Crown className="size-3.5" /> Take the reins
                   </button>
-                ) : (
+                ) : iAmHost ? (
                   <button
                     onClick={releaseHost}
                     className="flex-1 h-10 rounded-full bg-surface border border-petal/60 text-petal text-xs font-semibold flex items-center justify-center gap-1.5"
                   >
                     <Crown className="size-3.5 fill-petal" /> You're the host · release
                   </button>
+                ) : (
+                  <div className="flex-1 h-10 rounded-full bg-surface/70 border border-border text-candle-muted text-xs flex items-center justify-center gap-1.5">
+                    <Crown className="size-3.5 text-petal" /> {partnerFirst} controls playback
+                  </div>
                 )}
               </div>
 
@@ -1967,6 +1993,7 @@ function CustomWatch({ customId }: { customId: string }) {
 
   const iAmHost = !!me && hostId === me.id;
   const partnerIsHost = !!partner && hostId === partner.id;
+  const followerLocked = !!partnerIsHost;
 
   const handlePlayerReady = useCallback((h: CustomPlayerHandle) => {
     handleRef.current = h;
@@ -2066,6 +2093,7 @@ function CustomWatch({ customId }: { customId: string }) {
         if (abs > 3.0) {
           h.seek(targetTime);
           h.setPlaybackRate(baseRate);
+          if (followerLocked && h.isPaused()) h.play();
         } else {
           // Very gentle rate nudge — closes drift over ~5s. Restored on next update.
           const nudge = Math.max(-0.08, Math.min(0.08, -drift / 5));
@@ -2087,7 +2115,7 @@ function CustomWatch({ customId }: { customId: string }) {
       if (evt === "play") h.play();
       if (evt === "pause") h.pause();
     });
-  }, [peer, partner, playerReady, runSuppressed]);
+  }, [peer, partner, playerReady, runSuppressed, followerLocked]);
 
 
   // Countdown → both press play together
@@ -2121,6 +2149,7 @@ function CustomWatch({ customId }: { customId: string }) {
     playbackRate: number;
   }) {
     if (suppressRef.current) return;
+    if (followerLocked) return;
     const isDiscrete = evt.event === "play" || evt.event === "pause" || evt.event === "seeked" || evt.event === "ended" || evt.event === "ratechange";
     if (isDiscrete && partner && !hostId) claimHost();
     // Host publishes every 250ms during play (tight follower drift), instantly on discrete events.
@@ -2206,9 +2235,9 @@ function CustomWatch({ customId }: { customId: string }) {
             <CustomMoviePlayer
               src={videoSrc}
               poster={movie?.backdrop_url ?? movie?.poster_url ?? null}
-                locked={false}
+                locked={followerLocked}
               onLockedAttempt={() => {
-                toast.info("Playback is controlled by your partner.", { id: "locked-attempt", duration: 1800 });
+                toast.info(`Playback is controlled by ${partnerFirst}.`, { id: "locked-attempt", duration: 1800 });
               }}
               onReady={handlePlayerReady}
               onLoadIssue={() => {
@@ -2257,23 +2286,33 @@ function CustomWatch({ customId }: { customId: string }) {
             </div>
 
             <div className="flex items-center gap-2">
-              {!iAmHost ? (
+              {!iAmHost && !hostId ? (
                 <button
                   onClick={claimHost}
                   className="flex-1 h-10 rounded-full bg-petal text-velvet text-xs font-semibold flex items-center justify-center gap-1.5 shadow-lg shadow-petal/30"
                 >
                   <Crown className="size-3.5" /> Take the reins
                 </button>
-              ) : (
+              ) : iAmHost ? (
                 <button
                   onClick={releaseHost}
                   className="flex-1 h-10 rounded-full bg-surface border border-petal/60 text-petal text-xs font-semibold flex items-center justify-center gap-1.5"
                 >
                   <Crown className="size-3.5 fill-petal" /> You're the host · release
                 </button>
+              ) : (
+                <div className="flex-1 h-10 rounded-full bg-surface/70 border border-border text-candle-muted text-xs flex items-center justify-center gap-1.5">
+                  <Crown className="size-3.5 text-petal" /> {partnerFirst} controls playback
+                </div>
               )}
               <button
-                onClick={() => sendCountdown(4, mine.currentTime > 5 ? mine.currentTime : undefined)}
+                onClick={() => {
+                  if (followerLocked) {
+                    toast.info(`Playback is controlled by ${partnerFirst}.`, { id: "countdown-locked", duration: 1800 });
+                    return;
+                  }
+                  sendCountdown(4, mine.currentTime > 5 ? mine.currentTime : undefined);
+                }}
                 className="h-10 px-3 rounded-full bg-surface border border-border text-xs text-candle flex items-center gap-1.5"
               >
                 <Radio className="size-3.5" /> Countdown
