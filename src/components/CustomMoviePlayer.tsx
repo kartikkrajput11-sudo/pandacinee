@@ -79,6 +79,24 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
   useEffect(() => {
     return () => {
       if (bufferTimer.current) window.clearTimeout(bufferTimer.current);
+      // Fully tear down audio on unmount. Detached <video> elements can keep
+      // playing audio in Chromium/WebKit until GC — that causes the "sound
+      // plays twice" and "video paused but audio continues" glitches during
+      // sync-triggered remounts (iframeKey bumps, source swaps, PiP exit).
+      const v = videoRef.current;
+      if (v) {
+        try {
+          v.pause();
+          v.muted = true;
+          v.removeAttribute("src");
+          v.load();
+        } catch { /* ignore */ }
+      }
+      try {
+        if (document.pictureInPictureElement === videoRef.current) {
+          (document as any).exitPictureInPicture?.();
+        }
+      } catch { /* ignore */ }
     };
   }, []);
 
