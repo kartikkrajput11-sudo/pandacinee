@@ -12,6 +12,7 @@ import {
   Clock,
 } from "lucide-react";
 import { useMovieChat } from "@/hooks/useMovieChat";
+import { supabase } from "@/integrations/supabase/client";
 import { STICKERS } from "@/lib/chat";
 import type { Profile } from "@/hooks/useProfile";
 
