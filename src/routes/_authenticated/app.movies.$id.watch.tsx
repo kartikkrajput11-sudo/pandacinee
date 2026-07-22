@@ -622,16 +622,20 @@ function CatalogWatch({ id }: { id: string }) {
           h.pause();
           return;
         }
+        // Respect a local intentional pause: don't force-resume from a
+        // timeupdate drift-correction while we're paused. Only an explicit
+        // peer "play" or "seeked" event may un-pause us.
+        const locallyPaused = h.isPaused();
         if (evt === "seeked" || abs > 3.0) {
           h.seek(targetTime);
           h.setPlaybackRate(baseRate);
-          if (evt === "play" || hostPlaying) h.play();
+          if ((evt === "play" || evt === "seeked") && hostPlaying) h.play();
           return;
         }
-        if (abs > 1.5) {
+        if (abs > 1.5 && !locallyPaused) {
           const nudge = Math.max(-0.08, Math.min(0.08, -drift / 5));
           h.setPlaybackRate(Math.max(0.5, baseRate + nudge));
-        } else {
+        } else if (!locallyPaused) {
           h.setPlaybackRate(baseRate);
         }
         if (evt === "play") h.play();
