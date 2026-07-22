@@ -622,16 +622,20 @@ function CatalogWatch({ id }: { id: string }) {
           h.pause();
           return;
         }
+        // Respect a local intentional pause: don't force-resume from a
+        // timeupdate drift-correction while we're paused. Only an explicit
+        // peer "play" or "seeked" event may un-pause us.
+        const locallyPaused = h.isPaused();
         if (evt === "seeked" || abs > 3.0) {
           h.seek(targetTime);
           h.setPlaybackRate(baseRate);
-          if (evt === "play" || hostPlaying) h.play();
+          if ((evt === "play" || evt === "seeked") && hostPlaying) h.play();
           return;
         }
-        if (abs > 1.5) {
+        if (abs > 1.5 && !locallyPaused) {
           const nudge = Math.max(-0.08, Math.min(0.08, -drift / 5));
           h.setPlaybackRate(Math.max(0.5, baseRate + nudge));
-        } else {
+        } else if (!locallyPaused) {
           h.setPlaybackRate(baseRate);
         }
         if (evt === "play") h.play();
@@ -1186,9 +1190,10 @@ function CatalogWatch({ id }: { id: string }) {
                     const isDiscrete = evt.event === "play" || evt.event === "pause" || evt.event === "seeked" || evt.event === "ended" || evt.event === "ratechange";
                     const claimingNow = isDiscrete && partner && !hostId && !!me;
                     if (claimingNow) claimHost();
-                    // Host-only broadcast: followers listen but never publish.
-                    if (!iAmHost && !claimingNow) return;
-                    // Tighter publish cadence for Pandacine host so followers stay ±100ms.
+                    // Discrete play/pause/seek is bidirectional — either partner
+                    // can control playback. Continuous timeupdate stays host-only
+                    // so followers don't fight the host's clock.
+                    if (!iAmHost && !claimingNow && !isDiscrete) return;
                     if (isDiscrete || now - lastPublishRef.current > 500) {
                       lastPublishRef.current = now;
                       publish({
