@@ -133,7 +133,7 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
     clearWaitingNotify();
     if (waitingNotifiedRef.current) {
       waitingNotifiedRef.current = false;
-      onBufferingChangeRef.current?.("ready");
+      notifyBuffering("ready");
     }
   }, []);
 
@@ -142,7 +142,7 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
     clearWaitingNotify();
     waitingNotifyTimer.current = window.setTimeout(() => {
       waitingNotifiedRef.current = true;
-      onBufferingChangeRef.current?.("waiting");
+      notifyBuffering("waiting");
     }, 800);
     if (bufferTimer.current) window.clearTimeout(bufferTimer.current);
     bufferTimer.current = window.setTimeout(() => {
@@ -151,7 +151,7 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
       clearWaitingNotify();
       if (waitingNotifiedRef.current) {
         waitingNotifiedRef.current = false;
-        onBufferingChangeRef.current?.("ready");
+        notifyBuffering("ready");
       }
     }, 6500);
   }, []);
