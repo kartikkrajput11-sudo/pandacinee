@@ -35,7 +35,7 @@ type Props = {
     playbackRate: number;
   }) => void;
   onReady?: (handle: CustomPlayerHandle) => void;
-  /** When true, only host controls playback: viewer cannot play/pause/seek/skip. */
+  /** When true, only the remote host may control playback: viewer cannot play/pause/seek/skip. */
   locked?: boolean;
   /** Called when a locked viewer attempts a restricted action. */
   onLockedAttempt?: () => void;
@@ -283,8 +283,7 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
       if (e.target instanceof HTMLInputElement) return;
       if (e.key === " " || e.key === "k") {
         e.preventDefault();
-        if (locked && !v.paused) { onLockedAttempt?.(); return; }
-        if (locked && v.paused) { v.play().catch(() => {}); return; }
+        if (locked) { onLockedAttempt?.(); return; }
         v.paused ? v.play() : v.pause();
       } else if (e.key === "ArrowRight") {
         if (locked) { e.preventDefault(); onLockedAttempt?.(); return; }
@@ -309,7 +308,7 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
   function togglePlay() {
     const v = videoRef.current;
     if (!v) return;
-    if (locked && !v.paused) { onLockedAttempt?.(); return; }
+    if (locked) { onLockedAttempt?.(); return; }
     v.paused ? v.play().catch(() => {}) : v.pause();
   }
 
@@ -404,7 +403,7 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
           onLoadIssueRef.current?.("error");
         }}
         onEnded={(e) => onEvent?.({ event: "ended", currentTime: e.currentTarget.currentTime, duration: e.currentTarget.duration, playbackRate: e.currentTarget.playbackRate })}
-        onClick={locked && playing ? undefined : togglePlay}
+        onClick={locked ? undefined : togglePlay}
       />
 
       {buffering && (
@@ -413,13 +412,12 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
         </div>
       )}
 
-      {/* Center play button when paused. In locked (follower) mode the button
-          is still shown so followers can tap once to join playback — required
-          by browser autoplay policies. After that, host controls take over. */}
+      {/* Center status button when paused. In locked (follower) mode this does
+          not start an independent player; only the host's sync event can play. */}
       {!playing && !buffering && (
         <button
           onClick={togglePlay}
-          aria-label={locked ? "Join playback" : "Play"}
+          aria-label={locked ? "Waiting for host" : "Play"}
           className="absolute inset-0 flex items-center justify-center bg-black/30"
         >
           <span className="size-16 md:size-20 rounded-full bg-petal text-velvet flex items-center justify-center shadow-2xl shadow-petal/40">
@@ -427,7 +425,7 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
           </span>
           {locked && (
             <span className="absolute bottom-16 md:bottom-20 px-3 py-1 rounded-full bg-black/60 border border-white/10 text-white/90 text-[11px] tracking-wide">
-              Tap once to join · host controls playback
+              Waiting for host · playback is synced
             </span>
           )}
         </button>
