@@ -103,6 +103,15 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
   // Ref-cache the callback so we don't add it to every stop/start dep array.
   const onBufferingChangeRef = useRef(onBufferingChange);
   useEffect(() => { onBufferingChangeRef.current = onBufferingChange; }, [onBufferingChange]);
+  // Followers must NEVER broadcast buffering upstream — their locked seeks/
+  // pauses emit spurious `waiting` events that would auto-pause the host.
+  const lockedRef = useRef(locked);
+  useEffect(() => { lockedRef.current = locked; }, [locked]);
+  const notifyBuffering = (state: "waiting" | "ready") => {
+    if (lockedRef.current) return;
+    onBufferingChangeRef.current?.(state);
+  };
+
 
   // Debounce the "waiting" broadcast so brief stalls / drift-correction seeks
   // (<800ms) don't ping-pong the partner into an auto-pause loop.
@@ -124,7 +133,7 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
     clearWaitingNotify();
     if (waitingNotifiedRef.current) {
       waitingNotifiedRef.current = false;
-      onBufferingChangeRef.current?.("ready");
+      notifyBuffering("ready");
     }
   }, []);
 
@@ -133,7 +142,7 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
     clearWaitingNotify();
     waitingNotifyTimer.current = window.setTimeout(() => {
       waitingNotifiedRef.current = true;
-      onBufferingChangeRef.current?.("waiting");
+      notifyBuffering("waiting");
     }, 800);
     if (bufferTimer.current) window.clearTimeout(bufferTimer.current);
     bufferTimer.current = window.setTimeout(() => {
@@ -142,7 +151,7 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
       clearWaitingNotify();
       if (waitingNotifiedRef.current) {
         waitingNotifiedRef.current = false;
-        onBufferingChangeRef.current?.("ready");
+        notifyBuffering("ready");
       }
     }, 6500);
   }, []);
