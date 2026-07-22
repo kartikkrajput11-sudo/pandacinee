@@ -597,15 +597,25 @@ function CatalogWatch({ id }: { id: string }) {
 
     // Pandacine can't be controlled until the handle mounts — mount + replay on ready.
     if (bothPandacine && !customPlayerRef.current) {
-      if (evt !== "pause") {
-        pendingAutoJoinPlayRef.current = true;
-        pendingAutoJoinRef.current = peer.currentTime;
-        setStartAt(peer.currentTime);
-        setStarted(true);
-        setPlayerLoading(true);
+      // Drive-embed variant (uncontrollable iframe): swap src to about:blank on
+      // pause so Drive's own audio track actually stops, and reload with a
+      // fresh startAt on play/seek.
+      if (evt === "pause") {
+        setPausedByHost(true);
+        setIframeKey((k) => k + 1);
+        toast.info(`${partner?.display_name?.split(" ")[0] ?? "Partner"} paused`);
+        return;
       }
+      pendingAutoJoinPlayRef.current = true;
+      pendingAutoJoinRef.current = peer.currentTime;
+      setStartAt(peer.currentTime);
+      setPausedByHost(false);
+      setStarted(true);
+      setPlayerLoading(true);
+      setIframeKey((k) => k + 1);
       return;
     }
+
 
     // Pandacine tight sync: control the <video> via handle.
     if (bothPandacine && customPlayerRef.current) {
