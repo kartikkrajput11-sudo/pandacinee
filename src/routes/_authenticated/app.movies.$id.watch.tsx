@@ -214,6 +214,11 @@ function CatalogWatch({ id }: { id: string }) {
   const lastAppliedPeerEventRef = useRef<number>(0);
   const customPlayerRef = useRef<CustomPlayerHandle | null>(null);
   const suppressPlayerEventRef = useRef(false);
+  // Tracks the host's last-known playback state so a stale `timeupdate`
+  // packet (arriving after `pause` due to network reordering) can't
+  // resurrect a follower — which was leaving mp4 audio playing while the
+  // video sat visually paused.
+  const hostPausedRef = useRef(false);
   // Local receipt time per peer packet — avoids clock-skew drift.
   const peerReceivedAtRef = useRef<Record<number, number>>({});
 
