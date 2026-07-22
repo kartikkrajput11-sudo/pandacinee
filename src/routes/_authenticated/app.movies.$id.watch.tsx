@@ -1184,12 +1184,19 @@ function CatalogWatch({ id }: { id: string }) {
                   <>
                     <iframe
                       key={`pandacine-embed-${iframeKey}`}
-                      src={toEmbedUrl(pandacine.videoSrc)!}
+                      src={pausedByHost ? "about:blank" : toEmbedUrl(pandacine.videoSrc)!}
                       className="absolute inset-0 w-full h-full bg-black"
                       allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
                       allowFullScreen
                       onLoad={() => { setPlayerLoading(false); setReady(true); }}
                     />
+                    {pausedByHost && (
+                      <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/80 pointer-events-none">
+                        <div className="px-4 py-2 rounded-full bg-black/70 border border-white/10 text-white/90 text-xs tracking-wide backdrop-blur">
+                          Paused by {partnerFirst}
+                        </div>
+                      </div>
+                    )}
                     <a
                       href={pandacine.videoSrc}
                       target="_blank"
@@ -1199,6 +1206,7 @@ function CatalogWatch({ id }: { id: string }) {
                       Open in Drive ↗
                     </a>
                   </>
+
 
                 ) : (
                 <CustomMoviePlayer
