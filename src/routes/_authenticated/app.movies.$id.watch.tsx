@@ -207,7 +207,10 @@ function CatalogWatch({ id }: { id: string }) {
 
   const iAmHost = !!me && hostId === me.id;
   const partnerIsHost = !!partner && hostId === partner.id;
-  const followerLocked = !!partnerIsHost;
+  // Lock playback for anyone who isn't the active host once a partner is present
+  // in the room. This prevents non-host viewers from spawning an independent
+  // audio path (double-audio) or scrubbing/skipping out of sync.
+  const followerLocked = !iAmHost && (!!hostId || !!peer);
   const lastAppliedPeerEventRef = useRef<number>(0);
   const customPlayerRef = useRef<CustomPlayerHandle | null>(null);
   const suppressPlayerEventRef = useRef(false);
@@ -1993,7 +1996,9 @@ function CustomWatch({ customId }: { customId: string }) {
 
   const iAmHost = !!me && hostId === me.id;
   const partnerIsHost = !!partner && hostId === partner.id;
-  const followerLocked = !!partnerIsHost;
+  // Non-host is locked whenever a partner is in the room, even before the host
+  // claim resolves — stops double-audio and independent skipping.
+  const followerLocked = !iAmHost && (!!hostId || !!peer);
 
   const handlePlayerReady = useCallback((h: CustomPlayerHandle) => {
     handleRef.current = h;
