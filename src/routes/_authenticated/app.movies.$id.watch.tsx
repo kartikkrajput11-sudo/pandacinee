@@ -1996,7 +1996,9 @@ function CustomWatch({ customId }: { customId: string }) {
 
   const iAmHost = !!me && hostId === me.id;
   const partnerIsHost = !!partner && hostId === partner.id;
-  const followerLocked = !!partnerIsHost;
+  // Non-host is locked whenever a partner is in the room, even before the host
+  // claim resolves — stops double-audio and independent skipping.
+  const followerLocked = !iAmHost && (!!hostId || !!peer);
 
   const handlePlayerReady = useCallback((h: CustomPlayerHandle) => {
     handleRef.current = h;
