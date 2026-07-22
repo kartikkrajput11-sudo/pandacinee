@@ -597,15 +597,25 @@ function CatalogWatch({ id }: { id: string }) {
 
     // Pandacine can't be controlled until the handle mounts — mount + replay on ready.
     if (bothPandacine && !customPlayerRef.current) {
-      if (evt !== "pause") {
-        pendingAutoJoinPlayRef.current = true;
-        pendingAutoJoinRef.current = peer.currentTime;
-        setStartAt(peer.currentTime);
-        setStarted(true);
-        setPlayerLoading(true);
+      // Drive-embed variant (uncontrollable iframe): swap src to about:blank on
+      // pause so Drive's own audio track actually stops, and reload with a
+      // fresh startAt on play/seek.
+      if (evt === "pause") {
+        setPausedByHost(true);
+        setIframeKey((k) => k + 1);
+        toast.info(`${partner?.display_name?.split(" ")[0] ?? "Partner"} paused`);
+        return;
       }
+      pendingAutoJoinPlayRef.current = true;
+      pendingAutoJoinRef.current = peer.currentTime;
+      setStartAt(peer.currentTime);
+      setPausedByHost(false);
+      setStarted(true);
+      setPlayerLoading(true);
+      setIframeKey((k) => k + 1);
       return;
     }
+
 
     // Pandacine tight sync: control the <video> via handle.
     if (bothPandacine && customPlayerRef.current) {
@@ -1174,12 +1184,19 @@ function CatalogWatch({ id }: { id: string }) {
                   <>
                     <iframe
                       key={`pandacine-embed-${iframeKey}`}
-                      src={toEmbedUrl(pandacine.videoSrc)!}
+                      src={pausedByHost ? "about:blank" : toEmbedUrl(pandacine.videoSrc)!}
                       className="absolute inset-0 w-full h-full bg-black"
                       allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
                       allowFullScreen
                       onLoad={() => { setPlayerLoading(false); setReady(true); }}
                     />
+                    {pausedByHost && (
+                      <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/80 pointer-events-none">
+                        <div className="px-4 py-2 rounded-full bg-black/70 border border-white/10 text-white/90 text-xs tracking-wide backdrop-blur">
+                          Paused by {partnerFirst}
+                        </div>
+                      </div>
+                    )}
                     <a
                       href={pandacine.videoSrc}
                       target="_blank"
@@ -1189,6 +1206,7 @@ function CatalogWatch({ id }: { id: string }) {
                       Open in Drive ↗
                     </a>
                   </>
+
 
                 ) : (
                 <CustomMoviePlayer
