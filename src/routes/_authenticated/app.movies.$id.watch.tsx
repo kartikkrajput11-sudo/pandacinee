@@ -1186,9 +1186,10 @@ function CatalogWatch({ id }: { id: string }) {
                     const isDiscrete = evt.event === "play" || evt.event === "pause" || evt.event === "seeked" || evt.event === "ended" || evt.event === "ratechange";
                     const claimingNow = isDiscrete && partner && !hostId && !!me;
                     if (claimingNow) claimHost();
-                    // Host-only broadcast: followers listen but never publish.
-                    if (!iAmHost && !claimingNow) return;
-                    // Tighter publish cadence for Pandacine host so followers stay ±100ms.
+                    // Discrete play/pause/seek is bidirectional — either partner
+                    // can control playback. Continuous timeupdate stays host-only
+                    // so followers don't fight the host's clock.
+                    if (!iAmHost && !claimingNow && !isDiscrete) return;
                     if (isDiscrete || now - lastPublishRef.current > 500) {
                       lastPublishRef.current = now;
                       publish({
