@@ -158,21 +158,9 @@ function UnoPage() {
     }
   }
 
-  function sendChat() {
-    const text = chatDraft.trim();
-    if (!text) return;
-    const msg = { id: crypto.randomUUID(), from: mySeat, text, at: Date.now() };
-    setChat((prev) => [...prev, msg]);
-    setChatDraft("");
-    if (mode === "partner" && chRef.current) {
-      chRef.current.send({ type: "broadcast", event: "chat", payload: msg });
-    }
-  }
-
   useEffect(() => {
-    const el = chatScrollRef.current;
-    if (el) el.scrollTop = el.scrollHeight;
-  }, [chat.length]);
+    // Placeholder for any post-state effects.
+  }, [state.turn]);
 
   // From the seat's perspective, remap "you"/"them" for display.
   // We store state with fixed "you"/"them" seats. In partner mode `mySeat` decides
