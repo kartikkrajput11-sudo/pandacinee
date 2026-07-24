@@ -677,10 +677,11 @@ function UnoPage() {
         <GameChat
           roomKey={matchId ?? `uno:${[me.id, partner.id].sort().join(":")}`}
           me={me}
-          partnerName={partner.display_name}
+          partnerName={"display_name" in partner ? partner.display_name : null}
           title="Table talk"
         />
       )}
+
     </div>
   );
 }
