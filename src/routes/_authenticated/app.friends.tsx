@@ -78,6 +78,28 @@ function Friends() {
     }
   }
 
+  const [invitePeer, setInvitePeer] = useState<FriendProfile | null>(null);
+
+  async function sendGameInvite(peer: FriendProfile, g: GamePick) {
+    const { data: u } = await supabase.auth.getUser();
+    if (!u.user) return;
+    const { error } = await supabase.from("messages").insert({
+      sender_id: u.user.id,
+      receiver_id: peer.id,
+      content: g.name,
+      type: "game_invite",
+      media_meta: { game_id: g.id, emoji: g.emoji, body: g.body, href: g.href } as never,
+    });
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    setInvitePeer(null);
+    toast.success(`Invite sent to @${peer.username}`);
+    navigate({ to: g.href });
+  }
+
+
   return (
     <div className="pt-10 px-5">
       <header className="flex items-center gap-3 mb-6">
