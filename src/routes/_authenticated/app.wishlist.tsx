@@ -246,7 +246,7 @@ function WishlistPage() {
                         {partner && (
                           <div className="relative">
                             <AvatarImg
-                              path={partner.avatar_url}
+                              src={partner.avatar_url}
                               alt={partner.display_name}
                               className="size-7 rounded-full object-cover border border-petal/30"
                             />
