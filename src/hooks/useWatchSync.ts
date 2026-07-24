@@ -319,8 +319,30 @@ export function useWatchSync(
       refreshBackendState();
     }, 1500);
 
+    // Ping-pong clock/latency sync (median RTT → one-way latency estimate).
+    // Rapid burst on join for a fast lock-in, then a slow keepalive.
+    let pingCount = 0;
+    pingTimerRef.current = window.setInterval(() => {
+      const chan = channelRef.current;
+      if (!chan || !meId) return;
+      chan.send({ type: "broadcast", event: "ping", payload: { from: meId, t0: Date.now() } });
+      pingCount += 1;
+      if (pingCount === 10 && pingTimerRef.current) {
+        window.clearInterval(pingTimerRef.current);
+        pingTimerRef.current = window.setInterval(() => {
+          const c = channelRef.current;
+          if (!c || !meId) return;
+          c.send({ type: "broadcast", event: "ping", payload: { from: meId, t0: Date.now() } });
+        }, 15_000);
+      }
+    }, 800);
+
     return () => {
       window.clearInterval(heartbeat);
+      if (pingTimerRef.current) window.clearInterval(pingTimerRef.current);
+      pingTimerRef.current = null;
+      rttSamplesRef.current = [];
+      setPeerLatencyMs(0);
       writeBackendState({ ready: false, is_host: false, last_seen_at: new Date(0).toISOString() });
       try { ch.untrack(); } catch { /* ignore */ }
       supabase.removeChannel(ch);
