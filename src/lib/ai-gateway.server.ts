@@ -27,5 +27,5 @@ export function createGameAiProvider(): { provider: ReturnType<typeof createOpen
   }
   const lovableKey = process.env.LOVABLE_API_KEY;
   if (!lovableKey) throw new Error("AI is not configured (no OPENAI_API_KEY or LOVABLE_API_KEY)");
-  return { provider: createLovableAiGatewayProvider(lovableKey), model: "google/gemini-2.5-flash" };
+  return { provider: createLovableAiGatewayProvider(lovableKey), model: "google/gemini-3.6-flash" };
 }
