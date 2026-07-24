@@ -31,6 +31,7 @@ export const Route = createFileRoute("/_authenticated/app/uno")({
   component: UnoPage,
   validateSearch: (search: Record<string, unknown>) => ({
     matchId: typeof search.matchId === "string" ? search.matchId : undefined,
+    friend: typeof search.friend === "string" ? search.friend : undefined,
   }),
   head: () => ({
     meta: [
