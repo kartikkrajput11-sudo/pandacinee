@@ -287,7 +287,7 @@ export function CustomMoviePlayer({ src, sources, poster, startAt, onEvent, onRe
       isMuted: () => v.muted,
       setPlaybackRate: (r: number) => { try { v.playbackRate = r; setRate(r); } catch {} },
     });
-  }, [src, stopBuffering]);
+  }, [activeSrc, stopBuffering]);
 
   // Seek to startAt when src or startAt changes
   useEffect(() => {
@@ -300,7 +300,7 @@ export function CustomMoviePlayer({ src, sources, poster, startAt, onEvent, onRe
     };
     if (v.readyState >= 1) apply();
     else v.addEventListener("loadedmetadata", apply, { once: true });
-  }, [src, startAt]);
+  }, [activeSrc, startAt]);
 
   const scheduleHide = useCallback(() => {
     if (hideTimer.current) window.clearTimeout(hideTimer.current);
