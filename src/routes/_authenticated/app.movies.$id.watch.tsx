@@ -623,12 +623,14 @@ function CatalogWatch({ id }: { id: string }) {
     const evt = peer.event;
     if (evt !== "play" && evt !== "pause" && evt !== "seeked" && evt !== "timeupdate" && evt !== "ratechange") return;
 
-    // Iframe-mode drift gate — only react to timeupdate if we're > 1.5s off.
+    // Iframe-mode drift gate — reloading an iframe forces a re-buffer, which
+    // shows up to the user as "the follower keeps buffering". So we only react
+    // to timeupdate when drift is large (>10s) AND we haven't reloaded in the
+    // last 30s. Small drift is left alone; discrete play/pause/seek still sync.
     if (bothIframe && evt === "timeupdate") {
       const d = Math.abs(mine.currentTime - peer.currentTime);
-      if (d < 1.5) return;
-      // Rate-limit reloads to at most one every 5s to avoid thrash.
-      if (Date.now() - lastVidkingReloadRef.current < 5000) return;
+      if (d < 10) return;
+      if (Date.now() - lastVidkingReloadRef.current < 30000) return;
     }
     lastAppliedPeerEventRef.current = peer.updatedAt;
 
