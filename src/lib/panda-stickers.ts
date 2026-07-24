@@ -74,6 +74,14 @@ import eyeroll from "@/assets/stickers/panda-eyeroll.png";
 import duoMilkshake from "@/assets/stickers/panda-duo-milkshake.png";
 import duoPiggyback from "@/assets/stickers/panda-duo-piggyback.png";
 import duoForeheadkiss from "@/assets/stickers/panda-duo-foreheadkiss.png";
+import duoNoseboop from "@/assets/stickers/panda-duo-noseboop.png";
+import duoBackhug from "@/assets/stickers/panda-duo-backhug.png";
+import duoUmbrella from "@/assets/stickers/panda-duo-umbrella.png";
+import duoLollipop from "@/assets/stickers/panda-duo-lollipop.png";
+import duoStargaze from "@/assets/stickers/panda-duo-stargaze.png";
+import blowkiss from "@/assets/stickers/panda-blowkiss.png";
+import missyou from "@/assets/stickers/panda-missyou.png";
+import bouquet from "@/assets/stickers/panda-bouquet.png";
 
 export type PandaStickerCategory = "love" | "joy" | "playful" | "celebrate" | "wow" | "greet" | "chill" | "sad" | "partners" | "adult";
 
