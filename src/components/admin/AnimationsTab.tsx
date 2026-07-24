@@ -216,6 +216,8 @@ export default function AnimationsTab() {
       )}
       {anniv && <AnnivPreview name={anniv.name} label={anniv.label} />}
       {notif && <NotifPreview text={notif} />}
+      {milestone && <MilestonePreview milestone={milestone} onClose={() => setMilestone(null)} />}
+
     </div>
   );
 }
