@@ -102,6 +102,10 @@ const ACHIEVEMENTS: { at: number; label: string; emoji: string }[] = [
 ];
 
 function DailyChallenge() {
+  const { data: prof } = useProfile();
+  const me = prof?.profile;
+  const partner = prof?.partner;
+
   const [state, setState] = useState<State>({ streak: 0, lastDate: null, completedToday: false, history: [] });
   const [celebrate, setCelebrate] = useState(false);
   const challenge = useMemo(() => todayChallenge(), []);
