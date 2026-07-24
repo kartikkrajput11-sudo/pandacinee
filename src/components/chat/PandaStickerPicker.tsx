@@ -74,7 +74,7 @@ export function PandaStickerPicker({ open, onClose, onPick, onOpenAi }: Props) {
   return (
     <div className="fixed inset-x-0 bottom-0 z-50 flex items-end justify-center pointer-events-none animate-fade-in">
       <div
-        className="pointer-events-auto w-[min(340px,92vw)] mb-20 mx-2 bg-surface border border-petal/30 rounded-2xl shadow-2xl animate-slide-in-right"
+        className="pointer-events-auto relative w-[min(340px,92vw)] mb-20 mx-2 bg-surface border border-petal/30 rounded-2xl shadow-2xl animate-slide-in-right overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
 
