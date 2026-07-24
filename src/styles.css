@@ -1620,3 +1620,15 @@ body { overscroll-behavior-y: contain; }
 }
 
 
+@keyframes uno-turn-in {
+  0% { opacity: 0; transform: translateY(-6px) scale(0.94); }
+  60% { opacity: 1; transform: translateY(0) scale(1.04); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes uno-turn-glow {
+  0%, 100% { box-shadow: 0 10px 30px -10px rgba(0,0,0,0.7), 0 0 0 0 color-mix(in oklab, var(--petal) 40%, transparent); }
+  50% { box-shadow: 0 10px 30px -10px rgba(0,0,0,0.7), 0 0 24px 4px color-mix(in oklab, var(--petal) 30%, transparent); }
+}
+.uno-turn-banner {
+  animation: uno-turn-in 380ms cubic-bezier(.2,.9,.25,1.15) both, uno-turn-glow 2.4s ease-in-out 380ms infinite;
+}
