@@ -27,6 +27,7 @@ export function InviteFriendCard({
   const [q, setQ] = useState("");
   const [sendingId, setSendingId] = useState<string | null>(null);
   const { data } = useFriendships();
+  const navigate = useNavigate();
 
   const meta = GAMES[game];
   const href = meta.href ?? `/app/games/${game}`;
