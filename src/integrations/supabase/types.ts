@@ -1064,6 +1064,45 @@ export type Database = {
           },
         ]
       }
+      love_coupons: {
+        Row: {
+          created_at: string
+          description: string | null
+          emoji: string | null
+          expires_at: string | null
+          giver_id: string
+          id: string
+          recipient_id: string
+          redeemed_at: string | null
+          redeemed_note: string | null
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          emoji?: string | null
+          expires_at?: string | null
+          giver_id: string
+          id?: string
+          recipient_id: string
+          redeemed_at?: string | null
+          redeemed_note?: string | null
+          title: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          emoji?: string | null
+          expires_at?: string | null
+          giver_id?: string
+          id?: string
+          recipient_id?: string
+          redeemed_at?: string | null
+          redeemed_note?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
       love_letters: {
         Row: {
           body: string
