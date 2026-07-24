@@ -172,7 +172,7 @@ function CatalogWatch({ id }: { id: string }) {
   const [playerLoading, setPlayerLoading] = useState(false);
   const [slowPlayer, setSlowPlayer] = useState(false);
   const [startAt, setStartAt] = useState<number | undefined>(undefined);
-  const [autoFollow, setAutoFollow] = useState(false);
+  const [autoFollow, setAutoFollow] = useState(true);
   const [cinemaMode, setCinemaMode] = useState(false);
   const [sourceMenuOpen, setSourceMenuOpen] = useState(false);
   const [sleepMinutes, setSleepMinutes] = useState<number | null>(null);
@@ -447,7 +447,7 @@ function CatalogWatch({ id }: { id: string }) {
         if (claimingNow) claimHost();
         if (!iAmHost && !claimingNow) return;
         const now = Date.now();
-        if (isDiscrete || now - lastPublishRef.current > 2000) {
+        if (isDiscrete || now - lastPublishRef.current > 1000) {
           lastPublishRef.current = now;
           publish({ event: evt, currentTime, duration, sourceIdx });
         }
@@ -623,12 +623,12 @@ function CatalogWatch({ id }: { id: string }) {
     const evt = peer.event;
     if (evt !== "play" && evt !== "pause" && evt !== "seeked" && evt !== "timeupdate" && evt !== "ratechange") return;
 
-    // Iframe-mode drift gate — only react to timeupdate if we're > 3s off.
+    // Iframe-mode drift gate — only react to timeupdate if we're > 1.5s off.
     if (bothIframe && evt === "timeupdate") {
       const d = Math.abs(mine.currentTime - peer.currentTime);
-      if (d < 3) return;
-      // Rate-limit reloads to at most one every 8s to avoid thrash.
-      if (Date.now() - lastVidkingReloadRef.current < 8000) return;
+      if (d < 1.5) return;
+      // Rate-limit reloads to at most one every 5s to avoid thrash.
+      if (Date.now() - lastVidkingReloadRef.current < 5000) return;
     }
     lastAppliedPeerEventRef.current = peer.updatedAt;
 
