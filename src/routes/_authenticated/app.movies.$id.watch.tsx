@@ -637,7 +637,7 @@ function CatalogWatch({ id }: { id: string }) {
       const now = Date.now();
       const receivedAt = peerReceivedAtRef.current[peer.updatedAt] ?? now;
       const hostPlaying = !hostPausedRef.current;
-      const elapsed = hostPlaying ? Math.max(0, (now - receivedAt) / 1000) * baseRate : 0;
+      const elapsed = hostPlaying ? Math.max(0, ((now - receivedAt) + peerLatencyMs) / 1000) * baseRate : 0;
       const targetTime = peer.currentTime + elapsed;
       const drift = h.currentTime() - targetTime;
       const abs = Math.abs(drift);
