@@ -96,33 +96,78 @@ export function PandaStickerPicker({ open, onClose, onPick, onOpenAi }: Props) {
           </button>
         </div>
 
-        <div className="px-3 pb-3 max-h-[45vh] overflow-y-auto">
+        {/* Category tabs (hidden while searching) */}
+        {!q && (
+          <div className="px-2 pb-2 flex gap-1 overflow-x-auto no-scrollbar">
+            {recentStickers.length > 0 && (
+              <CatChip
+                emoji="🕒"
+                label="Recent"
+                onClick={() => scrollToSection("recent")}
+              />
+            )}
+            {PANDA_CATEGORY_ORDER.map((c) => (
+              <CatChip
+                key={c.id}
+                emoji={c.emoji}
+                label={c.label}
+                onClick={() => scrollToSection(c.id)}
+              />
+            ))}
+          </div>
+        )}
+
+        <div ref={scrollRef} className="px-3 pb-3 max-h-[45vh] overflow-y-auto">
           {recentStickers.length > 0 && !q && (
-            <>
-              <p className="text-[10px] uppercase tracking-[0.25em] text-candle-muted mb-1.5 mt-1 flex items-center gap-1.5">
+            <section data-section="recent" className="mb-3">
+              <p className="text-[10px] uppercase tracking-[0.25em] text-candle-muted mb-1.5 flex items-center gap-1.5">
                 <Clock className="size-3" /> Recent
               </p>
-              <div className="grid grid-cols-6 gap-1.5 mb-3">
+              <div className="grid grid-cols-6 gap-1.5">
                 {recentStickers.map((s) => (
                   <StickerBtn key={"r-" + s.id} sticker={s} onClick={() => pick(s.id)} />
                 ))}
               </div>
-              <div className="h-px bg-border/60 mb-3" />
-            </>
+            </section>
           )}
 
-          <p className="text-[10px] uppercase tracking-[0.25em] text-candle-muted mb-1.5">
-            {q ? `${filtered.length} result${filtered.length === 1 ? "" : "s"}` : "All stickers"}
-          </p>
-          <div className="grid grid-cols-6 gap-1.5">
-            {filtered.map((s) => (
-              <StickerBtn key={s.id} sticker={s} onClick={() => pick(s.id)} />
-            ))}
-          </div>
-          {filtered.length === 0 && (
-            <p className="text-center text-sm text-candle-muted py-8">No stickers match "{q}"</p>
+          {q ? (
+            <>
+              <p className="text-[10px] uppercase tracking-[0.25em] text-candle-muted mb-1.5">
+                {filtered.length} result{filtered.length === 1 ? "" : "s"}
+              </p>
+              <div className="grid grid-cols-6 gap-1.5">
+                {filtered.map((s) => (
+                  <StickerBtn key={s.id} sticker={s} onClick={() => pick(s.id)} />
+                ))}
+              </div>
+              {filtered.length === 0 && (
+                <p className="text-center text-sm text-candle-muted py-8">No stickers match "{q}"</p>
+              )}
+            </>
+          ) : (
+            PANDA_CATEGORY_ORDER.map((c) => {
+              const items = PANDA_STICKERS.filter((s) => s.category === c.id);
+              if (items.length === 0) return null;
+              return (
+                <section key={c.id} data-section={c.id} className="mb-3 last:mb-1">
+                  <div className="flex items-center gap-2 mb-1.5 mt-0.5">
+                    <span className="text-sm leading-none">{c.emoji}</span>
+                    <p className="text-[10px] uppercase tracking-[0.25em] text-candle-muted">{c.label}</p>
+                    <span className="flex-1 h-px bg-gradient-to-r from-petal/25 via-border/60 to-transparent" />
+                    <span className="text-[9px] text-candle-muted/60">{items.length}</span>
+                  </div>
+                  <div className="grid grid-cols-6 gap-1.5">
+                    {items.map((s) => (
+                      <StickerBtn key={s.id} sticker={s} onClick={() => pick(s.id)} />
+                    ))}
+                  </div>
+                </section>
+              );
+            })
           )}
         </div>
+
       </div>
     </div>
   );
