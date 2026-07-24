@@ -250,6 +250,7 @@ function CatalogWatch({ id }: { id: string }) {
           id?: string; title?: string; overview?: string | null;
           poster_url?: string | null; backdrop_url?: string | null; runtime?: number | null;
           video_url?: string | null; video_storage_path?: string | null;
+          video_qualities?: Array<{ label: string; url: string; height?: number | null }> | null;
           media_type?: "movie" | "tv" | null;
         } | null;
         if (ov) {
@@ -268,6 +269,8 @@ function CatalogWatch({ id }: { id: string }) {
           setIsTv(tv);
           setCustomMovieId(ov.id ?? null);
 
+          const qualities = Array.isArray(ov.video_qualities) ? ov.video_qualities : [];
+
           // Resolve movie-level Pandacine source right away
           if (!tv) {
             if (ov.video_storage_path) {
@@ -276,10 +279,10 @@ function CatalogWatch({ id }: { id: string }) {
                 .createSignedUrl(ov.video_storage_path, 60 * 60 * 6)
                 .then(({ data: signed }) => {
                   if (!alive) return;
-                  if (signed?.signedUrl) setPandacine({ videoSrc: signed.signedUrl, title: ov.title ?? null });
+                  if (signed?.signedUrl) setPandacine({ videoSrc: signed.signedUrl, title: ov.title ?? null, qualities });
                 });
             } else if (ov.video_url) {
-              setPandacine({ videoSrc: ov.video_url, title: ov.title ?? null });
+              setPandacine({ videoSrc: ov.video_url, title: ov.title ?? null, qualities });
             } else {
               setPandacine(null);
             }
