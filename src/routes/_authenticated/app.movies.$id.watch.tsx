@@ -41,6 +41,7 @@ import { CustomMoviePlayer, type CustomPlayerHandle } from "@/components/CustomM
 import { toEmbedUrl } from "@/lib/video-url";
 import { useFriendships } from "@/hooks/useFriends";
 import { AvatarImg } from "@/components/AvatarImg";
+import { PostMovieReflection } from "@/components/movies/PostMovieReflection";
 
 type Source = { id: string; label: string; url: (tmdb: number, startAt?: number, mediaType?: "movie" | "tv", season?: number, episode?: number) => string; hint: string };
 
