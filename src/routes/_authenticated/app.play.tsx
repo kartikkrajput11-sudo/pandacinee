@@ -77,6 +77,19 @@ function Play() {
         </div>
       )}
 
+      <div className="mb-5 flex flex-wrap items-center gap-3">
+        <Link
+          to="/app/friends"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-surface border border-petal/40 text-sm text-candle hover:border-petal transition-colors"
+        >
+          <span className="text-base">🎮</span>
+          Play with a friend
+          <span className="text-[10px] uppercase tracking-widest text-petal">Invite →</span>
+        </Link>
+        <p className="text-xs text-candle-muted">Send a game invite to any friend from your circle.</p>
+      </div>
+
+
 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 max-w-5xl mx-auto" data-tour="play-grid">
 
