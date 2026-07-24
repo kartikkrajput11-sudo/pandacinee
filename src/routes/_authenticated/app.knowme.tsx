@@ -52,11 +52,15 @@ function KnowMePage() {
   const me = data?.profile;
   const { matchId, friend } = Route.useSearch();
   const { opponentId: matchOppId } = useMatchOpponent(matchId, me?.id);
-  const partner = matchId
-    ? (matchOppId ? { id: matchOppId, display_name: "Partner" } as { id: string; display_name?: string } : null)
-    : (friend && me && friend !== me.id
-        ? ({ id: friend, display_name: "Friend" } as { id: string; display_name?: string })
-        : data?.partner);
+  const otherId = matchId ? matchOppId : (friend && me && friend !== me.id ? friend : null);
+  const { data: otherProfile } = useProfileById(otherId);
+  const partner = otherId
+    ? ({
+        id: otherId,
+        display_name: otherProfile?.display_name ?? otherProfile?.username ?? "Friend",
+        avatar_url: otherProfile?.avatar_url ?? null,
+      } as { id: string; display_name?: string; avatar_url?: string | null })
+    : data?.partner;
   const navigate = useNavigate();
 
   const [mode, setMode] = useState<Mode>("local");
