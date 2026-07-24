@@ -399,7 +399,7 @@ export function CustomMoviePlayer({ src, sources, poster, startAt, onEvent, onRe
     >
       <video
         ref={videoRef}
-        src={src}
+        src={activeSrc}
         poster={poster ?? undefined}
         className="absolute inset-0 w-full h-full object-contain bg-black"
         playsInline
