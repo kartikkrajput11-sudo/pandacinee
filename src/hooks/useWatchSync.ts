@@ -92,6 +92,12 @@ export function useWatchSync(
   const [backendPeerSourceKind, setBackendPeerSourceKind] = useState<SourceKind>("unknown");
   const [peerPreparing, setPeerPreparing] = useState<{ time: number; ts: number } | null>(null);
   const [peerBuffering, setPeerBuffering] = useState(false);
+  // Estimated one-way latency to the peer (ms). Derived from median RTT of
+  // ping-pong broadcasts on the same channel — inspired by ShakedAp's
+  // synchronized-video-streaming clock-sync loop. Used to project the peer's
+  // "true" playhead when correcting follower drift.
+  const [peerLatencyMs, setPeerLatencyMs] = useState(0);
+
 
 
   const mineRef = useRef<Mine>(emptyMine());
