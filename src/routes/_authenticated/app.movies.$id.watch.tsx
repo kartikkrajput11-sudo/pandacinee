@@ -2409,6 +2409,17 @@ function CustomWatch({ customId }: { customId: string }) {
           </div>
         )}
       </div>
+      {showReflection && me && movie && (
+        <PostMovieReflection
+          movieId={customId}
+          movieTitle={movie.title ?? "the film"}
+          meId={me.id}
+          partnerId={partner?.id ?? null}
+          partnerName={partner?.display_name}
+          partnerAvatar={partner?.avatar_url}
+          onClose={() => setShowReflection(false)}
+        />
+      )}
     </div>
   );
 }
