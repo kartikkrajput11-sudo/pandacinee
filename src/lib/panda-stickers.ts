@@ -111,6 +111,11 @@ export const PANDA_STICKERS: { id: PandaStickerId; url: string; label: string; c
   { id: "duo-dance",    url: duoDance,    label: "Slow dance",    category: "partners" },
   { id: "duo-selfie",   url: duoSelfie,   label: "Selfie us",     category: "partners" },
   { id: "duo-highfive", url: duoHighfive, label: "High five",     category: "partners" },
+  { id: "duo-noseboop", url: duoNoseboop, label: "Nose boop",     category: "partners" },
+  { id: "duo-backhug",  url: duoBackhug,  label: "Back hug",      category: "partners" },
+  { id: "duo-umbrella", url: duoUmbrella, label: "Our umbrella",  category: "partners" },
+  { id: "duo-lollipop", url: duoLollipop, label: "Sweet share",   category: "partners" },
+  { id: "duo-stargaze", url: duoStargaze, label: "Stargazing",    category: "partners" },
 
   // ❤️ Love
   { id: "love",         url: love,        label: "In love",       category: "love" },
