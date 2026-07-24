@@ -233,6 +233,8 @@ function AdminDashboard() {
         <div className="text-[10px] text-candle-muted uppercase tracking-widest">§ {sections.findIndex((s) => s.key === tab) + 1} / {sections.length}</div>
       </div>
 
+      <FoundersBannerToggle />
+
       <div className="rounded-3xl border border-border/50 bg-surface/30 backdrop-blur-sm p-4 sm:p-6">
         {tab === "overview" && <OverviewTab />}
         {tab === "activity" && <ActivityTab />}
