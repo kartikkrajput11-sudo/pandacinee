@@ -265,6 +265,15 @@ function MemoryChallenge() {
       <p className="mt-6 text-[11px] text-candle-muted text-center">
         Memories are stored privately on this device.
       </p>
+      {me && partner && (
+        <GameChat
+          roomKey={`memory:${[me.id, partner.id].sort().join(":")}`}
+          me={me}
+          partnerName={partner.display_name}
+          title="Memory chat"
+        />
+      )}
     </div>
   );
 }
+
