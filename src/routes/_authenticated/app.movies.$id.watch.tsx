@@ -241,7 +241,7 @@ function CatalogWatch({ id }: { id: string }) {
     // 1) Instant local render: hit Supabase first and paint whatever we have.
     const localPromise = supabase
       .from("custom_movies")
-      .select("id, title, overview, poster_url, backdrop_url, runtime, video_url, video_storage_path, media_type, tmdb_id")
+      .select("id, title, overview, poster_url, backdrop_url, runtime, video_url, video_storage_path, video_qualities, media_type, tmdb_id")
       .eq("tmdb_id", tmdbId)
       .maybeSingle()
       .then((ovRes) => {
