@@ -269,7 +269,7 @@ function TriviaPage() {
 
 
 function Lobby({ loading, me, partner, onStart }: { loading: boolean; me: any; partner: any; onStart: (r: number) => void }) {
-  const [rounds, setRounds] = useState(8);
+  const [rounds, setRounds] = useState(10);
   return (
     <div className="rounded-3xl bg-gradient-to-br from-petal/10 via-surface to-surface border border-petal/30 p-8 text-center">
       <div className="size-16 rounded-2xl bg-petal/20 mx-auto flex items-center justify-center mb-4">
