@@ -789,8 +789,10 @@ function Intro({
         </button>
       </div>
 
+      <InviteFriendCard game="hideseek" />
+
       {!hasPartner && (
-        <p className="text-[11px] text-candle-muted">Pair with a partner to play across any distance.</p>
+        <p className="text-[11px] text-candle-muted">Pair with a partner to play across any distance — or invite a friend above.</p>
       )}
 
       <button
