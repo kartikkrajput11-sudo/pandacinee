@@ -416,14 +416,30 @@ function CatalogWatch({ id }: { id: string }) {
   // sync them) can't feed back as a phantom "partner paused".
   useEffect(() => {
     const onMessage = (event: MessageEvent) => {
-      if (!String(event.origin).includes("vidking.net")) return;
+      const okOrigin = /vidking\.net|vidlink\.pro|vidsrc\.to|2embed\.cc/.test(String(event.origin));
+      if (!okOrigin) return;
       try {
-        const message = typeof event.data === "string" ? JSON.parse(event.data) : event.data;
-        if (message?.type !== "PLAYER_EVENT") return;
-        const data = message.data ?? {};
-        const evt: string = data.event ?? "timeupdate";
-        const currentTime: number = Number(data.currentTime ?? 0);
-        const duration: number = Number(data.duration ?? mine.duration ?? 0);
+        const raw = typeof event.data === "string" ? JSON.parse(event.data) : event.data;
+        // Normalize across providers:
+        //  - VidKing:  { type: "PLAYER_EVENT", data: { event, currentTime, duration } }
+        //  - Vidlink:  { type: "PLAYER_EVENT", data: { event, currentTime, duration } }
+        //              or { type: "MEDIA_DATA", data: { <id>: { progress: { watched, duration } } } }
+        let evt = "timeupdate";
+        let currentTime = 0;
+        let duration = Number(mine.duration ?? 0);
+        if (raw?.type === "PLAYER_EVENT") {
+          const d = raw.data ?? {};
+          evt = String(d.event ?? "timeupdate");
+          currentTime = Number(d.currentTime ?? 0);
+          duration = Number(d.duration ?? duration);
+        } else if (raw?.type === "MEDIA_DATA" && raw.data && typeof raw.data === "object") {
+          const first = Object.values(raw.data)[0] as { progress?: { watched?: number; duration?: number } } | undefined;
+          if (!first?.progress) return;
+          currentTime = Number(first.progress.watched ?? 0);
+          duration = Number(first.progress.duration ?? duration);
+        } else {
+          return;
+        }
         setSlowPlayer(false);
         const isDiscrete = evt === "play" || evt === "pause" || evt === "seeked" || evt === "ended";
         // First real interaction claims the room if no one owns it yet.
