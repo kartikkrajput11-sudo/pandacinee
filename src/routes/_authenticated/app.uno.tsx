@@ -108,10 +108,7 @@ function UnoPage() {
   const [flashId, setFlashId] = useState<string | null>(null);
   const [deckPulse, setDeckPulse] = useState(0);
   const [dealNonce, setDealNonce] = useState(0);
-  const [chat, setChat] = useState<{ id: string; from: UnoPlayer; text: string; at: number }[]>([]);
-  const [chatDraft, setChatDraft] = useState("");
   const [unoBurst, setUnoBurst] = useState<{ n: number; from: UnoPlayer } | null>(null);
-  const chatScrollRef = useRef<HTMLDivElement | null>(null);
 
   // In partner mode: lower UUID plays "you", partner plays "them".
   const mySeat: UnoPlayer = useMemo(() => {
