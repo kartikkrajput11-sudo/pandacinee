@@ -563,5 +563,15 @@ function PuzzleTogether() {
         </p>
       )}
     </div>
+    {me && partner && (
+      <GameChat
+        roomKey={matchId ?? `puzzle:${[me.id, partner.id].sort().join(":")}`}
+        me={me}
+        partnerName={"display_name" in partner ? (partner as { display_name?: string | null }).display_name : null}
+        title="Puzzle chat"
+      />
+    )}
+    </>
   );
 }
+
