@@ -57,6 +57,11 @@ import duoSpoon from "@/assets/stickers/panda-duo-spoon.png";
 import rose from "@/assets/stickers/panda-rose.png";
 import fanning from "@/assets/stickers/panda-fanning.png";
 import behave from "@/assets/stickers/panda-behave.png";
+import robe from "@/assets/stickers/panda-robe.png";
+import bedhead from "@/assets/stickers/panda-bedhead.png";
+import petals from "@/assets/stickers/panda-petals.png";
+import candlebath from "@/assets/stickers/panda-candlebath.png";
+import lipmark from "@/assets/stickers/panda-lipmark.png";
 
 export type PandaStickerCategory = "love" | "joy" | "celebrate" | "wow" | "greet" | "chill" | "sad" | "partners" | "adult";
 
@@ -69,7 +74,8 @@ export type PandaStickerId =
   | "duo-hug" | "duo-kiss" | "duo-hands" | "duo-dance" | "duo-cozy" | "duo-selfie" | "duo-heart" | "duo-highfive"
   | "duo-lipkiss" | "duo-bed" | "duo-dip" | "flirt" | "bath" | "tease"
   | "peach" | "cuffs" | "unwrap" | "thirsty"
-  | "bedroom-eyes" | "comehere" | "duo-neckkiss" | "dnd" | "duo-spoon" | "rose" | "fanning" | "behave";
+  | "bedroom-eyes" | "comehere" | "duo-neckkiss" | "dnd" | "duo-spoon" | "rose" | "fanning" | "behave"
+  | "robe" | "bedhead" | "petals" | "candlebath" | "lipmark";
 
 export const PANDA_STICKERS: { id: PandaStickerId; url: string; label: string; category: PandaStickerCategory }[] = [
   // 💞 Partners (duo pandas)
