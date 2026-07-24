@@ -2081,6 +2081,39 @@ export type Database = {
         }
         Relationships: []
       }
+      sticker_admin: {
+        Row: {
+          category: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          image_url: string | null
+          kind: string
+          label: string | null
+          sticker_id: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          image_url?: string | null
+          kind: string
+          label?: string | null
+          sticker_id: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          image_url?: string | null
+          kind?: string
+          label?: string | null
+          sticker_id?: string
+        }
+        Relationships: []
+      }
       suppressed_emails: {
         Row: {
           created_at: string
