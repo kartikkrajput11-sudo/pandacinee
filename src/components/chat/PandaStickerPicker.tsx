@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { X, Search, Clock, Sparkles } from "lucide-react";
-import { PANDA_STICKERS, PANDA_CATEGORY_ORDER, type PandaStickerId, type PandaStickerCategory } from "@/lib/panda-stickers";
+import { X, Search, Clock, Sparkles, Lock } from "lucide-react";
+import { PANDA_STICKERS, PANDA_CATEGORY_ORDER, isAdultUnlocked, unlockAdult, lockAdult, type PandaStickerId, type PandaStickerCategory } from "@/lib/panda-stickers";
 
 
 type Props = {
@@ -31,20 +31,29 @@ function pushRecent(id: PandaStickerId) {
 export function PandaStickerPicker({ open, onClose, onPick, onOpenAi }: Props) {
   const [q, setQ] = useState("");
   const [recent, setRecent] = useState<PandaStickerId[]>([]);
+  const [adultOk, setAdultOk] = useState(false);
+  const [showGate, setShowGate] = useState(false);
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
-  useEffect(() => { if (open) setRecent(getRecent()); }, [open]);
+  useEffect(() => { if (open) { setRecent(getRecent()); setAdultOk(isAdultUnlocked()); } }, [open]);
 
   const recentStickers = useMemo(
-    () => recent.map((id) => PANDA_STICKERS.find((s) => s.id === id)).filter(Boolean) as typeof PANDA_STICKERS,
-    [recent]
+    () => recent
+      .map((id) => PANDA_STICKERS.find((s) => s.id === id))
+      .filter((s): s is (typeof PANDA_STICKERS)[number] => !!s && (s.category !== "adult" || adultOk)),
+    [recent, adultOk]
+  );
+
+  const visibleStickers = useMemo(
+    () => PANDA_STICKERS.filter((s) => s.category !== "adult" || adultOk),
+    [adultOk]
   );
 
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase();
-    if (!term) return PANDA_STICKERS;
-    return PANDA_STICKERS.filter((s) => s.label.toLowerCase().includes(term) || s.id.includes(term));
-  }, [q]);
+    if (!term) return visibleStickers;
+    return visibleStickers.filter((s) => s.label.toLowerCase().includes(term) || s.id.includes(term));
+  }, [q, visibleStickers]);
 
   if (!open) return null;
 
@@ -65,7 +74,7 @@ export function PandaStickerPicker({ open, onClose, onPick, onOpenAi }: Props) {
   return (
     <div className="fixed inset-x-0 bottom-0 z-50 flex items-end justify-center pointer-events-none animate-fade-in">
       <div
-        className="pointer-events-auto w-[min(340px,92vw)] mb-20 mx-2 bg-surface border border-petal/30 rounded-2xl shadow-2xl animate-slide-in-right"
+        className="pointer-events-auto relative w-[min(340px,92vw)] mb-20 mx-2 bg-surface border border-petal/30 rounded-2xl shadow-2xl animate-slide-in-right overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
 
@@ -119,7 +128,11 @@ export function PandaStickerPicker({ open, onClose, onPick, onOpenAi }: Props) {
                 key={c.id}
                 emoji={c.emoji}
                 label={c.label}
-                onClick={() => scrollToSection(c.id)}
+                locked={c.adult && !adultOk}
+                onClick={() => {
+                  if (c.adult && !adultOk) { setShowGate(true); return; }
+                  scrollToSection(c.id);
+                }}
               />
             ))}
           </div>
@@ -157,6 +170,7 @@ export function PandaStickerPicker({ open, onClose, onPick, onOpenAi }: Props) {
             PANDA_CATEGORY_ORDER.map((c) => {
               const items = PANDA_STICKERS.filter((s) => s.category === c.id);
               if (items.length === 0) return null;
+              const locked = c.adult && !adultOk;
               return (
                 <section key={c.id} data-section={c.id} className="mb-3 last:mb-1">
                   <div className="flex items-center gap-2 mb-1.5 mt-0.5">
@@ -165,16 +179,42 @@ export function PandaStickerPicker({ open, onClose, onPick, onOpenAi }: Props) {
                     <span className="flex-1 h-px bg-gradient-to-r from-petal/25 via-border/60 to-transparent" />
                     <span className="text-[9px] text-candle-muted/60">{items.length}</span>
                   </div>
-                  <div className="grid grid-cols-6 gap-1.5">
-                    {items.map((s) => (
-                      <StickerBtn key={s.id} sticker={s} onClick={() => pick(s.id)} />
-                    ))}
-                  </div>
+                  {locked ? (
+                    <button
+                      onClick={() => setShowGate(true)}
+                      className="w-full py-4 rounded-xl bg-surface-elevated border border-petal/40 flex flex-col items-center gap-1 text-candle hover:bg-petal/10 transition-colors"
+                    >
+                      <Lock className="size-4 text-petal" />
+                      <span className="text-xs font-medium">18+ · Tap to unlock</span>
+                      <span className="text-[10px] text-candle-muted">Romantic & intimate stickers</span>
+                    </button>
+                  ) : (
+                    <div className="grid grid-cols-6 gap-1.5">
+                      {items.map((s) => (
+                        <StickerBtn key={s.id} sticker={s} onClick={() => pick(s.id)} />
+                      ))}
+                    </div>
+                  )}
                 </section>
               );
             })
           )}
         </div>
+
+        {showGate && (
+          <AgeGate
+            onConfirm={() => { unlockAdult(); setAdultOk(true); setShowGate(false); }}
+            onCancel={() => setShowGate(false)}
+          />
+        )}
+        {adultOk && (
+          <button
+            onClick={() => { lockAdult(); setAdultOk(false); }}
+            className="mx-3 mb-2 text-[10px] text-candle-muted hover:text-petal transition-colors flex items-center gap-1"
+          >
+            <Lock className="size-2.5" /> Lock 18+ stickers
+          </button>
+        )}
 
       </div>
     </div>
@@ -201,16 +241,48 @@ function StickerBtn({ sticker, onClick }: { sticker: { id: string; url: string; 
   );
 }
 
-function CatChip({ emoji, label, onClick }: { emoji: string; label: string; onClick: () => void }) {
+function CatChip({ emoji, label, onClick, locked }: { emoji: string; label: string; onClick: () => void; locked?: boolean }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className="shrink-0 h-7 px-2.5 rounded-full bg-surface-elevated border border-border hover:border-petal/50 hover:bg-petal/10 text-[11px] text-candle flex items-center gap-1 transition-colors"
+      className={`shrink-0 h-7 px-2.5 rounded-full border text-[11px] flex items-center gap-1 transition-colors ${locked ? "bg-petal/10 border-petal/40 text-petal" : "bg-surface-elevated border-border text-candle hover:border-petal/50 hover:bg-petal/10"}`}
     >
       <span className="text-sm leading-none">{emoji}</span>
       <span>{label}</span>
+      {locked && <Lock className="size-2.5 opacity-70" />}
     </button>
   );
 }
+
+function AgeGate({ onConfirm, onCancel }: { onConfirm: () => void; onCancel: () => void }) {
+  return (
+    <div className="absolute inset-0 z-10 rounded-2xl bg-surface/95 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in">
+      <div className="w-full max-w-[280px] text-center">
+        <div className="mx-auto size-12 rounded-full bg-petal/15 border border-petal/40 flex items-center justify-center mb-3">
+          <Lock className="size-5 text-petal" />
+        </div>
+        <h3 className="text-base font-serif text-candle mb-1">18+ Content</h3>
+        <p className="text-xs text-candle-muted mb-4 leading-relaxed">
+          This category includes romantic and intimate stickers. Please confirm you are 18 or older to unlock.
+        </p>
+        <div className="flex gap-2">
+          <button
+            onClick={onCancel}
+            className="flex-1 h-9 rounded-full bg-surface-elevated border border-border text-candle text-xs font-medium hover:bg-surface transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            className="flex-1 h-9 rounded-full bg-petal text-white text-xs font-medium hover:bg-petal/90 transition-colors"
+          >
+            I'm 18+
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 
