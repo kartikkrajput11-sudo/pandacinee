@@ -1,12 +1,14 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Search, UserPlus, Check, X, Video, Phone } from "lucide-react";
+import { ArrowLeft, Search, UserPlus, Check, X, Video, Phone, Gamepad2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useFriendships, useFriendActions, FriendProfile } from "@/hooks/useFriends";
 import { useProfile } from "@/hooks/useProfile";
 import { AvatarImg } from "@/components/AvatarImg";
+import { GameInvitePicker, type GamePick } from "@/components/chat/GameInvitePicker";
+
 
 export const Route = createFileRoute("/_authenticated/app/friends")({
   component: Friends,
@@ -75,6 +77,28 @@ function Friends() {
       console.warn("startCall failed", e);
     }
   }
+
+  const [invitePeer, setInvitePeer] = useState<FriendProfile | null>(null);
+
+  async function sendGameInvite(peer: FriendProfile, g: GamePick) {
+    const { data: u } = await supabase.auth.getUser();
+    if (!u.user) return;
+    const { error } = await supabase.from("messages").insert({
+      sender_id: u.user.id,
+      receiver_id: peer.id,
+      content: g.name,
+      type: "game_invite",
+      media_meta: { game_id: g.id, emoji: g.emoji, body: g.body, href: g.href } as never,
+    });
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    setInvitePeer(null);
+    toast.success(`Invite sent to @${peer.username}`);
+    navigate({ to: g.href });
+  }
+
 
   return (
     <div className="pt-10 px-5">
@@ -218,6 +242,21 @@ function Friends() {
               return (
                 <Row key={f.id} profile={p}>
                   <button
+                    onClick={() => setInvitePeer(p)}
+                    className="size-9 rounded-full bg-velvet border border-border text-candle hover:text-petal flex items-center justify-center"
+                    aria-label="Invite to play"
+                    title="Invite to play"
+                  >
+                    <Gamepad2 className="size-4" />
+                  </button>
+                  <Link
+                    to="/app/chat/$peerId"
+                    params={{ peerId: p.id }}
+                    className="hidden sm:inline-flex px-3 h-9 items-center rounded-full bg-velvet border border-border text-[10px] uppercase tracking-widest text-candle-muted hover:text-petal"
+                  >
+                    Chat
+                  </Link>
+                  <button
                     onClick={() => startCall(p.id, "audio")}
                     className="size-9 rounded-full bg-velvet border border-border text-candle hover:text-petal flex items-center justify-center"
                     aria-label="Voice call"
@@ -233,6 +272,7 @@ function Friends() {
                   </button>
                 </Row>
               );
+
             })}
           </div>
         )}
@@ -259,9 +299,16 @@ function Friends() {
           </div>
         </section>
       )}
+
+      <GameInvitePicker
+        open={!!invitePeer}
+        onClose={() => setInvitePeer(null)}
+        onPick={(g) => invitePeer && sendGameInvite(invitePeer, g)}
+      />
     </div>
   );
 }
+
 
 function Row({ profile, children }: { profile: FriendProfile; children: React.ReactNode }) {
   return (
