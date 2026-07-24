@@ -72,21 +72,22 @@
 
 :root {
   --radius: 1.1rem;
-  /* Velvet Evening Glow — ORIGINAL core theme.
-     Deep aubergine velvet night, warm petal coral, candle cream.
-     Kept intentionally un-enhanced as the default fallback. */
-  --velvet: oklch(0.15 0.035 340);
-  --background: oklch(0.13 0.03 340);
-  --surface: oklch(0.20 0.045 340);
-  --surface-elevated: oklch(0.25 0.055 340);
-  --foreground: oklch(0.96 0.02 80);
-  --candle: oklch(0.96 0.02 80);
-  --candle-muted: oklch(0.82 0.035 60 / 0.72);
-  --petal: oklch(0.78 0.13 25);
-  --petal-soft: oklch(0.78 0.13 25 / 0.20);
-  --lavender: oklch(0.80 0.06 310);
-  --border: oklch(1 0 0 / 0.08);
-  --input: oklch(1 0 0 / 0.10);
+  /* Cosmic Velvet — default theme.
+     Deep indigo-violet night with a starfield, bright electric-purple
+     primary, soft lavender accents, candle-cream typography.
+     Matches the reference: pandacine.com cosmic aesthetic. */
+  --velvet:            oklch(0.13 0.06 290);
+  --background:        oklch(0.13 0.07 288);
+  --surface:           oklch(0.22 0.09 288 / 0.55);
+  --surface-elevated:  oklch(0.28 0.11 288 / 0.72);
+  --foreground:        oklch(0.97 0.02 300);
+  --candle:            oklch(0.97 0.02 300);
+  --candle-muted:      oklch(0.82 0.05 295 / 0.75);
+  --petal:             oklch(0.72 0.22 300);
+  --petal-soft:        oklch(0.72 0.22 300 / 0.22);
+  --lavender:          oklch(0.82 0.09 305);
+  --border:            oklch(0.85 0.08 300 / 0.14);
+  --input:             oklch(0.85 0.08 300 / 0.10);
 }
 
 .dark {
