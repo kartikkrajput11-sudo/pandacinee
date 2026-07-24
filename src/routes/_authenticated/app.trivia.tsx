@@ -245,12 +245,12 @@ function Lobby({ loading, me, partner, onStart }: { loading: boolean; me: any; p
 
       <div className="flex items-center justify-center gap-4 mb-6">
         <div className="flex flex-col items-center">
-          <AvatarImg path={me?.avatar_url} className="size-14 rounded-full border-2 border-petal/40" />
+          <AvatarImg src={me?.avatar_url} className="size-14 rounded-full border-2 border-petal/40" />
           <p className="text-xs mt-1 text-candle">{me?.display_name}</p>
         </div>
         <div className="text-2xl text-petal">vs</div>
         <div className="flex flex-col items-center">
-          <AvatarImg path={partner?.avatar_url} className="size-14 rounded-full border-2 border-border" />
+          <AvatarImg src={partner?.avatar_url} className="size-14 rounded-full border-2 border-border" />
           <p className="text-xs mt-1 text-candle">{partner?.display_name}</p>
         </div>
       </div>
@@ -285,12 +285,12 @@ function Scoreboard({ s, me, partner, hostId, partnerId }: { s: State; me: any; 
   return (
     <div className="flex items-center gap-2 text-xs">
       <div className="flex items-center gap-1.5 px-3 h-8 rounded-full bg-petal/15 border border-petal/40">
-        <AvatarImg path={me?.avatar_url} className="size-5 rounded-full" />
+        <AvatarImg src={me?.avatar_url} className="size-5 rounded-full" />
         <span className="font-serif italic text-candle">{myScore}</span>
       </div>
       <span className="text-candle-muted">·</span>
       <div className="flex items-center gap-1.5 px-3 h-8 rounded-full bg-surface border border-border">
-        <AvatarImg path={partner?.avatar_url} className="size-5 rounded-full" />
+        <AvatarImg src={partner?.avatar_url} className="size-5 rounded-full" />
         <span className="font-serif italic text-candle">{pScore}</span>
       </div>
     </div>
@@ -387,12 +387,12 @@ function RoundView({
               {isReveal && chosenByMe && !isCorrect && <XIcon className="size-4 text-red-500" />}
               {chosenByPartner && (
                 <span title={partner?.display_name} className="ml-1">
-                  <AvatarImg path={partner?.avatar_url} className="size-5 rounded-full ring-1 ring-border" />
+                  <AvatarImg src={partner?.avatar_url} className="size-5 rounded-full ring-1 ring-border" />
                 </span>
               )}
               {chosenByMe && !chosenByPartner && (
                 <span title={me?.display_name} className="ml-1">
-                  <AvatarImg path={me?.avatar_url} className="size-5 rounded-full ring-1 ring-petal/60" />
+                  <AvatarImg src={me?.avatar_url} className="size-5 rounded-full ring-1 ring-petal/60" />
                 </span>
               )}
             </button>
@@ -461,13 +461,13 @@ function FinalView({ s, me, partner, hostId, partnerId, onAgain }: {
 
       <div className="flex items-center justify-center gap-6 mb-6">
         <div className="flex flex-col items-center">
-          <AvatarImg path={me?.avatar_url} className={`size-16 rounded-full border-2 ${iWon ? "border-petal ring-4 ring-petal/20" : "border-border"}`} />
+          <AvatarImg src={me?.avatar_url} className={`size-16 rounded-full border-2 ${iWon ? "border-petal ring-4 ring-petal/20" : "border-border"}`} />
           <p className="text-xs mt-1 text-candle">{me?.display_name}</p>
           <p className="font-serif italic text-2xl text-candle">{myScore}</p>
         </div>
         <div className="text-xl text-candle-muted">·</div>
         <div className="flex flex-col items-center">
-          <AvatarImg path={partner?.avatar_url} className={`size-16 rounded-full border-2 ${!iWon && !tie ? "border-petal ring-4 ring-petal/20" : "border-border"}`} />
+          <AvatarImg src={partner?.avatar_url} className={`size-16 rounded-full border-2 ${!iWon && !tie ? "border-petal ring-4 ring-petal/20" : "border-border"}`} />
           <p className="text-xs mt-1 text-candle">{partner?.display_name}</p>
           <p className="font-serif italic text-2xl text-candle">{pScore}</p>
         </div>
