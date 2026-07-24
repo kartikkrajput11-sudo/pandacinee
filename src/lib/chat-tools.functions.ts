@@ -34,9 +34,10 @@ export const translateMessage = createServerFn({ method: "POST" })
       const cleaned = text.trim().replace(/^["'`]+|["'`]+$/g, "").trim();
       return { translation: cleaned || data.text };
     } catch (err: any) {
-      const msg = String(err?.message ?? "");
+      const msg = String(err?.message ?? err ?? "");
+      console.error("[translateMessage]", err);
       if (msg.includes("429")) throw new Error("Translator is busy — try again in a moment.");
       if (msg.includes("402")) throw new Error("AI credits exhausted.");
-      throw new Error("Couldn't translate right now.");
+      throw new Error(msg ? `Translate failed: ${msg.slice(0, 180)}` : "Couldn't translate right now.");
     }
   });
