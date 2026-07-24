@@ -72,21 +72,22 @@
 
 :root {
   --radius: 1.1rem;
-  /* Velvet Evening Glow — ORIGINAL core theme.
-     Deep aubergine velvet night, warm petal coral, candle cream.
-     Kept intentionally un-enhanced as the default fallback. */
-  --velvet: oklch(0.15 0.035 340);
-  --background: oklch(0.13 0.03 340);
-  --surface: oklch(0.20 0.045 340);
-  --surface-elevated: oklch(0.25 0.055 340);
-  --foreground: oklch(0.96 0.02 80);
-  --candle: oklch(0.96 0.02 80);
-  --candle-muted: oklch(0.82 0.035 60 / 0.72);
-  --petal: oklch(0.78 0.13 25);
-  --petal-soft: oklch(0.78 0.13 25 / 0.20);
-  --lavender: oklch(0.80 0.06 310);
-  --border: oklch(1 0 0 / 0.08);
-  --input: oklch(1 0 0 / 0.10);
+  /* Cosmic Velvet — default theme.
+     Deep indigo-violet night with a starfield, bright electric-purple
+     primary, soft lavender accents, candle-cream typography.
+     Matches the reference: pandacine.com cosmic aesthetic. */
+  --velvet:            oklch(0.13 0.06 290);
+  --background:        oklch(0.13 0.07 288);
+  --surface:           oklch(0.22 0.09 288 / 0.55);
+  --surface-elevated:  oklch(0.28 0.11 288 / 0.72);
+  --foreground:        oklch(0.97 0.02 300);
+  --candle:            oklch(0.97 0.02 300);
+  --candle-muted:      oklch(0.82 0.05 295 / 0.75);
+  --petal:             oklch(0.72 0.22 300);
+  --petal-soft:        oklch(0.72 0.22 300 / 0.22);
+  --lavender:          oklch(0.82 0.09 305);
+  --border:            oklch(0.85 0.08 300 / 0.14);
+  --input:             oklch(0.85 0.08 300 / 0.10);
 }
 
 .dark {
@@ -416,6 +417,48 @@ html.theme-anim * {
     font-variation-settings: "opsz" 96, "SOFT" 50, "WONK" 0;
   }
   h1 { font-variation-settings: "opsz" 144, "SOFT" 60, "WONK" 1; }
+}
+
+/* ============================================================
+ * DEFAULT THEME — Cosmic Velvet starfield backdrop
+ * Scoped so .dark and .light keep their own body layers.
+ * ============================================================ */
+:root:not(.dark):not(.light) body {
+  background-color: var(--background);
+  background-image:
+    radial-gradient(ellipse 70% 55% at 50% -8%,
+      color-mix(in oklab, var(--petal) 26%, transparent) 0%, transparent 62%),
+    radial-gradient(ellipse 60% 45% at 12% 18%,
+      color-mix(in oklab, var(--lavender) 20%, transparent) 0%, transparent 60%),
+    radial-gradient(ellipse 55% 45% at 88% 28%,
+      color-mix(in oklab, var(--petal) 18%, transparent) 0%, transparent 60%),
+    radial-gradient(ellipse 95% 50% at 50% 108%,
+      color-mix(in oklab, var(--lavender) 16%, transparent) 0%, transparent 65%),
+    linear-gradient(180deg,
+      oklch(0.11 0.06 290) 0%,
+      oklch(0.14 0.08 288) 55%,
+      oklch(0.12 0.07 292) 100%);
+  background-attachment: fixed;
+}
+:root:not(.dark):not(.light) body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    radial-gradient(1.2px 1.2px at 12% 18%, rgba(255,255,255,0.85), transparent 60%),
+    radial-gradient(1px 1px  at 27% 42%, rgba(255,255,255,0.55), transparent 60%),
+    radial-gradient(1.4px 1.4px at 44% 12%, rgba(230,215,255,0.9), transparent 60%),
+    radial-gradient(1px 1px  at 58% 66%, rgba(255,255,255,0.55), transparent 60%),
+    radial-gradient(1.6px 1.6px at 72% 24%, rgba(255,255,255,0.95), transparent 60%),
+    radial-gradient(1px 1px  at 82% 78%, rgba(220,205,255,0.6), transparent 60%),
+    radial-gradient(1.2px 1.2px at 91% 46%, rgba(255,255,255,0.75), transparent 60%),
+    radial-gradient(1px 1px  at 8% 82%, rgba(255,255,255,0.55), transparent 60%),
+    radial-gradient(1.3px 1.3px at 36% 88%, rgba(230,220,255,0.7), transparent 60%),
+    radial-gradient(1px 1px  at 66% 92%, rgba(255,255,255,0.5), transparent 60%);
+  opacity: 0.85;
+  mask-image: linear-gradient(180deg, black 0%, black 88%, transparent 100%);
 }
 
 
