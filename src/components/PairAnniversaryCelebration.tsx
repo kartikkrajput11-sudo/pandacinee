@@ -290,6 +290,7 @@ function MilestoneOverlay({
 
   const Icon = theme.Icon;
 
+  return (
     <div
       className="fixed inset-0 z-[9999] flex items-center justify-center px-6"
       role="dialog"
@@ -298,8 +299,9 @@ function MilestoneOverlay({
       {/* Backdrop with themed bloom */}
       <div
         className="absolute inset-0 bg-black/75 backdrop-blur-md"
-        onClick={() => setOpen(false)}
+        onClick={onClose}
       />
+
       <div
         className="absolute inset-0 pointer-events-none animate-anniv-bloom"
         style={{ background: theme.gradient }}
