@@ -305,7 +305,7 @@ function FoundersBannerToggle() {
         className={`relative w-12 h-6 rounded-full transition-colors shrink-0 ${visible ? "bg-petal" : "bg-border"} disabled:opacity-50`}
       >
         <span
-          className={`absolute top-0.5 size-5 rounded-full bg-white shadow transition-transform ${visible ? "translate-x-6" : "translate-x-0.5"}`}
+          className={`absolute top-0.5 size-5 rounded-full bg-white shadow transition-transform ${visible ? "translate-x-[1.625rem]" : "translate-x-0.5"}`}
         />
       </button>
     </div>
