@@ -4,7 +4,7 @@ import { ArrowLeft, BookHeart, Image as ImageIcon, Plus, Trash2, X } from "lucid
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
-import AvatarImg from "@/components/AvatarImg";
+import { AvatarImg } from "@/components/AvatarImg";
 
 export const Route = createFileRoute("/_authenticated/app/journal")({
   head: () => ({
