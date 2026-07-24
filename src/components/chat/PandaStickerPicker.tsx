@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { X, Search, Clock, Sparkles } from "lucide-react";
-import { PANDA_STICKERS, type PandaStickerId } from "@/lib/panda-stickers";
+import { PANDA_STICKERS, PANDA_CATEGORY_ORDER, type PandaStickerId, type PandaStickerCategory } from "@/lib/panda-stickers";
+
 
 type Props = {
   open: boolean;
@@ -30,6 +31,7 @@ function pushRecent(id: PandaStickerId) {
 export function PandaStickerPicker({ open, onClose, onPick, onOpenAi }: Props) {
   const [q, setQ] = useState("");
   const [recent, setRecent] = useState<PandaStickerId[]>([]);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => { if (open) setRecent(getRecent()); }, [open]);
 
@@ -49,9 +51,16 @@ export function PandaStickerPicker({ open, onClose, onPick, onOpenAi }: Props) {
   function pick(id: PandaStickerId) {
     pushRecent(id);
     onPick(id);
-    // stay open for rapid-fire sending
     setRecent(getRecent());
   }
+
+  function scrollToSection(id: PandaStickerCategory | "recent") {
+    const el = scrollRef.current?.querySelector(`[data-section="${id}"]`) as HTMLElement | null;
+    if (el && scrollRef.current) {
+      scrollRef.current.scrollTo({ top: el.offsetTop - scrollRef.current.offsetTop - 4, behavior: "smooth" });
+    }
+  }
+
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-50 flex items-end justify-center pointer-events-none animate-fade-in">
@@ -95,33 +104,78 @@ export function PandaStickerPicker({ open, onClose, onPick, onOpenAi }: Props) {
           </button>
         </div>
 
-        <div className="px-3 pb-3 max-h-[45vh] overflow-y-auto">
+        {/* Category tabs (hidden while searching) */}
+        {!q && (
+          <div className="px-2 pb-2 flex gap-1 overflow-x-auto no-scrollbar">
+            {recentStickers.length > 0 && (
+              <CatChip
+                emoji="🕒"
+                label="Recent"
+                onClick={() => scrollToSection("recent")}
+              />
+            )}
+            {PANDA_CATEGORY_ORDER.map((c) => (
+              <CatChip
+                key={c.id}
+                emoji={c.emoji}
+                label={c.label}
+                onClick={() => scrollToSection(c.id)}
+              />
+            ))}
+          </div>
+        )}
+
+        <div ref={scrollRef} className="px-3 pb-3 max-h-[45vh] overflow-y-auto">
           {recentStickers.length > 0 && !q && (
-            <>
-              <p className="text-[10px] uppercase tracking-[0.25em] text-candle-muted mb-1.5 mt-1 flex items-center gap-1.5">
+            <section data-section="recent" className="mb-3">
+              <p className="text-[10px] uppercase tracking-[0.25em] text-candle-muted mb-1.5 flex items-center gap-1.5">
                 <Clock className="size-3" /> Recent
               </p>
-              <div className="grid grid-cols-6 gap-1.5 mb-3">
+              <div className="grid grid-cols-6 gap-1.5">
                 {recentStickers.map((s) => (
                   <StickerBtn key={"r-" + s.id} sticker={s} onClick={() => pick(s.id)} />
                 ))}
               </div>
-              <div className="h-px bg-border/60 mb-3" />
-            </>
+            </section>
           )}
 
-          <p className="text-[10px] uppercase tracking-[0.25em] text-candle-muted mb-1.5">
-            {q ? `${filtered.length} result${filtered.length === 1 ? "" : "s"}` : "All stickers"}
-          </p>
-          <div className="grid grid-cols-6 gap-1.5">
-            {filtered.map((s) => (
-              <StickerBtn key={s.id} sticker={s} onClick={() => pick(s.id)} />
-            ))}
-          </div>
-          {filtered.length === 0 && (
-            <p className="text-center text-sm text-candle-muted py-8">No stickers match "{q}"</p>
+          {q ? (
+            <>
+              <p className="text-[10px] uppercase tracking-[0.25em] text-candle-muted mb-1.5">
+                {filtered.length} result{filtered.length === 1 ? "" : "s"}
+              </p>
+              <div className="grid grid-cols-6 gap-1.5">
+                {filtered.map((s) => (
+                  <StickerBtn key={s.id} sticker={s} onClick={() => pick(s.id)} />
+                ))}
+              </div>
+              {filtered.length === 0 && (
+                <p className="text-center text-sm text-candle-muted py-8">No stickers match "{q}"</p>
+              )}
+            </>
+          ) : (
+            PANDA_CATEGORY_ORDER.map((c) => {
+              const items = PANDA_STICKERS.filter((s) => s.category === c.id);
+              if (items.length === 0) return null;
+              return (
+                <section key={c.id} data-section={c.id} className="mb-3 last:mb-1">
+                  <div className="flex items-center gap-2 mb-1.5 mt-0.5">
+                    <span className="text-sm leading-none">{c.emoji}</span>
+                    <p className="text-[10px] uppercase tracking-[0.25em] text-candle-muted">{c.label}</p>
+                    <span className="flex-1 h-px bg-gradient-to-r from-petal/25 via-border/60 to-transparent" />
+                    <span className="text-[9px] text-candle-muted/60">{items.length}</span>
+                  </div>
+                  <div className="grid grid-cols-6 gap-1.5">
+                    {items.map((s) => (
+                      <StickerBtn key={s.id} sticker={s} onClick={() => pick(s.id)} />
+                    ))}
+                  </div>
+                </section>
+              );
+            })
           )}
         </div>
+
       </div>
     </div>
   );
@@ -146,3 +200,17 @@ function StickerBtn({ sticker, onClick }: { sticker: { id: string; url: string; 
     </button>
   );
 }
+
+function CatChip({ emoji, label, onClick }: { emoji: string; label: string; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="shrink-0 h-7 px-2.5 rounded-full bg-surface-elevated border border-border hover:border-petal/50 hover:bg-petal/10 text-[11px] text-candle flex items-center gap-1 transition-colors"
+    >
+      <span className="text-sm leading-none">{emoji}</span>
+      <span>{label}</span>
+    </button>
+  );
+}
+
