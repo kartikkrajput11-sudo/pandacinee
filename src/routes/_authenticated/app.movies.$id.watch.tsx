@@ -443,7 +443,10 @@ function CatalogWatch({ id }: { id: string }) {
   // the iframe is visible even if the load event never arrives.
   useEffect(() => {
     if (!playerLoading) return;
-    const t = window.setTimeout(() => setPlayerLoading(false), 2500);
+    // Longer grace on follower iframes: keep the "Dimming the lights" pause veil
+    // up until the embed actually finishes loading, so the follower doesn't
+    // start playing (out of sync) before its own stream is ready.
+    const t = window.setTimeout(() => setPlayerLoading(false), 12000);
     return () => window.clearTimeout(t);
   }, [playerLoading, sourceIdx, iframeKey]);
 
