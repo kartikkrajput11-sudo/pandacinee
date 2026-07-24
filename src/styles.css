@@ -104,21 +104,22 @@
 
 
 .light {
-  /* Soft lavender-blush daylight — purple melting into pink, with baby-pink accents.
-     Petal/muted deepened for legible contrast on pale pink surfaces. */
-  --velvet: #f9c9e0;
-  --background: #f4e4ef;
-  --surface: #faecf3;
-  --surface-elevated: #f6e6f1;
-  --foreground: #3a1a3a;
-  --candle: #3a1a3a;
-  --candle-muted: #7a3f75;
-  --petal: #b8266f;
-  --petal-soft: #f4c4dc;
-  --lavender: #8a5cc2;
-  --border: #e6c8dc;
-  --input: #f3dfec;
+  /* Midnight Rose — Daylight: warm ivory & blush porcelain with rose-gold + ink navy.
+     Airy, editorial, high-contrast for legibility. */
+  --velvet: #f7ecf0;
+  --background: #fbf5f2;
+  --surface: #ffffff;
+  --surface-elevated: #fdf3ef;
+  --foreground: #1a1a2e;
+  --candle: #1a1a2e;
+  --candle-muted: #5a4a5c;
+  --petal: #b8506e;
+  --petal-soft: #f7d4dd;
+  --lavender: #7a6bc4;
+  --border: #ebd8dd;
+  --input: #f5e6ea;
 }
+
 
 /* Per-group chat themes — scoped by data-group-theme on the chat root */
 [data-group-theme="sunset"] {
