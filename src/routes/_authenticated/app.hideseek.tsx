@@ -9,6 +9,7 @@ import { sfxKiss, sfxPollVote, sfxReaction } from "@/lib/sfx";
 import { toast } from "sonner";
 import { GameChat } from "@/components/games/GameChat";
 import { GroupPlayersBar } from "@/components/games/GroupPlayersBar";
+import { InviteFriendCard } from "@/components/games/InviteFriendCard";
 
 export const Route = createFileRoute("/_authenticated/app/hideseek")({
   component: HideSeekPage,
