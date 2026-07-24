@@ -90,6 +90,9 @@ function ChatBubbleImpl({
   const [actionsOpen, setActionsOpen] = useState(false);
   const [actionsClosing, setActionsClosing] = useState(false);
   const [vanishOpen, setVanishOpen] = useState(false);
+  const [translateOpen, setTranslateOpen] = useState(false);
+  const [translation, setTranslation] = useState<{ lang: string; text: string } | null>(null);
+  const [translating, setTranslating] = useState(false);
   const closeTimerRef = useRef<number | null>(null);
   const idleTimerRef = useRef<number | null>(null);
 
