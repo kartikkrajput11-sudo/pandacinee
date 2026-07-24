@@ -248,3 +248,58 @@ export const generateLoveQuiz = createServerFn({ method: "POST" })
     }
   });
 
+/** Couple's Trivia: mixed-category trivia rounds with a correct answer. */
+const TriviaQuestion = z.object({
+  q: z.string().min(6),
+  options: z.array(z.string().min(1)).length(4),
+  answer: z.number().int().min(0).max(3),
+  category: z.enum(["general", "movies", "music", "love", "science", "geography", "food", "history"]),
+});
+const TriviaSchema = z.object({ questions: z.array(TriviaQuestion).min(6).max(12) });
+
+export const generateCoupleTrivia = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ rounds: z.number().int().min(6).max(12).default(8), seed: z.number().int().optional() }).parse(input),
+  )
+  .handler(async ({ data }) => {
+    const { provider, model: modelId } = createGameAiProvider();
+    const seed = data.seed ?? Math.floor(Math.random() * 1_000_000);
+    const rounds = data.rounds;
+
+    const system =
+      "You generate fun, factual multiple-choice trivia for two people to play against each other. Mix categories. Never include controversial, offensive, or ambiguous questions. The 'answer' field is the index (0-3) of the ONE correct option. Always respond with valid JSON only, no prose, no code fences.";
+    const prompt = `Return ONLY a JSON object like {"questions":[{"q":"...","options":["a","b","c","d"],"answer":0,"category":"movies"}, ...]} with exactly ${rounds} trivia questions. Rotate through these categories: general, movies, music, love, science, geography, food, history. Include 1-2 "love" category ones (fun romantic/relationship trivia, sweet not spicy). Options 1-4 words each. Questions under 18 words, factually correct, one unambiguous answer. Seed:${seed}.`;
+
+    try {
+      const { output } = await generateText({
+        model: provider(modelId),
+        system,
+        prompt,
+        output: Output.object({ schema: TriviaSchema as z.ZodType<any> }),
+      });
+      return { trivia: output, seed };
+    } catch (err: any) {
+      const msg = String(err?.message ?? "");
+      if (msg.includes("429")) throw new Error("AI is busy — try again in a moment.");
+      if (msg.includes("402")) throw new Error("AI credits exhausted. Add credits to keep playing.");
+      // Fallback bank so the game is always playable
+      return {
+        trivia: {
+          questions: [
+            { q: "Which planet has the most moons?", options: ["Jupiter", "Saturn", "Uranus", "Neptune"], answer: 1, category: "science" as const },
+            { q: "Who painted the Mona Lisa?", options: ["Michelangelo", "Da Vinci", "Raphael", "Donatello"], answer: 1, category: "history" as const },
+            { q: "What is the capital of Australia?", options: ["Sydney", "Melbourne", "Canberra", "Perth"], answer: 2, category: "geography" as const },
+            { q: "In Titanic, what does Rose promise?", options: ["To marry", "Never let go", "To return", "To forget"], answer: 1, category: "movies" as const },
+            { q: "Which love language is 'gifts'?", options: ["First", "Second", "Third", "Fourth"], answer: 2, category: "love" as const },
+            { q: "Bohemian Rhapsody band?", options: ["Queen", "The Who", "Led Zeppelin", "Kiss"], answer: 0, category: "music" as const },
+            { q: "Sushi originated where?", options: ["China", "Japan", "Korea", "Thailand"], answer: 1, category: "food" as const },
+            { q: "How many hearts does an octopus have?", options: ["1", "2", "3", "4"], answer: 2, category: "science" as const },
+          ],
+        },
+        seed,
+      };
+    }
+  });
+
+
