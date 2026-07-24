@@ -49,6 +49,14 @@ import peach from "@/assets/stickers/panda-peach.png";
 import cuffs from "@/assets/stickers/panda-cuffs.png";
 import unwrap from "@/assets/stickers/panda-unwrap.png";
 import thirsty from "@/assets/stickers/panda-thirsty.png";
+import bedroomEyes from "@/assets/stickers/panda-bedroom-eyes.png";
+import comehere from "@/assets/stickers/panda-comehere.png";
+import duoNeckkiss from "@/assets/stickers/panda-duo-neckkiss.png";
+import dnd from "@/assets/stickers/panda-dnd.png";
+import duoSpoon from "@/assets/stickers/panda-duo-spoon.png";
+import rose from "@/assets/stickers/panda-rose.png";
+import fanning from "@/assets/stickers/panda-fanning.png";
+import behave from "@/assets/stickers/panda-behave.png";
 
 export type PandaStickerCategory = "love" | "joy" | "celebrate" | "wow" | "greet" | "chill" | "sad" | "partners" | "adult";
 
@@ -60,7 +68,8 @@ export type PandaStickerId =
   | "cake" | "salute" | "facepalm" | "shrug" | "flex" | "gamer"
   | "duo-hug" | "duo-kiss" | "duo-hands" | "duo-dance" | "duo-cozy" | "duo-selfie" | "duo-heart" | "duo-highfive"
   | "duo-lipkiss" | "duo-bed" | "duo-dip" | "flirt" | "bath" | "tease"
-  | "peach" | "cuffs" | "unwrap" | "thirsty";
+  | "peach" | "cuffs" | "unwrap" | "thirsty"
+  | "bedroom-eyes" | "comehere" | "duo-neckkiss" | "dnd" | "duo-spoon" | "rose" | "fanning" | "behave";
 
 export const PANDA_STICKERS: { id: PandaStickerId; url: string; label: string; category: PandaStickerCategory }[] = [
   // 💞 Partners (duo pandas)
@@ -130,6 +139,14 @@ export const PANDA_STICKERS: { id: PandaStickerId; url: string; label: string; c
   { id: "cuffs",        url: cuffs,       label: "Cuff me",       category: "adult" },
   { id: "unwrap",       url: unwrap,      label: "Unwrap me",     category: "adult" },
   { id: "thirsty",      url: thirsty,     label: "Hot & bothered", category: "adult" },
+  { id: "bedroom-eyes", url: bedroomEyes, label: "Bedroom eyes",  category: "adult" },
+  { id: "comehere",     url: comehere,    label: "Come here",     category: "adult" },
+  { id: "duo-neckkiss", url: duoNeckkiss, label: "Neck kiss",     category: "adult" },
+  { id: "duo-spoon",    url: duoSpoon,    label: "Big spoon",     category: "adult" },
+  { id: "dnd",          url: dnd,         label: "Do not disturb", category: "adult" },
+  { id: "rose",         url: rose,        label: "Rose for you",  category: "adult" },
+  { id: "fanning",      url: fanning,     label: "Flustered",     category: "adult" },
+  { id: "behave",       url: behave,      label: "Behave 😏",     category: "adult" },
 ];
 
 export const ADULT_CATEGORY: PandaStickerCategory = "adult";
