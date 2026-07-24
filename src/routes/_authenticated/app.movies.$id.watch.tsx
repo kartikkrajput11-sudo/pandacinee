@@ -978,12 +978,24 @@ function CatalogWatch({ id }: { id: string }) {
   return (
     <div className={`relative min-h-screen pt-6 pb-24 transition-colors duration-500 ${cinemaMode ? "bg-black" : ""}`}>
       {cinemaMode && (
-        <button
-          onClick={() => setCinemaMode(false)}
-          className="fixed top-4 right-4 z-[60] h-9 px-3 rounded-full bg-black/80 border border-white/10 text-white/80 hover:text-white text-[10px] uppercase tracking-[0.3em] flex items-center gap-1.5 backdrop-blur"
-        >
-          <X className="size-3" /> Exit cinema
-        </button>
+        <div className="fixed top-4 right-4 z-[60] flex items-center gap-2">
+          {partner && (
+            <Link
+              to="/app/chat/$peerId"
+              params={{ peerId: partner.id }}
+              className="h-9 px-3 rounded-full bg-black/80 border border-white/10 text-white/80 hover:text-petal hover:border-petal/40 text-[10px] uppercase tracking-[0.3em] flex items-center gap-1.5 backdrop-blur"
+              title="Whisper in chat"
+            >
+              <MessageCircle className="size-3" /> Chat
+            </Link>
+          )}
+          <button
+            onClick={() => setCinemaMode(false)}
+            className="h-9 px-3 rounded-full bg-black/80 border border-white/10 text-white/80 hover:text-white text-[10px] uppercase tracking-[0.3em] flex items-center gap-1.5 backdrop-blur"
+          >
+            <X className="size-3" /> Exit cinema
+          </button>
+        </div>
       )}
       {/* Ambient backdrop glow (episode-aware on series) */}
       {backdropUrl && (
