@@ -21,7 +21,8 @@ import { getAdminStats, getRecentActivity, getAdminUsers, deleteAdminUser, admin
 import { AvatarImg } from "@/components/AvatarImg";
 import AnimationsTab from "@/components/admin/AnimationsTab";
 import BroadcastTab from "@/components/admin/BroadcastTab";
-import { Wand2, Megaphone } from "lucide-react";
+import StickersTab from "@/components/admin/StickersTab";
+import { Wand2, Megaphone, Smile as StickerIcon } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/app/tamanna")({
   component: AdminPage,
@@ -130,7 +131,7 @@ function AdminPage() {
   return <AdminDashboard />;
 }
 
-type Tab = "overview" | "activity" | "users" | "library" | "animations" | "broadcast";
+type Tab = "overview" | "activity" | "users" | "library" | "animations" | "broadcast" | "stickers";
 
 function AdminDashboard() {
   const [tab, setTab] = useState<Tab>("overview");
@@ -156,6 +157,7 @@ function AdminDashboard() {
           ["activity", ActivityIcon, "Activity"],
           ["users", Users, "Users"],
           ["library", Film, "Library"],
+          ["stickers", StickerIcon, "Stickers"],
           ["animations", Wand2, "Animations"],
           ["broadcast", Megaphone, "Broadcast"],
         ] as const).map(([k, Icon, label]) => {
@@ -181,6 +183,7 @@ function AdminDashboard() {
       {tab === "activity" && <ActivityTab />}
       {tab === "users" && <UsersTab />}
       {tab === "library" && <LibraryTab />}
+      {tab === "stickers" && <StickersTab />}
       {tab === "animations" && <AnimationsTab />}
       {tab === "broadcast" && <BroadcastTab />}
     </div>
