@@ -179,6 +179,7 @@ function Home() {
           <TileLink to="/app/memories" Icon={BookHeart} label="Memories" caption="Your archive" />
           <TileLink to="/app/anniversary" Icon={Heart} label="Anniversary" caption="Just for us" />
           <TileLink to="/app/wishlist" Icon={Gift} label="Wishlist" caption="Little dreams" />
+          <TileLink to="/app/coupons" Icon={Heart} label="Coupons" caption="Sweet favors" />
         </div>
       </section>
 
