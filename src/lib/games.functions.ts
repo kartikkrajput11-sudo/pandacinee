@@ -255,12 +255,12 @@ const TriviaQuestion = z.object({
   answer: z.number().int().min(0).max(3),
   category: z.enum(["general", "movies", "music", "love", "science", "geography", "food", "history"]),
 });
-const TriviaSchema = z.object({ questions: z.array(TriviaQuestion).min(6).max(12) });
+const TriviaSchema = z.object({ questions: z.array(TriviaQuestion).min(5).max(50) });
 
 export const generateCoupleTrivia = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
-    z.object({ rounds: z.number().int().min(6).max(12).default(8), seed: z.number().int().optional() }).parse(input),
+    z.object({ rounds: z.number().int().min(5).max(50).default(8), seed: z.number().int().optional() }).parse(input),
   )
   .handler(async ({ data }) => {
     const { provider, model: modelId } = createGameAiProvider();

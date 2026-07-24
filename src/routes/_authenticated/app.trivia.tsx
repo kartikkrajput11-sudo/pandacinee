@@ -61,7 +61,7 @@ function emptyState(): State {
     startedAt: null,
     picks: {},
     scores: {},
-    rounds: 8,
+    rounds: 10,
     seed: 0,
   };
 }
@@ -122,15 +122,41 @@ function TriviaPage() {
     setLoading(true);
     try {
       gameSfx.spin();
-      const res = await generateCoupleTrivia({ data: { rounds } });
+      const poolKey = `trivia-pool:${session.host_id}:${session.partner_id}`;
+      type Pool = { questions: Q[]; usedHashes: string[]; seed: number };
+      const hashQ = (q: Q) => `${q.q}::${q.answer}`;
+      let pool: Pool | null = null;
+      try {
+        const raw = localStorage.getItem(poolKey);
+        if (raw) pool = JSON.parse(raw) as Pool;
+      } catch { /* ignore */ }
+
+      // Determine unseen questions in current pool
+      let unseen: Q[] = pool
+        ? pool.questions.filter((q) => !pool!.usedHashes.includes(hashQ(q)))
+        : [];
+
+      // If pool missing or not enough unseen, fetch a fresh batch of 50
+      if (!pool || unseen.length < rounds) {
+        const res = await generateCoupleTrivia({ data: { rounds: 50 } });
+        pool = { questions: res.trivia.questions as Q[], usedHashes: [], seed: res.seed };
+        unseen = [...pool.questions];
+      }
+
+      // Shuffle & take `rounds` distinct questions
+      const shuffled = [...unseen].sort(() => Math.random() - 0.5);
+      const picked = shuffled.slice(0, rounds);
+      pool.usedHashes = [...pool.usedHashes, ...picked.map(hashQ)];
+      try { localStorage.setItem(poolKey, JSON.stringify(pool)); } catch { /* ignore quota */ }
+
       await patch({
         ...emptyState(),
         phase: "playing",
-        questions: res.trivia.questions as Q[],
+        questions: picked,
         index: 0,
         startedAt: Date.now(),
         rounds,
-        seed: res.seed,
+        seed: pool.seed,
       });
     } catch (e: any) {
       toast.error(e?.message ?? "Failed to generate trivia");
@@ -138,6 +164,7 @@ function TriviaPage() {
       setLoading(false);
     }
   }
+
 
   async function submitPick(choice: number) {
     if (!session || !me) return;
@@ -242,7 +269,7 @@ function TriviaPage() {
 
 
 function Lobby({ loading, me, partner, onStart }: { loading: boolean; me: any; partner: any; onStart: (r: number) => void }) {
-  const [rounds, setRounds] = useState(8);
+  const [rounds, setRounds] = useState(10);
   return (
     <div className="rounded-3xl bg-gradient-to-br from-petal/10 via-surface to-surface border border-petal/30 p-8 text-center">
       <div className="size-16 rounded-2xl bg-petal/20 mx-auto flex items-center justify-center mb-4">
@@ -268,13 +295,14 @@ function Lobby({ loading, me, partner, onStart }: { loading: boolean; me: any; p
 
       <p className="text-[10px] uppercase tracking-[0.25em] text-candle-muted mb-2">Rounds</p>
       <div className="flex justify-center gap-2 mb-6">
-        {[6, 8, 10, 12].map((r) => (
+        {[10, 20, 30, 50].map((r) => (
           <button key={r} onClick={() => setRounds(r)}
             className={`h-10 w-14 rounded-2xl border text-sm ${rounds === r ? "bg-petal/20 border-petal/60 text-candle" : "bg-surface-elevated border-border text-candle-muted"}`}>
             {r}
           </button>
         ))}
       </div>
+
 
       <button
         onClick={() => onStart(rounds)}
