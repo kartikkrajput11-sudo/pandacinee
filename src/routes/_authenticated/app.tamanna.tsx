@@ -136,38 +136,83 @@ type Tab = "overview" | "activity" | "users" | "library" | "animations" | "broad
 function AdminDashboard() {
   const [tab, setTab] = useState<Tab>("overview");
 
+  const sections: { key: Tab; icon: typeof LayoutDashboard; label: string; hint: string; accent: string }[] = [
+    { key: "overview",   icon: LayoutDashboard, label: "Overview",   hint: "Realm health",       accent: "from-rose-400/25 to-amber-300/10" },
+    { key: "activity",   icon: ActivityIcon,    label: "Activity",   hint: "Live pulse",         accent: "from-emerald-400/25 to-cyan-300/10" },
+    { key: "users",      icon: Users,           label: "Users",      hint: "People & pairs",     accent: "from-violet-400/25 to-fuchsia-300/10" },
+    { key: "library",    icon: Film,            label: "Library",    hint: "Movies & shows",     accent: "from-amber-400/25 to-rose-300/10" },
+    { key: "stickers",   icon: StickerIcon,     label: "Stickers",   hint: "Panda pack",         accent: "from-pink-400/25 to-rose-300/10" },
+    { key: "animations", icon: Wand2,           label: "Animations", hint: "Preview effects",    accent: "from-indigo-400/25 to-sky-300/10" },
+    { key: "broadcast",  icon: Megaphone,       label: "Broadcast",  hint: "Notify everyone",    accent: "from-orange-400/25 to-rose-300/10" },
+  ];
+
+  const active = sections.find((s) => s.key === tab)!;
+
   return (
-    <div className="pt-8 px-4 pb-24 max-w-5xl mx-auto">
-      <header className="flex items-center gap-3 mb-5">
-        <Link to="/app/me" className="text-candle-muted"><ArrowLeft className="size-5" /></Link>
-        <div className="flex-1 min-w-0">
-          <p className="text-[10px] uppercase tracking-widest text-petal flex items-center gap-1.5">
-            <ShieldCheck className="size-3" /> Admin console
-          </p>
-          <h1 className="font-serif text-3xl italic truncate">Pandacine HQ</h1>
+    <div className="pt-6 px-4 pb-24 max-w-6xl mx-auto">
+      {/* Hero header */}
+      <header className="relative overflow-hidden rounded-3xl border border-border/60 bg-gradient-to-br from-surface/80 via-surface/40 to-transparent backdrop-blur-xl p-5 sm:p-6 mb-6">
+        <div className="absolute -top-24 -right-16 size-64 rounded-full bg-petal/20 blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-20 -left-10 size-56 rounded-full bg-amber-400/10 blur-3xl pointer-events-none" />
+        <div className="relative flex items-center gap-3">
+          <Link to="/app/me" className="size-10 rounded-full border border-border bg-surface/60 flex items-center justify-center text-candle-muted hover:text-candle transition">
+            <ArrowLeft className="size-4" />
+          </Link>
+          <div className="flex-1 min-w-0">
+            <p className="text-[10px] uppercase tracking-[0.24em] text-petal flex items-center gap-1.5">
+              <ShieldCheck className="size-3" /> Admin console
+            </p>
+            <h1 className="font-serif text-3xl sm:text-4xl italic leading-tight truncate">Pandacine HQ</h1>
+            <p className="text-xs text-candle-muted mt-1">
+              Signed in as steward · <span className="text-candle/80">{active.label}</span>
+            </p>
+          </div>
+          <div className="hidden sm:flex flex-col items-end text-right">
+            <div className="text-[10px] uppercase tracking-widest text-candle-muted">Current view</div>
+            <div className="font-serif italic text-lg">{active.hint}</div>
+          </div>
         </div>
       </header>
 
       <FoundersBannerToggle />
 
-
-      <nav className="flex gap-1 mb-6 -mx-1 px-1 overflow-x-auto no-scrollbar sticky top-0 z-10 bg-background/80 backdrop-blur pt-1 pb-2">
-        {([
-          ["overview", LayoutDashboard, "Overview"],
-          ["activity", ActivityIcon, "Activity"],
-          ["users", Users, "Users"],
-          ["library", Film, "Library"],
-          ["stickers", StickerIcon, "Stickers"],
-          ["animations", Wand2, "Animations"],
-          ["broadcast", Megaphone, "Broadcast"],
-        ] as const).map(([k, Icon, label]) => {
-          const active = tab === k;
+      {/* Section grid — visible on md+, compact chip strip on mobile */}
+      <div className="hidden md:grid grid-cols-4 lg:grid-cols-7 gap-2.5 mb-6">
+        {sections.map(({ key, icon: Icon, label, hint, accent }) => {
+          const isActive = tab === key;
           return (
             <button
-              key={k}
-              onClick={() => setTab(k as Tab)}
+              key={key}
+              onClick={() => setTab(key)}
+              className={`group relative overflow-hidden rounded-2xl border p-3 text-left transition-all ${
+                isActive
+                  ? "border-petal/60 bg-surface shadow-xl shadow-petal/10 -translate-y-0.5"
+                  : "border-border/60 bg-surface/50 hover:border-petal/40 hover:bg-surface/80"
+              }`}
+            >
+              <div className={`absolute inset-0 bg-gradient-to-br ${accent} opacity-0 group-hover:opacity-100 transition-opacity ${isActive ? "opacity-100" : ""}`} />
+              <div className="relative">
+                <div className={`size-8 rounded-xl flex items-center justify-center mb-2 transition ${isActive ? "bg-petal text-velvet" : "bg-background/60 text-candle-muted group-hover:text-candle"}`}>
+                  <Icon className="size-4" />
+                </div>
+                <div className="text-[13px] font-semibold text-candle">{label}</div>
+                <div className="text-[10px] text-candle-muted tracking-wide">{hint}</div>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Mobile chip nav */}
+      <nav className="md:hidden flex gap-1.5 mb-5 -mx-1 px-1 overflow-x-auto no-scrollbar sticky top-0 z-10 bg-background/85 backdrop-blur-xl py-2 rounded-2xl">
+        {sections.map(({ key, icon: Icon, label }) => {
+          const isActive = tab === key;
+          return (
+            <button
+              key={key}
+              onClick={() => setTab(key)}
               className={`shrink-0 h-9 px-3.5 rounded-full flex items-center gap-1.5 text-xs font-semibold transition-colors ${
-                active
+                isActive
                   ? "bg-petal text-velvet shadow-lg shadow-petal/30"
                   : "bg-surface border border-border text-candle-muted hover:text-candle"
               }`}
@@ -179,13 +224,24 @@ function AdminDashboard() {
         })}
       </nav>
 
-      {tab === "overview" && <OverviewTab />}
-      {tab === "activity" && <ActivityTab />}
-      {tab === "users" && <UsersTab />}
-      {tab === "library" && <LibraryTab />}
-      {tab === "stickers" && <StickersTab />}
-      {tab === "animations" && <AnimationsTab />}
-      {tab === "broadcast" && <BroadcastTab />}
+      {/* Section header */}
+      <div className="flex items-baseline justify-between gap-3 mb-4 px-1">
+        <div>
+          <p className="text-[10px] uppercase tracking-[0.24em] text-petal">{active.hint}</p>
+          <h2 className="font-serif italic text-2xl">{active.label}</h2>
+        </div>
+        <div className="text-[10px] text-candle-muted uppercase tracking-widest">§ {sections.findIndex((s) => s.key === tab) + 1} / {sections.length}</div>
+      </div>
+
+      <div className="rounded-3xl border border-border/50 bg-surface/30 backdrop-blur-sm p-4 sm:p-6">
+        {tab === "overview" && <OverviewTab />}
+        {tab === "activity" && <ActivityTab />}
+        {tab === "users" && <UsersTab />}
+        {tab === "library" && <LibraryTab />}
+        {tab === "stickers" && <StickersTab />}
+        {tab === "animations" && <AnimationsTab />}
+        {tab === "broadcast" && <BroadcastTab />}
+      </div>
     </div>
   );
 }
