@@ -789,7 +789,7 @@ function Intro({
         </button>
       </div>
 
-      <InviteFriendCard game="hideseek" />
+      <InviteFriendCard game="hide-seek" />
 
       {!hasPartner && (
         <p className="text-[11px] text-candle-muted">Pair with a partner to play across any distance — or invite a friend above.</p>
