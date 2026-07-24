@@ -8,6 +8,7 @@ import { LudoWinAnimation } from "@/components/ludo/LudoWinAnimation";
 import { GameChat } from "@/components/games/GameChat";
 import { sfxLudoDiceRoll, sfxLudoHop, sfxLudoCapture, sfxLudoHome, sfxLudoWin } from "@/lib/sfx";
 import { GroupPlayersBar } from "@/components/games/GroupPlayersBar";
+import { InviteFriendCard } from "@/components/games/InviteFriendCard";
 
 import { useProfile } from "@/hooks/useProfile";
 import { useMatchOpponent } from "@/hooks/useMatchOpponent";
