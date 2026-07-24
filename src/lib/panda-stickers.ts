@@ -62,8 +62,20 @@ import bedhead from "@/assets/stickers/panda-bedhead.png";
 import petals from "@/assets/stickers/panda-petals.png";
 import candlebath from "@/assets/stickers/panda-candlebath.png";
 import lipmark from "@/assets/stickers/panda-lipmark.png";
+import devil from "@/assets/stickers/panda-devil.png";
+import scheme from "@/assets/stickers/panda-scheme.png";
+import sneaky from "@/assets/stickers/panda-sneaky.png";
+import peek from "@/assets/stickers/panda-peek.png";
+import innocent from "@/assets/stickers/panda-innocent.png";
+import swoon from "@/assets/stickers/panda-swoon.png";
+import simp from "@/assets/stickers/panda-simp.png";
+import slowclap from "@/assets/stickers/panda-slowclap.png";
+import eyeroll from "@/assets/stickers/panda-eyeroll.png";
+import duoMilkshake from "@/assets/stickers/panda-duo-milkshake.png";
+import duoPiggyback from "@/assets/stickers/panda-duo-piggyback.png";
+import duoForeheadkiss from "@/assets/stickers/panda-duo-foreheadkiss.png";
 
-export type PandaStickerCategory = "love" | "joy" | "celebrate" | "wow" | "greet" | "chill" | "sad" | "partners" | "adult";
+export type PandaStickerCategory = "love" | "joy" | "playful" | "celebrate" | "wow" | "greet" | "chill" | "sad" | "partners" | "adult";
 
 export type PandaStickerId =
   | "happy" | "love" | "sad" | "laugh" | "wink" | "kiss"
@@ -75,7 +87,9 @@ export type PandaStickerId =
   | "duo-lipkiss" | "duo-bed" | "duo-dip" | "flirt" | "bath" | "tease"
   | "peach" | "cuffs" | "unwrap" | "thirsty"
   | "bedroom-eyes" | "comehere" | "duo-neckkiss" | "dnd" | "duo-spoon" | "rose" | "fanning" | "behave"
-  | "robe" | "bedhead" | "petals" | "candlebath" | "lipmark";
+  | "robe" | "bedhead" | "petals" | "candlebath" | "lipmark"
+  | "devil" | "scheme" | "sneaky" | "peek" | "innocent" | "swoon" | "simp" | "slowclap" | "eyeroll"
+  | "duo-milkshake" | "duo-piggyback" | "duo-foreheadkiss";
 
 export const PANDA_STICKERS: { id: PandaStickerId; url: string; label: string; category: PandaStickerCategory }[] = [
   // 💞 Partners (duo pandas)
@@ -103,6 +117,20 @@ export const PANDA_STICKERS: { id: PandaStickerId; url: string; label: string; c
   { id: "cool",         url: cool,        label: "Cool",          category: "joy" },
   { id: "proud",        url: proud,       label: "Proud",         category: "joy" },
   { id: "flex",         url: flex,        label: "Strong",        category: "joy" },
+
+  // 😜 Playful
+  { id: "devil",           url: devil,           label: "Lil devil",     category: "playful" },
+  { id: "scheme",          url: scheme,          label: "Scheming",      category: "playful" },
+  { id: "sneaky",          url: sneaky,          label: "Sneaky",        category: "playful" },
+  { id: "peek",            url: peek,            label: "Peek-a-boo",    category: "playful" },
+  { id: "innocent",        url: innocent,        label: "Innocent",      category: "playful" },
+  { id: "swoon",           url: swoon,           label: "Swoon",         category: "playful" },
+  { id: "simp",            url: simp,            label: "Smitten",       category: "playful" },
+  { id: "slowclap",        url: slowclap,        label: "Slow clap",     category: "playful" },
+  { id: "eyeroll",         url: eyeroll,         label: "Eye roll",      category: "playful" },
+  { id: "duo-milkshake",   url: duoMilkshake,    label: "Shared shake",  category: "playful" },
+  { id: "duo-piggyback",   url: duoPiggyback,    label: "Piggyback",     category: "playful" },
+  { id: "duo-foreheadkiss",url: duoForeheadkiss, label: "Forehead kiss", category: "playful" },
 
   // 🎉 Celebrate
   { id: "party",        url: party,       label: "Party",         category: "celebrate" },
@@ -166,6 +194,7 @@ export const PANDA_CATEGORY_ORDER: { id: PandaStickerCategory; label: string; em
   { id: "partners",  label: "Partners",  emoji: "💞" },
   { id: "love",      label: "Love",      emoji: "❤️" },
   { id: "joy",       label: "Joy",       emoji: "😊" },
+  { id: "playful",   label: "Playful",   emoji: "😜" },
   { id: "celebrate", label: "Celebrate", emoji: "🎉" },
   { id: "wow",       label: "Wow",       emoji: "🤯" },
   { id: "greet",     label: "Greet",     emoji: "👋" },
