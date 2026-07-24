@@ -7,7 +7,7 @@ import { DailyQuestionCard } from "@/components/DailyQuestionCard";
 import { PartnerPresenceCard } from "@/components/PartnerPresenceCard";
 
 import { MemoryOfTheDayCard } from "@/components/MemoryOfTheDayCard";
-import { Heart, ArrowRight, Users, LineChart, Clapperboard, BookHeart, Gift, Feather, Sparkles, Stars, Milestone, ListChecks, Compass } from "lucide-react";
+import { Heart, ArrowRight, Users, LineChart, Clapperboard, BookHeart, Gift, Feather, Sparkles, Stars, Milestone, ListChecks, Compass, MapPin } from "lucide-react";
 import { AvatarImg } from "@/components/AvatarImg";
 import NotificationCenter from "@/components/NotificationCenter";
 import { EditorialPageHeader, EditorialSectionHeader } from "@/components/editorial/SectionHeader";
@@ -180,6 +180,7 @@ function Home() {
           <TileLink to="/app/anniversary" Icon={Heart} label="Anniversary" caption="Just for us" />
           <TileLink to="/app/wishlist" Icon={Gift} label="Wishlist" caption="Little dreams" />
           <TileLink to="/app/coupons" Icon={Heart} label="Coupons" caption="Sweet favors" />
+          <TileLink to="/app/bucket" Icon={MapPin} label="Bucket List" caption="Dreams together" />
         </div>
       </section>
 
