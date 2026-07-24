@@ -235,6 +235,15 @@ function DailyChallenge() {
           <p className="mt-3 text-xs text-petal text-center">All achievements unlocked ✨</p>
         )}
       </div>
+      {me && partner && (
+        <GameChat
+          roomKey={`daily:${[me.id, partner.id].sort().join(":")}`}
+          me={me}
+          partnerName={partner.display_name}
+          title="Daily chat"
+        />
+      )}
     </div>
   );
 }
+
