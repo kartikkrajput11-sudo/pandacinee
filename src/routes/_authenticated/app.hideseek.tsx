@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { GameBackLink } from "@/components/games/GameBackLink";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { ArrowLeft, RotateCcw, Eye, EyeOff, Sparkles, Users, Wifi, MessageCircle, Lock } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
@@ -611,9 +612,9 @@ function HideSeekPage() {
 
       <div className="relative pt-10 px-5 pb-24 max-w-xl mx-auto">
         <header className="flex items-center justify-between mb-6">
-          <Link to="/app/play" className="text-candle-muted hover:text-candle transition-colors">
+          <GameBackLink className="text-candle-muted hover:text-candle transition-colors">
             <ArrowLeft className="size-5" />
-          </Link>
+          </GameBackLink>
           <div className="text-center">
             <p className="text-[10px] uppercase tracking-[0.28em] text-petal">Panda parlour game</p>
             <h1 className="font-serif text-2xl italic mt-0.5">Hide &amp; Seek</h1>

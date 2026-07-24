@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { GameBackLink } from "@/components/games/GameBackLink";
 import { useEffect, useState } from "react";
 import { ArrowLeft, History, RefreshCw, Send, SkipForward, Sparkles } from "lucide-react";
 import { toast } from "sonner";
@@ -123,9 +124,9 @@ function GameRoute() {
   if (!partner) {
     return (
       <div className="pt-10 px-5">
-        <Link to="/app/play" className="text-candle-muted text-sm flex items-center gap-2 mb-4">
+        <GameBackLink className="text-candle-muted text-sm flex items-center gap-2 mb-4">
           <ArrowLeft className="size-4" /> Back
-        </Link>
+        </GameBackLink>
         <p className="text-sm text-candle-muted">Pair with your partner to play this game.</p>
       </div>
     );
