@@ -38,13 +38,6 @@ export function PandaStickerPicker({ open, onClose, onPick, onOpenAi }: Props) {
 
   useEffect(() => { if (open) { setRecent(getRecent()); setAdultOk(isAdultUnlocked()); } }, [open]);
 
-  const recentStickers = useMemo(
-    () => recent
-      .map((id) => allStickers.find((s) => s.id === id))
-      .filter((s): s is (typeof allStickers)[number] => !!s && (s.category !== "adult" || adultOk)),
-    [recent, adultOk, allStickers]
-  );
-
   const { hidden, customs } = useStickerOverrides();
 
   const allStickers = useMemo(() => {
@@ -57,6 +50,13 @@ export function PandaStickerPicker({ open, onClose, onPick, onOpenAi }: Props) {
     }));
     return [...builtins, ...customCat];
   }, [hidden, customs]);
+
+  const recentStickers = useMemo(
+    () => recent
+      .map((id) => allStickers.find((s) => s.id === id))
+      .filter((s): s is (typeof allStickers)[number] => !!s && (s.category !== "adult" || adultOk)),
+    [recent, adultOk, allStickers]
+  );
 
   const visibleStickers = useMemo(
     () => allStickers.filter((s) => s.category !== "adult" || adultOk),
