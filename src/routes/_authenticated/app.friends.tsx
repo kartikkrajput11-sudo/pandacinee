@@ -1,12 +1,14 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Search, UserPlus, Check, X, Video, Phone } from "lucide-react";
+import { ArrowLeft, Search, UserPlus, Check, X, Video, Phone, Gamepad2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useFriendships, useFriendActions, FriendProfile } from "@/hooks/useFriends";
 import { useProfile } from "@/hooks/useProfile";
 import { AvatarImg } from "@/components/AvatarImg";
+import { GameInvitePicker, type GamePick } from "@/components/chat/GameInvitePicker";
+
 
 export const Route = createFileRoute("/_authenticated/app/friends")({
   component: Friends,
