@@ -445,10 +445,13 @@ export function CustomMoviePlayer({ src, sources, poster, startAt, onEvent, onRe
         src={activeSrc}
         poster={poster ?? undefined}
         className="absolute inset-0 w-full h-full object-contain bg-black"
+        style={isRenderDownscale ? { maxHeight: `${activeHeightCap}px`, margin: "auto" } : undefined}
         playsInline
         preload="auto"
         onLoadedMetadata={(e) => {
           setDuration(e.currentTarget.duration || 0);
+          const h = e.currentTarget.videoHeight || 0;
+          if (h) setNativeHeight(h);
           stopBuffering();
         }}
         onLoadedData={stopBuffering}
