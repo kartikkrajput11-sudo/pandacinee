@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { GameBackLink } from "@/components/games/GameBackLink";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, Eraser, RotateCcw, Send, Sparkles, Trophy, Crown, X } from "lucide-react";
 import { toast } from "sonner";
@@ -698,9 +699,9 @@ function Scribble() {
       {matchId && <GroupPlayersBar matchId={matchId} meId={me?.id} gameName="Scribble" />}
       <header className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          <Link to="/app/play" className="text-candle-muted">
+          <GameBackLink className="text-candle-muted">
             <ArrowLeft className="size-5" />
-          </Link>
+          </GameBackLink>
           <div>
             <p className="text-[10px] uppercase tracking-widest text-petal">Multiplayer</p>
             <h1 className="font-serif text-2xl italic">Scribble & Guess</h1>

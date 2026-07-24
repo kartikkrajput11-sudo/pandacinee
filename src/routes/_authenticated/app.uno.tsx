@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { GameBackLink } from "@/components/games/GameBackLink";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, RotateCcw, Send, User, Users } from "lucide-react";
 import { toast } from "sonner";
@@ -252,9 +253,9 @@ function UnoPage() {
         <UnoAmbient />
         <div className="relative z-10 pt-10 px-5 pb-20">
           <header className="flex items-center gap-3 mb-8">
-            <Link to="/app/play" className="text-candle-muted">
+            <GameBackLink className="text-candle-muted">
               <ArrowLeft className="size-5" />
-            </Link>
+            </GameBackLink>
             <div>
               <p className="text-[10px] uppercase tracking-[0.3em] text-petal">Card salon</p>
               <h1 className="font-serif text-3xl italic">Uno, velveteen</h1>

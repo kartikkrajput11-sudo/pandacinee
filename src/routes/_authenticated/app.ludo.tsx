@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { GameBackLink } from "@/components/games/GameBackLink";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, Dice5, RotateCcw, Users, User } from "lucide-react";
 import { toast } from "sonner";
@@ -173,7 +174,7 @@ function LudoPage() {
     return (
       <div className="pt-10 px-5 max-w-md mx-auto">
         <header className="flex items-center gap-3 mb-8">
-          <Link to="/app/play" className="text-candle-muted"><ArrowLeft className="size-5" /></Link>
+          <GameBackLink className="text-candle-muted"><ArrowLeft className="size-5" /></GameBackLink>
           <div>
             <p className="text-[10px] uppercase tracking-widest text-petal">Board game</p>
             <h1 className="font-serif text-2xl italic">Ludo 🎲</h1>

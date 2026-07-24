@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { GameBackLink } from "@/components/games/GameBackLink";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, Check, Lock, Sparkles, RotateCcw, Heart, Wifi, Users } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
@@ -290,9 +291,9 @@ function KnowMePage() {
 
       <div className="relative pt-10 px-5 pb-16 max-w-xl mx-auto">
         <header className="flex items-center justify-between mb-8">
-          <Link to="/app/play" className="text-candle-muted hover:text-candle transition-colors">
+          <GameBackLink className="text-candle-muted hover:text-candle transition-colors">
             <ArrowLeft className="size-5" />
-          </Link>
+          </GameBackLink>
           <div className="text-center">
             <p className="text-[10px] uppercase tracking-[0.28em] text-petal">Couple quiz</p>
             <h1 className="font-serif text-2xl italic mt-0.5">How Well Do You Know Me?</h1>

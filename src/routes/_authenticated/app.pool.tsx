@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { GameBackLink } from "@/components/games/GameBackLink";
 import { useEffect, useMemo, useRef, useState, useCallback, type PointerEvent as ReactPointerEvent } from "react";
 import { ArrowLeft, RotateCcw, Trophy, Hand, Wifi, WifiOff } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
@@ -727,7 +728,7 @@ function PoolPage() {
 
       <header className="relative z-10 flex items-center justify-between gap-3 px-5 pt-8 pb-4 max-w-6xl mx-auto">
         <div className="flex items-center gap-3">
-          <Link to="/app/play" className="text-candle-muted"><ArrowLeft className="size-5" /></Link>
+          <GameBackLink className="text-candle-muted"><ArrowLeft className="size-5" /></GameBackLink>
           <div>
             <p className="text-[10px] uppercase tracking-widest text-petal">Salon table</p>
             <h1 className="font-serif italic text-2xl">8-Ball Pool</h1>

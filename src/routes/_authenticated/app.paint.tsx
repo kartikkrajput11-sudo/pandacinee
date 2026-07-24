@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { GameBackLink } from "@/components/games/GameBackLink";
 import { useEffect, useRef, useState } from "react";
 import {
   ArrowLeft,
@@ -601,9 +602,9 @@ function PaintTogether() {
       {matchId && <GroupPlayersBar matchId={matchId} meId={me?.id} gameName="Paint Together" />}
       <header className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          <Link to="/app/play" className="text-candle-muted">
+          <GameBackLink className="text-candle-muted">
             <ArrowLeft className="size-5" />
-          </Link>
+          </GameBackLink>
           <div>
             <p className="text-[10px] uppercase tracking-widest text-petal">Multiplayer</p>
             <h1 className="font-serif text-2xl italic">Paint Together</h1>

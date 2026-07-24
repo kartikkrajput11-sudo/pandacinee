@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { GameBackLink } from "@/components/games/GameBackLink";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, Brain, Sparkles, Trophy, RotateCw, Check, X as XIcon, Zap } from "lucide-react";
 import { toast } from "sonner";
@@ -182,9 +183,9 @@ function TriviaPage() {
   if (!partner) {
     return (
       <div className="pt-10 px-5">
-        <Link to="/app/play" className="text-candle-muted text-sm flex items-center gap-2 mb-4">
+        <GameBackLink className="text-candle-muted text-sm flex items-center gap-2 mb-4">
           <ArrowLeft className="size-4" /> Back
-        </Link>
+        </GameBackLink>
         <p className="text-sm text-candle-muted">Pair with your partner to play Couple's Trivia.</p>
       </div>
     );
@@ -199,9 +200,9 @@ function TriviaPage() {
     <div className="min-h-screen pb-10">
       <header className="sticky top-0 z-10 backdrop-blur-xl bg-background/70 border-b border-border/60">
         <div className="max-w-3xl mx-auto px-4 py-3 flex items-center gap-3">
-          <Link to="/app/play" className="size-9 rounded-full bg-surface border border-border flex items-center justify-center text-candle hover:text-petal transition-colors">
+          <GameBackLink className="size-9 rounded-full bg-surface border border-border flex items-center justify-center text-candle hover:text-petal transition-colors">
             <ArrowLeft className="size-4" />
-          </Link>
+          </GameBackLink>
           <div className="flex-1">
             <p className="text-[10px] uppercase tracking-[0.3em] text-candle-muted">Game · AI</p>
             <h1 className="text-xl font-serif italic">🧠 Couple's Trivia</h1>

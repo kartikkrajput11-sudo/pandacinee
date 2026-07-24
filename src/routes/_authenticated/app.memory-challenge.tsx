@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { GameBackLink } from "@/components/games/GameBackLink";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, Camera, Check, Flame, RotateCw, Share2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -151,9 +152,9 @@ function MemoryChallenge() {
   return (
     <div className="pt-10 px-5 pb-10">
       <header className="flex items-center gap-3 mb-6">
-        <Link to="/app/play" className="text-candle-muted">
+        <GameBackLink className="text-candle-muted">
           <ArrowLeft className="size-5" />
-        </Link>
+        </GameBackLink>
         <div>
           <p className="text-[10px] uppercase tracking-widest text-petal">Photo prompts</p>
           <h1 className="font-serif text-2xl italic">Memory Challenge</h1>
