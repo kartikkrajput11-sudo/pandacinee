@@ -153,6 +153,11 @@ export const PANDA_STICKERS: { id: PandaStickerId; url: string; label: string; c
   { id: "rose",         url: rose,        label: "Rose for you",  category: "adult" },
   { id: "fanning",      url: fanning,     label: "Flustered",     category: "adult" },
   { id: "behave",       url: behave,      label: "Behave 😏",     category: "adult" },
+  { id: "robe",         url: robe,        label: "Silk robe",     category: "adult" },
+  { id: "bedhead",      url: bedhead,     label: "Bedhead",       category: "adult" },
+  { id: "petals",       url: petals,      label: "Rose petals",   category: "adult" },
+  { id: "candlebath",   url: candlebath,  label: "Candle bath",   category: "adult" },
+  { id: "lipmark",      url: lipmark,     label: "Kiss mark",     category: "adult" },
 ];
 
 export const ADULT_CATEGORY: PandaStickerCategory = "adult";
