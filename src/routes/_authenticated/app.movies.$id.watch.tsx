@@ -1233,8 +1233,15 @@ function CatalogWatch({ id }: { id: string }) {
                 <CustomMoviePlayer
                   key={`pandacine-${iframeKey}`}
                   src={pandacine.videoSrc}
+                  sources={(() => {
+                    const extras = (pandacine.qualities ?? []).filter((q) => q.url && q.label);
+                    if (extras.length === 0) return undefined;
+                    return [
+                      { label: "Auto", src: pandacine.videoSrc },
+                      ...extras.map((q) => ({ label: q.label, src: q.url, height: q.height ?? undefined })),
+                    ];
+                  })()}
                   poster={backdropUrl}
-                  startAt={startAt}
                     locked={followerLocked}
                   onLockedAttempt={() => {
                     toast.info(`Playback is controlled by ${partnerFirst}.`, { id: "locked-attempt", duration: 1800 });
