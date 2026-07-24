@@ -352,7 +352,7 @@ function UnoPage() {
         {/* Opponent hand (face down) */}
         <div className="mb-5">
           <p className="text-[9px] uppercase tracking-widest text-candle-muted text-center mb-2">
-            {mode === "partner" ? "Panda" : "Player 2"} · {theirHand.length} cards
+            {mode === "partner" ? (partner && "display_name" in partner ? (partner.display_name ?? "Partner") : "Partner") : "Player 2"} · {theirHand.length} cards
           </p>
           <div className="flex justify-center -space-x-6">
             {theirHand.slice(0, 10).map((c, i) => (
