@@ -1326,6 +1326,48 @@ html.theme-anim * {
 }
 .animate-anniv-float { animation: anniv-float linear infinite; }
 
+@keyframes anniv-bloom {
+  0% { opacity: 0; transform: scale(1.1); }
+  60% { opacity: 1; }
+  100% { opacity: 0.9; transform: scale(1); }
+}
+.animate-anniv-bloom { animation: anniv-bloom 1.2s ease-out both; }
+
+@keyframes anniv-ray {
+  0% { opacity: 0; transform: rotate(var(--r, 0deg)) scaleY(0.4); }
+  40% { opacity: 0.8; }
+  100% { opacity: 0; transform: rotate(var(--r, 0deg)) scaleY(1.6); }
+}
+.animate-anniv-ray { animation: anniv-ray 2.4s ease-out infinite; }
+
+@keyframes anniv-halo {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
+.animate-anniv-halo { animation: anniv-halo 2.6s ease-in-out infinite; }
+
+@keyframes anniv-crown {
+  0% { opacity: 0; transform: translate(-50%, 8px) scale(0.6) rotate(-12deg); }
+  60% { opacity: 1; transform: translate(-50%, -6px) scale(1.15) rotate(6deg); }
+  100% { opacity: 1; transform: translate(-50%, -2px) scale(1) rotate(0); }
+}
+.animate-anniv-crown { animation: anniv-crown 1s cubic-bezier(0.2,0.8,0.2,1) 0.3s both; }
+
+@keyframes anniv-firework {
+  0% { transform: scale(0.4); opacity: 0; box-shadow: 0 0 0 0 currentColor; }
+  20% { opacity: 1; }
+  100% {
+    transform: scale(1);
+    opacity: 0;
+    box-shadow:
+      0 -60px 0 -4px currentColor, 0 60px 0 -4px currentColor,
+      -60px 0 0 -4px currentColor, 60px 0 0 -4px currentColor,
+      -42px -42px 0 -4px currentColor, 42px -42px 0 -4px currentColor,
+      -42px 42px 0 -4px currentColor, 42px 42px 0 -4px currentColor;
+  }
+}
+.animate-anniv-firework { animation: anniv-firework 1.6s ease-out infinite; }
+
 /* ============================================================
  * Luxury Toasts — velvet card, gilded rim, candle glow
  * ============================================================ */
