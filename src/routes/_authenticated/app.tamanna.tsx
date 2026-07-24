@@ -284,25 +284,28 @@ function FoundersBannerToggle() {
     toast.success(next ? "Founders' banner hidden site-wide" : "Founders' banner restored");
   }
 
+  const visible = hidden === null ? null : !hidden;
+
   return (
-    <div className="mb-4 p-4 rounded-2xl border border-border bg-surface flex items-center gap-3">
+    <div className="mb-6 p-4 rounded-2xl border border-border bg-surface flex items-center gap-3">
       <div className="size-10 rounded-full bg-petal-soft flex items-center justify-center shrink-0">
         <Heart className="size-4 text-petal" />
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-candle">Founders' monthiversary banner</p>
         <p className="text-[11px] text-candle-muted">
-          {hidden === null ? "Loading…" : hidden ? "Currently hidden for everyone." : "Shows every 18th at the top of the app."}
+          {visible === null ? "Loading…" : visible ? "Visible — shows every 18th at the top of the app." : "Hidden for everyone."}
         </p>
       </div>
       <button
         onClick={toggle}
-        disabled={hidden === null || saving}
-        aria-pressed={!!hidden}
-        className={`relative w-12 h-6 rounded-full transition-colors shrink-0 ${hidden ? "bg-petal" : "bg-border"} disabled:opacity-50`}
+        disabled={visible === null || saving}
+        aria-pressed={!!visible}
+        aria-label={visible ? "Hide founders' banner" : "Show founders' banner"}
+        className={`relative w-12 h-6 rounded-full transition-colors shrink-0 ${visible ? "bg-petal" : "bg-border"} disabled:opacity-50`}
       >
         <span
-          className={`absolute top-0.5 size-5 rounded-full bg-white shadow transition-transform ${hidden ? "translate-x-6" : "translate-x-0.5"}`}
+          className={`absolute top-0.5 size-5 rounded-full bg-white shadow transition-transform ${visible ? "translate-x-6" : "translate-x-0.5"}`}
         />
       </button>
     </div>
