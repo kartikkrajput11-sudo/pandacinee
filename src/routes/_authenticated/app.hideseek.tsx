@@ -3,6 +3,7 @@ import { GameBackLink } from "@/components/games/GameBackLink";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { ArrowLeft, RotateCcw, Eye, EyeOff, Sparkles, Users, Wifi, MessageCircle, Lock } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
+import { useProfileById } from "@/hooks/useProfileById";
 import { useMatchOpponent } from "@/hooks/useMatchOpponent";
 import { supabase } from "@/integrations/supabase/client";
 import { sfxKiss, sfxPollVote, sfxReaction } from "@/lib/sfx";
