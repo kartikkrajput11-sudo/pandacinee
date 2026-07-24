@@ -120,21 +120,46 @@ function LoveQuiz() {
     setSpinning(true);
     setLoading(true);
     try {
-      const hints = [
-        me?.display_name && `Player 1: ${me.display_name}`,
-        partner?.display_name && `Player 2: ${partner.display_name}`,
-        me?.favorite_emoji && `Favorite emoji: ${me.favorite_emoji}`,
-        me?.bio && `Bio: ${me.bio}`,
-      ]
-        .filter(Boolean)
-        .join(". ");
-      const res = await generateLoveQuiz({ data: { hints: hints || undefined } });
+      // Per-couple localStorage pool of 50 quiz questions; serve 5 fresh each game,
+      // auto-refill a new batch once the pool is exhausted.
+      const poolKey = `love-quiz-pool:${session.host_id}:${session.partner_id}`;
+      type Q = { q: string; options: string[]; answer: number };
+      type Pool = { questions: Q[]; usedHashes: string[]; seed: number };
+      const hashQ = (q: Q) => `${q.q}::${q.answer}`;
+      let pool: Pool | null = null;
+      try {
+        const raw = localStorage.getItem(poolKey);
+        if (raw) pool = JSON.parse(raw) as Pool;
+      } catch { /* ignore */ }
+
+      let unseen: Q[] = pool
+        ? pool.questions.filter((q) => !pool!.usedHashes.includes(hashQ(q)))
+        : [];
+
+      if (!pool || unseen.length < 5) {
+        const hints = [
+          me?.display_name && `Player 1: ${me.display_name}`,
+          partner?.display_name && `Player 2: ${partner.display_name}`,
+          me?.favorite_emoji && `Favorite emoji: ${me.favorite_emoji}`,
+          me?.bio && `Bio: ${me.bio}`,
+        ]
+          .filter(Boolean)
+          .join(". ");
+        const res = await generateLoveQuiz({ data: { hints: hints || undefined, count: 50 } });
+        pool = { questions: res.quiz.questions as Q[], usedHashes: [], seed: res.seed };
+        unseen = [...pool.questions];
+      }
+
+      const picked = [...unseen].sort(() => Math.random() - 0.5).slice(0, 5);
+      pool.usedHashes = [...pool.usedHashes, ...picked.map(hashQ)];
+      try { localStorage.setItem(poolKey, JSON.stringify(pool)); } catch { /* quota */ }
+
       const first = Math.random() < 0.5 ? session.host_id : session.partner_id;
       const seed = Math.floor(Math.random() * 1_000_000) + 1;
       // First broadcast spin seed so both phones animate together
       await patch({
         phase: "spin",
-        questions: res.quiz.questions,
+        questions: picked,
         firstPlayer: null,
         currentPlayer: null,
         answers: {},
@@ -145,7 +170,7 @@ function LoveQuiz() {
       setTimeout(() => {
         patch({
           phase: "playing",
-          questions: res.quiz.questions,
+          questions: picked,
           firstPlayer: first,
           currentPlayer: first,
           answers: {},
@@ -162,6 +187,7 @@ function LoveQuiz() {
       setLoading(false);
     }
   }
+
 
   // Auto-animate the spin on the non-initiating side when seed changes
   useEffect(() => {

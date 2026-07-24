@@ -196,7 +196,7 @@ const QuizQuestion = z.object({
   options: z.array(z.string().min(1)).length(4),
   answer: z.number().int().min(0).max(3),
 });
-const QuizSchema = z.object({ questions: z.array(QuizQuestion).length(5) });
+const QuizSchema = z.object({ questions: z.array(QuizQuestion).min(5).max(50) });
 
 export const generateLoveQuiz = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -206,16 +206,18 @@ export const generateLoveQuiz = createServerFn({ method: "POST" })
         // Optional hints: nicknames, favorites, memories the couple shared.
         hints: z.string().max(2000).optional(),
         seed: z.number().int().optional(),
+        count: z.number().int().min(5).max(50).optional(),
       })
       .parse(input),
   )
   .handler(async ({ data }) => {
     const { provider, model: modelId } = createGameAiProvider();
     const seed = data.seed ?? Math.floor(Math.random() * 1_000_000);
+    const count = data.count ?? 5;
 
     const system =
       "You generate short, warm 'how well do you know your partner' quizzes for couples. Playful, consensual, safe. Always respond with valid JSON only, no prose, no code fences.";
-    const prompt = `Return ONLY a JSON object like {"questions":[{"q":"...","options":["a","b","c","d"],"answer":0}, ...]} with exactly 5 questions. Each question has 4 concise options (2-6 words) and one correct answer index (0-3). Use general couple-relatable questions like favorites, habits, love languages, ideal dates. Keep questions under 14 words. Seed:${seed}. ${
+    const prompt = `Return ONLY a JSON object like {"questions":[{"q":"...","options":["a","b","c","d"],"answer":0}, ...]} with exactly ${count} DISTINCT questions (no duplicates or near-duplicates). Each question has 4 concise options (2-6 words) and one correct answer index (0-3). Use general couple-relatable questions like favorites, habits, love languages, ideal dates. Keep questions under 14 words. Seed:${seed}. ${
       data.hints ? `Couple hints: ${data.hints}` : ""
     }`.trim();
 
@@ -302,4 +304,58 @@ export const generateCoupleTrivia = createServerFn({ method: "POST" })
     }
   });
 
+/** Batch generator: produce a pool of N game cards for a given kind/intensity. */
+export const generateGameCardBatch = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        kind: z.enum([
+          "truth-or-dare",
+          "would-you-rather",
+          "this-or-that",
+          "never-have-i-ever",
+          "guess-me",
+          "two-truths-lie",
+          "hot-takes",
+          "emoji-riddle",
+        ]),
+        intensity: z.enum(INTENSITIES).default("playful"),
+        type: z.enum(["truth", "dare"]).optional(),
+        count: z.number().int().min(5).max(50).default(30),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data }) => {
+    const cfg = KIND_PROMPTS[data.kind];
+    const { provider, model: modelId } = createGameAiProvider();
+    const seed = Math.floor(Math.random() * 1_000_000);
+    const batchSchema = z.object({ items: z.array(cfg.schema).min(3).max(60) });
+
+    const oneShot =
+      data.kind === "truth-or-dare" && data.type && cfg.userTyped
+        ? cfg.userTyped(data.intensity, seed, data.type)
+        : cfg.user(data.intensity, seed);
+
+    const prompt = `Return ONLY a JSON object like {"items":[<card>, <card>, ...]} containing exactly ${data.count} DISTINCT cards (no duplicates or near-duplicates), each following this shape: ${oneShot} Vary vocabulary, angles, and topics across items. Seed:${seed}.`;
+
+    try {
+      const { output } = await generateText({
+        model: provider(modelId),
+        system: cfg.system,
+        prompt,
+        output: Output.object({ schema: batchSchema as z.ZodType<any> }),
+      });
+      return { cards: (output as any).items as any[], seed };
+    } catch (err: any) {
+      const msg = String(err?.message ?? "");
+      const status = err?.statusCode ?? err?.status ?? err?.response?.status;
+      if (status === 429 || /\b429\b|rate.?limit/i.test(msg))
+        throw new Error("AI is busy — try again in a moment.");
+      if (status === 402 || /\b402\b|credit|payment required|insufficient/i.test(msg))
+        throw new Error("AI credits exhausted. Ask the workspace owner to top up credits.");
+      console.error("[generateGameCardBatch] failed:", status, msg, err);
+      throw new Error(msg ? `AI error: ${msg.slice(0, 140)}` : "AI couldn't generate a batch. Try again.");
+    }
+  });
 
