@@ -40,9 +40,9 @@ export function PandaStickerPicker({ open, onClose, onPick, onOpenAi }: Props) {
 
   const recentStickers = useMemo(
     () => recent
-      .map((id) => PANDA_STICKERS.find((s) => s.id === id))
-      .filter((s): s is (typeof PANDA_STICKERS)[number] => !!s && (s.category !== "adult" || adultOk)),
-    [recent, adultOk]
+      .map((id) => allStickers.find((s) => s.id === id))
+      .filter((s): s is (typeof allStickers)[number] => !!s && (s.category !== "adult" || adultOk)),
+    [recent, adultOk, allStickers]
   );
 
   const { hidden, customs } = useStickerOverrides();
