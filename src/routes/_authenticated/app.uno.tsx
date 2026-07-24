@@ -363,9 +363,12 @@ function UnoPage() {
         </div>
 
         {/* Table: deck + discard + active color */}
-        <div className="relative rounded-[28px] p-5 border border-petal/25 bg-gradient-to-b from-petal/10 to-transparent backdrop-blur-xl mb-5">
+        <div className={`uno-table relative rounded-[28px] p-5 border bg-gradient-to-b from-petal/10 to-transparent backdrop-blur-xl mb-5 transition-all duration-500 ${
+          isMyTurn && !state.winner ? "uno-table-active border-petal/60" : "border-petal/25"
+        }`}>
           <div className="absolute inset-0 pointer-events-none rounded-[28px] opacity-30"
             style={{ background: "radial-gradient(60% 60% at 50% 50%, color-mix(in oklab, var(--petal) 25%, transparent), transparent 70%)" }} />
+
 
           {/* Turn banner — sits on the table so it's impossible to miss */}
           <div className="relative flex justify-center mb-4">
