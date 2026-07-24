@@ -122,15 +122,41 @@ function TriviaPage() {
     setLoading(true);
     try {
       gameSfx.spin();
-      const res = await generateCoupleTrivia({ data: { rounds } });
+      const poolKey = `trivia-pool:${session.host_id}:${session.partner_id}`;
+      type Pool = { questions: Q[]; usedHashes: string[]; seed: number };
+      const hashQ = (q: Q) => `${q.q}::${q.answer}`;
+      let pool: Pool | null = null;
+      try {
+        const raw = localStorage.getItem(poolKey);
+        if (raw) pool = JSON.parse(raw) as Pool;
+      } catch { /* ignore */ }
+
+      // Determine unseen questions in current pool
+      let unseen: Q[] = pool
+        ? pool.questions.filter((q) => !pool!.usedHashes.includes(hashQ(q)))
+        : [];
+
+      // If pool missing or not enough unseen, fetch a fresh batch of 50
+      if (!pool || unseen.length < rounds) {
+        const res = await generateCoupleTrivia({ data: { rounds: 50 } });
+        pool = { questions: res.trivia.questions as Q[], usedHashes: [], seed: res.seed };
+        unseen = [...pool.questions];
+      }
+
+      // Shuffle & take `rounds` distinct questions
+      const shuffled = [...unseen].sort(() => Math.random() - 0.5);
+      const picked = shuffled.slice(0, rounds);
+      pool.usedHashes = [...pool.usedHashes, ...picked.map(hashQ)];
+      try { localStorage.setItem(poolKey, JSON.stringify(pool)); } catch { /* ignore quota */ }
+
       await patch({
         ...emptyState(),
         phase: "playing",
-        questions: res.trivia.questions as Q[],
+        questions: picked,
         index: 0,
         startedAt: Date.now(),
         rounds,
-        seed: res.seed,
+        seed: pool.seed,
       });
     } catch (e: any) {
       toast.error(e?.message ?? "Failed to generate trivia");
@@ -138,6 +164,7 @@ function TriviaPage() {
       setLoading(false);
     }
   }
+
 
   async function submitPick(choice: number) {
     if (!session || !me) return;
