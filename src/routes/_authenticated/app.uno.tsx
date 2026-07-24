@@ -23,6 +23,8 @@ import {
 } from "@/lib/uno";
 import { sfxReaction, sfxPollVote, sfxKiss } from "@/lib/sfx";
 import { GroupPlayersBar } from "@/components/games/GroupPlayersBar";
+import { GameChat } from "@/components/games/GameChat";
+
 
 export const Route = createFileRoute("/_authenticated/app/uno")({
   component: UnoPage,
