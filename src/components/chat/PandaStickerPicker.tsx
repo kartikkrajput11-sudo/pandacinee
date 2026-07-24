@@ -95,7 +95,7 @@ export function PandaStickerPicker({ open, onClose, onPick, onOpenAi }: Props) {
           </button>
         </div>
 
-        <div className="px-3 pb-4 max-h-[60vh] overflow-y-auto">
+        <div className="px-3 pb-3 max-h-[45vh] overflow-y-auto">
           {recentStickers.length > 0 && !q && (
             <>
               <p className="text-[10px] uppercase tracking-[0.25em] text-candle-muted mb-1.5 mt-1 flex items-center gap-1.5">
