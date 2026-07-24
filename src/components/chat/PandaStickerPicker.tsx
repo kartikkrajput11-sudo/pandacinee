@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { X, Search, Clock, Sparkles } from "lucide-react";
-import { PANDA_STICKERS, PANDA_CATEGORY_ORDER, type PandaStickerId, type PandaStickerCategory } from "@/lib/panda-stickers";
+import { X, Search, Clock, Sparkles, Lock } from "lucide-react";
+import { PANDA_STICKERS, PANDA_CATEGORY_ORDER, isAdultUnlocked, unlockAdult, lockAdult, type PandaStickerId, type PandaStickerCategory } from "@/lib/panda-stickers";
 
 
 type Props = {
@@ -31,20 +31,29 @@ function pushRecent(id: PandaStickerId) {
 export function PandaStickerPicker({ open, onClose, onPick, onOpenAi }: Props) {
   const [q, setQ] = useState("");
   const [recent, setRecent] = useState<PandaStickerId[]>([]);
+  const [adultOk, setAdultOk] = useState(false);
+  const [showGate, setShowGate] = useState(false);
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
-  useEffect(() => { if (open) setRecent(getRecent()); }, [open]);
+  useEffect(() => { if (open) { setRecent(getRecent()); setAdultOk(isAdultUnlocked()); } }, [open]);
 
   const recentStickers = useMemo(
-    () => recent.map((id) => PANDA_STICKERS.find((s) => s.id === id)).filter(Boolean) as typeof PANDA_STICKERS,
-    [recent]
+    () => recent
+      .map((id) => PANDA_STICKERS.find((s) => s.id === id))
+      .filter((s): s is (typeof PANDA_STICKERS)[number] => !!s && (s.category !== "adult" || adultOk)),
+    [recent, adultOk]
+  );
+
+  const visibleStickers = useMemo(
+    () => PANDA_STICKERS.filter((s) => s.category !== "adult" || adultOk),
+    [adultOk]
   );
 
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase();
-    if (!term) return PANDA_STICKERS;
-    return PANDA_STICKERS.filter((s) => s.label.toLowerCase().includes(term) || s.id.includes(term));
-  }, [q]);
+    if (!term) return visibleStickers;
+    return visibleStickers.filter((s) => s.label.toLowerCase().includes(term) || s.id.includes(term));
+  }, [q, visibleStickers]);
 
   if (!open) return null;
 
