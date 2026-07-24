@@ -557,8 +557,19 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
           </div>
         </div>
 
-        {/* Trailing: send button OR voice recorder (single instance, morphs) */}
-        <div className="min-w-0 flex items-center justify-end">
+        {/* Trailing: schedule + send button OR voice recorder (single instance, morphs) */}
+        <div className="min-w-0 flex items-center justify-end gap-1.5">
+          {text.trim() && !recording && onSchedule && (
+            <button
+              type="button"
+              onClick={() => onSchedule(text)}
+              className="size-11 rounded-full bg-surface border border-border text-petal flex items-center justify-center shrink-0"
+              title="Send later"
+              aria-label="Schedule message"
+            >
+              <CalendarClock className="size-4" />
+            </button>
+          )}
           {text.trim() && !recording ? (
             <button
               type="submit"
