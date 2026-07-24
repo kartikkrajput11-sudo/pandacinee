@@ -1812,6 +1812,45 @@ export type Database = {
           },
         ]
       }
+      relationship_journal_entries: {
+        Row: {
+          author_id: string
+          body: string
+          created_at: string
+          id: string
+          mood: string | null
+          partner_a: string
+          partner_b: string
+          photo_url: string | null
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          author_id: string
+          body: string
+          created_at?: string
+          id?: string
+          mood?: string | null
+          partner_a: string
+          partner_b: string
+          photo_url?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          body?: string
+          created_at?: string
+          id?: string
+          mood?: string | null
+          partner_a?: string
+          partner_b?: string
+          photo_url?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       rituals: {
         Row: {
           ended_at: string | null
