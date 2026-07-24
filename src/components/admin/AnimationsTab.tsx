@@ -35,6 +35,13 @@ export default function AnimationsTab() {
   const [petalsOn, setPetalsOn] = useState(false);
   const [anniv, setAnniv] = useState<null | { name: string; label: string }>(null);
   const [notif, setNotif] = useState<null | string>(null);
+  const [milestone, setMilestone] = useState<Milestone | null>(null);
+
+  const showMilestone = (kind: Milestone["kind"], count: number, daysAgo: number) => {
+    const anchor = new Date(Date.now() - daysAgo * 86400000);
+    setMilestone({ kind, count, anchor } as Milestone);
+  };
+
 
   const sections: Section[] = [
     {
