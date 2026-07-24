@@ -671,9 +671,18 @@ function UnoPage() {
           </div>
         )}
       </div>
+      {me && (mode === "partner" || matchId) && partner && (
+        <GameChat
+          roomKey={matchId ?? `uno:${[me.id, partner.id].sort().join(":")}`}
+          me={me}
+          partnerName={partner.display_name}
+          title="Table talk"
+        />
+      )}
     </div>
   );
 }
+
 
 function UnoAmbient() {
   return (
