@@ -48,36 +48,66 @@ type Source = { id: string; label: string; url: (tmdb: number, startAt?: number,
 
 const SOURCES: Source[] = [
   {
-    id: "vidking-auto",
+    id: "vidlink",
     label: "Velvet HD",
-    hint: "Autoplay enabled — recommended",
+    hint: "Primary stream — autoplay",
+    url: (id, t, mt, s, e) => {
+      const base = mt === "tv" && s != null && e != null
+        ? `https://vidlink.pro/tv/${id}/${s}/${e}`
+        : `https://vidlink.pro/movie/${id}`;
+      const params = new URLSearchParams({
+        primaryColor: "ee82af",
+        secondaryColor: "ee82af",
+        iconColor: "ffffff",
+        autoplay: "true",
+        title: "true",
+      });
+      if (t) params.set("startAt", String(Math.floor(t)));
+      return `${base}?${params.toString()}`;
+    },
+  },
+  {
+    id: "vidsrc-to",
+    label: "Rose Cinema",
+    hint: "Alternate CDN — reliable",
+    url: (id, t, mt, s, e) => {
+      const base = mt === "tv" && s != null && e != null
+        ? `https://vidsrc.to/embed/tv/${id}/${s}/${e}`
+        : `https://vidsrc.to/embed/movie/${id}`;
+      return t ? `${base}?t=${Math.floor(t)}` : base;
+    },
+  },
+  {
+    id: "2embed",
+    label: "Twin Reel",
+    hint: "Community mirror",
+    url: (id, _t, mt, s, e) => {
+      if (mt === "tv" && s != null && e != null) {
+        return `https://www.2embed.cc/embedtv/${id}&s=${s}&e=${e}`;
+      }
+      return `https://www.2embed.cc/embed/${id}`;
+    },
+  },
+  {
+    id: "vidking-auto",
+    label: "Vidking HD",
+    hint: "Legacy — autoplay",
     url: (id, t, mt, s, e) => {
       const base = mt === "tv" && s != null && e != null
         ? `https://www.vidking.net/embed/tv/${id}/${s}/${e}`
         : `https://www.vidking.net/embed/movie/${id}`;
-      return `${base}?color=9146ff&autoPlay=true${t ? `&progress=${Math.floor(t)}` : ""}`;
+      return `${base}?color=ee82af&autoPlay=true${t ? `&progress=${Math.floor(t)}` : ""}`;
     },
   },
   {
     id: "vidking-manual",
-    label: "Velvet Manual",
+    label: "Vidking Manual",
     hint: "Press play inside the player",
     url: (id, t, mt, s, e) => {
       const base = mt === "tv" && s != null && e != null
         ? `https://www.vidking.net/embed/tv/${id}/${s}/${e}`
         : `https://www.vidking.net/embed/movie/${id}`;
-      return `${base}?color=9146ff${t ? `&progress=${Math.floor(t)}` : ""}`;
-    },
-  },
-  {
-    id: "vidking-clean",
-    label: "Basic",
-    hint: "Minimal fallback embed",
-    url: (id, t, mt, s, e) => {
-      const base = mt === "tv" && s != null && e != null
-        ? `https://www.vidking.net/embed/tv/${id}/${s}/${e}`
-        : `https://www.vidking.net/embed/movie/${id}`;
-      return `${base}${t ? `?progress=${Math.floor(t)}` : ""}`;
+      return `${base}?color=ee82af${t ? `&progress=${Math.floor(t)}` : ""}`;
     },
   },
 ];
