@@ -87,9 +87,16 @@ function PartyRoom() {
   const embedUrl = useMemo(() => {
     const base =
       isTv
-        ? `https://www.vidking.net/embed/tv/${tmdbId}/${season}/${episode}`
-        : `https://www.vidking.net/embed/movie/${tmdbId}`;
-    return `${base}?color=9146ff&autoPlay=true`;
+        ? `https://vidlink.pro/tv/${tmdbId}/${season}/${episode}`
+        : `https://vidlink.pro/movie/${tmdbId}`;
+    const params = new URLSearchParams({
+      primaryColor: "ee82af",
+      secondaryColor: "ee82af",
+      iconColor: "ffffff",
+      autoplay: "true",
+      title: "true",
+    });
+    return `${base}?${params.toString()}`;
   }, [tmdbId, isTv, season, episode]);
 
   if (!me) {
