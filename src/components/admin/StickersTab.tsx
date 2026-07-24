@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import StickerEditor from "./StickerEditor";
 import { EyeOff, Eye, Upload, Trash2, Sparkles, Loader2, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
