@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { X, Search, Clock, Sparkles } from "lucide-react";
-import { PANDA_STICKERS, type PandaStickerId } from "@/lib/panda-stickers";
+import { PANDA_STICKERS, PANDA_CATEGORY_ORDER, type PandaStickerId, type PandaStickerCategory } from "@/lib/panda-stickers";
+
 
 type Props = {
   open: boolean;
