@@ -295,13 +295,14 @@ function Lobby({ loading, me, partner, onStart }: { loading: boolean; me: any; p
 
       <p className="text-[10px] uppercase tracking-[0.25em] text-candle-muted mb-2">Rounds</p>
       <div className="flex justify-center gap-2 mb-6">
-        {[6, 8, 10, 12].map((r) => (
+        {[10, 20, 30, 50].map((r) => (
           <button key={r} onClick={() => setRounds(r)}
             className={`h-10 w-14 rounded-2xl border text-sm ${rounds === r ? "bg-petal/20 border-petal/60 text-candle" : "bg-surface-elevated border-border text-candle-muted"}`}>
             {r}
           </button>
         ))}
       </div>
+
 
       <button
         onClick={() => onStart(rounds)}
