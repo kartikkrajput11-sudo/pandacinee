@@ -5,6 +5,8 @@ import { ArrowLeft, Check, Flame, Share2, Trophy } from "lucide-react";
 import { toast } from "sonner";
 import { gameSfx } from "@/lib/game-sfx";
 import { GameChat } from "@/components/games/GameChat";
+import { useProfile } from "@/hooks/useProfile";
+
 
 export const Route = createFileRoute("/_authenticated/app/daily-challenge")({
   component: DailyChallenge,
