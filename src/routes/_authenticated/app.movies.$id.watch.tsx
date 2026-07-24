@@ -201,6 +201,7 @@ function CatalogWatch({ id }: { id: string }) {
     peerBuffering,
     sendBuffering,
     startTogether,
+    peerLatencyMs,
   } = useWatchSync(me?.id ?? null, partner?.id ?? null, syncRoomId, isTv ? "tv" : "movie");
 
 
@@ -636,7 +637,7 @@ function CatalogWatch({ id }: { id: string }) {
       const now = Date.now();
       const receivedAt = peerReceivedAtRef.current[peer.updatedAt] ?? now;
       const hostPlaying = !hostPausedRef.current;
-      const elapsed = hostPlaying ? Math.max(0, (now - receivedAt) / 1000) * baseRate : 0;
+      const elapsed = hostPlaying ? Math.max(0, ((now - receivedAt) + peerLatencyMs) / 1000) * baseRate : 0;
       const targetTime = peer.currentTime + elapsed;
       const drift = h.currentTime() - targetTime;
       const abs = Math.abs(drift);
@@ -692,7 +693,7 @@ function CatalogWatch({ id }: { id: string }) {
         else toast.info("Re-syncing with partner…");
       }
     }
-  }, [peer, me, mine.currentTime, applySeek, partner, isPandacine, peerSourceKind, started, customPlayerReady, runSuppressedPlayerAction, followerLocked]);
+  }, [peer, me, mine.currentTime, applySeek, partner, isPandacine, peerSourceKind, started, customPlayerReady, runSuppressedPlayerAction, followerLocked, peerLatencyMs]);
 
   // When the custom player mounts after an auto-join, seek first, then only play
   // if this mount was caused by a host sync event — not by a follower tap.
@@ -2017,7 +2018,7 @@ function CustomWatch({ customId }: { customId: string }) {
   const {
     mine, peer, partnerOnline, publish, sendSeek, sendCountdown, countdown, clearCountdown,
     incomingSeek, clearIncomingSeek, hostId, claimHost, releaseHost, drift,
-    peerBuffering, sendBuffering, startTogether,
+    peerBuffering, sendBuffering, startTogether, peerLatencyMs,
   } = useWatchSync(me?.id ?? null, partner?.id ?? null, `custom:${customId}`, "movie");
 
 
@@ -2121,7 +2122,7 @@ function CustomWatch({ customId }: { customId: string }) {
     const now = Date.now();
     const receivedAt = peerReceivedAtRef.current[peer.updatedAt] ?? now;
     const hostPlaying = evt !== "pause";
-    const elapsed = hostPlaying ? Math.max(0, (now - receivedAt) / 1000) * baseRate : 0;
+    const elapsed = hostPlaying ? Math.max(0, ((now - receivedAt) + peerLatencyMs) / 1000) * baseRate : 0;
     const targetTime = peer.currentTime + elapsed;
     const drift = h.currentTime() - targetTime; // >0 => follower ahead
 
@@ -2155,7 +2156,7 @@ function CustomWatch({ customId }: { customId: string }) {
       if (evt === "play") h.play();
       if (evt === "pause") h.pause();
     });
-  }, [peer, partner, playerReady, runSuppressed, followerLocked]);
+  }, [peer, partner, playerReady, runSuppressed, followerLocked, peerLatencyMs]);
 
 
   // Countdown → both press play together

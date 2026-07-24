@@ -92,6 +92,12 @@ export function useWatchSync(
   const [backendPeerSourceKind, setBackendPeerSourceKind] = useState<SourceKind>("unknown");
   const [peerPreparing, setPeerPreparing] = useState<{ time: number; ts: number } | null>(null);
   const [peerBuffering, setPeerBuffering] = useState(false);
+  // Estimated one-way latency to the peer (ms). Derived from median RTT of
+  // ping-pong broadcasts on the same channel — inspired by ShakedAp's
+  // synchronized-video-streaming clock-sync loop. Used to project the peer's
+  // "true" playhead when correcting follower drift.
+  const [peerLatencyMs, setPeerLatencyMs] = useState(0);
+
 
 
   const mineRef = useRef<Mine>(emptyMine());
@@ -100,6 +106,8 @@ export function useWatchSync(
   const myReadyRef = useRef(false);
   const mySourceKindRef = useRef<SourceKind>("unknown");
   const lastBackendWriteRef = useRef(0);
+  const rttSamplesRef = useRef<number[]>([]);
+  const pingTimerRef = useRef<number | null>(null);
 
   // Deterministic channel name from sorted user IDs + room, so only the couple share it.
   const channelName = useMemo(() => {
@@ -271,6 +279,23 @@ export function useWatchSync(
         if (p.from === meId) return;
         setPeerBuffering(p.state === "waiting");
       })
+      .on("broadcast", { event: "ping" }, ({ payload }) => {
+        const p = payload as { from: string; t0: number };
+        if (p.from === meId) return;
+        // Echo the sender's t0 straight back so they can compute RTT locally.
+        ch.send({ type: "broadcast", event: "pong", payload: { from: meId, to: p.from, t0: p.t0 } });
+      })
+      .on("broadcast", { event: "pong" }, ({ payload }) => {
+        const p = payload as { from: string; to: string; t0: number };
+        if (p.from === meId || p.to !== meId) return;
+        const rtt = Date.now() - p.t0;
+        if (!Number.isFinite(rtt) || rtt < 0 || rtt > 5000) return;
+        rttSamplesRef.current.push(rtt);
+        if (rttSamplesRef.current.length > 12) rttSamplesRef.current.shift();
+        const sorted = [...rttSamplesRef.current].sort((a, b) => a - b);
+        const median = sorted[Math.floor(sorted.length / 2)];
+        setPeerLatencyMs(Math.round(median / 2));
+      })
 
       .subscribe(async (status) => {
         if (status === "SUBSCRIBED") {
@@ -279,6 +304,7 @@ export function useWatchSync(
           refreshBackendState();
         }
       });
+
 
     // Slow the backend heartbeat when the tab is hidden — the peer only needs
     // an eventual liveness signal, not a 1.5s cadence, when we're in another
@@ -293,8 +319,30 @@ export function useWatchSync(
       refreshBackendState();
     }, 1500);
 
+    // Ping-pong clock/latency sync (median RTT → one-way latency estimate).
+    // Rapid burst on join for a fast lock-in, then a slow keepalive.
+    let pingCount = 0;
+    pingTimerRef.current = window.setInterval(() => {
+      const chan = channelRef.current;
+      if (!chan || !meId) return;
+      chan.send({ type: "broadcast", event: "ping", payload: { from: meId, t0: Date.now() } });
+      pingCount += 1;
+      if (pingCount === 10 && pingTimerRef.current) {
+        window.clearInterval(pingTimerRef.current);
+        pingTimerRef.current = window.setInterval(() => {
+          const c = channelRef.current;
+          if (!c || !meId) return;
+          c.send({ type: "broadcast", event: "ping", payload: { from: meId, t0: Date.now() } });
+        }, 15_000);
+      }
+    }, 800);
+
     return () => {
       window.clearInterval(heartbeat);
+      if (pingTimerRef.current) window.clearInterval(pingTimerRef.current);
+      pingTimerRef.current = null;
+      rttSamplesRef.current = [];
+      setPeerLatencyMs(0);
       writeBackendState({ ready: false, is_host: false, last_seen_at: new Date(0).toISOString() });
       try { ch.untrack(); } catch { /* ignore */ }
       supabase.removeChannel(ch);
@@ -489,6 +537,7 @@ export function useWatchSync(
     peerBuffering,
     sendBuffering,
     startTogether,
+    peerLatencyMs,
   };
 }
 
