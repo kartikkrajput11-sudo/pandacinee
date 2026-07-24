@@ -31,6 +31,7 @@ export const Route = createFileRoute("/_authenticated/app/uno")({
   component: UnoPage,
   validateSearch: (search: Record<string, unknown>) => ({
     matchId: typeof search.matchId === "string" ? search.matchId : undefined,
+    friend: typeof search.friend === "string" ? search.friend : undefined,
   }),
   head: () => ({
     meta: [
@@ -62,7 +63,7 @@ const COLOR_SWATCH: Record<UnoColor, string> = {
 function UnoPage() {
   const { data } = useProfile();
   const me = data?.profile;
-  const { matchId } = Route.useSearch();
+  const { matchId, friend } = Route.useSearch();
   const [matchOpponentId, setMatchOpponentId] = useState<string | null>(null);
 
   // If arrived from a group match lobby, resolve the seated opponent so we can
@@ -87,12 +88,14 @@ function UnoPage() {
 
   const partner = matchId
     ? (matchOpponentId ? { id: matchOpponentId } as { id: string } : null)
-    : data?.partner;
+    : (friend && me && friend !== me.id
+        ? ({ id: friend } as { id: string })
+        : data?.partner);
   const [mode, setMode] = useState<Mode | null>(null);
-  // Auto-enter partner mode when we arrived from a group match with an opponent seated.
+  // Auto-enter partner mode when we arrived from a group match or friend invite.
   useEffect(() => {
-    if (matchId && partner && !mode) setMode("partner");
-  }, [matchId, partner, mode]);
+    if ((matchId || friend) && partner && !mode) setMode("partner");
+  }, [matchId, friend, partner, mode]);
   const [state, setState] = useState<UnoState>(() => initialState());
   const [flashId, setFlashId] = useState<string | null>(null);
   const [deckPulse, setDeckPulse] = useState(0);

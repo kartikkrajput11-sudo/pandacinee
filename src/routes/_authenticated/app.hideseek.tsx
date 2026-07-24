@@ -15,6 +15,7 @@ export const Route = createFileRoute("/_authenticated/app/hideseek")({
   component: HideSeekPage,
   validateSearch: (search: Record<string, unknown>) => ({
     matchId: typeof search.matchId === "string" ? search.matchId : undefined,
+    friend: typeof search.friend === "string" ? search.friend : undefined,
   }),
   head: () => ({
     meta: [
@@ -314,15 +315,17 @@ const WHISPER_PROMPTS = [
 function HideSeekPage() {
   const { data } = useProfile();
   const me = data?.profile;
-  const { matchId } = Route.useSearch();
+  const { matchId, friend } = Route.useSearch();
   const { opponentId: matchOppId } = useMatchOpponent(matchId, me?.id);
   const partner = matchId
     ? (matchOppId ? { id: matchOppId, display_name: "Partner" } as { id: string; display_name?: string } : null)
-    : data?.partner;
+    : (friend && me && friend !== me.id
+        ? ({ id: friend, display_name: "Friend" } as { id: string; display_name?: string })
+        : data?.partner);
   const navigate = useNavigate();
 
   const [mode, setMode] = useState<Mode>("local");
-  useEffect(() => { if (matchId && partner) setMode("online"); }, [matchId, partner]);
+  useEffect(() => { if ((matchId || friend) && partner) setMode("online"); }, [matchId, friend, partner]);
   const [phase, setPhase] = useState<Phase>("intro");
   const [round, setRound] = useState(1);
   const [hiderId, setHiderId] = useState<string | null>(null);

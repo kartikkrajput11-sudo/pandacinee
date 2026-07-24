@@ -36,6 +36,7 @@ export const Route = createFileRoute("/_authenticated/app/ludo")({
   component: LudoPage,
   validateSearch: (search: Record<string, unknown>) => ({
     matchId: typeof search.matchId === "string" ? search.matchId : undefined,
+    friend: typeof search.friend === "string" ? search.friend : undefined,
   }),
   head: () => ({
     meta: [
@@ -50,13 +51,15 @@ type Mode = "partner" | "local";
 function LudoPage() {
   const { data } = useProfile();
   const me = data?.profile;
-  const { matchId } = Route.useSearch();
+  const { matchId, friend } = Route.useSearch();
   const { opponentId: matchOppId } = useMatchOpponent(matchId, me?.id);
   const partner = matchId
     ? (matchOppId ? ({ id: matchOppId } as { id: string; display_name?: string }) : null)
-    : data?.partner;
+    : (friend && me && friend !== me.id
+        ? ({ id: friend } as { id: string; display_name?: string })
+        : data?.partner);
   const [mode, setMode] = useState<Mode | null>(null);
-  useEffect(() => { if (matchId && partner && !mode) setMode("partner"); }, [matchId, partner, mode]);
+  useEffect(() => { if ((matchId || friend) && partner && !mode) setMode("partner"); }, [matchId, friend, partner, mode]);
   const [state, setState] = useState<State>(() => initialState());
 
   // Determine local seat for partner mode. Lower UUID plays Red.
