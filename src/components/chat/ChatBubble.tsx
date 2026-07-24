@@ -344,7 +344,17 @@ function ChatBubbleImpl({
             </div>
           )}
 
-          {m.type === "text" && <p className="whitespace-pre-wrap break-words">{m.content}</p>}
+          {m.type === "text" && (
+            <>
+              <p className="whitespace-pre-wrap break-words">{m.content}</p>
+              {translation && (
+                <div className={`mt-1.5 pt-1.5 border-t ${mine ? "border-velvet/30" : "border-border"} text-[13px] italic opacity-90 whitespace-pre-wrap break-words`}>
+                  <span className={`text-[9px] not-italic uppercase tracking-[0.2em] ${mine ? "text-velvet/70" : "text-candle-muted"} mr-1`}>{translation.lang}</span>
+                  {translation.text}
+                </div>
+              )}
+            </>
+          )}
           {m.type === "sticker" && (
             isAiSticker ? (
               <SignedImage
