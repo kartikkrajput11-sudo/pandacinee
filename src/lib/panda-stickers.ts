@@ -59,7 +59,8 @@ export type PandaStickerId =
   | "confused" | "proud" | "pleading" | "mindblown" | "cozy" | "gift"
   | "cake" | "salute" | "facepalm" | "shrug" | "flex" | "gamer"
   | "duo-hug" | "duo-kiss" | "duo-hands" | "duo-dance" | "duo-cozy" | "duo-selfie" | "duo-heart" | "duo-highfive"
-  | "duo-lipkiss" | "duo-bed" | "duo-dip" | "flirt" | "bath" | "tease";
+  | "duo-lipkiss" | "duo-bed" | "duo-dip" | "flirt" | "bath" | "tease"
+  | "peach" | "cuffs" | "unwrap" | "thirsty";
 
 export const PANDA_STICKERS: { id: PandaStickerId; url: string; label: string; category: PandaStickerCategory }[] = [
   // 💞 Partners (duo pandas)
