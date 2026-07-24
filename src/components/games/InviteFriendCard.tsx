@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { UserPlus, X, Search, Send } from "lucide-react";
 import { toast } from "sonner";
+import { useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { useFriendships } from "@/hooks/useFriends";
 import { AvatarImg } from "@/components/AvatarImg";
