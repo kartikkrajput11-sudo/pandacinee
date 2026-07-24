@@ -1,6 +1,8 @@
 import { memo, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Heart, Pin, Trash2, Reply, Check, CheckCheck, Download, Zap, Phone, Video as VideoIcon, PhoneMissed, Clock, X, Forward } from "lucide-react";
+import { Heart, Pin, Trash2, Reply, Check, CheckCheck, Download, Zap, Phone, Video as VideoIcon, PhoneMissed, Clock, X, Forward, Languages, RotateCw } from "lucide-react";
+import { toast } from "sonner";
+import { translateMessage } from "@/lib/chat-tools.functions";
 import { signMedia, type MessageRow } from "@/lib/chat";
 import { VoicePlayer } from "./VoicePlayer";
 import { SignedImage } from "./SignedImage";
@@ -88,6 +90,9 @@ function ChatBubbleImpl({
   const [actionsOpen, setActionsOpen] = useState(false);
   const [actionsClosing, setActionsClosing] = useState(false);
   const [vanishOpen, setVanishOpen] = useState(false);
+  const [translateOpen, setTranslateOpen] = useState(false);
+  const [translation, setTranslation] = useState<{ lang: string; text: string } | null>(null);
+  const [translating, setTranslating] = useState(false);
   const closeTimerRef = useRef<number | null>(null);
   const idleTimerRef = useRef<number | null>(null);
 
@@ -116,6 +121,20 @@ function ChatBubbleImpl({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [actionsOpen, actionsClosing, vanishOpen]);
 
+
+  async function runTranslate(lang: string) {
+    if (!m.content) return;
+    setTranslating(true);
+    try {
+      const res = await translateMessage({ data: { text: m.content, target: lang } });
+      setTranslation({ lang, text: res.translation });
+      setTranslateOpen(false);
+    } catch (e: any) {
+      toast.error(e?.message ?? "Translation failed");
+    } finally {
+      setTranslating(false);
+    }
+  }
 
   async function downloadFile() {
     if (!m.media_url) return;
@@ -339,7 +358,17 @@ function ChatBubbleImpl({
             </div>
           )}
 
-          {m.type === "text" && <p className="whitespace-pre-wrap break-words">{m.content}</p>}
+          {m.type === "text" && (
+            <>
+              <p className="whitespace-pre-wrap break-words">{m.content}</p>
+              {translation && (
+                <div className={`mt-1.5 pt-1.5 border-t ${mine ? "border-velvet/30" : "border-border"} text-[13px] italic opacity-90 whitespace-pre-wrap break-words`}>
+                  <span className={`text-[9px] not-italic uppercase tracking-[0.2em] ${mine ? "text-velvet/70" : "text-candle-muted"} mr-1`}>{translation.lang}</span>
+                  {translation.text}
+                </div>
+              )}
+            </>
+          )}
           {m.type === "sticker" && (
             isAiSticker ? (
               <SignedImage
@@ -680,6 +709,39 @@ function ChatBubbleImpl({
                 >
                   <span>Copy</span>
                 </button>
+              )}
+              {m.type === "text" && m.content && (
+                <>
+                  <button
+                    onClick={() => setTranslateOpen((v) => !v)}
+                    className="w-full px-4 py-3 flex items-center justify-between hover:bg-muted text-sm text-candle border-t border-border"
+                  >
+                    <span>{translation ? "Re-translate…" : "Translate…"}</span>
+                    {translating ? <RotateCw className="size-4 animate-spin text-petal" /> : <Languages className="size-4 text-candle-muted" />}
+                  </button>
+                  {translateOpen && (
+                    <div className="px-3 py-2 flex flex-wrap gap-1.5 border-t border-border bg-surface">
+                      {["English", "Spanish", "French", "German", "Hindi", "Urdu", "Arabic", "Japanese", "Korean", "Chinese", "Portuguese", "Italian"].map((L) => (
+                        <button
+                          key={L}
+                          disabled={translating}
+                          onClick={() => runTranslate(L)}
+                          className="px-2.5 py-1 text-xs rounded-lg bg-surface-elevated border border-border text-candle hover:border-petal/60 disabled:opacity-50"
+                        >
+                          {L}
+                        </button>
+                      ))}
+                      {translation && (
+                        <button
+                          onClick={() => { setTranslation(null); setTranslateOpen(false); }}
+                          className="px-2.5 py-1 text-xs rounded-lg text-destructive hover:bg-destructive/10"
+                        >
+                          Clear
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </>
               )}
               <button
                 onClick={() => { onPin(m); closeActions(); }}

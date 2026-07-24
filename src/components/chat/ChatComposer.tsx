@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import {
   Plus, X, Image as ImageIcon, Paperclip, Smile, Send, Film,
-  Video as VideoIcon, Gamepad2, Heart, HeartHandshake, Handshake, Hand, Zap, EyeOff, Eye, Disc3, Sparkles, Pointer,
+  Video as VideoIcon, Gamepad2, Heart, HeartHandshake, Handshake, Hand, Zap, EyeOff, Eye, Disc3, Sparkles, Pointer, CalendarClock,
 } from "lucide-react";
 import { toast } from "sonner";
 import { uploadChatMedia, type MessageRow } from "@/lib/chat";
@@ -36,9 +36,12 @@ type Props = {
     reply_to_id?: string | null;
     disappear_seconds?: number | null;
   }) => Promise<void>;
+
+  /** Optional: opens a "send later" dialog with the current draft. */
+  onSchedule?: (draft: string) => void;
 };
 
-export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTyping, onSend, locked, lockedHint }: Props) {
+export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTyping, onSend, locked, lockedHint, onSchedule }: Props) {
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -554,8 +557,19 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
           </div>
         </div>
 
-        {/* Trailing: send button OR voice recorder (single instance, morphs) */}
-        <div className="min-w-0 flex items-center justify-end">
+        {/* Trailing: schedule + send button OR voice recorder (single instance, morphs) */}
+        <div className="min-w-0 flex items-center justify-end gap-1.5">
+          {text.trim() && !recording && onSchedule && (
+            <button
+              type="button"
+              onClick={() => onSchedule(text)}
+              className="size-11 rounded-full bg-surface border border-border text-petal flex items-center justify-center shrink-0"
+              title="Send later"
+              aria-label="Schedule message"
+            >
+              <CalendarClock className="size-4" />
+            </button>
+          )}
           {text.trim() && !recording ? (
             <button
               type="submit"

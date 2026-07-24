@@ -7,6 +7,7 @@ import { AppTour } from "@/components/AppTour";
 import { usePresenceHeartbeat } from "@/hooks/usePresenceHeartbeat";
 import { useGamePresence } from "@/hooks/useGamePresence";
 import { useProfile } from "@/hooks/useProfile";
+import { useScheduledDispatcher } from "@/hooks/useScheduledDispatcher";
 
 export const Route = createFileRoute("/_authenticated/app")({
   component: AppShell,
@@ -16,6 +17,7 @@ function AppShell() {
   usePresenceHeartbeat();
   const { data } = useProfile();
   useGamePresence(data?.profile?.id, data?.partner?.id);
+  useScheduledDispatcher(data?.profile?.id);
   const { pathname } = useLocation();
   // Only show bottom nav on the home page; every other page has its own back button
   const hideNav = pathname !== "/app";

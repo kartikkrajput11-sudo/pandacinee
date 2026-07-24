@@ -28,6 +28,7 @@ import { typeMeta } from "@/lib/punishment";
 import { UserAvatar } from "@/components/UserAvatar";
 import { ForwardDialog, canForward } from "@/components/chat/ForwardDialog";
 import { SharedMediaDrawer } from "@/components/chat/SharedMediaDrawer";
+import { ScheduleDialog } from "@/components/chat/ScheduleDialog";
 import { markDmReadNow } from "@/lib/dmRead";
 
 
@@ -64,6 +65,8 @@ function ChatPeer() {
   const { activeLock, iAmLocked, iAmLocker, createLock, incrementProgress, completeLock, cancelLock } =
     usePunishmentLock(me?.id ?? null, peer?.id ?? null);
   const [replyTo, setReplyTo] = useState<MessageRow | null>(null);
+  const [scheduleOpen, setScheduleOpen] = useState(false);
+  const [scheduleDraft, setScheduleDraft] = useState("");
   const [showPinned, setShowPinned] = useState(false);
   const [highlightId, setHighlightId] = useState<string | null>(null);
   const [lockDialogOpen, setLockDialogOpen] = useState(false);
@@ -629,8 +632,14 @@ function ChatPeer() {
         onSend={send}
         locked={null}
         lockedHint={null}
-
-
+        onSchedule={(draft) => { setScheduleDraft(draft); setScheduleOpen(true); }}
+      />
+      <ScheduleDialog
+        open={scheduleOpen}
+        onClose={() => setScheduleOpen(false)}
+        meId={me.id}
+        target={{ receiver_id: peer.id }}
+        initialText={scheduleDraft}
       />
       <KissOverlay trigger={kissTick} />
       <HugOverlay trigger={hugTick} />
@@ -638,6 +647,7 @@ function ChatPeer() {
       <HandholdOverlay trigger={handholdTick} />
       <BoopOverlay trigger={boopTick} />
       <UnlockCelebration trigger={unlockTick || null} />
+
 
       {activeLock && iAmLocked && !isVerifyMode && (
         <PunishmentLockOverlay
