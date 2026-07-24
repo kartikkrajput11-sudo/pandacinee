@@ -725,6 +725,14 @@ function ChatBubbleImpl({
                   <span>Forward</span><Forward className="size-4 text-candle-muted" />
                 </button>
               )}
+              {(m.type === "image" || m.type === "video") && m.media_url && (
+                <button
+                  onClick={() => { saveToGallery(); closeActions(); }}
+                  className="w-full px-4 py-3 flex items-center justify-between hover:bg-muted text-sm text-candle border-t border-border"
+                >
+                  <span>Save to gallery</span><Download className="size-4 text-candle-muted" />
+                </button>
+              )}
               {m.type === "text" && m.content && (
                 <button
                   onClick={() => { navigator.clipboard.writeText(m.content ?? ""); closeActions(); }}
