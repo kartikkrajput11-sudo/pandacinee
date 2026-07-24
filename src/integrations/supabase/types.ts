@@ -38,6 +38,57 @@ export type Database = {
         }
         Relationships: []
       }
+      bucket_list_items: {
+        Row: {
+          category: string | null
+          completed_at: string | null
+          completed_note: string | null
+          created_at: string
+          description: string | null
+          emoji: string | null
+          id: string
+          owner_id: string
+          partner_id: string | null
+          photo_url: string | null
+          priority: number
+          target_date: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          completed_at?: string | null
+          completed_note?: string | null
+          created_at?: string
+          description?: string | null
+          emoji?: string | null
+          id?: string
+          owner_id: string
+          partner_id?: string | null
+          photo_url?: string | null
+          priority?: number
+          target_date?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          completed_at?: string | null
+          completed_note?: string | null
+          created_at?: string
+          description?: string | null
+          emoji?: string | null
+          id?: string
+          owner_id?: string
+          partner_id?: string | null
+          photo_url?: string | null
+          priority?: number
+          target_date?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       call_participants: {
         Row: {
           call_id: string
