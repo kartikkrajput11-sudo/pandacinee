@@ -675,6 +675,39 @@ export function CustomMoviePlayer({ src, sources, poster, startAt, onEvent, onRe
               </div>
             )}
 
+            {/* Quality menu */}
+            <div className="relative">
+              <button
+                onClick={() => setQualityOpen((o) => !o)}
+                className="h-9 px-3 rounded-full bg-white/10 hover:bg-white/20 flex items-center gap-1"
+                aria-label="Video quality"
+                title="Video quality"
+              >
+                <Settings2 className="size-3.5" />
+                <span className="hidden sm:inline">{qualityList[qualityIdx]?.label ?? "Auto"}</span>
+              </button>
+              {qualityOpen && (
+                <div className="absolute right-0 bottom-11 z-50 bg-black/90 border border-white/10 rounded-2xl p-1.5 flex flex-col gap-0.5 min-w-[110px] shadow-2xl">
+                  <div className="px-2 py-1 text-[10px] uppercase tracking-widest text-white/40">Quality</div>
+                  {qualityList.map((q, i) => (
+                    <button
+                      key={`${q.label}-${i}`}
+                      onClick={() => changeQuality(i)}
+                      className={`px-2 py-1 rounded-lg text-left text-xs hover:bg-white/10 ${i === qualityIdx ? "text-petal" : "text-white"}`}
+                    >
+                      {q.label}
+                    </button>
+                  ))}
+                  {qualityList.length === 1 && (
+                    <div className="px-2 pt-1 pb-0.5 text-[10px] text-white/40 leading-tight">
+                      Only one source available.
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+
             <button onClick={togglePip} aria-label="Picture-in-picture" className="hidden sm:flex size-9 rounded-full bg-white/10 hover:bg-white/20 items-center justify-center">
               <PictureInPicture2 className="size-4" />
             </button>
