@@ -527,13 +527,14 @@ function EquipTagsSection({
 function ThemeSection() {
   const { mode, setMode } = useTheme();
   const options: { id: ThemeMode; label: string; Icon: typeof Sun }[] = [
-    { id: "dark", label: "Default", Icon: Moon },
+    { id: "default", label: "Velvet", Icon: Sparkles },
+    { id: "dark", label: "Midnight", Icon: Moon },
     { id: "light", label: "Light", Icon: Sun },
   ];
   return (
     <div className="p-5 mb-4 rounded-3xl border border-border bg-surface">
       <p className="text-[10px] uppercase tracking-widest text-petal mb-3">Appearance</p>
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-3 gap-2">
         {options.map(({ id, label, Icon }) => (
           <button
             key={id}
