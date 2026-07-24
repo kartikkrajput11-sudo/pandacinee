@@ -2018,7 +2018,7 @@ function CustomWatch({ customId }: { customId: string }) {
   const {
     mine, peer, partnerOnline, publish, sendSeek, sendCountdown, countdown, clearCountdown,
     incomingSeek, clearIncomingSeek, hostId, claimHost, releaseHost, drift,
-    peerBuffering, sendBuffering, startTogether,
+    peerBuffering, sendBuffering, startTogether, peerLatencyMs,
   } = useWatchSync(me?.id ?? null, partner?.id ?? null, `custom:${customId}`, "movie");
 
 
