@@ -11,7 +11,9 @@ import { HandholdOverlay } from "@/components/chat/HandholdOverlay";
 import { BoopOverlay } from "@/components/chat/BoopOverlay";
 import { UnlockCelebration } from "@/components/chat/UnlockCelebration";
 import OwnersStoryOverlay from "@/components/OwnersStoryOverlay";
+import { MilestonePreview, type Milestone } from "@/components/PairAnniversaryCelebration";
 import { Petals } from "@/components/Petals";
+
 import { sfxSend, sfxReceive, sfxReaction, sfxKiss, sfxPollVote } from "@/lib/sfx";
 import { sfx as chessSfx } from "@/lib/chess-sfx";
 
