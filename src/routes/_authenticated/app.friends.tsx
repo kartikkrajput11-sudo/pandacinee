@@ -299,9 +299,16 @@ function Friends() {
           </div>
         </section>
       )}
+
+      <GameInvitePicker
+        open={!!invitePeer}
+        onClose={() => setInvitePeer(null)}
+        onPick={(g) => invitePeer && sendGameInvite(invitePeer, g)}
+      />
     </div>
   );
 }
+
 
 function Row({ profile, children }: { profile: FriendProfile; children: React.ReactNode }) {
   return (
