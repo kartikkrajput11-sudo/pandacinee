@@ -325,12 +325,8 @@ function UnoPage() {
           </button>
           <div className="text-center">
             <p className="text-[9px] uppercase tracking-[0.3em] text-petal">Uno · velveteen</p>
-            <p className="text-xs font-serif italic text-candle">
-              {state.winner
-                ? (state.winner === mySeat ? "You reign." : "They reign.")
-                : (isMyTurn ? "Your turn" : "Their turn")}
-            </p>
           </div>
+
           <div className="flex gap-2">
             <button type="button" onClick={reset} className="text-candle-muted">
               <RotateCcw className="size-5" />
