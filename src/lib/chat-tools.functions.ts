@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { generateText } from "ai";
 import { z } from "zod";
-import { createGameAiProvider } from "./ai-gateway.server";
+
 
 /**
  * Translate a short chat message into the requested target language.
