@@ -134,7 +134,7 @@ function CatalogWatch({ id }: { id: string }) {
   }, [search.with, realPartner?.id, friendsQuery.data?.profiles]);
   const navigate = useNavigate();
   const [movie, setMovie] = useState<any>(null);
-  const [pandacine, setPandacine] = useState<{ videoSrc: string; title: string | null } | null>(null);
+  const [pandacine, setPandacine] = useState<{ videoSrc: string; title: string | null; qualities?: Array<{ label: string; url: string; height?: number | null }> } | null>(null);
   const [sourceIdx, setSourceIdx] = useState(0);
   const [iframeKey, setIframeKey] = useState(0);
   const [started, setStarted] = useState(false);
@@ -241,7 +241,7 @@ function CatalogWatch({ id }: { id: string }) {
     // 1) Instant local render: hit Supabase first and paint whatever we have.
     const localPromise = supabase
       .from("custom_movies")
-      .select("id, title, overview, poster_url, backdrop_url, runtime, video_url, video_storage_path, media_type, tmdb_id")
+      .select("id, title, overview, poster_url, backdrop_url, runtime, video_url, video_storage_path, video_qualities, media_type, tmdb_id")
       .eq("tmdb_id", tmdbId)
       .maybeSingle()
       .then((ovRes) => {
@@ -250,6 +250,7 @@ function CatalogWatch({ id }: { id: string }) {
           id?: string; title?: string; overview?: string | null;
           poster_url?: string | null; backdrop_url?: string | null; runtime?: number | null;
           video_url?: string | null; video_storage_path?: string | null;
+          video_qualities?: Array<{ label: string; url: string; height?: number | null }> | null;
           media_type?: "movie" | "tv" | null;
         } | null;
         if (ov) {
@@ -268,6 +269,8 @@ function CatalogWatch({ id }: { id: string }) {
           setIsTv(tv);
           setCustomMovieId(ov.id ?? null);
 
+          const qualities = Array.isArray(ov.video_qualities) ? ov.video_qualities : [];
+
           // Resolve movie-level Pandacine source right away
           if (!tv) {
             if (ov.video_storage_path) {
@@ -276,10 +279,10 @@ function CatalogWatch({ id }: { id: string }) {
                 .createSignedUrl(ov.video_storage_path, 60 * 60 * 6)
                 .then(({ data: signed }) => {
                   if (!alive) return;
-                  if (signed?.signedUrl) setPandacine({ videoSrc: signed.signedUrl, title: ov.title ?? null });
+                  if (signed?.signedUrl) setPandacine({ videoSrc: signed.signedUrl, title: ov.title ?? null, qualities });
                 });
             } else if (ov.video_url) {
-              setPandacine({ videoSrc: ov.video_url, title: ov.title ?? null });
+              setPandacine({ videoSrc: ov.video_url, title: ov.title ?? null, qualities });
             } else {
               setPandacine(null);
             }
@@ -1230,6 +1233,14 @@ function CatalogWatch({ id }: { id: string }) {
                 <CustomMoviePlayer
                   key={`pandacine-${iframeKey}`}
                   src={pandacine.videoSrc}
+                  sources={(() => {
+                    const extras = (pandacine.qualities ?? []).filter((q) => q.url && q.label);
+                    if (extras.length === 0) return undefined;
+                    return [
+                      { label: "Auto", src: pandacine.videoSrc },
+                      ...extras.map((q) => ({ label: q.label, src: q.url, height: q.height ?? undefined })),
+                    ];
+                  })()}
                   poster={backdropUrl}
                   startAt={startAt}
                     locked={followerLocked}
@@ -2275,6 +2286,16 @@ function CustomWatch({ customId }: { customId: string }) {
             ) : (
             <CustomMoviePlayer
               src={videoSrc}
+              sources={(() => {
+                const extras = Array.isArray((movie as any)?.video_qualities)
+                  ? ((movie as any).video_qualities as Array<{ label: string; url: string; height?: number | null }>).filter((q) => q?.url && q?.label)
+                  : [];
+                if (extras.length === 0) return undefined;
+                return [
+                  { label: "Auto", src: videoSrc },
+                  ...extras.map((q) => ({ label: q.label, src: q.url, height: q.height ?? undefined })),
+                ];
+              })()}
               poster={movie?.backdrop_url ?? movie?.poster_url ?? null}
                 locked={followerLocked}
               onLockedAttempt={() => {

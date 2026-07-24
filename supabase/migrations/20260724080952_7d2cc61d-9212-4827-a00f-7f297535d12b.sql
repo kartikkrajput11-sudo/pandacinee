@@ -1,0 +1,2 @@
+ALTER TABLE public.custom_movies ADD COLUMN IF NOT EXISTS video_qualities jsonb NOT NULL DEFAULT '[]'::jsonb;
+ALTER TABLE public.custom_episodes ADD COLUMN IF NOT EXISTS video_qualities jsonb NOT NULL DEFAULT '[]'::jsonb;

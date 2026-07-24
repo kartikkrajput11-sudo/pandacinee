@@ -27,6 +27,8 @@ export const Route = createFileRoute("/_authenticated/app/tamanna")({
   component: AdminPage,
 });
 
+type QualityVariant = { label: string; url: string; height?: number | null };
+
 type CustomMovie = {
   id: string;
   title: string;
@@ -38,6 +40,7 @@ type CustomMovie = {
   genres: string[];
   video_url: string | null;
   video_storage_path: string | null;
+  video_qualities: QualityVariant[] | null;
   tmdb_id: number | null;
   media_type: "movie" | "tv" | null;
   use_vidking: boolean | null;
@@ -932,6 +935,9 @@ function MovieModal({ initial, onClose }: { initial?: CustomMovie | null; onClos
   const [videoPath, setVideoPath] = useState<string | null>(initial?.video_storage_path ?? null);
   const [videoFileName, setVideoFileName] = useState<string | null>(initial?.video_storage_path ?? null);
   const [videoFileSize, setVideoFileSize] = useState<number>(0);
+  const [videoQualities, setVideoQualities] = useState<QualityVariant[]>(
+    Array.isArray(initial?.video_qualities) ? (initial!.video_qualities as QualityVariant[]) : [],
+  );
   const [tmdbId, setTmdbId] = useState<number | null>(initial?.tmdb_id ?? null);
   const [mediaType, setMediaType] = useState<"movie" | "tv">(initial?.media_type ?? "movie");
   const [useVidking, setUseVidking] = useState<boolean>(initial?.use_vidking ?? false);
@@ -987,6 +993,7 @@ function MovieModal({ initial, onClose }: { initial?: CustomMovie | null; onClos
       setVideoUrl(row.video_url ?? "");
       setVideoPath(row.video_storage_path ?? null);
       setVideoFileName(row.video_storage_path ?? null);
+      setVideoQualities(Array.isArray(row.video_qualities) ? (row.video_qualities as QualityVariant[]) : []);
       setTmdbId(row.tmdb_id);
       setMediaType(row.media_type ?? "movie");
       setUseVidking(row.use_vidking ?? true);
@@ -1126,6 +1133,13 @@ function MovieModal({ initial, onClose }: { initial?: CustomMovie | null; onClos
         genres: genres.split(",").map((g) => g.trim()).filter(Boolean).slice(0, 20),
         video_url: videoUrl.trim() || null,
         video_storage_path: videoPath,
+        video_qualities: videoQualities
+          .map((q) => ({
+            label: q.label.trim(),
+            url: q.url.trim(),
+            height: q.height != null && !Number.isNaN(Number(q.height)) ? Number(q.height) : null,
+          }))
+          .filter((q) => q.label.length > 0 && q.url.length > 0),
         tmdb_id: tmdbId,
         media_type: mediaType,
         use_vidking: useVidking,
@@ -1370,7 +1384,75 @@ function MovieModal({ initial, onClose }: { initial?: CustomMovie | null; onClos
               <p className="mt-2 text-[10px] text-rose-400">{uploadErr}</p>
             )}
           </div>
+
+          {/* Manual quality variants — pasted URLs for a per-resolution selector in the player */}
+          <div className="rounded-2xl bg-velvet border border-border p-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-[10px] uppercase tracking-widest text-petal">
+                Quality variants (manual selector)
+              </label>
+              <button
+                type="button"
+                onClick={() =>
+                  setVideoQualities((q) => [
+                    ...q,
+                    { label: "720p", url: "", height: 720 },
+                  ])
+                }
+                className="text-[10px] uppercase tracking-widest text-petal hover:underline"
+              >
+                + Add
+              </button>
+            </div>
+            <p className="text-[10px] text-candle-muted">
+              Paste an extra source URL per resolution (e.g. 360p / 480p / 720p / 1080p). Viewers pick from the gear menu in the player. The primary video above is always shown as "Auto".
+            </p>
+            {videoQualities.length === 0 && (
+              <p className="text-[10px] text-candle-muted italic">No extra qualities — player will show only "Auto".</p>
+            )}
+            {videoQualities.map((q, i) => (
+              <div key={i} className="flex flex-wrap gap-1.5 items-center bg-surface rounded-xl p-2 border border-border">
+                <input
+                  value={q.label}
+                  onChange={(e) =>
+                    setVideoQualities((arr) => arr.map((r, j) => (j === i ? { ...r, label: e.target.value } : r)))
+                  }
+                  placeholder="Label"
+                  className="w-16 h-8 rounded-lg bg-velvet border border-border px-2 text-xs text-candle"
+                />
+                <input
+                  value={q.height ?? ""}
+                  onChange={(e) => {
+                    const v = e.target.value.trim();
+                    const n = v === "" ? null : Number(v);
+                    setVideoQualities((arr) =>
+                      arr.map((r, j) => (j === i ? { ...r, height: Number.isFinite(n as number) ? (n as number) : null } : r)),
+                    );
+                  }}
+                  placeholder="p"
+                  inputMode="numeric"
+                  className="w-14 h-8 rounded-lg bg-velvet border border-border px-2 text-xs text-candle"
+                />
+                <input
+                  value={q.url}
+                  onChange={(e) =>
+                    setVideoQualities((arr) => arr.map((r, j) => (j === i ? { ...r, url: e.target.value } : r)))
+                  }
+                  placeholder="https://…mp4"
+                  className="flex-1 min-w-[140px] h-8 rounded-lg bg-velvet border border-border px-2 text-xs text-candle"
+                />
+                <button
+                  type="button"
+                  onClick={() => setVideoQualities((arr) => arr.filter((_, j) => j !== i))}
+                  className="h-8 px-2 rounded-lg text-[10px] uppercase tracking-widest text-rose-400 hover:bg-rose-500/10"
+                >
+                  Remove
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
+
 
         <div className="mt-5 flex gap-2">
           <button onClick={onClose} className="flex-1 h-11 rounded-full bg-surface-elevated text-candle text-sm">Cancel</button>

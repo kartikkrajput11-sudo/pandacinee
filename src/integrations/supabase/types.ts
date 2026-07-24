@@ -524,6 +524,7 @@ export type Database = {
           title: string | null
           updated_at: string
           use_vidking: boolean
+          video_qualities: Json
           video_storage_path: string | null
           video_url: string | null
         }
@@ -540,6 +541,7 @@ export type Database = {
           title?: string | null
           updated_at?: string
           use_vidking?: boolean
+          video_qualities?: Json
           video_storage_path?: string | null
           video_url?: string | null
         }
@@ -556,6 +558,7 @@ export type Database = {
           title?: string | null
           updated_at?: string
           use_vidking?: boolean
+          video_qualities?: Json
           video_storage_path?: string | null
           video_url?: string | null
         }
@@ -584,6 +587,7 @@ export type Database = {
           tmdb_id: number | null
           updated_at: string
           use_vidking: boolean
+          video_qualities: Json
           video_storage_path: string | null
           video_url: string | null
           year: number | null
@@ -602,6 +606,7 @@ export type Database = {
           tmdb_id?: number | null
           updated_at?: string
           use_vidking?: boolean
+          video_qualities?: Json
           video_storage_path?: string | null
           video_url?: string | null
           year?: number | null
@@ -620,6 +625,7 @@ export type Database = {
           tmdb_id?: number | null
           updated_at?: string
           use_vidking?: boolean
+          video_qualities?: Json
           video_storage_path?: string | null
           video_url?: string | null
           year?: number | null
