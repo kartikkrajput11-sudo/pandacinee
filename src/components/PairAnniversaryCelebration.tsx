@@ -2,12 +2,13 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Heart, Sparkles, Star, Crown, Flame, X } from "lucide-react";
 
-type Milestone =
+export type Milestone =
   | { kind: "year"; count: number; anchor: Date }
   | { kind: "month"; count: number; anchor: Date }
   | { kind: "day"; count: number; anchor: Date };
 
 const DAY_MILESTONES = [7, 100, 150, 200, 300, 365];
+
 
 function fullMonthsBetween(from: Date, to: Date) {
   return (to.getFullYear() - from.getFullYear()) * 12 + (to.getMonth() - from.getMonth());
