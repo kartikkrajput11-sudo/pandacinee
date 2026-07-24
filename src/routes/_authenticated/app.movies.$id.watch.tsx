@@ -201,6 +201,7 @@ function CatalogWatch({ id }: { id: string }) {
     peerBuffering,
     sendBuffering,
     startTogether,
+    peerLatencyMs,
   } = useWatchSync(me?.id ?? null, partner?.id ?? null, syncRoomId, isTv ? "tv" : "movie");
 
 
