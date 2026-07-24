@@ -170,6 +170,7 @@ export function PandaStickerPicker({ open, onClose, onPick, onOpenAi }: Props) {
             PANDA_CATEGORY_ORDER.map((c) => {
               const items = PANDA_STICKERS.filter((s) => s.category === c.id);
               if (items.length === 0) return null;
+              const locked = c.adult && !adultOk;
               return (
                 <section key={c.id} data-section={c.id} className="mb-3 last:mb-1">
                   <div className="flex items-center gap-2 mb-1.5 mt-0.5">
@@ -178,16 +179,42 @@ export function PandaStickerPicker({ open, onClose, onPick, onOpenAi }: Props) {
                     <span className="flex-1 h-px bg-gradient-to-r from-petal/25 via-border/60 to-transparent" />
                     <span className="text-[9px] text-candle-muted/60">{items.length}</span>
                   </div>
-                  <div className="grid grid-cols-6 gap-1.5">
-                    {items.map((s) => (
-                      <StickerBtn key={s.id} sticker={s} onClick={() => pick(s.id)} />
-                    ))}
-                  </div>
+                  {locked ? (
+                    <button
+                      onClick={() => setShowGate(true)}
+                      className="w-full py-4 rounded-xl bg-surface-elevated border border-petal/40 flex flex-col items-center gap-1 text-candle hover:bg-petal/10 transition-colors"
+                    >
+                      <Lock className="size-4 text-petal" />
+                      <span className="text-xs font-medium">18+ · Tap to unlock</span>
+                      <span className="text-[10px] text-candle-muted">Romantic & intimate stickers</span>
+                    </button>
+                  ) : (
+                    <div className="grid grid-cols-6 gap-1.5">
+                      {items.map((s) => (
+                        <StickerBtn key={s.id} sticker={s} onClick={() => pick(s.id)} />
+                      ))}
+                    </div>
+                  )}
                 </section>
               );
             })
           )}
         </div>
+
+        {showGate && (
+          <AgeGate
+            onConfirm={() => { unlockAdult(); setAdultOk(true); setShowGate(false); }}
+            onCancel={() => setShowGate(false)}
+          />
+        )}
+        {adultOk && (
+          <button
+            onClick={() => { lockAdult(); setAdultOk(false); }}
+            className="mx-3 mb-2 text-[10px] text-candle-muted hover:text-petal transition-colors flex items-center gap-1"
+          >
+            <Lock className="size-2.5" /> Lock 18+ stickers
+          </button>
+        )}
 
       </div>
     </div>
