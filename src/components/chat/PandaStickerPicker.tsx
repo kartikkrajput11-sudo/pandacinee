@@ -31,6 +31,7 @@ function pushRecent(id: PandaStickerId) {
 export function PandaStickerPicker({ open, onClose, onPick, onOpenAi }: Props) {
   const [q, setQ] = useState("");
   const [recent, setRecent] = useState<PandaStickerId[]>([]);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => { if (open) setRecent(getRecent()); }, [open]);
 
@@ -50,9 +51,16 @@ export function PandaStickerPicker({ open, onClose, onPick, onOpenAi }: Props) {
   function pick(id: PandaStickerId) {
     pushRecent(id);
     onPick(id);
-    // stay open for rapid-fire sending
     setRecent(getRecent());
   }
+
+  function scrollToSection(id: PandaStickerCategory | "recent") {
+    const el = scrollRef.current?.querySelector(`[data-section="${id}"]`) as HTMLElement | null;
+    if (el && scrollRef.current) {
+      scrollRef.current.scrollTo({ top: el.offsetTop - scrollRef.current.offsetTop - 4, behavior: "smooth" });
+    }
+  }
+
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-50 flex items-end justify-center pointer-events-none animate-fade-in">
