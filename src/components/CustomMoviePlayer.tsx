@@ -81,6 +81,29 @@ export function CustomMoviePlayer({ src, sources, poster, startAt, onEvent, onRe
   const hideTimer = useRef<number | null>(null);
   const bufferTimer = useRef<number | null>(null);
   const scrubbing = useRef(false);
+
+  // Quality variants. If `sources` isn't provided, expose the single `src` as "Auto".
+  const qualityList = useMemo<QualitySource[]>(() => {
+    if (sources && sources.length > 0) return sources;
+    return [{ label: "Auto", src }];
+  }, [sources, src]);
+
+  // Pick an initial quality: on slow / metered connections prefer the lowest,
+  // otherwise the highest. This is the biggest single win for time-to-first-frame.
+  const [qualityIdx, setQualityIdx] = useState<number>(() => {
+    if (qualityList.length <= 1) return 0;
+    const conn = (typeof navigator !== "undefined" ? (navigator as any).connection : null) as
+      | { effectiveType?: string; saveData?: boolean }
+      | null;
+    const slow = !!conn && (conn.saveData || /2g|slow-2g/i.test(conn.effectiveType ?? ""));
+    // Sort by height ascending for slow, descending for fast.
+    const indexed = qualityList.map((q, i) => ({ i, h: q.height ?? 0 }));
+    indexed.sort((a, b) => (slow ? a.h - b.h : b.h - a.h));
+    return indexed[0]?.i ?? 0;
+  });
+  const [qualityOpen, setQualityOpen] = useState(false);
+  const activeSrc = qualityList[qualityIdx]?.src ?? src;
+
   useEffect(() => {
     return () => {
       if (bufferTimer.current) window.clearTimeout(bufferTimer.current);
