@@ -202,16 +202,21 @@ html.theme-anim * {
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+    font-feature-settings: "ss01", "ss02", "cv11", "cv02";
   }
   ::selection {
-    background: color-mix(in oklab, var(--petal) 35%, transparent);
+    background: color-mix(in oklab, var(--petal) 40%, transparent);
     color: var(--candle);
   }
-  h1, h2, h3, .font-serif {
-    font-family: var(--font-serif);
-    letter-spacing: -0.01em;
+  h1, h2, h3, .font-serif, .font-display {
+    font-family: var(--font-display);
+    letter-spacing: -0.018em;
+    /* Fraunces variable axes: soft optical, slight softness for warmth */
+    font-variation-settings: "opsz" 96, "SOFT" 50, "WONK" 0;
   }
+  h1 { font-variation-settings: "opsz" 144, "SOFT" 60, "WONK" 1; }
 }
+
 
 /* Custom utilities */
 @utility scrollbar-hide {
