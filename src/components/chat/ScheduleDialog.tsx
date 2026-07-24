@@ -120,10 +120,7 @@ export function ScheduleDialog({
             {quick.map((q) => (
               <button
                 key={q.label}
-                onClick={() => {
-                  const d = "at" in q ? q.at() : new Date(Date.now() + (q as any).ms);
-                  setWhen(toLocalInputValue(d));
-                }}
+                onClick={() => setWhen(toLocalInputValue(q.get()))}
                 className="text-[11px] px-2.5 h-7 rounded-full bg-surface border border-border text-candle hover:border-petal/60"
               >
                 {q.label}
