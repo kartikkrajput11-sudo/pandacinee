@@ -71,6 +71,7 @@ export function InviteFriendCard({
         emoji: meta.emoji,
         body: meta.body,
         href,
+        friend: u.user.id, // when recipient accepts, they play WITH me
       } as never,
     });
     setSendingId(null);
@@ -78,8 +79,15 @@ export function InviteFriendCard({
       toast.error(error.message);
       return;
     }
-    toast.success(`Invite sent to @${peerName}`);
+    toast.success(`Invite sent to @${peerName} — opening the room…`);
     setOpen(false);
+    // Take the sender straight into the shared room so both sides land on the same channel.
+    try {
+      navigate({ to: href, search: { friend: peerId } as never });
+    } catch {
+      // If the route rejects the search param, fall back to plain navigation.
+      navigate({ to: href });
+    }
   }
 
   return (
