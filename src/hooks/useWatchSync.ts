@@ -537,6 +537,7 @@ export function useWatchSync(
     peerBuffering,
     sendBuffering,
     startTogether,
+    peerLatencyMs,
   };
 }
 
