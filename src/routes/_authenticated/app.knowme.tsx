@@ -9,6 +9,7 @@ import { sfxReaction, sfxPollVote, sfxKiss } from "@/lib/sfx";
 import { supabase } from "@/integrations/supabase/client";
 import { GameChat } from "@/components/games/GameChat";
 import { GroupPlayersBar } from "@/components/games/GroupPlayersBar";
+import { InviteFriendCard } from "@/components/games/InviteFriendCard";
 
 export const Route = createFileRoute("/_authenticated/app/knowme")({
   component: KnowMePage,
@@ -468,6 +469,10 @@ function Intro({
         {mode === "online" && !hasPartner && (
           <p className="text-[11px] text-rose-300/80 text-center mt-2">Pair with a partner first to play online.</p>
         )}
+
+        <div className="mt-4">
+          <InviteFriendCard game="know-me" />
+        </div>
 
         <div className="mt-5 p-4 rounded-2xl bg-surface/60 border border-border">
           <div className="flex items-center justify-between mb-3">

@@ -9,6 +9,7 @@ import { sfxKiss, sfxPollVote, sfxReaction } from "@/lib/sfx";
 import { toast } from "sonner";
 import { GameChat } from "@/components/games/GameChat";
 import { GroupPlayersBar } from "@/components/games/GroupPlayersBar";
+import { InviteFriendCard } from "@/components/games/InviteFriendCard";
 
 export const Route = createFileRoute("/_authenticated/app/hideseek")({
   component: HideSeekPage,
@@ -788,8 +789,10 @@ function Intro({
         </button>
       </div>
 
+      <InviteFriendCard game="hide-seek" />
+
       {!hasPartner && (
-        <p className="text-[11px] text-candle-muted">Pair with a partner to play across any distance.</p>
+        <p className="text-[11px] text-candle-muted">Pair with a partner to play across any distance — or invite a friend above.</p>
       )}
 
       <button

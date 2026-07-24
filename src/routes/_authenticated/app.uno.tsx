@@ -24,6 +24,7 @@ import {
 import { sfxReaction, sfxPollVote, sfxKiss } from "@/lib/sfx";
 import { GroupPlayersBar } from "@/components/games/GroupPlayersBar";
 import { GameChat } from "@/components/games/GameChat";
+import { InviteFriendCard } from "@/components/games/InviteFriendCard";
 
 
 export const Route = createFileRoute("/_authenticated/app/uno")({
@@ -298,8 +299,9 @@ function UnoPage() {
                   </div>
                 </div>
               </button>
+              <InviteFriendCard game="uno" />
               {!partner && (
-                <p className="text-xs text-candle-muted mt-1">Pair with a partner to unlock live play.</p>
+                <p className="text-xs text-candle-muted mt-1">Pair with a partner to unlock live play — or invite a friend above.</p>
               )}
             </div>
           </div>
