@@ -41,6 +41,7 @@ import { CustomMoviePlayer, type CustomPlayerHandle } from "@/components/CustomM
 import { toEmbedUrl } from "@/lib/video-url";
 import { useFriendships } from "@/hooks/useFriends";
 import { AvatarImg } from "@/components/AvatarImg";
+import { PostMovieReflection } from "@/components/movies/PostMovieReflection";
 
 type Source = { id: string; label: string; url: (tmdb: number, startAt?: number, mediaType?: "movie" | "tv", season?: number, episode?: number) => string; hint: string };
 
@@ -2025,6 +2026,7 @@ function CustomWatch({ customId }: { customId: string }) {
   const [loading, setLoading] = useState(true);
   const [playerReady, setPlayerReady] = useState(0);
   const [customLoadIssue, setCustomLoadIssue] = useState(false);
+  const [showReflection, setShowReflection] = useState(false);
 
   const {
     mine, peer, partnerOnline, publish, sendSeek, sendCountdown, countdown, clearCountdown,
@@ -2203,6 +2205,7 @@ function CustomWatch({ customId }: { customId: string }) {
     if (suppressRef.current) return;
     if (followerLocked) return;
     const isDiscrete = evt.event === "play" || evt.event === "pause" || evt.event === "seeked" || evt.event === "ended" || evt.event === "ratechange";
+    if (evt.event === "ended" && me) setShowReflection(true);
     if (isDiscrete && partner && !hostId) claimHost();
     // Host publishes every 250ms during play (tight follower drift), instantly on discrete events.
     if (!isDiscrete && Date.now() - lastPublishRef.current < 250) return;
@@ -2406,6 +2409,17 @@ function CustomWatch({ customId }: { customId: string }) {
           </div>
         )}
       </div>
+      {showReflection && me && movie && (
+        <PostMovieReflection
+          movieId={customId}
+          movieTitle={movie.title ?? "the film"}
+          meId={me.id}
+          partnerId={partner?.id ?? null}
+          partnerName={partner?.display_name}
+          partnerAvatar={partner?.avatar_url}
+          onClose={() => setShowReflection(false)}
+        />
+      )}
     </div>
   );
 }

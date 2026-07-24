@@ -1576,6 +1576,48 @@ export type Database = {
           },
         ]
       }
+      post_movie_prompts: {
+        Row: {
+          created_at: string
+          favorite_moment: string | null
+          id: string
+          mood: string | null
+          movie_id: string
+          note: string | null
+          partner_id: string | null
+          rating: number | null
+          updated_at: string
+          user_id: string
+          would_rewatch: boolean | null
+        }
+        Insert: {
+          created_at?: string
+          favorite_moment?: string | null
+          id?: string
+          mood?: string | null
+          movie_id: string
+          note?: string | null
+          partner_id?: string | null
+          rating?: number | null
+          updated_at?: string
+          user_id: string
+          would_rewatch?: boolean | null
+        }
+        Update: {
+          created_at?: string
+          favorite_moment?: string | null
+          id?: string
+          mood?: string | null
+          movie_id?: string
+          note?: string | null
+          partner_id?: string | null
+          rating?: number | null
+          updated_at?: string
+          user_id?: string
+          would_rewatch?: boolean | null
+        }
+        Relationships: []
+      }
       profile_achievements: {
         Row: {
           acquired_at: string
@@ -2313,6 +2355,7 @@ export type Database = {
           title: string
           updated_at: string
           url: string | null
+          votes: Json
         }
         Insert: {
           claimed_by?: string | null
@@ -2327,6 +2370,7 @@ export type Database = {
           title: string
           updated_at?: string
           url?: string | null
+          votes?: Json
         }
         Update: {
           claimed_by?: string | null
@@ -2341,6 +2385,7 @@ export type Database = {
           title?: string
           updated_at?: string
           url?: string | null
+          votes?: Json
         }
         Relationships: []
       }
