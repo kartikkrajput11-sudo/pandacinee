@@ -200,3 +200,17 @@ function StickerBtn({ sticker, onClick }: { sticker: { id: string; url: string; 
     </button>
   );
 }
+
+function CatChip({ emoji, label, onClick }: { emoji: string; label: string; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="shrink-0 h-7 px-2.5 rounded-full bg-surface-elevated border border-border hover:border-petal/50 hover:bg-petal/10 text-[11px] text-candle flex items-center gap-1 transition-colors"
+    >
+      <span className="text-sm leading-none">{emoji}</span>
+      <span>{label}</span>
+    </button>
+  );
+}
+
