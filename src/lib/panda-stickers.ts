@@ -230,7 +230,13 @@ export function isPandaStickerContent(content: string | null | undefined): boole
 export function pandaStickerUrl(content: string): string | null {
   if (!isPandaStickerContent(content)) return null;
   const id = content.slice(PANDA_STICKER_PREFIX.length);
-  return BY_ID[id] ?? null;
+  if (BY_ID[id]) return BY_ID[id];
+  // Fall back to admin-uploaded custom stickers (loaded at runtime).
+  try {
+    // Lazy require to avoid a hard import cycle at module init.
+    const { getCustomStickerUrl } = require("@/lib/sticker-overrides") as typeof import("@/lib/sticker-overrides");
+    return getCustomStickerUrl(id);
+  } catch { return null; }
 }
 
 export function pandaStickerContent(id: PandaStickerId): string {
