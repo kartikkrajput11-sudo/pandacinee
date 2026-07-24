@@ -22,6 +22,7 @@ import {
 } from "@/lib/games";
 import { generateGameCard } from "@/lib/games.functions";
 import { gameSfx } from "@/lib/game-sfx";
+import { GameChat } from "@/components/games/GameChat";
 
 const paramsSchema = z.object({
   game: z.enum([

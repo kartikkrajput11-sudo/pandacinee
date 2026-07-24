@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, Camera, Check, Flame, RotateCw, Share2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { gameSfx } from "@/lib/game-sfx";
+import { GameChat } from "@/components/games/GameChat";
 
 export const Route = createFileRoute("/_authenticated/app/memory-challenge")({
   component: MemoryChallenge,

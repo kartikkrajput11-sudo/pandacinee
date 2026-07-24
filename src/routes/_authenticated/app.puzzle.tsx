@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
 import { useMatchOpponent } from "@/hooks/useMatchOpponent";
 import { GroupPlayersBar } from "@/components/games/GroupPlayersBar";
+import { GameChat } from "@/components/games/GameChat";
 
 export const Route = createFileRoute("/_authenticated/app/puzzle")({
   component: PuzzleTogether,

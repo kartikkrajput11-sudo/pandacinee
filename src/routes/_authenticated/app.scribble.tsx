@@ -9,6 +9,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { useMatchOpponent } from "@/hooks/useMatchOpponent";
 import { AvatarImg } from "@/components/AvatarImg";
 import { GroupPlayersBar } from "@/components/games/GroupPlayersBar";
+import { GameChat } from "@/components/games/GameChat";
 
 export const Route = createFileRoute("/_authenticated/app/scribble")({
   component: Scribble,

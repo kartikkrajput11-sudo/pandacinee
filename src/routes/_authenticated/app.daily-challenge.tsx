@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Check, Flame, Share2, Trophy } from "lucide-react";
 import { toast } from "sonner";
 import { gameSfx } from "@/lib/game-sfx";
+import { GameChat } from "@/components/games/GameChat";
 
 export const Route = createFileRoute("/_authenticated/app/daily-challenge")({
   component: DailyChallenge,

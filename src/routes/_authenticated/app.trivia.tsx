@@ -8,6 +8,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { generateCoupleTrivia } from "@/lib/games.functions";
 import { gameSfx } from "@/lib/game-sfx";
 import { AvatarImg } from "@/components/AvatarImg";
+import { GameChat } from "@/components/games/GameChat";
 
 export const Route = createFileRoute("/_authenticated/app/trivia")({
   head: () => ({
