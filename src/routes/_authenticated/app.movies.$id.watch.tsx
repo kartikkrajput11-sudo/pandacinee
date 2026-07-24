@@ -447,7 +447,7 @@ function CatalogWatch({ id }: { id: string }) {
         if (claimingNow) claimHost();
         if (!iAmHost && !claimingNow) return;
         const now = Date.now();
-        if (isDiscrete || now - lastPublishRef.current > 2000) {
+        if (isDiscrete || now - lastPublishRef.current > 1000) {
           lastPublishRef.current = now;
           publish({ event: evt, currentTime, duration, sourceIdx });
         }
