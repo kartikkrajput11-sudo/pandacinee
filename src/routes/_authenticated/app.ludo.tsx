@@ -11,6 +11,7 @@ import { GroupPlayersBar } from "@/components/games/GroupPlayersBar";
 import { InviteFriendCard } from "@/components/games/InviteFriendCard";
 
 import { useProfile } from "@/hooks/useProfile";
+import { useProfileById } from "@/hooks/useProfileById";
 import { useMatchOpponent } from "@/hooks/useMatchOpponent";
 import {
   initialState,
@@ -53,11 +54,15 @@ function LudoPage() {
   const me = data?.profile;
   const { matchId, friend } = Route.useSearch();
   const { opponentId: matchOppId } = useMatchOpponent(matchId, me?.id);
-  const partner = matchId
-    ? (matchOppId ? ({ id: matchOppId } as { id: string; display_name?: string }) : null)
-    : (friend && me && friend !== me.id
-        ? ({ id: friend } as { id: string; display_name?: string })
-        : data?.partner);
+  const otherId = matchId ? matchOppId : (friend && me && friend !== me.id ? friend : null);
+  const { data: otherProfile } = useProfileById(otherId);
+  const partner = otherId
+    ? ({
+        id: otherId,
+        display_name: otherProfile?.display_name ?? otherProfile?.username ?? "Friend",
+        avatar_url: otherProfile?.avatar_url ?? null,
+      } as { id: string; display_name?: string; avatar_url?: string | null })
+    : data?.partner;
   const [mode, setMode] = useState<Mode | null>(null);
   useEffect(() => { if ((matchId || friend) && partner && !mode) setMode("partner"); }, [matchId, friend, partner, mode]);
   const [state, setState] = useState<State>(() => initialState());

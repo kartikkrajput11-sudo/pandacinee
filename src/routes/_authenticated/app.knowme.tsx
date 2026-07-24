@@ -3,6 +3,7 @@ import { GameBackLink } from "@/components/games/GameBackLink";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, Check, Lock, Sparkles, RotateCcw, Heart, Wifi, Users } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
+import { useProfileById } from "@/hooks/useProfileById";
 import { useMatchOpponent } from "@/hooks/useMatchOpponent";
 import { pickQuestions, type KnowMeQuestion } from "@/lib/knowme";
 import { sfxReaction, sfxPollVote, sfxKiss } from "@/lib/sfx";
@@ -51,11 +52,15 @@ function KnowMePage() {
   const me = data?.profile;
   const { matchId, friend } = Route.useSearch();
   const { opponentId: matchOppId } = useMatchOpponent(matchId, me?.id);
-  const partner = matchId
-    ? (matchOppId ? { id: matchOppId, display_name: "Partner" } as { id: string; display_name?: string } : null)
-    : (friend && me && friend !== me.id
-        ? ({ id: friend, display_name: "Friend" } as { id: string; display_name?: string })
-        : data?.partner);
+  const otherId = matchId ? matchOppId : (friend && me && friend !== me.id ? friend : null);
+  const { data: otherProfile } = useProfileById(otherId);
+  const partner = otherId
+    ? ({
+        id: otherId,
+        display_name: otherProfile?.display_name ?? otherProfile?.username ?? "Friend",
+        avatar_url: otherProfile?.avatar_url ?? null,
+      } as { id: string; display_name?: string; avatar_url?: string | null })
+    : data?.partner;
   const navigate = useNavigate();
 
   const [mode, setMode] = useState<Mode>("local");

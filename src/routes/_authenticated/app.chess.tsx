@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
+import { useProfileById } from "@/hooks/useProfileById";
 import { useMatchOpponent } from "@/hooks/useMatchOpponent";
 import { ChessBoard } from "@/components/chess/ChessBoard";
 import { PromotionDialog } from "@/components/chess/PromotionDialog";
@@ -32,6 +33,7 @@ const searchSchema = z.object({
   mode: z.enum(["partner", "self", "ai"]).optional(),
   ai: z.enum(["easy", "medium", "hard", "expert"]).optional(),
   matchId: z.string().optional(),
+  friend: z.string().optional(),
 });
 
 export const Route = createFileRoute("/_authenticated/app/chess")({
@@ -67,8 +69,15 @@ function ChessPage() {
   const { data: profileData } = useProfile();
   const me = profileData?.profile;
   const { opponentId: matchOppId, ready: matchReady } = useMatchOpponent(search.matchId, me?.id);
-  const partner = search.matchId
-    ? (matchOppId ? { id: matchOppId, display_name: "Partner" } : null)
+  const otherId = search.matchId
+    ? matchOppId
+    : (search.friend && me && search.friend !== me.id ? search.friend : null);
+  const { data: otherProfile } = useProfileById(otherId);
+  const partner = otherId
+    ? ({
+        id: otherId,
+        display_name: otherProfile?.display_name ?? otherProfile?.username ?? "Friend",
+      } as { id: string; display_name: string })
     : profileData?.partner;
 
   const gameId = search.game ?? null;

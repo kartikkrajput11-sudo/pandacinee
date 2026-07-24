@@ -5,6 +5,7 @@ import { ArrowLeft, RotateCcw, Send, User, Users } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
+import { useProfileById } from "@/hooks/useProfileById";
 import {
   initialState,
   playCard,
@@ -86,11 +87,18 @@ function UnoPage() {
     return () => { cancelled = true; };
   }, [matchId, me]);
 
-  const partner = matchId
-    ? (matchOpponentId ? { id: matchOpponentId } as { id: string } : null)
-    : (friend && me && friend !== me.id
-        ? ({ id: friend } as { id: string })
-        : data?.partner);
+  const otherId = matchId
+    ? matchOpponentId
+    : (friend && me && friend !== me.id ? friend : null);
+  const { data: otherProfile } = useProfileById(otherId);
+  const partner = otherId
+    ? ({
+        id: otherId,
+        display_name:
+          otherProfile?.display_name ?? otherProfile?.username ?? "Friend",
+        avatar_url: otherProfile?.avatar_url ?? null,
+      } as { id: string; display_name?: string; avatar_url?: string | null })
+    : data?.partner;
   const [mode, setMode] = useState<Mode | null>(null);
   // Auto-enter partner mode when we arrived from a group match or friend invite.
   useEffect(() => {
@@ -344,7 +352,7 @@ function UnoPage() {
         {/* Opponent hand (face down) */}
         <div className="mb-5">
           <p className="text-[9px] uppercase tracking-widest text-candle-muted text-center mb-2">
-            {mode === "partner" ? "Panda" : "Player 2"} · {theirHand.length} cards
+            {mode === "partner" ? (partner && "display_name" in partner ? (partner.display_name ?? "Partner") : "Partner") : "Player 2"} · {theirHand.length} cards
           </p>
           <div className="flex justify-center -space-x-6">
             {theirHand.slice(0, 10).map((c, i) => (
