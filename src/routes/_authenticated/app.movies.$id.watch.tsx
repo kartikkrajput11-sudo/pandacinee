@@ -48,50 +48,9 @@ type Source = { id: string; label: string; url: (tmdb: number, startAt?: number,
 
 const SOURCES: Source[] = [
   {
-    id: "vidlink",
-    label: "Velvet HD",
-    hint: "Primary stream — autoplay",
-    url: (id, t, mt, s, e) => {
-      const base = mt === "tv" && s != null && e != null
-        ? `https://vidlink.pro/tv/${id}/${s}/${e}`
-        : `https://vidlink.pro/movie/${id}`;
-      const params = new URLSearchParams({
-        primaryColor: "ee82af",
-        secondaryColor: "ee82af",
-        iconColor: "ffffff",
-        autoplay: "true",
-        title: "true",
-      });
-      if (t) params.set("startAt", String(Math.floor(t)));
-      return `${base}?${params.toString()}`;
-    },
-  },
-  {
-    id: "vidsrc-to",
-    label: "Rose Cinema",
-    hint: "Alternate CDN — reliable",
-    url: (id, t, mt, s, e) => {
-      const base = mt === "tv" && s != null && e != null
-        ? `https://vidsrc.to/embed/tv/${id}/${s}/${e}`
-        : `https://vidsrc.to/embed/movie/${id}`;
-      return t ? `${base}?t=${Math.floor(t)}` : base;
-    },
-  },
-  {
-    id: "2embed",
-    label: "Twin Reel",
-    hint: "Community mirror",
-    url: (id, _t, mt, s, e) => {
-      if (mt === "tv" && s != null && e != null) {
-        return `https://www.2embed.cc/embedtv/${id}&s=${s}&e=${e}`;
-      }
-      return `https://www.2embed.cc/embed/${id}`;
-    },
-  },
-  {
     id: "vidking-auto",
-    label: "Vidking HD",
-    hint: "Legacy — autoplay",
+    label: "Panda Stream HD",
+    hint: "Primary stream — autoplay",
     url: (id, t, mt, s, e) => {
       const base = mt === "tv" && s != null && e != null
         ? `https://www.vidking.net/embed/tv/${id}/${s}/${e}`
@@ -101,13 +60,24 @@ const SOURCES: Source[] = [
   },
   {
     id: "vidking-manual",
-    label: "Vidking Manual",
+    label: "Panda Stream Manual",
     hint: "Press play inside the player",
     url: (id, t, mt, s, e) => {
       const base = mt === "tv" && s != null && e != null
         ? `https://www.vidking.net/embed/tv/${id}/${s}/${e}`
         : `https://www.vidking.net/embed/movie/${id}`;
       return `${base}?color=ee82af${t ? `&progress=${Math.floor(t)}` : ""}`;
+    },
+  },
+  {
+    id: "2embed",
+    label: "Twin Reel Mirror",
+    hint: "Community fallback",
+    url: (id, _t, mt, s, e) => {
+      if (mt === "tv" && s != null && e != null) {
+        return `https://www.2embed.cc/embedtv/${id}&s=${s}&e=${e}`;
+      }
+      return `https://www.2embed.cc/embed/${id}`;
     },
   },
 ];
