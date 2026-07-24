@@ -241,16 +241,48 @@ function StickerBtn({ sticker, onClick }: { sticker: { id: string; url: string; 
   );
 }
 
-function CatChip({ emoji, label, onClick }: { emoji: string; label: string; onClick: () => void }) {
+function CatChip({ emoji, label, onClick, locked }: { emoji: string; label: string; onClick: () => void; locked?: boolean }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className="shrink-0 h-7 px-2.5 rounded-full bg-surface-elevated border border-border hover:border-petal/50 hover:bg-petal/10 text-[11px] text-candle flex items-center gap-1 transition-colors"
+      className={`shrink-0 h-7 px-2.5 rounded-full border text-[11px] flex items-center gap-1 transition-colors ${locked ? "bg-petal/10 border-petal/40 text-petal" : "bg-surface-elevated border-border text-candle hover:border-petal/50 hover:bg-petal/10"}`}
     >
       <span className="text-sm leading-none">{emoji}</span>
       <span>{label}</span>
+      {locked && <Lock className="size-2.5 opacity-70" />}
     </button>
   );
 }
+
+function AgeGate({ onConfirm, onCancel }: { onConfirm: () => void; onCancel: () => void }) {
+  return (
+    <div className="absolute inset-0 z-10 rounded-2xl bg-surface/95 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in">
+      <div className="w-full max-w-[280px] text-center">
+        <div className="mx-auto size-12 rounded-full bg-petal/15 border border-petal/40 flex items-center justify-center mb-3">
+          <Lock className="size-5 text-petal" />
+        </div>
+        <h3 className="text-base font-serif text-candle mb-1">18+ Content</h3>
+        <p className="text-xs text-candle-muted mb-4 leading-relaxed">
+          This category includes romantic and intimate stickers. Please confirm you are 18 or older to unlock.
+        </p>
+        <div className="flex gap-2">
+          <button
+            onClick={onCancel}
+            className="flex-1 h-9 rounded-full bg-surface-elevated border border-border text-candle text-xs font-medium hover:bg-surface transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            className="flex-1 h-9 rounded-full bg-petal text-white text-xs font-medium hover:bg-petal/90 transition-colors"
+          >
+            I'm 18+
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 
