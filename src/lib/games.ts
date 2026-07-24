@@ -61,6 +61,7 @@ export const GAMES: Record<GameKind, { name: string; emoji: string; body: string
   "memory-challenge": { name: "Memory Challenge", emoji: "📸", body: "Photo prompts together.", href: "/app/memory-challenge" },
   "puzzle-together": { name: "Puzzle Together", emoji: "🧩", body: "Solve jigsaws live.", href: "/app/puzzle" },
   "love-quiz": { name: "Love Quiz", emoji: "💘", body: "AI quiz about the two of you.", href: "/app/love-quiz", ai: true },
+  "couple-trivia": { name: "Couple's Trivia", emoji: "🧠", body: "Race to answer — points for speed.", href: "/app/trivia", ai: true },
   "tic-tac-toe": { name: "Tic Tac Toe", emoji: "❌⭕", body: "Live 3-in-a-row." },
   "rock-paper-scissors": { name: "Rock · Paper · Scissors", emoji: "✊✋✌️", body: "Best of 5, live." },
   "truth-or-dare": { name: "Truth or Dare", emoji: "🎯", body: "AI-crafted prompts, endless.", ai: true },
