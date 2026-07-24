@@ -206,6 +206,7 @@ function LudoPage() {
               <p className="text-xs text-candle-muted">One device, two players.</p>
             </div>
           </button>
+          <InviteFriendCard game="ludo" className="w-full p-5 rounded-3xl bg-gradient-to-br from-petal/10 to-transparent border border-petal/30 hover:border-petal/60 text-left flex items-center gap-3" />
         </div>
 
         <div className="mt-8 p-4 rounded-2xl bg-surface border border-border text-xs text-candle-muted space-y-1">
