@@ -142,6 +142,29 @@ function ChatBubbleImpl({
     if (u) window.open(u, "_blank");
   }
 
+  async function saveToGallery() {
+    if (!m.media_url) return;
+    try {
+      const u = await signMedia(m.media_url);
+      if (!u) throw new Error("Unable to load media");
+      const res = await fetch(u);
+      const blob = await res.blob();
+      const ext = (m.type === "video" ? "mp4" : (blob.type.split("/")[1] || "jpg")).split(";")[0];
+      const filename = `pandacine-${m.type}-${m.id.slice(0, 8)}.${ext}`;
+      const objectUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = objectUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+      toast.success(m.type === "video" ? "Video saved" : "Saved to your device");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Couldn't save media");
+    }
+  }
+
   const reactionsEntries = Object.entries(m.reactions ?? {}).filter(([, ids]) => ids.length > 0);
 
   const isSticker = m.type === "sticker";
@@ -700,6 +723,14 @@ function ChatBubbleImpl({
                   className="w-full px-4 py-3 flex items-center justify-between hover:bg-muted text-sm text-candle border-t border-border"
                 >
                   <span>Forward</span><Forward className="size-4 text-candle-muted" />
+                </button>
+              )}
+              {(m.type === "image" || m.type === "video") && m.media_url && (
+                <button
+                  onClick={() => { saveToGallery(); closeActions(); }}
+                  className="w-full px-4 py-3 flex items-center justify-between hover:bg-muted text-sm text-candle border-t border-border"
+                >
+                  <span>Save to gallery</span><Download className="size-4 text-candle-muted" />
                 </button>
               )}
               {m.type === "text" && m.content && (
