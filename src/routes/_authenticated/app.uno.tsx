@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { GameBackLink } from "@/components/games/GameBackLink";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, RotateCcw, Send, User, Users } from "lucide-react";
+import { ArrowLeft, RotateCcw, User, Users } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
@@ -108,10 +108,7 @@ function UnoPage() {
   const [flashId, setFlashId] = useState<string | null>(null);
   const [deckPulse, setDeckPulse] = useState(0);
   const [dealNonce, setDealNonce] = useState(0);
-  const [chat, setChat] = useState<{ id: string; from: UnoPlayer; text: string; at: number }[]>([]);
-  const [chatDraft, setChatDraft] = useState("");
   const [unoBurst, setUnoBurst] = useState<{ n: number; from: UnoPlayer } | null>(null);
-  const chatScrollRef = useRef<HTMLDivElement | null>(null);
 
   // In partner mode: lower UUID plays "you", partner plays "them".
   const mySeat: UnoPlayer = useMemo(() => {
@@ -139,10 +136,7 @@ function UnoPage() {
         ch.send({ type: "broadcast", event: "state", payload: stateRef.current });
       }
     });
-    ch.on("broadcast", { event: "chat" }, ({ payload }) => {
-      setChat((prev) => [...prev, payload as { id: string; from: UnoPlayer; text: string; at: number }]);
-      sfxReaction();
-    });
+    // Legacy in-table chat removed — the floating <GameChat /> owns messaging now.
     ch.on("broadcast", { event: "uno-call" }, ({ payload }) => {
       setUnoBurst({ n: Date.now(), from: (payload as { from: UnoPlayer }).from });
       sfxKiss();
@@ -164,21 +158,9 @@ function UnoPage() {
     }
   }
 
-  function sendChat() {
-    const text = chatDraft.trim();
-    if (!text) return;
-    const msg = { id: crypto.randomUUID(), from: mySeat, text, at: Date.now() };
-    setChat((prev) => [...prev, msg]);
-    setChatDraft("");
-    if (mode === "partner" && chRef.current) {
-      chRef.current.send({ type: "broadcast", event: "chat", payload: msg });
-    }
-  }
-
   useEffect(() => {
-    const el = chatScrollRef.current;
-    if (el) el.scrollTop = el.scrollHeight;
-  }, [chat.length]);
+    // Placeholder for any post-state effects.
+  }, [state.turn]);
 
   // From the seat's perspective, remap "you"/"them" for display.
   // We store state with fixed "you"/"them" seats. In partner mode `mySeat` decides
@@ -549,51 +531,7 @@ function UnoPage() {
           />
         )}
 
-        {/* Table-side chat */}
-        {mode === "partner" && (
-          <div className="mt-6 rounded-2xl border border-petal/25 bg-surface/80 backdrop-blur-xl overflow-hidden lg:fixed lg:top-24 lg:right-4 lg:w-72 lg:mt-0 lg:z-30 lg:shadow-[0_20px_60px_-20px_rgba(0,0,0,0.7)]">
-            <div className="px-4 py-2 border-b border-petal/15 flex items-center justify-between">
-              <p className="text-[10px] uppercase tracking-[0.3em] text-petal">Table talk</p>
-              <p className="text-[10px] text-candle-muted">{chat.length} whispers</p>
-            </div>
-            <div ref={chatScrollRef} className="max-h-40 lg:max-h-[60vh] overflow-y-auto px-3 py-2 space-y-1.5">
-              {chat.length === 0 ? (
-                <p className="text-xs italic text-candle-muted text-center py-3 font-serif">Say something velvet…</p>
-              ) : chat.map((m) => {
-                const mine = m.from === mySeat;
-                return (
-                  <div key={m.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
-                    <div
-                      className={`max-w-[80%] px-3 py-1.5 rounded-2xl text-sm ${mine ? "bg-petal text-velvet rounded-br-sm" : "bg-surface-elevated text-candle rounded-bl-sm border border-border"}`}
-                    >
-                      {m.text}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-            <form
-              onSubmit={(e) => { e.preventDefault(); sendChat(); }}
-              className="flex items-center gap-2 px-3 py-2 border-t border-petal/15 bg-surface-elevated/50"
-            >
-              <input
-                type="text"
-                value={chatDraft}
-                onChange={(e) => setChatDraft(e.target.value)}
-                placeholder="Whisper to your panda…"
-                maxLength={200}
-                className="flex-1 bg-transparent outline-none text-sm placeholder:text-candle-muted/70"
-              />
-              <button
-                type="submit"
-                disabled={!chatDraft.trim()}
-                className="rounded-full p-2 bg-petal text-velvet disabled:opacity-40 hover:brightness-110 transition"
-              >
-                <Send className="size-4" />
-              </button>
-            </form>
-          </div>
-        )}
+        {/* Table-side chat handled by the floating <GameChat /> below. */}
 
 
 
