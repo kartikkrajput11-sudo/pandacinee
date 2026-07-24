@@ -11,7 +11,9 @@ import { HandholdOverlay } from "@/components/chat/HandholdOverlay";
 import { BoopOverlay } from "@/components/chat/BoopOverlay";
 import { UnlockCelebration } from "@/components/chat/UnlockCelebration";
 import OwnersStoryOverlay from "@/components/OwnersStoryOverlay";
+import { MilestonePreview, type Milestone } from "@/components/PairAnniversaryCelebration";
 import { Petals } from "@/components/Petals";
+
 import { sfxSend, sfxReceive, sfxReaction, sfxKiss, sfxPollVote } from "@/lib/sfx";
 import { sfx as chessSfx } from "@/lib/chess-sfx";
 
@@ -33,6 +35,13 @@ export default function AnimationsTab() {
   const [petalsOn, setPetalsOn] = useState(false);
   const [anniv, setAnniv] = useState<null | { name: string; label: string }>(null);
   const [notif, setNotif] = useState<null | string>(null);
+  const [milestone, setMilestone] = useState<Milestone | null>(null);
+
+  const showMilestone = (kind: Milestone["kind"], count: number, daysAgo: number) => {
+    const anchor = new Date(Date.now() - daysAgo * 86400000);
+    setMilestone({ kind, count, anchor } as Milestone);
+  };
+
 
   const sections: Section[] = [
     {
@@ -73,6 +82,23 @@ export default function AnimationsTab() {
         },
       ],
     },
+    {
+      title: "Pair milestones",
+      desc: "The full-screen cinematic that fires on day / month / year milestones.",
+      icon: <Crown className="size-3.5 text-petal" />,
+      entries: [
+        { label: "7 Days — One Week", onTest: () => showMilestone("day", 7, 7) },
+        { label: "100 Days", onTest: () => showMilestone("day", 100, 100) },
+        { label: "150 Days", onTest: () => showMilestone("day", 150, 150) },
+        { label: "200 Days", onTest: () => showMilestone("day", 200, 200) },
+        { label: "300 Days", onTest: () => showMilestone("day", 300, 300) },
+        { label: "365 Days — crown & fireworks", onTest: () => showMilestone("day", 365, 365) },
+        { label: "1st Monthiversary", onTest: () => showMilestone("month", 1, 30) },
+        { label: "6th Monthiversary", onTest: () => showMilestone("month", 6, 182) },
+        { label: "1st Anniversary — crown & fireworks", onTest: () => showMilestone("year", 1, 365) },
+      ],
+    },
+
     {
       title: "System notifications",
       desc: "Toasts and slide-ins used across the site.",
@@ -190,6 +216,8 @@ export default function AnimationsTab() {
       )}
       {anniv && <AnnivPreview name={anniv.name} label={anniv.label} />}
       {notif && <NotifPreview text={notif} />}
+      {milestone && <MilestonePreview milestone={milestone} onClose={() => setMilestone(null)} />}
+
     </div>
   );
 }

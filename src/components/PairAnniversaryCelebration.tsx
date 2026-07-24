@@ -2,12 +2,13 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Heart, Sparkles, Star, Crown, Flame, X } from "lucide-react";
 
-type Milestone =
+export type Milestone =
   | { kind: "year"; count: number; anchor: Date }
   | { kind: "month"; count: number; anchor: Date }
   | { kind: "day"; count: number; anchor: Date };
 
 const DAY_MILESTONES = [7, 100, 150, 200, 300, 365];
+
 
 function fullMonthsBetween(from: Date, to: Date) {
   return (to.getFullYear() - from.getFullYear()) * 12 + (to.getMonth() - from.getMonth());
@@ -222,7 +223,36 @@ export default function PairAnniversaryCelebration() {
     return () => { alive = false; };
   }, []);
 
-  const theme = useMemo(() => (milestone ? themeFor(milestone) : null), [milestone]);
+  if (!open || !milestone) return null;
+
+  return (
+    <MilestoneOverlay milestone={milestone} partnerName={partnerName} onClose={() => setOpen(false)} />
+  );
+}
+
+
+export function MilestonePreview({
+  milestone,
+  partnerName = "your panda",
+  onClose,
+}: {
+  milestone: Milestone;
+  partnerName?: string;
+  onClose: () => void;
+}) {
+  return <MilestoneOverlay milestone={milestone} partnerName={partnerName} onClose={onClose} />;
+}
+
+function MilestoneOverlay({
+  milestone,
+  partnerName,
+  onClose,
+}: {
+  milestone: Milestone;
+  partnerName: string;
+  onClose: () => void;
+}) {
+  const theme = useMemo(() => themeFor(milestone), [milestone]);
 
   const particles = useMemo(
     () => Array.from({ length: 46 }, (_, i) => ({
@@ -231,11 +261,11 @@ export default function PairAnniversaryCelebration() {
       dur: 3.6 + Math.random() * 3.2,
       size: 8 + Math.random() * 18,
       rot: Math.random() * 360,
-      color: theme?.particleColors[i % (theme?.particleColors.length || 1)] || "#ec4899",
+      color: theme.particleColors[i % theme.particleColors.length] || "#ec4899",
       shape: i % 3 === 0 ? "heart" : i % 3 === 1 ? "star" : "spark",
       key: i,
     })),
-    [theme, milestone?.kind, milestone?.count],
+    [theme, milestone.kind, milestone.count],
   );
 
   const rays = useMemo(
@@ -244,7 +274,7 @@ export default function PairAnniversaryCelebration() {
       angle: (i * 360) / 14,
       delay: i * 0.06,
     })),
-    [milestone?.kind, milestone?.count],
+    [milestone.kind, milestone.count],
   );
 
   const fireworks = useMemo(
@@ -253,12 +283,10 @@ export default function PairAnniversaryCelebration() {
       top: 18 + Math.random() * 40,
       left: 10 + Math.random() * 80,
       delay: i * 0.4,
-      color: theme?.particleColors[i % (theme?.particleColors.length || 1)] || "#ec4899",
+      color: theme.particleColors[i % theme.particleColors.length] || "#ec4899",
     })),
-    [theme, milestone?.kind, milestone?.count],
+    [theme, milestone.kind, milestone.count],
   );
-
-  if (!open || !milestone || !theme) return null;
 
   const Icon = theme.Icon;
 
@@ -271,8 +299,9 @@ export default function PairAnniversaryCelebration() {
       {/* Backdrop with themed bloom */}
       <div
         className="absolute inset-0 bg-black/75 backdrop-blur-md"
-        onClick={() => setOpen(false)}
+        onClick={onClose}
       />
+
       <div
         className="absolute inset-0 pointer-events-none animate-anniv-bloom"
         style={{ background: theme.gradient }}
@@ -343,7 +372,7 @@ export default function PairAnniversaryCelebration() {
       {/* Card */}
       <div className={`relative max-w-md w-full rounded-3xl border border-white/15 bg-gradient-to-br from-velvet via-velvet/95 to-[#1a0d18] p-8 text-center ${theme.glow} animate-anniv-pop`}>
         <button
-          onClick={() => setOpen(false)}
+          onClick={onClose}
           aria-label="Close"
           className="absolute top-3 right-3 size-8 rounded-full bg-white/5 hover:bg-white/10 text-candle/70 hover:text-candle flex items-center justify-center border border-white/10"
         >
@@ -381,7 +410,7 @@ export default function PairAnniversaryCelebration() {
         </div>
 
         <button
-          onClick={() => setOpen(false)}
+          onClick={onClose}
           className="w-full py-3 rounded-full bg-gradient-to-r from-petal to-rose-400 text-velvet font-semibold text-sm tracking-wide hover:brightness-110 transition"
         >
           Celebrate together
