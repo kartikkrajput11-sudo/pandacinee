@@ -61,7 +61,7 @@ function emptyState(): State {
     startedAt: null,
     picks: {},
     scores: {},
-    rounds: 8,
+    rounds: 10,
     seed: 0,
   };
 }
