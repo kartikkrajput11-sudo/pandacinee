@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Play,
   Pause,
@@ -10,6 +10,7 @@ import {
   RotateCw,
   PictureInPicture2,
   Gauge,
+  Settings2,
 } from "lucide-react";
 
 export type CustomPlayerHandle = {
