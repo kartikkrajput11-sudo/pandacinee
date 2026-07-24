@@ -97,7 +97,9 @@ export type PandaStickerId =
   | "bedroom-eyes" | "comehere" | "duo-neckkiss" | "dnd" | "duo-spoon" | "rose" | "fanning" | "behave"
   | "robe" | "bedhead" | "petals" | "candlebath" | "lipmark"
   | "devil" | "scheme" | "sneaky" | "peek" | "innocent" | "swoon" | "simp" | "slowclap" | "eyeroll"
-  | "duo-milkshake" | "duo-piggyback" | "duo-foreheadkiss";
+  | "duo-milkshake" | "duo-piggyback" | "duo-foreheadkiss"
+  | "duo-noseboop" | "duo-backhug" | "duo-umbrella" | "duo-lollipop" | "duo-stargaze"
+  | "blowkiss" | "missyou" | "bouquet";
 
 export const PANDA_STICKERS: { id: PandaStickerId; url: string; label: string; category: PandaStickerCategory }[] = [
   // 💞 Partners (duo pandas)
