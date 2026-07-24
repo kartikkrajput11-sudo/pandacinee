@@ -610,11 +610,20 @@ function CatalogWatch({ id }: { id: string }) {
     // shows up to the user as "the follower keeps buffering". So we only react
     // to timeupdate when drift is large (>10s) AND we haven't reloaded in the
     // last 30s. Small drift is left alone; discrete play/pause/seek still sync.
-    if (bothIframe && evt === "timeupdate") {
+    // EXCEPTION: if the follower is currently paused-by-host and the host's
+    // timestamp is advancing, that means the host resumed — Vidking sometimes
+    // omits the discrete "play" event on resume, so treat an advancing
+    // timeupdate as an implicit play so the follower doesn't get stuck paused.
+    const hostAdvancingWhilePaused =
+      bothIframe && evt === "timeupdate" && pausedByHost && peer.currentTime > mine.currentTime + 0.4;
+    if (bothIframe && evt === "timeupdate" && !hostAdvancingWhilePaused) {
       const d = Math.abs(mine.currentTime - peer.currentTime);
       if (d < 10) return;
       if (Date.now() - lastVidkingReloadRef.current < 30000) return;
     }
+    // Promote the implicit-play case to a real "play" so the branch below reloads
+    // with the autoplay URL.
+    const effectiveEvt = hostAdvancingWhilePaused ? "play" : evt;
     lastAppliedPeerEventRef.current = peer.updatedAt;
 
     if (!started) {
@@ -718,17 +727,17 @@ function CatalogWatch({ id }: { id: string }) {
     // pausedByHost=true rewrites the URL to the no-autoplay variant → effectively pauses.
     if (bothIframe) {
       lastVidkingReloadRef.current = Date.now();
-      if (evt === "pause") {
+      if (effectiveEvt === "pause") {
         applySeek(peer.currentTime, { pause: true });
         toast.info(`${partner?.display_name.split(" ")[0]} paused`);
-      } else if (evt === "play" || evt === "seeked" || evt === "timeupdate") {
+      } else if (effectiveEvt === "play" || effectiveEvt === "seeked" || effectiveEvt === "timeupdate") {
         applySeek(peer.currentTime, { pause: false });
-        if (evt === "seeked") toast.info(`${partner?.display_name.split(" ")[0]} skipped`);
-        else if (evt === "play") toast.info(`${partner?.display_name.split(" ")[0]} resumed — starting together`);
+        if (effectiveEvt === "seeked") toast.info(`${partner?.display_name.split(" ")[0]} skipped`);
+        else if (effectiveEvt === "play") toast.info(`${partner?.display_name.split(" ")[0]} resumed — starting together`);
         else toast.info("Re-syncing with partner…");
       }
     }
-  }, [peer, me, mine.currentTime, applySeek, partner, isPandacine, peerSourceKind, started, customPlayerReady, runSuppressedPlayerAction, followerLocked, peerLatencyMs]);
+  }, [peer, me, mine.currentTime, applySeek, partner, isPandacine, peerSourceKind, started, customPlayerReady, runSuppressedPlayerAction, followerLocked, peerLatencyMs, pausedByHost]);
 
   // When the custom player mounts after an auto-join, seek first, then only play
   // if this mount was caused by a host sync event — not by a follower tap.
