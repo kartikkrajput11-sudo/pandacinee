@@ -325,12 +325,8 @@ function UnoPage() {
           </button>
           <div className="text-center">
             <p className="text-[9px] uppercase tracking-[0.3em] text-petal">Uno · velveteen</p>
-            <p className="text-xs font-serif italic text-candle">
-              {state.winner
-                ? (state.winner === mySeat ? "You reign." : "They reign.")
-                : (isMyTurn ? "Your turn" : "Their turn")}
-            </p>
           </div>
+
           <div className="flex gap-2">
             <button type="button" onClick={reset} className="text-candle-muted">
               <RotateCcw className="size-5" />
@@ -370,7 +366,34 @@ function UnoPage() {
         <div className="relative rounded-[28px] p-5 border border-petal/25 bg-gradient-to-b from-petal/10 to-transparent backdrop-blur-xl mb-5">
           <div className="absolute inset-0 pointer-events-none rounded-[28px] opacity-30"
             style={{ background: "radial-gradient(60% 60% at 50% 50%, color-mix(in oklab, var(--petal) 25%, transparent), transparent 70%)" }} />
+
+          {/* Turn banner — sits on the table so it's impossible to miss */}
+          <div className="relative flex justify-center mb-4">
+            <div
+              key={`turn-${isMyTurn}-${state.winner ?? "live"}`}
+              className={`uno-turn-banner px-5 py-2 rounded-full border backdrop-blur-md shadow-[0_10px_30px_-10px_rgba(0,0,0,0.7)] ${
+                state.winner
+                  ? "border-petal/50 bg-velvet/70"
+                  : isMyTurn
+                    ? "border-petal/70 bg-petal/25"
+                    : "border-white/10 bg-velvet/60"
+              }`}
+            >
+              <p className="text-[9px] uppercase tracking-[0.35em] text-petal text-center">
+                {state.winner ? "Round over" : isMyTurn ? "Your turn" : "Their turn"}
+              </p>
+              <p className={`font-serif italic text-center leading-tight ${isMyTurn && !state.winner ? "text-candle text-lg" : "text-candle-muted text-base"}`}>
+                {state.winner
+                  ? (state.winner === mySeat ? "You reign." : "They reign.")
+                  : isMyTurn
+                    ? "Play a card or draw"
+                    : "Waiting for them…"}
+              </p>
+            </div>
+          </div>
+
           <div className="relative flex items-center justify-center gap-4">
+
             {/* Deck */}
             <button
               key={`deck-${deckPulse}`}
