@@ -2156,7 +2156,7 @@ function CustomWatch({ customId }: { customId: string }) {
       if (evt === "play") h.play();
       if (evt === "pause") h.pause();
     });
-  }, [peer, partner, playerReady, runSuppressed, followerLocked]);
+  }, [peer, partner, playerReady, runSuppressed, followerLocked, peerLatencyMs]);
 
 
   // Countdown → both press play together
