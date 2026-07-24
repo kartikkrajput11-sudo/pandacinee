@@ -172,7 +172,7 @@ function CatalogWatch({ id }: { id: string }) {
   const [playerLoading, setPlayerLoading] = useState(false);
   const [slowPlayer, setSlowPlayer] = useState(false);
   const [startAt, setStartAt] = useState<number | undefined>(undefined);
-  const [autoFollow, setAutoFollow] = useState(false);
+  const [autoFollow, setAutoFollow] = useState(true);
   const [cinemaMode, setCinemaMode] = useState(false);
   const [sourceMenuOpen, setSourceMenuOpen] = useState(false);
   const [sleepMinutes, setSleepMinutes] = useState<number | null>(null);
