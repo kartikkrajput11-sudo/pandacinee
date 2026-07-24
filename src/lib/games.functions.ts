@@ -196,7 +196,7 @@ const QuizQuestion = z.object({
   options: z.array(z.string().min(1)).length(4),
   answer: z.number().int().min(0).max(3),
 });
-const QuizSchema = z.object({ questions: z.array(QuizQuestion).length(5) });
+const QuizSchema = z.object({ questions: z.array(QuizQuestion).min(5).max(50) });
 
 export const generateLoveQuiz = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -206,16 +206,18 @@ export const generateLoveQuiz = createServerFn({ method: "POST" })
         // Optional hints: nicknames, favorites, memories the couple shared.
         hints: z.string().max(2000).optional(),
         seed: z.number().int().optional(),
+        count: z.number().int().min(5).max(50).optional(),
       })
       .parse(input),
   )
   .handler(async ({ data }) => {
     const { provider, model: modelId } = createGameAiProvider();
     const seed = data.seed ?? Math.floor(Math.random() * 1_000_000);
+    const count = data.count ?? 5;
 
     const system =
       "You generate short, warm 'how well do you know your partner' quizzes for couples. Playful, consensual, safe. Always respond with valid JSON only, no prose, no code fences.";
-    const prompt = `Return ONLY a JSON object like {"questions":[{"q":"...","options":["a","b","c","d"],"answer":0}, ...]} with exactly 5 questions. Each question has 4 concise options (2-6 words) and one correct answer index (0-3). Use general couple-relatable questions like favorites, habits, love languages, ideal dates. Keep questions under 14 words. Seed:${seed}. ${
+    const prompt = `Return ONLY a JSON object like {"questions":[{"q":"...","options":["a","b","c","d"],"answer":0}, ...]} with exactly ${count} DISTINCT questions (no duplicates or near-duplicates). Each question has 4 concise options (2-6 words) and one correct answer index (0-3). Use general couple-relatable questions like favorites, habits, love languages, ideal dates. Keep questions under 14 words. Seed:${seed}. ${
       data.hints ? `Couple hints: ${data.hints}` : ""
     }`.trim();
 
