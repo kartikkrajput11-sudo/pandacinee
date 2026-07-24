@@ -120,12 +120,16 @@ export const PANDA_STICKERS: { id: PandaStickerId; url: string; label: string; c
   { id: "facepalm",     url: facepalm,    label: "Facepalm",      category: "sad" },
 
   // 🔞 Adult (18+)
-  { id: "duo-lipkiss",  url: duoLipkiss,  label: "Lip kiss",      category: "adult" },
-  { id: "duo-dip",      url: duoDip,      label: "Dip kiss",      category: "adult" },
-  { id: "duo-bed",      url: duoBed,      label: "In bed",        category: "adult" },
-  { id: "tease",        url: tease,       label: "Tease",         category: "adult" },
-  { id: "flirt",        url: flirt,       label: "Flirt rose",    category: "adult" },
-  { id: "bath",         url: bath,        label: "Bubble bath",   category: "adult" },
+  { id: "duo-lipkiss",  url: duoLipkiss,  label: "French kiss",   category: "adult" },
+  { id: "duo-dip",      url: duoDip,      label: "Spank",         category: "adult" },
+  { id: "duo-bed",      url: duoBed,      label: "Morning after", category: "adult" },
+  { id: "tease",        url: tease,       label: "Lingerie",      category: "adult" },
+  { id: "flirt",        url: flirt,       label: "Domme",         category: "adult" },
+  { id: "bath",         url: bath,        label: "Wine & bath",   category: "adult" },
+  { id: "peach",        url: peach,       label: "🍑🍆",           category: "adult" },
+  { id: "cuffs",        url: cuffs,       label: "Cuff me",       category: "adult" },
+  { id: "unwrap",       url: unwrap,      label: "Unwrap me",     category: "adult" },
+  { id: "thirsty",      url: thirsty,     label: "Hot & bothered", category: "adult" },
 ];
 
 export const ADULT_CATEGORY: PandaStickerCategory = "adult";
