@@ -188,7 +188,7 @@ function JournalPage() {
                     className="group rounded-2xl border border-border/60 bg-card/60 backdrop-blur-md shadow-sm overflow-hidden"
                   >
                     <div className="flex items-center gap-3 px-4 pt-4">
-                      <AvatarImg src={author?.avatar_url ?? null} name={author?.display_name ?? "?"} className="w-8 h-8 rounded-full" />
+                      <AvatarImg src={author?.avatar_url ?? null} alt={author?.display_name ?? "?"} className="w-8 h-8 rounded-full object-cover" />
                       <div className="flex-1 min-w-0">
                         <div className="text-sm font-medium truncate">{author?.display_name ?? "…"}</div>
                         <div className="text-[11px] text-muted-foreground">
