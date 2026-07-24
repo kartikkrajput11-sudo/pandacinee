@@ -136,10 +136,7 @@ function UnoPage() {
         ch.send({ type: "broadcast", event: "state", payload: stateRef.current });
       }
     });
-    ch.on("broadcast", { event: "chat" }, ({ payload }) => {
-      setChat((prev) => [...prev, payload as { id: string; from: UnoPlayer; text: string; at: number }]);
-      sfxReaction();
-    });
+    // Legacy in-table chat removed — the floating <GameChat /> owns messaging now.
     ch.on("broadcast", { event: "uno-call" }, ({ payload }) => {
       setUnoBurst({ n: Date.now(), from: (payload as { from: UnoPlayer }).from });
       sfxKiss();
