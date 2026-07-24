@@ -20,7 +20,7 @@ import {
   RPSChoice,
   rpsWinner,
 } from "@/lib/games";
-import { generateGameCard } from "@/lib/games.functions";
+import { generateGameCard, generateGameCardBatch } from "@/lib/games.functions";
 import { gameSfx } from "@/lib/game-sfx";
 import { GameChat } from "@/components/games/GameChat";
 
