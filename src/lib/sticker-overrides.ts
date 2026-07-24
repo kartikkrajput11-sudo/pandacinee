@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { registerCustomStickerLookup } from "@/lib/panda-stickers";
 
 export type StickerOverrideRow = {
   id: string;

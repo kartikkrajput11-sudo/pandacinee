@@ -227,16 +227,18 @@ export function isPandaStickerContent(content: string | null | undefined): boole
   return !!content && content.startsWith(PANDA_STICKER_PREFIX);
 }
 
+// Runtime lookup for admin-uploaded custom stickers. sticker-overrides.ts
+// wires this at load time to avoid a static import cycle.
+let customLookup: ((id: string) => string | null) | null = null;
+export function registerCustomStickerLookup(fn: (id: string) => string | null) {
+  customLookup = fn;
+}
+
 export function pandaStickerUrl(content: string): string | null {
   if (!isPandaStickerContent(content)) return null;
   const id = content.slice(PANDA_STICKER_PREFIX.length);
   if (BY_ID[id]) return BY_ID[id];
-  // Fall back to admin-uploaded custom stickers (loaded at runtime).
-  try {
-    // Lazy require to avoid a hard import cycle at module init.
-    const { getCustomStickerUrl } = require("@/lib/sticker-overrides") as typeof import("@/lib/sticker-overrides");
-    return getCustomStickerUrl(id);
-  } catch { return null; }
+  return customLookup ? customLookup(id) : null;
 }
 
 export function pandaStickerContent(id: PandaStickerId): string {
