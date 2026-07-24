@@ -174,7 +174,7 @@ function AdminDashboard() {
         </div>
       </header>
 
-      <FoundersBannerToggle />
+      
 
       {/* Section grid — visible on md+, compact chip strip on mobile */}
       <div className="hidden md:grid grid-cols-4 lg:grid-cols-7 gap-2.5 mb-6">
