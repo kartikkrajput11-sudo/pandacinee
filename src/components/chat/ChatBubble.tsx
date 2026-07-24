@@ -122,6 +122,20 @@ function ChatBubbleImpl({
   }, [actionsOpen, actionsClosing, vanishOpen]);
 
 
+  async function runTranslate(lang: string) {
+    if (!m.content) return;
+    setTranslating(true);
+    try {
+      const res = await translateMessage({ data: { text: m.content, target: lang } });
+      setTranslation({ lang, text: res.translation });
+      setTranslateOpen(false);
+    } catch (e: any) {
+      toast.error(e?.message ?? "Translation failed");
+    } finally {
+      setTranslating(false);
+    }
+  }
+
   async function downloadFile() {
     if (!m.media_url) return;
     const u = await signMedia(m.media_url);
