@@ -124,6 +124,9 @@ export const PANDA_STICKERS: { id: PandaStickerId; url: string; label: string; c
   { id: "hug",          url: hug,         label: "Hug",           category: "love" },
   { id: "blush",        url: blush,       label: "Blush",         category: "love" },
   { id: "shy",          url: shy,         label: "Shy",           category: "love" },
+  { id: "blowkiss",     url: blowkiss,    label: "Blow kiss",     category: "love" },
+  { id: "missyou",      url: missyou,     label: "Miss you",      category: "love" },
+  { id: "bouquet",      url: bouquet,     label: "For you",       category: "love" },
 
   // 😊 Joy
   { id: "happy",        url: happy,       label: "Happy",         category: "joy" },
