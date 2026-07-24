@@ -11,8 +11,10 @@
  * ============================================================ */
 
 @theme inline {
-  --font-serif: "Cormorant Garamond", ui-serif, Georgia, serif;
-  --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Fraunces", "Cormorant Garamond", ui-serif, Georgia, serif;
+  --font-sans: "Instrument Sans", "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Fraunces", ui-serif, Georgia, serif;
+
 
 
   --radius-sm: calc(var(--radius) - 4px);
@@ -69,36 +71,37 @@
 }
 
 :root {
-  --radius: 1rem;
-  /* Velvet evening — deep aubergine night */
-  --velvet: oklch(0.16 0.04 305);
-  --background: oklch(0.16 0.04 305);
-  --surface: oklch(0.22 0.05 305);
-  --surface-elevated: oklch(0.27 0.055 305);
-  --foreground: oklch(0.96 0.025 85);
-  --candle: oklch(0.96 0.025 85);
-  --candle-muted: oklch(0.78 0.04 85 / 0.7);
-  --petal: oklch(0.72 0.16 25);
-  --petal-soft: oklch(0.72 0.16 25 / 0.18);
-  --lavender: oklch(0.78 0.09 305);
-  --border: oklch(1 0 0 / 0.08);
-  --input: oklch(1 0 0 / 0.1);
+  --radius: 1.1rem;
+  /* Midnight Rose — ink navy night with rose-gold + blush accents */
+  --velvet: oklch(0.14 0.03 275);
+  --background: oklch(0.13 0.03 275);
+  --surface: oklch(0.22 0.055 275);
+  --surface-elevated: oklch(0.28 0.065 275);
+  --foreground: oklch(0.97 0.015 60);
+  --candle: oklch(0.97 0.015 60);
+  --candle-muted: oklch(0.80 0.03 40 / 0.72);
+  --petal: oklch(0.82 0.09 18);
+  --petal-soft: oklch(0.82 0.09 18 / 0.20);
+  --lavender: oklch(0.88 0.05 40);
+  --border: oklch(1 0 0 / 0.09);
+  --input: oklch(1 0 0 / 0.10);
 }
 
 .dark {
-  --velvet: oklch(0.16 0.04 305);
-  --background: oklch(0.16 0.04 305);
-  --surface: oklch(0.22 0.05 305);
-  --surface-elevated: oklch(0.27 0.055 305);
-  --foreground: oklch(0.96 0.025 85);
-  --candle: oklch(0.96 0.025 85);
-  --candle-muted: oklch(0.78 0.04 85 / 0.7);
-  --petal: oklch(0.72 0.16 25);
-  --petal-soft: oklch(0.72 0.16 25 / 0.18);
-  --lavender: oklch(0.78 0.09 305);
-  --border: oklch(1 0 0 / 0.08);
-  --input: oklch(1 0 0 / 0.1);
+  --velvet: oklch(0.14 0.03 275);
+  --background: oklch(0.13 0.03 275);
+  --surface: oklch(0.22 0.055 275);
+  --surface-elevated: oklch(0.28 0.065 275);
+  --foreground: oklch(0.97 0.015 60);
+  --candle: oklch(0.97 0.015 60);
+  --candle-muted: oklch(0.80 0.03 40 / 0.72);
+  --petal: oklch(0.82 0.09 18);
+  --petal-soft: oklch(0.82 0.09 18 / 0.20);
+  --lavender: oklch(0.88 0.05 40);
+  --border: oklch(1 0 0 / 0.09);
+  --input: oklch(1 0 0 / 0.10);
 }
+
 
 .light {
   /* Soft lavender-blush daylight — purple melting into pink, with baby-pink accents.
@@ -199,16 +202,21 @@ html.theme-anim * {
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+    font-feature-settings: "ss01", "ss02", "cv11", "cv02";
   }
   ::selection {
-    background: color-mix(in oklab, var(--petal) 35%, transparent);
+    background: color-mix(in oklab, var(--petal) 40%, transparent);
     color: var(--candle);
   }
-  h1, h2, h3, .font-serif {
-    font-family: var(--font-serif);
-    letter-spacing: -0.01em;
+  h1, h2, h3, .font-serif, .font-display {
+    font-family: var(--font-display);
+    letter-spacing: -0.018em;
+    /* Fraunces variable axes: soft optical, slight softness for warmth */
+    font-variation-settings: "opsz" 96, "SOFT" 50, "WONK" 0;
   }
+  h1 { font-variation-settings: "opsz" 144, "SOFT" 60, "WONK" 1; }
 }
+
 
 /* Custom utilities */
 @utility scrollbar-hide {
@@ -261,8 +269,125 @@ html.theme-anim * {
 }
 
 
+
+/* ============================================================
+ * Cinematic ambient utilities — world-class polish layer
+ * ============================================================ */
+
+@utility aurora-bg {
+  position: relative;
+  isolation: isolate;
+  background:
+    radial-gradient(ellipse 80% 60% at 15% 10%, color-mix(in oklab, var(--petal) 22%, transparent) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 55% at 85% 20%, color-mix(in oklab, var(--lavender) 20%, transparent) 0%, transparent 55%),
+    radial-gradient(ellipse 90% 65% at 50% 100%, color-mix(in oklab, var(--petal) 16%, transparent) 0%, transparent 60%),
+    var(--gradient-velvet);
+}
+
+@utility aurora-fixed {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 60% 45% at 20% 15%, color-mix(in oklab, var(--petal) 24%, transparent) 0%, transparent 60%),
+    radial-gradient(ellipse 55% 40% at 80% 25%, color-mix(in oklab, var(--lavender) 22%, transparent) 0%, transparent 60%),
+    radial-gradient(ellipse 70% 50% at 50% 110%, color-mix(in oklab, var(--petal) 18%, transparent) 0%, transparent 65%);
+  animation: aurora-drift 22s ease-in-out infinite alternate;
+  filter: blur(20px) saturate(120%);
+}
+
+@utility noise-grain {
+  position: relative;
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.035;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  }
+}
+
+@utility spotlight {
+  background:
+    radial-gradient(circle 300px at var(--mx, 50%) var(--my, 0%), color-mix(in oklab, var(--petal) 18%, transparent), transparent 70%),
+    var(--surface);
+}
+
+@utility ring-rose {
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--petal) 45%, transparent),
+    0 24px 70px -28px color-mix(in oklab, var(--petal) 60%, transparent),
+    0 0 40px -8px color-mix(in oklab, var(--lavender) 40%, transparent),
+    inset 0 1px 0 color-mix(in oklab, var(--candle) 14%, transparent);
+}
+
+@utility text-rose-gradient {
+  background: linear-gradient(
+    100deg,
+    var(--petal) 0%,
+    var(--lavender) 45%,
+    color-mix(in oklab, var(--candle) 90%, var(--petal)) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@utility hairline {
+  border: 1px solid color-mix(in oklab, var(--candle) 10%, transparent);
+  background-image: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--candle) 6%, transparent) 0%,
+    transparent 60%
+  );
+}
+
+@keyframes aurora-drift {
+  0%   { transform: translate3d(0, 0, 0) scale(1); }
+  50%  { transform: translate3d(-2%, 1.5%, 0) scale(1.08); }
+  100% { transform: translate3d(2%, -1.5%, 0) scale(1.04); }
+}
+@keyframes lux-sheen {
+  0%   { background-position: -180% 0; }
+  100% { background-position: 280% 0; }
+}
+@keyframes lift-in {
+  0%   { opacity: 0; transform: translateY(24px) scale(0.985); filter: blur(6px); }
+  60%  { filter: blur(0); }
+  100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+}
+@keyframes breathe {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.015); }
+}
+
+.animate-lift-in { animation: lift-in 0.9s var(--ease-out-expo) both; }
+.animate-breathe { animation: breathe 6s ease-in-out infinite; }
+.animate-aurora  { animation: aurora-drift 22s ease-in-out infinite alternate; }
+.animate-lux-sheen {
+  background-image: linear-gradient(
+    100deg,
+    transparent 0%,
+    color-mix(in oklab, var(--candle) 22%, transparent) 45%,
+    color-mix(in oklab, var(--petal) 30%, transparent) 50%,
+    color-mix(in oklab, var(--candle) 22%, transparent) 55%,
+    transparent 100%
+  );
+  background-size: 220% 100%;
+  background-repeat: no-repeat;
+  animation: lux-sheen 3.4s ease-in-out infinite;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+
 /* Animations */
 @keyframes poll-shimmer {
+
   0% { transform: translateX(0); }
   100% { transform: translateX(400%); }
 }
