@@ -470,6 +470,10 @@ function Intro({
           <p className="text-[11px] text-rose-300/80 text-center mt-2">Pair with a partner first to play online.</p>
         )}
 
+        <div className="mt-4">
+          <InviteFriendCard game="know-me" />
+        </div>
+
         <div className="mt-5 p-4 rounded-2xl bg-surface/60 border border-border">
           <div className="flex items-center justify-between mb-3">
             <span className="text-[10px] uppercase tracking-widest text-candle-muted">Rounds</span>
