@@ -134,7 +134,7 @@ function CatalogWatch({ id }: { id: string }) {
   }, [search.with, realPartner?.id, friendsQuery.data?.profiles]);
   const navigate = useNavigate();
   const [movie, setMovie] = useState<any>(null);
-  const [pandacine, setPandacine] = useState<{ videoSrc: string; title: string | null } | null>(null);
+  const [pandacine, setPandacine] = useState<{ videoSrc: string; title: string | null; qualities?: Array<{ label: string; url: string; height?: number | null }> } | null>(null);
   const [sourceIdx, setSourceIdx] = useState(0);
   const [iframeKey, setIframeKey] = useState(0);
   const [started, setStarted] = useState(false);
