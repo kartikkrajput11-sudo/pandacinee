@@ -82,27 +82,49 @@ export function CustomMoviePlayer({ src, sources, poster, startAt, onEvent, onRe
   const bufferTimer = useRef<number | null>(null);
   const scrubbing = useRef(false);
 
-  // Quality variants. If `sources` isn't provided, expose the single `src` as "Auto".
-  const qualityList = useMemo<QualitySource[]>(() => {
-    if (sources && sources.length > 0) return sources;
-    return [{ label: "Auto", src }];
-  }, [sources, src]);
+  // Native intrinsic height of the currently loaded video, filled in on
+  // loadedmetadata. Used to auto-derive downscale tiers when the caller
+  // only provides one source.
+  const [nativeHeight, setNativeHeight] = useState<number>(0);
 
-  // Pick an initial quality: on slow / metered connections prefer the lowest,
-  // otherwise the highest. This is the biggest single win for time-to-first-frame.
-  const [qualityIdx, setQualityIdx] = useState<number>(() => {
-    if (qualityList.length <= 1) return 0;
+  // Quality variants. If `sources` has multiple entries we honor them as
+  // real bitrate variants. If only one source exists we still expose a
+  // quality menu: the browser can't invent higher-res pixels, but it can
+  // paint fewer pixels per frame — so we generate render-downscale tiers
+  // derived from the detected native height.
+  const qualityList = useMemo<QualitySource[]>(() => {
+    const base = (sources && sources.length > 0)
+      ? sources
+      : [{ label: "Auto", src, height: nativeHeight || undefined }];
+    if (base.length > 1) return base;
+    if (!nativeHeight) return base;
+    const ladder = [1080, 720, 480, 360, 240].filter((h) => h < nativeHeight - 20);
+    const only = base[0];
+    return [
+      { ...only, label: `Auto (${nativeHeight}p)`, height: nativeHeight },
+      ...ladder.map((h) => ({ label: `${h}p`, src: only.src, height: h })),
+    ];
+  }, [sources, src, nativeHeight]);
+
+  const [qualityIdx, setQualityIdx] = useState<number>(0);
+  useEffect(() => {
+    if (qualityList.length <= 1) { setQualityIdx(0); return; }
     const conn = (typeof navigator !== "undefined" ? (navigator as any).connection : null) as
       | { effectiveType?: string; saveData?: boolean }
       | null;
     const slow = !!conn && (conn.saveData || /2g|slow-2g/i.test(conn.effectiveType ?? ""));
-    // Sort by height ascending for slow, descending for fast.
     const indexed = qualityList.map((q, i) => ({ i, h: q.height ?? 0 }));
     indexed.sort((a, b) => (slow ? a.h - b.h : b.h - a.h));
-    return indexed[0]?.i ?? 0;
-  });
+    setQualityIdx((prev) => (prev > 0 && prev < qualityList.length ? prev : indexed[0]?.i ?? 0));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [qualityList.length]);
   const [qualityOpen, setQualityOpen] = useState(false);
   const activeSrc = qualityList[qualityIdx]?.src ?? src;
+  const activeHeightCap = qualityList[qualityIdx]?.height ?? 0;
+  // If the selected tier points at the same source URL as Auto, it's a
+  // render-downscale tier — clamp the painted height so the browser draws
+  // fewer pixels per frame instead of reloading a new file.
+  const isRenderDownscale = !!(nativeHeight && activeHeightCap && activeHeightCap < nativeHeight);
 
   useEffect(() => {
     return () => {
