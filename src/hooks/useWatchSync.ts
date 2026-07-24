@@ -277,6 +277,23 @@ export function useWatchSync(
         if (p.from === meId) return;
         setPeerBuffering(p.state === "waiting");
       })
+      .on("broadcast", { event: "ping" }, ({ payload }) => {
+        const p = payload as { from: string; t0: number };
+        if (p.from === meId) return;
+        // Echo the sender's t0 straight back so they can compute RTT locally.
+        ch.send({ type: "broadcast", event: "pong", payload: { from: meId, to: p.from, t0: p.t0 } });
+      })
+      .on("broadcast", { event: "pong" }, ({ payload }) => {
+        const p = payload as { from: string; to: string; t0: number };
+        if (p.from === meId || p.to !== meId) return;
+        const rtt = Date.now() - p.t0;
+        if (!Number.isFinite(rtt) || rtt < 0 || rtt > 5000) return;
+        rttSamplesRef.current.push(rtt);
+        if (rttSamplesRef.current.length > 12) rttSamplesRef.current.shift();
+        const sorted = [...rttSamplesRef.current].sort((a, b) => a - b);
+        const median = sorted[Math.floor(sorted.length / 2)];
+        setPeerLatencyMs(Math.round(median / 2));
+      })
 
       .subscribe(async (status) => {
         if (status === "SUBSCRIBED") {
@@ -285,6 +302,7 @@ export function useWatchSync(
           refreshBackendState();
         }
       });
+
 
     // Slow the backend heartbeat when the tab is hidden — the peer only needs
     // an eventual liveness signal, not a 1.5s cadence, when we're in another
