@@ -2025,6 +2025,7 @@ function CustomWatch({ customId }: { customId: string }) {
   const [loading, setLoading] = useState(true);
   const [playerReady, setPlayerReady] = useState(0);
   const [customLoadIssue, setCustomLoadIssue] = useState(false);
+  const [showReflection, setShowReflection] = useState(false);
 
   const {
     mine, peer, partnerOnline, publish, sendSeek, sendCountdown, countdown, clearCountdown,
