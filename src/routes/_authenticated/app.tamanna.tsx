@@ -993,6 +993,7 @@ function MovieModal({ initial, onClose }: { initial?: CustomMovie | null; onClos
       setVideoUrl(row.video_url ?? "");
       setVideoPath(row.video_storage_path ?? null);
       setVideoFileName(row.video_storage_path ?? null);
+      setVideoQualities(Array.isArray(row.video_qualities) ? (row.video_qualities as QualityVariant[]) : []);
       setTmdbId(row.tmdb_id);
       setMediaType(row.media_type ?? "movie");
       setUseVidking(row.use_vidking ?? true);
