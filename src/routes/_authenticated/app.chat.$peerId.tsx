@@ -28,6 +28,7 @@ import { typeMeta } from "@/lib/punishment";
 import { UserAvatar } from "@/components/UserAvatar";
 import { ForwardDialog, canForward } from "@/components/chat/ForwardDialog";
 import { SharedMediaDrawer } from "@/components/chat/SharedMediaDrawer";
+import { ScheduleDialog } from "@/components/chat/ScheduleDialog";
 import { markDmReadNow } from "@/lib/dmRead";
 
 
