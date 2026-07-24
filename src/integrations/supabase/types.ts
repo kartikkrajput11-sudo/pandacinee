@@ -1848,6 +1848,65 @@ export type Database = {
         }
         Relationships: []
       }
+      scheduled_messages: {
+        Row: {
+          content: string
+          created_at: string
+          delivered_at: string | null
+          disappear_seconds: number | null
+          group_id: string | null
+          id: string
+          media_meta: Json | null
+          media_url: string | null
+          receiver_id: string | null
+          reply_to_id: string | null
+          scheduled_for: string
+          sender_id: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          content?: string
+          created_at?: string
+          delivered_at?: string | null
+          disappear_seconds?: number | null
+          group_id?: string | null
+          id?: string
+          media_meta?: Json | null
+          media_url?: string | null
+          receiver_id?: string | null
+          reply_to_id?: string | null
+          scheduled_for: string
+          sender_id: string
+          type?: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          delivered_at?: string | null
+          disappear_seconds?: number | null
+          group_id?: string | null
+          id?: string
+          media_meta?: Json | null
+          media_url?: string | null
+          receiver_id?: string | null
+          reply_to_id?: string | null
+          scheduled_for?: string
+          sender_id?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scheduled_messages_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "chat_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       scribble_stats: {
         Row: {
           correct_guesses: number
