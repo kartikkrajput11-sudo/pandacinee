@@ -198,7 +198,7 @@ export function CustomMoviePlayer({ src, sources, poster, startAt, onEvent, onRe
     setBuffering(false);
     setDuration(0);
     setTime(0);
-    if (!v || !src) return;
+    if (!v || !activeSrc) return;
     try {
       v.preload = "auto";
       v.load();
@@ -211,7 +211,7 @@ export function CustomMoviePlayer({ src, sources, poster, startAt, onEvent, onRe
       }
     }, 9000);
     return () => window.clearTimeout(timer);
-  }, [src, stopBuffering]);
+  }, [activeSrc, stopBuffering]);
 
   // Attach handle for parent sync control. Keep this independent from the
   // parent's callback identity so parent state updates cannot retrigger onReady
