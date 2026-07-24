@@ -727,17 +727,17 @@ function CatalogWatch({ id }: { id: string }) {
     // pausedByHost=true rewrites the URL to the no-autoplay variant → effectively pauses.
     if (bothIframe) {
       lastVidkingReloadRef.current = Date.now();
-      if (evt === "pause") {
+      if (effectiveEvt === "pause") {
         applySeek(peer.currentTime, { pause: true });
         toast.info(`${partner?.display_name.split(" ")[0]} paused`);
-      } else if (evt === "play" || evt === "seeked" || evt === "timeupdate") {
+      } else if (effectiveEvt === "play" || effectiveEvt === "seeked" || effectiveEvt === "timeupdate") {
         applySeek(peer.currentTime, { pause: false });
-        if (evt === "seeked") toast.info(`${partner?.display_name.split(" ")[0]} skipped`);
-        else if (evt === "play") toast.info(`${partner?.display_name.split(" ")[0]} resumed — starting together`);
+        if (effectiveEvt === "seeked") toast.info(`${partner?.display_name.split(" ")[0]} skipped`);
+        else if (effectiveEvt === "play") toast.info(`${partner?.display_name.split(" ")[0]} resumed — starting together`);
         else toast.info("Re-syncing with partner…");
       }
     }
-  }, [peer, me, mine.currentTime, applySeek, partner, isPandacine, peerSourceKind, started, customPlayerReady, runSuppressedPlayerAction, followerLocked, peerLatencyMs]);
+  }, [peer, me, mine.currentTime, applySeek, partner, isPandacine, peerSourceKind, started, customPlayerReady, runSuppressedPlayerAction, followerLocked, peerLatencyMs, pausedByHost]);
 
   // When the custom player mounts after an auto-join, seek first, then only play
   // if this mount was caused by a host sync event — not by a follower tap.
