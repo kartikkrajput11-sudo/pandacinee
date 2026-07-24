@@ -467,6 +467,16 @@ function CatalogWatch({ id }: { id: string }) {
     return () => window.clearTimeout(t);
   }, [started, sourceIdx, iframeKey]);
 
+  // Safety: some third-party embeds never fire `onLoad` reliably (redirects,
+  // cross-origin quirks), which would leave the "Dimming the lights" veil
+  // covering the player forever. Auto-clear it after a short grace period so
+  // the iframe is visible even if the load event never arrives.
+  useEffect(() => {
+    if (!playerLoading) return;
+    const t = window.setTimeout(() => setPlayerLoading(false), 2500);
+    return () => window.clearTimeout(t);
+  }, [playerLoading, sourceIdx, iframeKey]);
+
   useEffect(() => {
     if (!incomingSeek) return;
     if (autoFollow) {
