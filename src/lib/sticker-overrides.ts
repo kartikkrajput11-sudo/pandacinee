@@ -93,6 +93,7 @@ let realtimeInit = false;
 export function initStickerOverridesRealtime() {
   if (realtimeInit) return;
   realtimeInit = true;
+  registerCustomStickerLookup((id) => state.customMap.get(id) ?? null);
   refreshStickerOverrides();
   supabase
     .channel("sticker_admin_changes")
