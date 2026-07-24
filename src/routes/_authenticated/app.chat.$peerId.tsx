@@ -65,6 +65,8 @@ function ChatPeer() {
   const { activeLock, iAmLocked, iAmLocker, createLock, incrementProgress, completeLock, cancelLock } =
     usePunishmentLock(me?.id ?? null, peer?.id ?? null);
   const [replyTo, setReplyTo] = useState<MessageRow | null>(null);
+  const [scheduleOpen, setScheduleOpen] = useState(false);
+  const [scheduleDraft, setScheduleDraft] = useState("");
   const [showPinned, setShowPinned] = useState(false);
   const [highlightId, setHighlightId] = useState<string | null>(null);
   const [lockDialogOpen, setLockDialogOpen] = useState(false);
