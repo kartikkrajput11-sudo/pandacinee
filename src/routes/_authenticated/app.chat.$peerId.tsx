@@ -632,8 +632,14 @@ function ChatPeer() {
         onSend={send}
         locked={null}
         lockedHint={null}
-
-
+        onSchedule={(draft) => { setScheduleDraft(draft); setScheduleOpen(true); }}
+      />
+      <ScheduleDialog
+        open={scheduleOpen}
+        onClose={() => setScheduleOpen(false)}
+        meId={me.id}
+        target={{ receiver_id: peer.id }}
+        initialText={scheduleDraft}
       />
       <KissOverlay trigger={kissTick} />
       <HugOverlay trigger={hugTick} />
@@ -641,6 +647,7 @@ function ChatPeer() {
       <HandholdOverlay trigger={handholdTick} />
       <BoopOverlay trigger={boopTick} />
       <UnlockCelebration trigger={unlockTick || null} />
+
 
       {activeLock && iAmLocked && !isVerifyMode && (
         <PunishmentLockOverlay
