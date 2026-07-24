@@ -80,11 +80,11 @@ export function ScheduleDialog({
     setRows((r) => r.filter((x) => x.id !== id));
   }
 
-  const quick = [
-    { label: "In 1h", ms: 60 * 60 * 1000 },
-    { label: "Tonight 9pm", at: () => { const d = new Date(); d.setHours(21, 0, 0, 0); if (d.getTime() < Date.now()) d.setDate(d.getDate() + 1); return d; } },
-    { label: "Tomorrow 9am", at: () => { const d = new Date(); d.setDate(d.getDate() + 1); d.setHours(9, 0, 0, 0); return d; } },
-    { label: "Next week", ms: 7 * 24 * 60 * 60 * 1000 },
+  const quick: { label: string; get: () => Date }[] = [
+    { label: "In 1h", get: () => new Date(Date.now() + 60 * 60 * 1000) },
+    { label: "Tonight 9pm", get: () => { const d = new Date(); d.setHours(21, 0, 0, 0); if (d.getTime() < Date.now()) d.setDate(d.getDate() + 1); return d; } },
+    { label: "Tomorrow 9am", get: () => { const d = new Date(); d.setDate(d.getDate() + 1); d.setHours(9, 0, 0, 0); return d; } },
+    { label: "Next week", get: () => new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) },
   ];
 
   if (!open) return null;
