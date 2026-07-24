@@ -693,7 +693,7 @@ function CatalogWatch({ id }: { id: string }) {
         else toast.info("Re-syncing with partner…");
       }
     }
-  }, [peer, me, mine.currentTime, applySeek, partner, isPandacine, peerSourceKind, started, customPlayerReady, runSuppressedPlayerAction, followerLocked]);
+  }, [peer, me, mine.currentTime, applySeek, partner, isPandacine, peerSourceKind, started, customPlayerReady, runSuppressedPlayerAction, followerLocked, peerLatencyMs]);
 
   // When the custom player mounts after an auto-join, seek first, then only play
   // if this mount was caused by a host sync event — not by a follower tap.
