@@ -31,47 +31,94 @@ import shrug from "@/assets/stickers/panda-shrug.png";
 import flex from "@/assets/stickers/panda-flex.png";
 import gamer from "@/assets/stickers/panda-gamer.png";
 
+import duoHug from "@/assets/stickers/panda-duo-hug.png";
+import duoKiss from "@/assets/stickers/panda-duo-kiss.png";
+import duoHands from "@/assets/stickers/panda-duo-hands.png";
+import duoDance from "@/assets/stickers/panda-duo-dance.png";
+import duoCozy from "@/assets/stickers/panda-duo-cozy.png";
+import duoSelfie from "@/assets/stickers/panda-duo-selfie.png";
+import duoHeart from "@/assets/stickers/panda-duo-heart.png";
+import duoHighfive from "@/assets/stickers/panda-duo-highfive.png";
+
+export type PandaStickerCategory = "love" | "joy" | "celebrate" | "wow" | "greet" | "chill" | "sad" | "partners";
+
 export type PandaStickerId =
   | "happy" | "love" | "sad" | "laugh" | "wink" | "kiss"
   | "angry" | "shy" | "sleep" | "cool" | "hug" | "wow"
   | "cry" | "blush" | "party" | "stars" | "think" | "wave" | "dance" | "heart-hands"
   | "confused" | "proud" | "pleading" | "mindblown" | "cozy" | "gift"
-  | "cake" | "salute" | "facepalm" | "shrug" | "flex" | "gamer";
+  | "cake" | "salute" | "facepalm" | "shrug" | "flex" | "gamer"
+  | "duo-hug" | "duo-kiss" | "duo-hands" | "duo-dance" | "duo-cozy" | "duo-selfie" | "duo-heart" | "duo-highfive";
 
-export const PANDA_STICKERS: { id: PandaStickerId; url: string; label: string }[] = [
-  { id: "happy", url: happy, label: "Happy" },
-  { id: "love",  url: love,  label: "In love" },
-  { id: "heart-hands", url: heartHands, label: "Heart hands" },
-  { id: "kiss",  url: kiss,  label: "Kiss" },
-  { id: "hug",   url: hug,   label: "Hug" },
-  { id: "blush", url: blush, label: "Blush" },
-  { id: "shy",   url: shy,   label: "Shy" },
-  { id: "wink",  url: wink,  label: "Wink" },
-  { id: "laugh", url: laugh, label: "Laughing" },
-  { id: "dance", url: dance, label: "Dance" },
-  { id: "party", url: party, label: "Party" },
-  { id: "cake",  url: cake,  label: "Cake" },
-  { id: "gift",  url: gift,  label: "Gift" },
-  { id: "stars", url: stars, label: "Star-struck" },
-  { id: "wow",   url: wow,   label: "Wow" },
-  { id: "mindblown", url: mindblown, label: "Mind blown" },
-  { id: "wave",  url: wave,  label: "Hi!" },
-  { id: "salute", url: salute, label: "Salute" },
-  { id: "cool",  url: cool,  label: "Cool" },
-  { id: "proud", url: proud, label: "Proud" },
-  { id: "flex",  url: flex,  label: "Strong" },
-  { id: "gamer", url: gamer, label: "Gamer" },
-  { id: "cozy",  url: cozy,  label: "Cozy" },
-  { id: "think", url: think, label: "Thinking" },
-  { id: "confused", url: confused, label: "Confused" },
-  { id: "shrug", url: shrug, label: "Shrug" },
-  { id: "pleading", url: pleading, label: "Please?" },
-  { id: "facepalm", url: facepalm, label: "Facepalm" },
-  { id: "sad",   url: sad,   label: "Sad" },
-  { id: "cry",   url: cry,   label: "Crying" },
-  { id: "angry", url: angry, label: "Angry" },
-  { id: "sleep", url: sleep, label: "Sleepy" },
+export const PANDA_STICKERS: { id: PandaStickerId; url: string; label: string; category: PandaStickerCategory }[] = [
+  // 💞 Partners (duo pandas)
+  { id: "duo-hug",      url: duoHug,      label: "Together hug",  category: "partners" },
+  { id: "duo-kiss",     url: duoKiss,     label: "Cheek kiss",    category: "partners" },
+  { id: "duo-heart",    url: duoHeart,    label: "Our heart",     category: "partners" },
+  { id: "duo-hands",    url: duoHands,    label: "Hand in hand",  category: "partners" },
+  { id: "duo-cozy",     url: duoCozy,     label: "Cozy cocoa",    category: "partners" },
+  { id: "duo-dance",    url: duoDance,    label: "Slow dance",    category: "partners" },
+  { id: "duo-selfie",   url: duoSelfie,   label: "Selfie us",     category: "partners" },
+  { id: "duo-highfive", url: duoHighfive, label: "High five",     category: "partners" },
+
+  // ❤️ Love
+  { id: "love",         url: love,        label: "In love",       category: "love" },
+  { id: "heart-hands",  url: heartHands,  label: "Heart hands",   category: "love" },
+  { id: "kiss",         url: kiss,        label: "Kiss",          category: "love" },
+  { id: "hug",          url: hug,         label: "Hug",           category: "love" },
+  { id: "blush",        url: blush,       label: "Blush",         category: "love" },
+  { id: "shy",          url: shy,         label: "Shy",           category: "love" },
+
+  // 😊 Joy
+  { id: "happy",        url: happy,       label: "Happy",         category: "joy" },
+  { id: "laugh",        url: laugh,       label: "Laughing",      category: "joy" },
+  { id: "wink",         url: wink,        label: "Wink",          category: "joy" },
+  { id: "cool",         url: cool,        label: "Cool",          category: "joy" },
+  { id: "proud",        url: proud,       label: "Proud",         category: "joy" },
+  { id: "flex",         url: flex,        label: "Strong",        category: "joy" },
+
+  // 🎉 Celebrate
+  { id: "party",        url: party,       label: "Party",         category: "celebrate" },
+  { id: "dance",        url: dance,       label: "Dance",         category: "celebrate" },
+  { id: "cake",         url: cake,        label: "Cake",          category: "celebrate" },
+  { id: "gift",         url: gift,        label: "Gift",          category: "celebrate" },
+  { id: "stars",        url: stars,       label: "Star-struck",   category: "celebrate" },
+
+  // 🤯 Wow
+  { id: "wow",          url: wow,         label: "Wow",           category: "wow" },
+  { id: "mindblown",    url: mindblown,   label: "Mind blown",    category: "wow" },
+  { id: "think",        url: think,       label: "Thinking",      category: "wow" },
+  { id: "confused",     url: confused,    label: "Confused",      category: "wow" },
+  { id: "shrug",        url: shrug,       label: "Shrug",         category: "wow" },
+
+  // 👋 Greet
+  { id: "wave",         url: wave,        label: "Hi!",           category: "greet" },
+  { id: "salute",       url: salute,      label: "Salute",        category: "greet" },
+  { id: "pleading",     url: pleading,    label: "Please?",       category: "greet" },
+  { id: "gamer",        url: gamer,       label: "Gamer",         category: "greet" },
+
+  // 🛌 Chill
+  { id: "cozy",         url: cozy,        label: "Cozy",          category: "chill" },
+  { id: "sleep",        url: sleep,       label: "Sleepy",        category: "chill" },
+
+  // 😢 Sad
+  { id: "sad",          url: sad,         label: "Sad",           category: "sad" },
+  { id: "cry",          url: cry,         label: "Crying",        category: "sad" },
+  { id: "angry",        url: angry,       label: "Angry",         category: "sad" },
+  { id: "facepalm",     url: facepalm,    label: "Facepalm",      category: "sad" },
 ];
+
+export const PANDA_CATEGORY_ORDER: { id: PandaStickerCategory; label: string; emoji: string }[] = [
+  { id: "partners",  label: "Partners",  emoji: "💞" },
+  { id: "love",      label: "Love",      emoji: "❤️" },
+  { id: "joy",       label: "Joy",       emoji: "😊" },
+  { id: "celebrate", label: "Celebrate", emoji: "🎉" },
+  { id: "wow",       label: "Wow",       emoji: "🤯" },
+  { id: "greet",     label: "Greet",     emoji: "👋" },
+  { id: "chill",     label: "Chill",     emoji: "🛌" },
+  { id: "sad",       label: "Feelings",  emoji: "💧" },
+];
+
 
 
 const BY_ID: Record<string, string> = Object.fromEntries(
