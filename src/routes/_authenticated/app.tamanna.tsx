@@ -27,6 +27,8 @@ export const Route = createFileRoute("/_authenticated/app/tamanna")({
   component: AdminPage,
 });
 
+type QualityVariant = { label: string; url: string; height?: number | null };
+
 type CustomMovie = {
   id: string;
   title: string;
@@ -38,6 +40,7 @@ type CustomMovie = {
   genres: string[];
   video_url: string | null;
   video_storage_path: string | null;
+  video_qualities: QualityVariant[] | null;
   tmdb_id: number | null;
   media_type: "movie" | "tv" | null;
   use_vidking: boolean | null;
