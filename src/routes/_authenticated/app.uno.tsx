@@ -5,6 +5,7 @@ import { ArrowLeft, RotateCcw, Send, User, Users } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
+import { useProfileById } from "@/hooks/useProfileById";
 import {
   initialState,
   playCard,
