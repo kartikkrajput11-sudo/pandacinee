@@ -253,17 +253,23 @@ export function CustomMoviePlayer({ src, sources, poster, startAt, onEvent, onRe
               }
             });
         };
-        if (v.readyState >= 3) {
+        if (v.readyState >= 2) {
           attempt();
         } else {
-          const onCanPlay = () => {
-            v.removeEventListener("canplay", onCanPlay);
+          const onReadyToPlay = () => {
+            v.removeEventListener("loadeddata", onReadyToPlay);
+            v.removeEventListener("canplay", onReadyToPlay);
             attempt();
           };
-          v.addEventListener("canplay", onCanPlay);
+          // `loadeddata` fires ~1 frame after the first byte of media is decoded —
+          // usually 500ms-1s earlier than `canplay`, which needs enough buffer to
+          // play "for a while". This is the biggest time-to-first-frame win.
+          v.addEventListener("loadeddata", onReadyToPlay);
+          v.addEventListener("canplay", onReadyToPlay);
           // Safety: if buffering stalls, still try after 6s so we don't hang forever.
           window.setTimeout(() => {
-            v.removeEventListener("canplay", onCanPlay);
+            v.removeEventListener("loadeddata", onReadyToPlay);
+            v.removeEventListener("canplay", onReadyToPlay);
             if (v.paused) attempt();
           }, 6000);
         }
