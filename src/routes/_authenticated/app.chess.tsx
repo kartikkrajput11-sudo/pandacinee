@@ -77,7 +77,7 @@ function ChessPage() {
     ? ({
         id: otherId,
         display_name: otherProfile?.display_name ?? otherProfile?.username ?? "Friend",
-      } as { id: string; display_name?: string })
+      } as { id: string; display_name: string })
     : profileData?.partner;
 
   const gameId = search.game ?? null;
