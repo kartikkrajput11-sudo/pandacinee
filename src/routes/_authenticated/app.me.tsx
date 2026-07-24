@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, LogOut, Heart, Copy, Camera, Save, Sun, Moon, Monitor, ChevronRight, Lock, Coins, Volume2, VolumeX, Eye, EyeOff, CheckCheck, Check, Compass } from "lucide-react";
+import { ArrowLeft, LogOut, Heart, Copy, Camera, Save, Sun, Moon, Monitor, ChevronRight, Lock, Coins, Volume2, VolumeX, Eye, EyeOff, CheckCheck, Check, Compass, Sparkles } from "lucide-react";
 import { EditorialPageHeader } from "@/components/editorial/SectionHeader";
 
 import { isSfxEnabled, setSfxEnabled, sfxReaction } from "@/lib/sfx";
@@ -527,13 +527,14 @@ function EquipTagsSection({
 function ThemeSection() {
   const { mode, setMode } = useTheme();
   const options: { id: ThemeMode; label: string; Icon: typeof Sun }[] = [
-    { id: "dark", label: "Default", Icon: Moon },
+    { id: "default", label: "Velvet", Icon: Sparkles },
+    { id: "dark", label: "Midnight", Icon: Moon },
     { id: "light", label: "Light", Icon: Sun },
   ];
   return (
     <div className="p-5 mb-4 rounded-3xl border border-border bg-surface">
       <p className="text-[10px] uppercase tracking-widest text-petal mb-3">Appearance</p>
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-3 gap-2">
         {options.map(({ id, label, Icon }) => (
           <button
             key={id}
