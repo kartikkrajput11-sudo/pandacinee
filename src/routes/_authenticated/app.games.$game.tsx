@@ -531,13 +531,61 @@ function RockPaperScissors({ me, session, patch }: { me: string; session: Sessio
   );
 }
 
-function useCardFetcher(kind: "truth-or-dare" | "would-you-rather" | "this-or-that" | "never-have-i-ever" | "guess-me" | "two-truths-lie" | "hot-takes" | "emoji-riddle") {
+type CardKind = "truth-or-dare" | "would-you-rather" | "this-or-that" | "never-have-i-ever" | "guess-me" | "two-truths-lie" | "hot-takes" | "emoji-riddle";
+
+/**
+ * Card fetcher backed by a per-couple localStorage pool.
+ * Prefetches a batch of 30 cards per (kind, intensity, type) and serves one at a time
+ * so consecutive draws are always fresh; auto-refills a new batch when the pool empties.
+ */
+function useCardFetcher(kind: CardKind) {
+  const { data } = useProfile();
+  const coupleKey = data?.profile && data?.partner
+    ? [data.profile.id, data.partner.id].sort().join(":")
+    : "solo";
   const [loading, setLoading] = useState(false);
+
+  function poolKey(intensity: Intensity, type?: "truth" | "dare") {
+    return `card-pool:${coupleKey}:${kind}:${intensity}${type ? `:${type}` : ""}`;
+  }
+  function readPool(intensity: Intensity, type?: "truth" | "dare"): any[] {
+    try {
+      const raw = localStorage.getItem(poolKey(intensity, type));
+      if (!raw) return [];
+      const arr = JSON.parse(raw);
+      return Array.isArray(arr) ? arr : [];
+    } catch { return []; }
+  }
+  function writePool(intensity: Intensity, cards: any[], type?: "truth" | "dare") {
+    try { localStorage.setItem(poolKey(intensity, type), JSON.stringify(cards)); } catch { /* quota */ }
+  }
+
   async function fetchCard(intensity: Intensity, type?: "truth" | "dare"): Promise<any | null> {
     setLoading(true);
     try {
-      const res = await generateGameCard({ data: { kind, intensity, ...(type ? { type } : {}) } });
-      return (res as any).card;
+      let pool = readPool(intensity, type);
+      if (pool.length === 0) {
+        try {
+          const res = await generateGameCardBatch({ data: { kind, intensity, count: 30, ...(type ? { type } : {}) } });
+          pool = [...(res as any).cards].sort(() => Math.random() - 0.5);
+        } catch (batchErr) {
+          // Fall back to single-card generation so the game still works.
+          const single = await generateGameCard({ data: { kind, intensity, ...(type ? { type } : {}) } });
+          return (single as any).card;
+        }
+      }
+      const card = pool.shift();
+      writePool(intensity, pool, type);
+      // Kick off a background refill when running low so the next tap is instant.
+      if (pool.length <= 3) {
+        generateGameCardBatch({ data: { kind, intensity, count: 30, ...(type ? { type } : {}) } })
+          .then((res) => {
+            const merged = [...readPool(intensity, type), ...(res as any).cards];
+            writePool(intensity, merged.sort(() => Math.random() - 0.5), type);
+          })
+          .catch(() => { /* silent */ });
+      }
+      return card ?? null;
     } catch (err: any) {
       toast.error(err?.message ?? "AI unavailable");
       return null;
@@ -547,6 +595,7 @@ function useCardFetcher(kind: "truth-or-dare" | "would-you-rather" | "this-or-th
   }
   return { loading, fetchCard };
 }
+
 
 function SwipeToReveal({ label, onReveal }: { label: string; onReveal: () => void }) {
   const [x, setX] = useState(0);
