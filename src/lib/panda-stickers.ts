@@ -57,6 +57,11 @@ import duoSpoon from "@/assets/stickers/panda-duo-spoon.png";
 import rose from "@/assets/stickers/panda-rose.png";
 import fanning from "@/assets/stickers/panda-fanning.png";
 import behave from "@/assets/stickers/panda-behave.png";
+import robe from "@/assets/stickers/panda-robe.png";
+import bedhead from "@/assets/stickers/panda-bedhead.png";
+import petals from "@/assets/stickers/panda-petals.png";
+import candlebath from "@/assets/stickers/panda-candlebath.png";
+import lipmark from "@/assets/stickers/panda-lipmark.png";
 
 export type PandaStickerCategory = "love" | "joy" | "celebrate" | "wow" | "greet" | "chill" | "sad" | "partners" | "adult";
 
@@ -69,7 +74,8 @@ export type PandaStickerId =
   | "duo-hug" | "duo-kiss" | "duo-hands" | "duo-dance" | "duo-cozy" | "duo-selfie" | "duo-heart" | "duo-highfive"
   | "duo-lipkiss" | "duo-bed" | "duo-dip" | "flirt" | "bath" | "tease"
   | "peach" | "cuffs" | "unwrap" | "thirsty"
-  | "bedroom-eyes" | "comehere" | "duo-neckkiss" | "dnd" | "duo-spoon" | "rose" | "fanning" | "behave";
+  | "bedroom-eyes" | "comehere" | "duo-neckkiss" | "dnd" | "duo-spoon" | "rose" | "fanning" | "behave"
+  | "robe" | "bedhead" | "petals" | "candlebath" | "lipmark";
 
 export const PANDA_STICKERS: { id: PandaStickerId; url: string; label: string; category: PandaStickerCategory }[] = [
   // 💞 Partners (duo pandas)
@@ -147,6 +153,11 @@ export const PANDA_STICKERS: { id: PandaStickerId; url: string; label: string; c
   { id: "rose",         url: rose,        label: "Rose for you",  category: "adult" },
   { id: "fanning",      url: fanning,     label: "Flustered",     category: "adult" },
   { id: "behave",       url: behave,      label: "Behave 😏",     category: "adult" },
+  { id: "robe",         url: robe,        label: "Silk robe",     category: "adult" },
+  { id: "bedhead",      url: bedhead,     label: "Bedhead",       category: "adult" },
+  { id: "petals",       url: petals,      label: "Rose petals",   category: "adult" },
+  { id: "candlebath",   url: candlebath,  label: "Candle bath",   category: "adult" },
+  { id: "lipmark",      url: lipmark,     label: "Kiss mark",     category: "adult" },
 ];
 
 export const ADULT_CATEGORY: PandaStickerCategory = "adult";
