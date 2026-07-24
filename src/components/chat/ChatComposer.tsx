@@ -517,11 +517,13 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
           </button>
           <button
             type="button"
-            onClick={() => { setStickersOpen((s) => !s); setMenuOpen(false); }}
+            onClick={() => { setPandaOpen(true); setStickersOpen(false); setMenuOpen(false); }}
             className="size-11 rounded-full bg-surface border border-border flex items-center justify-center text-petal shrink-0"
+            title="Stickers"
           >
             <Smile className="size-4" />
           </button>
+
           <button
             type="button"
             onClick={() => setWhisper((w) => !w)}
