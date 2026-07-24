@@ -372,7 +372,7 @@ function MilestoneOverlay({
       {/* Card */}
       <div className={`relative max-w-md w-full rounded-3xl border border-white/15 bg-gradient-to-br from-velvet via-velvet/95 to-[#1a0d18] p-8 text-center ${theme.glow} animate-anniv-pop`}>
         <button
-          onClick={() => setOpen(false)}
+          onClick={onClose}
           aria-label="Close"
           className="absolute top-3 right-3 size-8 rounded-full bg-white/5 hover:bg-white/10 text-candle/70 hover:text-candle flex items-center justify-center border border-white/10"
         >
@@ -410,7 +410,7 @@ function MilestoneOverlay({
         </div>
 
         <button
-          onClick={() => setOpen(false)}
+          onClick={onClose}
           className="w-full py-3 rounded-full bg-gradient-to-r from-petal to-rose-400 text-velvet font-semibold text-sm tracking-wide hover:brightness-110 transition"
         >
           Celebrate together
