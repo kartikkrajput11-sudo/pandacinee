@@ -1384,7 +1384,75 @@ function MovieModal({ initial, onClose }: { initial?: CustomMovie | null; onClos
               <p className="mt-2 text-[10px] text-rose-400">{uploadErr}</p>
             )}
           </div>
+
+          {/* Manual quality variants — pasted URLs for a per-resolution selector in the player */}
+          <div className="rounded-2xl bg-velvet border border-border p-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-[10px] uppercase tracking-widest text-petal">
+                Quality variants (manual selector)
+              </label>
+              <button
+                type="button"
+                onClick={() =>
+                  setVideoQualities((q) => [
+                    ...q,
+                    { label: "720p", url: "", height: 720 },
+                  ])
+                }
+                className="text-[10px] uppercase tracking-widest text-petal hover:underline"
+              >
+                + Add
+              </button>
+            </div>
+            <p className="text-[10px] text-candle-muted">
+              Paste an extra source URL per resolution (e.g. 360p / 480p / 720p / 1080p). Viewers pick from the gear menu in the player. The primary video above is always shown as "Auto".
+            </p>
+            {videoQualities.length === 0 && (
+              <p className="text-[10px] text-candle-muted italic">No extra qualities — player will show only "Auto".</p>
+            )}
+            {videoQualities.map((q, i) => (
+              <div key={i} className="flex flex-wrap gap-1.5 items-center bg-surface rounded-xl p-2 border border-border">
+                <input
+                  value={q.label}
+                  onChange={(e) =>
+                    setVideoQualities((arr) => arr.map((r, j) => (j === i ? { ...r, label: e.target.value } : r)))
+                  }
+                  placeholder="Label"
+                  className="w-16 h-8 rounded-lg bg-velvet border border-border px-2 text-xs text-candle"
+                />
+                <input
+                  value={q.height ?? ""}
+                  onChange={(e) => {
+                    const v = e.target.value.trim();
+                    const n = v === "" ? null : Number(v);
+                    setVideoQualities((arr) =>
+                      arr.map((r, j) => (j === i ? { ...r, height: Number.isFinite(n as number) ? (n as number) : null } : r)),
+                    );
+                  }}
+                  placeholder="p"
+                  inputMode="numeric"
+                  className="w-14 h-8 rounded-lg bg-velvet border border-border px-2 text-xs text-candle"
+                />
+                <input
+                  value={q.url}
+                  onChange={(e) =>
+                    setVideoQualities((arr) => arr.map((r, j) => (j === i ? { ...r, url: e.target.value } : r)))
+                  }
+                  placeholder="https://…mp4"
+                  className="flex-1 min-w-[140px] h-8 rounded-lg bg-velvet border border-border px-2 text-xs text-candle"
+                />
+                <button
+                  type="button"
+                  onClick={() => setVideoQualities((arr) => arr.filter((_, j) => j !== i))}
+                  className="h-8 px-2 rounded-lg text-[10px] uppercase tracking-widest text-rose-400 hover:bg-rose-500/10"
+                >
+                  Remove
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
+
 
         <div className="mt-5 flex gap-2">
           <button onClick={onClose} className="flex-1 h-11 rounded-full bg-surface-elevated text-candle text-sm">Cancel</button>
