@@ -23,6 +23,8 @@ import {
 } from "@/lib/uno";
 import { sfxReaction, sfxPollVote, sfxKiss } from "@/lib/sfx";
 import { GroupPlayersBar } from "@/components/games/GroupPlayersBar";
+import { GameChat } from "@/components/games/GameChat";
+
 
 export const Route = createFileRoute("/_authenticated/app/uno")({
   component: UnoPage,
@@ -671,9 +673,19 @@ function UnoPage() {
           </div>
         )}
       </div>
+      {me && (mode === "partner" || matchId) && partner && (
+        <GameChat
+          roomKey={matchId ?? `uno:${[me.id, partner.id].sort().join(":")}`}
+          me={me}
+          partnerName={"display_name" in partner ? (partner as { display_name?: string | null }).display_name : null}
+          title="Table talk"
+        />
+      )}
+
     </div>
   );
 }
+
 
 function UnoAmbient() {
   return (

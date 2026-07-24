@@ -8,6 +8,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { generateCoupleTrivia } from "@/lib/games.functions";
 import { gameSfx } from "@/lib/game-sfx";
 import { AvatarImg } from "@/components/AvatarImg";
+import { GameChat } from "@/components/games/GameChat";
 
 export const Route = createFileRoute("/_authenticated/app/trivia")({
   head: () => ({
@@ -227,9 +228,18 @@ function TriviaPage() {
           <FinalView s={s} me={me} partner={partner} hostId={session.host_id} partnerId={session.partner_id} onAgain={playAgain} />
         )}
       </main>
+      {me && partner && (
+        <GameChat
+          roomKey={`trivia:${[me.id, partner.id].sort().join(":")}`}
+          me={me}
+          partnerName={partner.display_name}
+          title="Trivia banter"
+        />
+      )}
     </div>
   );
 }
+
 
 function Lobby({ loading, me, partner, onStart }: { loading: boolean; me: any; partner: any; onStart: (r: number) => void }) {
   const [rounds, setRounds] = useState(8);

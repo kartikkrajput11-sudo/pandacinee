@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
 import { useMatchOpponent } from "@/hooks/useMatchOpponent";
 import { GroupPlayersBar } from "@/components/games/GroupPlayersBar";
+import { GameChat } from "@/components/games/GameChat";
 
 export const Route = createFileRoute("/_authenticated/app/puzzle")({
   component: PuzzleTogether,
@@ -328,7 +329,9 @@ function PuzzleTogether() {
   }, [slots, grid]);
 
   return (
+    <>
     <div className="pt-10 px-5 pb-10">
+
       {matchId && <GroupPlayersBar matchId={matchId} meId={me?.id} gameName="Puzzle Together" />}
       <header className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
@@ -562,5 +565,15 @@ function PuzzleTogether() {
         </p>
       )}
     </div>
+    {me && partner && (
+      <GameChat
+        roomKey={matchId ?? `puzzle:${[me.id, partner.id].sort().join(":")}`}
+        me={me}
+        partnerName={"display_name" in partner ? (partner as { display_name?: string | null }).display_name : null}
+        title="Puzzle chat"
+      />
+    )}
+    </>
   );
 }
+

@@ -9,6 +9,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { useMatchOpponent } from "@/hooks/useMatchOpponent";
 import { AvatarImg } from "@/components/AvatarImg";
 import { GroupPlayersBar } from "@/components/games/GroupPlayersBar";
+import { GameChat } from "@/components/games/GameChat";
 
 export const Route = createFileRoute("/_authenticated/app/scribble")({
   component: Scribble,
@@ -931,9 +932,18 @@ function Scribble() {
           }}
         />
       )}
+      {me && partner && (
+        <GameChat
+          roomKey={matchId ?? `scribble:${[me.id, partner.id].sort().join(":")}`}
+          me={me}
+          partnerName={"display_name" in partner ? (partner as { display_name?: string | null }).display_name : null}
+          title="Scribble chat"
+        />
+      )}
     </div>
   );
 }
+
 
 function WinnerOverlay({
   isMe,

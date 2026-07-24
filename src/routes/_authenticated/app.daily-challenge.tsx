@@ -4,6 +4,9 @@ import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Check, Flame, Share2, Trophy } from "lucide-react";
 import { toast } from "sonner";
 import { gameSfx } from "@/lib/game-sfx";
+import { GameChat } from "@/components/games/GameChat";
+import { useProfile } from "@/hooks/useProfile";
+
 
 export const Route = createFileRoute("/_authenticated/app/daily-challenge")({
   component: DailyChallenge,
@@ -99,6 +102,10 @@ const ACHIEVEMENTS: { at: number; label: string; emoji: string }[] = [
 ];
 
 function DailyChallenge() {
+  const { data: prof } = useProfile();
+  const me = prof?.profile;
+  const partner = prof?.partner;
+
   const [state, setState] = useState<State>({ streak: 0, lastDate: null, completedToday: false, history: [] });
   const [celebrate, setCelebrate] = useState(false);
   const challenge = useMemo(() => todayChallenge(), []);
@@ -228,6 +235,15 @@ function DailyChallenge() {
           <p className="mt-3 text-xs text-petal text-center">All achievements unlocked ✨</p>
         )}
       </div>
+      {me && partner && (
+        <GameChat
+          roomKey={`daily:${[me.id, partner.id].sort().join(":")}`}
+          me={me}
+          partnerName={partner.display_name}
+          title="Daily chat"
+        />
+      )}
     </div>
   );
 }
+

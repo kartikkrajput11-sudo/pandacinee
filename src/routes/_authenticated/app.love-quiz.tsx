@@ -9,6 +9,7 @@ import { useMatchOpponent } from "@/hooks/useMatchOpponent";
 import { generateLoveQuiz } from "@/lib/games.functions";
 import { gameSfx } from "@/lib/game-sfx";
 import { GroupPlayersBar } from "@/components/games/GroupPlayersBar";
+import { GameChat } from "@/components/games/GameChat";
 
 export const Route = createFileRoute("/_authenticated/app/love-quiz")({
   component: LoveQuiz,
@@ -250,9 +251,18 @@ function LoveQuiz() {
       ) : (
         <Reveal me={me} partner={partner} session={session} onRematch={rematch} />
       )}
+      {me && partner && (
+        <GameChat
+          roomKey={`lovequiz:${[me.id, partner.id].sort().join(":")}`}
+          me={me}
+          partnerName={partner.display_name}
+          title="Whisper"
+        />
+      )}
     </div>
   );
 }
+
 
 function SpinIntro({
   me,

@@ -22,6 +22,7 @@ import {
 } from "@/lib/games";
 import { generateGameCard } from "@/lib/games.functions";
 import { gameSfx } from "@/lib/game-sfx";
+import { GameChat } from "@/components/games/GameChat";
 
 const paramsSchema = z.object({
   game: z.enum([
@@ -169,9 +170,18 @@ function GameRoute() {
       ) : (
         <GuessMe me={me.id} partnerId={partner.id} session={session} patch={patch} />
       )}
+      {me && partner && (
+        <GameChat
+          roomKey={`gm:${game}:${[me.id, partner.id].sort().join(":")}`}
+          me={me}
+          partnerName={partner.display_name}
+          title="Between rounds"
+        />
+      )}
     </div>
   );
 }
+
 
 function initialState(game: GameKind) {
   if (game === "truth-or-dare")

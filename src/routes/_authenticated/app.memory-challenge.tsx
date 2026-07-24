@@ -4,6 +4,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, Camera, Check, Flame, RotateCw, Share2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { gameSfx } from "@/lib/game-sfx";
+import { GameChat } from "@/components/games/GameChat";
+import { useProfile } from "@/hooks/useProfile";
+
 
 export const Route = createFileRoute("/_authenticated/app/memory-challenge")({
   component: MemoryChallenge,
@@ -95,6 +98,10 @@ async function toCompressedDataUrl(file: File, max = 900, quality = 0.75): Promi
 }
 
 function MemoryChallenge() {
+  const { data: prof } = useProfile();
+  const me = prof?.profile;
+  const partner = prof?.partner;
+
   const [store, setStore] = useState<Store>({ streak: 0, lastDate: null, entries: [] });
   const [busy, setBusy] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -258,6 +265,15 @@ function MemoryChallenge() {
       <p className="mt-6 text-[11px] text-candle-muted text-center">
         Memories are stored privately on this device.
       </p>
+      {me && partner && (
+        <GameChat
+          roomKey={`memory:${[me.id, partner.id].sort().join(":")}`}
+          me={me}
+          partnerName={partner.display_name}
+          title="Memory chat"
+        />
+      )}
     </div>
   );
 }
+
