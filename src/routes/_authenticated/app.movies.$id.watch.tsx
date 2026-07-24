@@ -2204,6 +2204,7 @@ function CustomWatch({ customId }: { customId: string }) {
     if (suppressRef.current) return;
     if (followerLocked) return;
     const isDiscrete = evt.event === "play" || evt.event === "pause" || evt.event === "seeked" || evt.event === "ended" || evt.event === "ratechange";
+    if (evt.event === "ended" && me) setShowReflection(true);
     if (isDiscrete && partner && !hostId) claimHost();
     // Host publishes every 250ms during play (tight follower drift), instantly on discrete events.
     if (!isDiscrete && Date.now() - lastPublishRef.current < 250) return;
