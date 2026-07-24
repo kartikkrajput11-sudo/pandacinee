@@ -24,6 +24,7 @@ import {
 import { sfxReaction, sfxPollVote, sfxKiss } from "@/lib/sfx";
 import { GroupPlayersBar } from "@/components/games/GroupPlayersBar";
 import { GameChat } from "@/components/games/GameChat";
+import { InviteFriendCard } from "@/components/games/InviteFriendCard";
 
 
 export const Route = createFileRoute("/_authenticated/app/uno")({
