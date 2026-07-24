@@ -1,6 +1,8 @@
 import { memo, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Heart, Pin, Trash2, Reply, Check, CheckCheck, Download, Zap, Phone, Video as VideoIcon, PhoneMissed, Clock, X, Forward } from "lucide-react";
+import { Heart, Pin, Trash2, Reply, Check, CheckCheck, Download, Zap, Phone, Video as VideoIcon, PhoneMissed, Clock, X, Forward, Languages, RotateCw } from "lucide-react";
+import { toast } from "sonner";
+import { translateMessage } from "@/lib/chat-tools.functions";
 import { signMedia, type MessageRow } from "@/lib/chat";
 import { VoicePlayer } from "./VoicePlayer";
 import { SignedImage } from "./SignedImage";
