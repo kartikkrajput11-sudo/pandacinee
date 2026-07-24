@@ -255,7 +255,7 @@ const TriviaQuestion = z.object({
   answer: z.number().int().min(0).max(3),
   category: z.enum(["general", "movies", "music", "love", "science", "geography", "food", "history"]),
 });
-const TriviaSchema = z.object({ questions: z.array(TriviaQuestion).min(6).max(12) });
+const TriviaSchema = z.object({ questions: z.array(TriviaQuestion).min(5).max(50) });
 
 export const generateCoupleTrivia = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
