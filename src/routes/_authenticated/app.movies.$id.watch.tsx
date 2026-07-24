@@ -2286,6 +2286,16 @@ function CustomWatch({ customId }: { customId: string }) {
             ) : (
             <CustomMoviePlayer
               src={videoSrc}
+              sources={(() => {
+                const extras = Array.isArray((movie as any)?.video_qualities)
+                  ? ((movie as any).video_qualities as Array<{ label: string; url: string; height?: number | null }>).filter((q) => q?.url && q?.label)
+                  : [];
+                if (extras.length === 0) return undefined;
+                return [
+                  { label: "Auto", src: videoSrc },
+                  ...extras.map((q) => ({ label: q.label, src: q.url, height: q.height ?? undefined })),
+                ];
+              })()}
               poster={movie?.backdrop_url ?? movie?.poster_url ?? null}
                 locked={followerLocked}
               onLockedAttempt={() => {
