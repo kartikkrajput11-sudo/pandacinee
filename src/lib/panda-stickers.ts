@@ -18,11 +18,25 @@ import think from "@/assets/stickers/panda-think.png";
 import wave from "@/assets/stickers/panda-wave.png";
 import dance from "@/assets/stickers/panda-dance.png";
 import heartHands from "@/assets/stickers/panda-heart-hands.png";
+import confused from "@/assets/stickers/panda-confused.png";
+import proud from "@/assets/stickers/panda-proud.png";
+import pleading from "@/assets/stickers/panda-pleading.png";
+import mindblown from "@/assets/stickers/panda-mindblown.png";
+import cozy from "@/assets/stickers/panda-cozy.png";
+import gift from "@/assets/stickers/panda-gift.png";
+import cake from "@/assets/stickers/panda-cake.png";
+import salute from "@/assets/stickers/panda-salute.png";
+import facepalm from "@/assets/stickers/panda-facepalm.png";
+import shrug from "@/assets/stickers/panda-shrug.png";
+import flex from "@/assets/stickers/panda-flex.png";
+import gamer from "@/assets/stickers/panda-gamer.png";
 
 export type PandaStickerId =
   | "happy" | "love" | "sad" | "laugh" | "wink" | "kiss"
   | "angry" | "shy" | "sleep" | "cool" | "hug" | "wow"
-  | "cry" | "blush" | "party" | "stars" | "think" | "wave" | "dance" | "heart-hands";
+  | "cry" | "blush" | "party" | "stars" | "think" | "wave" | "dance" | "heart-hands"
+  | "confused" | "proud" | "pleading" | "mindblown" | "cozy" | "gift"
+  | "cake" | "salute" | "facepalm" | "shrug" | "flex" | "gamer";
 
 export const PANDA_STICKERS: { id: PandaStickerId; url: string; label: string }[] = [
   { id: "happy", url: happy, label: "Happy" },
@@ -36,11 +50,23 @@ export const PANDA_STICKERS: { id: PandaStickerId; url: string; label: string }[
   { id: "laugh", url: laugh, label: "Laughing" },
   { id: "dance", url: dance, label: "Dance" },
   { id: "party", url: party, label: "Party" },
+  { id: "cake",  url: cake,  label: "Cake" },
+  { id: "gift",  url: gift,  label: "Gift" },
   { id: "stars", url: stars, label: "Star-struck" },
   { id: "wow",   url: wow,   label: "Wow" },
+  { id: "mindblown", url: mindblown, label: "Mind blown" },
   { id: "wave",  url: wave,  label: "Hi!" },
+  { id: "salute", url: salute, label: "Salute" },
   { id: "cool",  url: cool,  label: "Cool" },
+  { id: "proud", url: proud, label: "Proud" },
+  { id: "flex",  url: flex,  label: "Strong" },
+  { id: "gamer", url: gamer, label: "Gamer" },
+  { id: "cozy",  url: cozy,  label: "Cozy" },
   { id: "think", url: think, label: "Thinking" },
+  { id: "confused", url: confused, label: "Confused" },
+  { id: "shrug", url: shrug, label: "Shrug" },
+  { id: "pleading", url: pleading, label: "Please?" },
+  { id: "facepalm", url: facepalm, label: "Facepalm" },
   { id: "sad",   url: sad,   label: "Sad" },
   { id: "cry",   url: cry,   label: "Crying" },
   { id: "angry", url: angry, label: "Angry" },
