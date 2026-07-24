@@ -33,6 +33,7 @@ export function GameInviteCard({ m, mine }: { m: MessageRow; mine: boolean }) {
       </div>
       <Link
         to={href}
+        search={search}
         onClick={(e) => e.stopPropagation()}
         className={`flex items-center justify-center gap-1.5 px-4 py-2.5 text-xs font-medium transition-colors ${
           mine
