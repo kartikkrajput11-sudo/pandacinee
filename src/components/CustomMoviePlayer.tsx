@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Play,
   Pause,
@@ -10,6 +10,7 @@ import {
   RotateCw,
   PictureInPicture2,
   Gauge,
+  Settings2,
 } from "lucide-react";
 
 export type CustomPlayerHandle = {
@@ -24,8 +25,12 @@ export type CustomPlayerHandle = {
   setPlaybackRate: (r: number) => void;
 };
 
+export type QualitySource = { label: string; src: string; height?: number };
+
 type Props = {
   src: string;
+  /** Optional multi-quality variants. When present, exposes a quality menu. */
+  sources?: QualitySource[];
   poster?: string | null;
   startAt?: number;
   onEvent?: (evt: {
@@ -58,7 +63,7 @@ function fmt(sec: number): string {
 
 const RATES = [0.5, 0.75, 1, 1.25, 1.5, 2];
 
-export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, locked = false, onLockedAttempt, onLoadIssue, onBufferingChange }: Props) {
+export function CustomMoviePlayer({ src, sources, poster, startAt, onEvent, onReady, locked = false, onLockedAttempt, onLoadIssue, onBufferingChange }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const onReadyRef = useRef(onReady);
@@ -76,6 +81,29 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
   const hideTimer = useRef<number | null>(null);
   const bufferTimer = useRef<number | null>(null);
   const scrubbing = useRef(false);
+
+  // Quality variants. If `sources` isn't provided, expose the single `src` as "Auto".
+  const qualityList = useMemo<QualitySource[]>(() => {
+    if (sources && sources.length > 0) return sources;
+    return [{ label: "Auto", src }];
+  }, [sources, src]);
+
+  // Pick an initial quality: on slow / metered connections prefer the lowest,
+  // otherwise the highest. This is the biggest single win for time-to-first-frame.
+  const [qualityIdx, setQualityIdx] = useState<number>(() => {
+    if (qualityList.length <= 1) return 0;
+    const conn = (typeof navigator !== "undefined" ? (navigator as any).connection : null) as
+      | { effectiveType?: string; saveData?: boolean }
+      | null;
+    const slow = !!conn && (conn.saveData || /2g|slow-2g/i.test(conn.effectiveType ?? ""));
+    // Sort by height ascending for slow, descending for fast.
+    const indexed = qualityList.map((q, i) => ({ i, h: q.height ?? 0 }));
+    indexed.sort((a, b) => (slow ? a.h - b.h : b.h - a.h));
+    return indexed[0]?.i ?? 0;
+  });
+  const [qualityOpen, setQualityOpen] = useState(false);
+  const activeSrc = qualityList[qualityIdx]?.src ?? src;
+
   useEffect(() => {
     return () => {
       if (bufferTimer.current) window.clearTimeout(bufferTimer.current);
@@ -170,7 +198,7 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
     setBuffering(false);
     setDuration(0);
     setTime(0);
-    if (!v || !src) return;
+    if (!v || !activeSrc) return;
     try {
       v.preload = "auto";
       v.load();
@@ -183,7 +211,7 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
       }
     }, 9000);
     return () => window.clearTimeout(timer);
-  }, [src, stopBuffering]);
+  }, [activeSrc, stopBuffering]);
 
   // Attach handle for parent sync control. Keep this independent from the
   // parent's callback identity so parent state updates cannot retrigger onReady
@@ -225,17 +253,23 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
               }
             });
         };
-        if (v.readyState >= 3) {
+        if (v.readyState >= 2) {
           attempt();
         } else {
-          const onCanPlay = () => {
-            v.removeEventListener("canplay", onCanPlay);
+          const onReadyToPlay = () => {
+            v.removeEventListener("loadeddata", onReadyToPlay);
+            v.removeEventListener("canplay", onReadyToPlay);
             attempt();
           };
-          v.addEventListener("canplay", onCanPlay);
+          // `loadeddata` fires ~1 frame after the first byte of media is decoded —
+          // usually 500ms-1s earlier than `canplay`, which needs enough buffer to
+          // play "for a while". This is the biggest time-to-first-frame win.
+          v.addEventListener("loadeddata", onReadyToPlay);
+          v.addEventListener("canplay", onReadyToPlay);
           // Safety: if buffering stalls, still try after 6s so we don't hang forever.
           window.setTimeout(() => {
-            v.removeEventListener("canplay", onCanPlay);
+            v.removeEventListener("loadeddata", onReadyToPlay);
+            v.removeEventListener("canplay", onReadyToPlay);
             if (v.paused) attempt();
           }, 6000);
         }
@@ -253,7 +287,7 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
       isMuted: () => v.muted,
       setPlaybackRate: (r: number) => { try { v.playbackRate = r; setRate(r); } catch {} },
     });
-  }, [src, stopBuffering]);
+  }, [activeSrc, stopBuffering]);
 
   // Seek to startAt when src or startAt changes
   useEffect(() => {
@@ -266,7 +300,7 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
     };
     if (v.readyState >= 1) apply();
     else v.addEventListener("loadedmetadata", apply, { once: true });
-  }, [src, startAt]);
+  }, [activeSrc, startAt]);
 
   const scheduleHide = useCallback(() => {
     if (hideTimer.current) window.clearTimeout(hideTimer.current);
@@ -355,6 +389,27 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
 
   const progressPct = duration > 0 ? (time / duration) * 100 : 0;
 
+  const changeQuality = useCallback((idx: number) => {
+    const v = videoRef.current;
+    const targetTime = v?.currentTime ?? 0;
+    const wasPlaying = !!v && !v.paused;
+    setQualityIdx(idx);
+    setQualityOpen(false);
+    // The src-change effect will call load() on the new source. Once it's
+    // seekable, restore position and resume if we were playing.
+    requestAnimationFrame(() => {
+      const nv = videoRef.current;
+      if (!nv) return;
+      const resume = () => {
+        try { nv.currentTime = targetTime; } catch {}
+        if (wasPlaying) nv.play().catch(() => {});
+      };
+      if (nv.readyState >= 1) resume();
+      else nv.addEventListener("loadedmetadata", resume, { once: true });
+    });
+  }, []);
+
+
   return (
     <div
       ref={containerRef}
@@ -365,7 +420,7 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
     >
       <video
         ref={videoRef}
-        src={src}
+        src={activeSrc}
         poster={poster ?? undefined}
         className="absolute inset-0 w-full h-full object-contain bg-black"
         playsInline
@@ -619,6 +674,39 @@ export function CustomMoviePlayer({ src, poster, startAt, onEvent, onReady, lock
                 )}
               </div>
             )}
+
+            {/* Quality menu */}
+            <div className="relative">
+              <button
+                onClick={() => setQualityOpen((o) => !o)}
+                className="h-9 px-3 rounded-full bg-white/10 hover:bg-white/20 flex items-center gap-1"
+                aria-label="Video quality"
+                title="Video quality"
+              >
+                <Settings2 className="size-3.5" />
+                <span className="hidden sm:inline">{qualityList[qualityIdx]?.label ?? "Auto"}</span>
+              </button>
+              {qualityOpen && (
+                <div className="absolute right-0 bottom-11 z-50 bg-black/90 border border-white/10 rounded-2xl p-1.5 flex flex-col gap-0.5 min-w-[110px] shadow-2xl">
+                  <div className="px-2 py-1 text-[10px] uppercase tracking-widest text-white/40">Quality</div>
+                  {qualityList.map((q, i) => (
+                    <button
+                      key={`${q.label}-${i}`}
+                      onClick={() => changeQuality(i)}
+                      className={`px-2 py-1 rounded-lg text-left text-xs hover:bg-white/10 ${i === qualityIdx ? "text-petal" : "text-white"}`}
+                    >
+                      {q.label}
+                    </button>
+                  ))}
+                  {qualityList.length === 1 && (
+                    <div className="px-2 pt-1 pb-0.5 text-[10px] text-white/40 leading-tight">
+                      Only one source available.
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
 
             <button onClick={togglePip} aria-label="Picture-in-picture" className="hidden sm:flex size-9 rounded-full bg-white/10 hover:bg-white/20 items-center justify-center">
               <PictureInPicture2 className="size-4" />
