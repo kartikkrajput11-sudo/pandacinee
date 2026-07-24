@@ -386,7 +386,7 @@ function CatalogWatch({ id }: { id: string }) {
   // sync them) can't feed back as a phantom "partner paused".
   useEffect(() => {
     const onMessage = (event: MessageEvent) => {
-      const okOrigin = /vidking\.net|vidlink\.pro|vidsrc\.to|2embed\.cc/.test(String(event.origin));
+      const okOrigin = /vidking\.net|2embed\.cc/.test(String(event.origin));
       if (!okOrigin) return;
       try {
         const raw = typeof event.data === "string" ? JSON.parse(event.data) : event.data;
