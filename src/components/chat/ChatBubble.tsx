@@ -710,6 +710,39 @@ function ChatBubbleImpl({
                   <span>Copy</span>
                 </button>
               )}
+              {m.type === "text" && m.content && (
+                <>
+                  <button
+                    onClick={() => setTranslateOpen((v) => !v)}
+                    className="w-full px-4 py-3 flex items-center justify-between hover:bg-muted text-sm text-candle border-t border-border"
+                  >
+                    <span>{translation ? "Re-translate…" : "Translate…"}</span>
+                    {translating ? <RotateCw className="size-4 animate-spin text-petal" /> : <Languages className="size-4 text-candle-muted" />}
+                  </button>
+                  {translateOpen && (
+                    <div className="px-3 py-2 flex flex-wrap gap-1.5 border-t border-border bg-surface">
+                      {["English", "Spanish", "French", "German", "Hindi", "Urdu", "Arabic", "Japanese", "Korean", "Chinese", "Portuguese", "Italian"].map((L) => (
+                        <button
+                          key={L}
+                          disabled={translating}
+                          onClick={() => runTranslate(L)}
+                          className="px-2.5 py-1 text-xs rounded-lg bg-surface-elevated border border-border text-candle hover:border-petal/60 disabled:opacity-50"
+                        >
+                          {L}
+                        </button>
+                      ))}
+                      {translation && (
+                        <button
+                          onClick={() => { setTranslation(null); setTranslateOpen(false); }}
+                          className="px-2.5 py-1 text-xs rounded-lg text-destructive hover:bg-destructive/10"
+                        >
+                          Clear
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </>
+              )}
               <button
                 onClick={() => { onPin(m); closeActions(); }}
                 className="w-full px-4 py-3 flex items-center justify-between hover:bg-muted text-sm text-candle border-t border-border"
