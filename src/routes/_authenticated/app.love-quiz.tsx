@@ -250,9 +250,18 @@ function LoveQuiz() {
       ) : (
         <Reveal me={me} partner={partner} session={session} onRematch={rematch} />
       )}
+      {me && partner && (
+        <GameChat
+          roomKey={`lovequiz:${[me.id, partner.id].sort().join(":")}`}
+          me={me}
+          partnerName={partner.display_name}
+          title="Whisper"
+        />
+      )}
     </div>
   );
 }
+
 
 function SpinIntro({
   me,
