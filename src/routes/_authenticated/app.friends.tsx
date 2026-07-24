@@ -242,6 +242,21 @@ function Friends() {
               return (
                 <Row key={f.id} profile={p}>
                   <button
+                    onClick={() => setInvitePeer(p)}
+                    className="size-9 rounded-full bg-velvet border border-border text-candle hover:text-petal flex items-center justify-center"
+                    aria-label="Invite to play"
+                    title="Invite to play"
+                  >
+                    <Gamepad2 className="size-4" />
+                  </button>
+                  <Link
+                    to="/app/chat/$peerId"
+                    params={{ peerId: p.id }}
+                    className="hidden sm:inline-flex px-3 h-9 items-center rounded-full bg-velvet border border-border text-[10px] uppercase tracking-widest text-candle-muted hover:text-petal"
+                  >
+                    Chat
+                  </Link>
+                  <button
                     onClick={() => startCall(p.id, "audio")}
                     className="size-9 rounded-full bg-velvet border border-border text-candle hover:text-petal flex items-center justify-center"
                     aria-label="Voice call"
@@ -257,6 +272,7 @@ function Friends() {
                   </button>
                 </Row>
               );
+
             })}
           </div>
         )}
