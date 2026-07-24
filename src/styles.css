@@ -72,22 +72,26 @@
 
 :root {
   --radius: 1.1rem;
-  /* Midnight Rose — ink navy night with rose-gold + blush accents */
-  --velvet: oklch(0.14 0.03 275);
-  --background: oklch(0.13 0.03 275);
-  --surface: oklch(0.22 0.055 275);
-  --surface-elevated: oklch(0.28 0.065 275);
-  --foreground: oklch(0.97 0.015 60);
-  --candle: oklch(0.97 0.015 60);
-  --candle-muted: oklch(0.80 0.03 40 / 0.72);
-  --petal: oklch(0.82 0.09 18);
-  --petal-soft: oklch(0.82 0.09 18 / 0.20);
-  --lavender: oklch(0.88 0.05 40);
-  --border: oklch(1 0 0 / 0.09);
+  /* Velvet Evening Glow — ORIGINAL core theme.
+     Deep aubergine velvet night, warm petal coral, candle cream.
+     Kept intentionally un-enhanced as the default fallback. */
+  --velvet: oklch(0.15 0.035 340);
+  --background: oklch(0.13 0.03 340);
+  --surface: oklch(0.20 0.045 340);
+  --surface-elevated: oklch(0.25 0.055 340);
+  --foreground: oklch(0.96 0.02 80);
+  --candle: oklch(0.96 0.02 80);
+  --candle-muted: oklch(0.82 0.035 60 / 0.72);
+  --petal: oklch(0.78 0.13 25);
+  --petal-soft: oklch(0.78 0.13 25 / 0.20);
+  --lavender: oklch(0.80 0.06 310);
+  --border: oklch(1 0 0 / 0.08);
   --input: oklch(1 0 0 / 0.10);
 }
 
 .dark {
+  /* Midnight Rose — enhanced night theme.
+     Ink navy with rose-gold + blush accents. */
   --velvet: oklch(0.14 0.03 275);
   --background: oklch(0.13 0.03 275);
   --surface: oklch(0.22 0.055 275);
