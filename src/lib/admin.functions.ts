@@ -13,6 +13,12 @@ export const claimAdmin = createServerFn({ method: "POST" })
     return { ok: Boolean(ok) };
   });
 
+const QualityVariant = z.object({
+  label: z.string().min(1).max(20),
+  url: z.string().min(1).max(2000),
+  height: z.number().int().min(120).max(4320).optional().nullable(),
+});
+
 const MovieInput = z.object({
   title: z.string().min(1).max(200),
   year: z.number().int().min(1900).max(2100).optional().nullable(),
@@ -23,6 +29,7 @@ const MovieInput = z.object({
   genres: z.array(z.string().min(1).max(40)).max(20).optional(),
   video_url: z.string().max(2000).optional().nullable(),
   video_storage_path: z.string().max(500).optional().nullable(),
+  video_qualities: z.array(QualityVariant).max(10).optional(),
   tmdb_id: z.number().int().positive().optional().nullable(),
   media_type: z.enum(["movie", "tv"]).optional(),
   use_vidking: z.boolean().optional(),
