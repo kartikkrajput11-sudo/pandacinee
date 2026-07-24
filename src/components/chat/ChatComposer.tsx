@@ -36,9 +36,12 @@ type Props = {
     reply_to_id?: string | null;
     disappear_seconds?: number | null;
   }) => Promise<void>;
+
+  /** Optional: opens a "send later" dialog with the current draft. */
+  onSchedule?: (draft: string) => void;
 };
 
-export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTyping, onSend, locked, lockedHint }: Props) {
+export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTyping, onSend, locked, lockedHint, onSchedule }: Props) {
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
