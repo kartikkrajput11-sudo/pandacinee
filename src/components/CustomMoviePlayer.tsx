@@ -25,8 +25,12 @@ export type CustomPlayerHandle = {
   setPlaybackRate: (r: number) => void;
 };
 
+export type QualitySource = { label: string; src: string; height?: number };
+
 type Props = {
   src: string;
+  /** Optional multi-quality variants. When present, exposes a quality menu. */
+  sources?: QualitySource[];
   poster?: string | null;
   startAt?: number;
   onEvent?: (evt: {
