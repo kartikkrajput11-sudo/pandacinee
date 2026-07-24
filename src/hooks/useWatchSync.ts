@@ -106,6 +106,8 @@ export function useWatchSync(
   const myReadyRef = useRef(false);
   const mySourceKindRef = useRef<SourceKind>("unknown");
   const lastBackendWriteRef = useRef(0);
+  const rttSamplesRef = useRef<number[]>([]);
+  const pingTimerRef = useRef<number | null>(null);
 
   // Deterministic channel name from sorted user IDs + room, so only the couple share it.
   const channelName = useMemo(() => {
