@@ -128,7 +128,11 @@ export function PandaStickerPicker({ open, onClose, onPick, onOpenAi }: Props) {
                 key={c.id}
                 emoji={c.emoji}
                 label={c.label}
-                onClick={() => scrollToSection(c.id)}
+                locked={c.adult && !adultOk}
+                onClick={() => {
+                  if (c.adult && !adultOk) { setShowGate(true); return; }
+                  scrollToSection(c.id);
+                }}
               />
             ))}
           </div>
