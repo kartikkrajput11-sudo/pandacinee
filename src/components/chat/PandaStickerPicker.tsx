@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { X, Search, Clock, Sparkles, Lock } from "lucide-react";
 import { PANDA_STICKERS, PANDA_CATEGORY_ORDER, isAdultUnlocked, unlockAdult, lockAdult, type PandaStickerId, type PandaStickerCategory } from "@/lib/panda-stickers";
+import { useStickerOverrides } from "@/hooks/useStickerOverrides";
 
 
 type Props = {
@@ -44,9 +45,22 @@ export function PandaStickerPicker({ open, onClose, onPick, onOpenAi }: Props) {
     [recent, adultOk]
   );
 
+  const { hidden, customs } = useStickerOverrides();
+
+  const allStickers = useMemo(() => {
+    const builtins = PANDA_STICKERS.filter((s) => !hidden.has(s.id));
+    const customCat = customs.map((c) => ({
+      id: c.id as PandaStickerId,
+      url: c.url,
+      label: c.label,
+      category: (PANDA_CATEGORY_ORDER.find((k) => k.id === c.category)?.id ?? "playful") as PandaStickerCategory,
+    }));
+    return [...builtins, ...customCat];
+  }, [hidden, customs]);
+
   const visibleStickers = useMemo(
-    () => PANDA_STICKERS.filter((s) => s.category !== "adult" || adultOk),
-    [adultOk]
+    () => allStickers.filter((s) => s.category !== "adult" || adultOk),
+    [allStickers, adultOk]
   );
 
   const filtered = useMemo(() => {
