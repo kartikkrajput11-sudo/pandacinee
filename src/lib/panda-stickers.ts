@@ -38,6 +38,7 @@ import duoDance from "@/assets/stickers/panda-duo-dance.png";
 import duoCozy from "@/assets/stickers/panda-duo-cozy.png";
 import duoSelfie from "@/assets/stickers/panda-duo-selfie.png";
 import duoHeart from "@/assets/stickers/panda-duo-heart.png";
+import duoHighfive from "@/assets/stickers/panda-duo-highfive.png";
 import duoLipkiss from "@/assets/stickers/panda-duo-lipkiss.png";
 import duoBed from "@/assets/stickers/panda-duo-bed.png";
 import duoDip from "@/assets/stickers/panda-duo-dip.png";
