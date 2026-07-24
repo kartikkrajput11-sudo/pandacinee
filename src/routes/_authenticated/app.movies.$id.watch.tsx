@@ -1242,6 +1242,7 @@ function CatalogWatch({ id }: { id: string }) {
                     ];
                   })()}
                   poster={backdropUrl}
+                  startAt={startAt}
                     locked={followerLocked}
                   onLockedAttempt={() => {
                     toast.info(`Playback is controlled by ${partnerFirst}.`, { id: "locked-attempt", duration: 1800 });
