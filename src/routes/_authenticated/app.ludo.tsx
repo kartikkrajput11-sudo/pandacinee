@@ -11,6 +11,7 @@ import { GroupPlayersBar } from "@/components/games/GroupPlayersBar";
 import { InviteFriendCard } from "@/components/games/InviteFriendCard";
 
 import { useProfile } from "@/hooks/useProfile";
+import { useProfileById } from "@/hooks/useProfileById";
 import { useMatchOpponent } from "@/hooks/useMatchOpponent";
 import {
   initialState,
