@@ -23,6 +23,9 @@ import pandaNhie from "@/assets/pandas/panda-nhie.png";
 import pandaThisOrThat from "@/assets/pandas/panda-thisorthat.png";
 import pandaGuessMe from "@/assets/pandas/panda-guessme.png";
 import pandaHideSeek from "@/assets/pandas/panda-hideseek.png";
+import pandaPool from "@/assets/pandas/panda-pool.png";
+import pandaPuzzle from "@/assets/pandas/panda-puzzle.png";
+import pandaTrivia from "@/assets/pandas/panda-trivia.png";
 
 const PANDA_STICKERS: Partial<Record<GameKind, string>> = {
   "paint-together": pandaPaint,
@@ -30,6 +33,9 @@ const PANDA_STICKERS: Partial<Record<GameKind, string>> = {
   "ludo": pandaLudo,
   "uno": pandaUno,
   "hide-seek": pandaHideSeek,
+  "pool": pandaPool,
+  "puzzle-together": pandaPuzzle,
+  "couple-trivia": pandaTrivia,
   "know-me": pandaKnowme,
   "scribble-guess": pandaScribble,
   "two-truths-lie": pandaTwoTruths,
