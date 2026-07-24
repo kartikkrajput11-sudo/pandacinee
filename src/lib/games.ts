@@ -16,6 +16,7 @@ export type GameKind =
   | "memory-challenge"
   | "puzzle-together"
   | "love-quiz"
+  | "couple-trivia"
   | "chess"
   | "ludo"
   | "uno"
@@ -32,6 +33,7 @@ export const GAME_KINDS: GameKind[] = [
   "hide-seek",
   "pool",
   "know-me",
+  "couple-trivia",
   "scribble-guess",
   "two-truths-lie",
   "hot-takes",
