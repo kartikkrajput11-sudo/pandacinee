@@ -1133,6 +1133,13 @@ function MovieModal({ initial, onClose }: { initial?: CustomMovie | null; onClos
         genres: genres.split(",").map((g) => g.trim()).filter(Boolean).slice(0, 20),
         video_url: videoUrl.trim() || null,
         video_storage_path: videoPath,
+        video_qualities: videoQualities
+          .map((q) => ({
+            label: q.label.trim(),
+            url: q.url.trim(),
+            height: q.height != null && !Number.isNaN(Number(q.height)) ? Number(q.height) : null,
+          }))
+          .filter((q) => q.label.length > 0 && q.url.length > 0),
         tmdb_id: tmdbId,
         media_type: mediaType,
         use_vidking: useVidking,
