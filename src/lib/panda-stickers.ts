@@ -74,6 +74,14 @@ import eyeroll from "@/assets/stickers/panda-eyeroll.png";
 import duoMilkshake from "@/assets/stickers/panda-duo-milkshake.png";
 import duoPiggyback from "@/assets/stickers/panda-duo-piggyback.png";
 import duoForeheadkiss from "@/assets/stickers/panda-duo-foreheadkiss.png";
+import duoNoseboop from "@/assets/stickers/panda-duo-noseboop.png";
+import duoBackhug from "@/assets/stickers/panda-duo-backhug.png";
+import duoUmbrella from "@/assets/stickers/panda-duo-umbrella.png";
+import duoLollipop from "@/assets/stickers/panda-duo-lollipop.png";
+import duoStargaze from "@/assets/stickers/panda-duo-stargaze.png";
+import blowkiss from "@/assets/stickers/panda-blowkiss.png";
+import missyou from "@/assets/stickers/panda-missyou.png";
+import bouquet from "@/assets/stickers/panda-bouquet.png";
 
 export type PandaStickerCategory = "love" | "joy" | "playful" | "celebrate" | "wow" | "greet" | "chill" | "sad" | "partners" | "adult";
 
@@ -89,7 +97,9 @@ export type PandaStickerId =
   | "bedroom-eyes" | "comehere" | "duo-neckkiss" | "dnd" | "duo-spoon" | "rose" | "fanning" | "behave"
   | "robe" | "bedhead" | "petals" | "candlebath" | "lipmark"
   | "devil" | "scheme" | "sneaky" | "peek" | "innocent" | "swoon" | "simp" | "slowclap" | "eyeroll"
-  | "duo-milkshake" | "duo-piggyback" | "duo-foreheadkiss";
+  | "duo-milkshake" | "duo-piggyback" | "duo-foreheadkiss"
+  | "duo-noseboop" | "duo-backhug" | "duo-umbrella" | "duo-lollipop" | "duo-stargaze"
+  | "blowkiss" | "missyou" | "bouquet";
 
 export const PANDA_STICKERS: { id: PandaStickerId; url: string; label: string; category: PandaStickerCategory }[] = [
   // 💞 Partners (duo pandas)
@@ -101,6 +111,11 @@ export const PANDA_STICKERS: { id: PandaStickerId; url: string; label: string; c
   { id: "duo-dance",    url: duoDance,    label: "Slow dance",    category: "partners" },
   { id: "duo-selfie",   url: duoSelfie,   label: "Selfie us",     category: "partners" },
   { id: "duo-highfive", url: duoHighfive, label: "High five",     category: "partners" },
+  { id: "duo-noseboop", url: duoNoseboop, label: "Nose boop",     category: "partners" },
+  { id: "duo-backhug",  url: duoBackhug,  label: "Back hug",      category: "partners" },
+  { id: "duo-umbrella", url: duoUmbrella, label: "Our umbrella",  category: "partners" },
+  { id: "duo-lollipop", url: duoLollipop, label: "Sweet share",   category: "partners" },
+  { id: "duo-stargaze", url: duoStargaze, label: "Stargazing",    category: "partners" },
 
   // ❤️ Love
   { id: "love",         url: love,        label: "In love",       category: "love" },
@@ -109,6 +124,9 @@ export const PANDA_STICKERS: { id: PandaStickerId; url: string; label: string; c
   { id: "hug",          url: hug,         label: "Hug",           category: "love" },
   { id: "blush",        url: blush,       label: "Blush",         category: "love" },
   { id: "shy",          url: shy,         label: "Shy",           category: "love" },
+  { id: "blowkiss",     url: blowkiss,    label: "Blow kiss",     category: "love" },
+  { id: "missyou",      url: missyou,     label: "Miss you",      category: "love" },
+  { id: "bouquet",      url: bouquet,     label: "For you",       category: "love" },
 
   // 😊 Joy
   { id: "happy",        url: happy,       label: "Happy",         category: "joy" },
