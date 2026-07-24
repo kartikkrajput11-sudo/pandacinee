@@ -389,6 +389,27 @@ export function CustomMoviePlayer({ src, sources, poster, startAt, onEvent, onRe
 
   const progressPct = duration > 0 ? (time / duration) * 100 : 0;
 
+  const changeQuality = useCallback((idx: number) => {
+    const v = videoRef.current;
+    const targetTime = v?.currentTime ?? 0;
+    const wasPlaying = !!v && !v.paused;
+    setQualityIdx(idx);
+    setQualityOpen(false);
+    // The src-change effect will call load() on the new source. Once it's
+    // seekable, restore position and resume if we were playing.
+    requestAnimationFrame(() => {
+      const nv = videoRef.current;
+      if (!nv) return;
+      const resume = () => {
+        try { nv.currentTime = targetTime; } catch {}
+        if (wasPlaying) nv.play().catch(() => {});
+      };
+      if (nv.readyState >= 1) resume();
+      else nv.addEventListener("loadedmetadata", resume, { once: true });
+    });
+  }, []);
+
+
   return (
     <div
       ref={containerRef}
