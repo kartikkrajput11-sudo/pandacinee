@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import StickerEditor from "./StickerEditor";
 import { EyeOff, Eye, Upload, Trash2, Sparkles, Loader2, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -128,23 +129,29 @@ function CustomStickerCard({ sticker, onDeleted }: { sticker: { id: string; url:
 }
 
 function UploadCustomSticker({ onDone }: { onDone: () => void }) {
-  const [file, setFile] = useState<File | null>(null);
+  const [rawFile, setRawFile] = useState<File | null>(null);
+  const [finalFile, setFinalFile] = useState<File | null>(null);
+  const [finalUrl, setFinalUrl] = useState<string | null>(null);
   const [label, setLabel] = useState("");
   const [category, setCategory] = useState<PandaStickerCategory>("playful");
   const [uploading, setUploading] = useState(false);
-  const preview = useMemo(() => file ? URL.createObjectURL(file) : null, [file]);
-  useEffect(() => () => { if (preview) URL.revokeObjectURL(preview); }, [preview]);
+
+  useEffect(() => () => { if (finalUrl) URL.revokeObjectURL(finalUrl); }, [finalUrl]);
+
+  function reset() {
+    if (finalUrl) URL.revokeObjectURL(finalUrl);
+    setRawFile(null); setFinalFile(null); setFinalUrl(null); setLabel("");
+  }
 
   async function submit() {
-    if (!file) return toast.error("Choose an image first");
+    if (!finalFile) return toast.error("Prepare the image first");
     if (!label.trim()) return toast.error("Give it a label");
     setUploading(true);
     try {
       const slug = label.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40) || crypto.randomUUID().slice(0, 8);
       const stickerId = `custom-${slug}-${crypto.randomUUID().slice(0, 6)}`;
-      const ext = (file.name.split(".").pop() || "png").toLowerCase();
-      const path = `${stickerId}.${ext}`;
-      const up = await supabase.storage.from("stickers").upload(path, file, { upsert: false, contentType: file.type || "image/png" });
+      const path = `${stickerId}.png`;
+      const up = await supabase.storage.from("stickers").upload(path, finalFile, { upsert: false, contentType: "image/png" });
       if (up.error) throw up.error;
       const ins = await supabase.from("sticker_admin").insert({
         kind: "custom",
@@ -155,26 +162,49 @@ function UploadCustomSticker({ onDone }: { onDone: () => void }) {
       });
       if (ins.error) throw ins.error;
       toast.success("Sticker added");
-      setFile(null); setLabel("");
+      reset();
       onDone();
     } catch (e: any) {
       toast.error(e?.message ?? "Upload failed");
     } finally { setUploading(false); }
   }
 
+  // Stage 1: pick a file
+  if (!rawFile) {
+    return (
+      <label className="relative block w-full rounded-2xl border-2 border-dashed border-border bg-surface/60 hover:border-petal/50 transition cursor-pointer p-8 text-center">
+        <div className="text-candle-muted text-sm flex flex-col items-center gap-2">
+          <Upload className="size-6" />
+          <span className="font-semibold text-candle">Choose an image</span>
+          <span className="text-xs">PNG · WebP · JPG · GIF — you'll crop &amp; optionally remove the background next</span>
+        </div>
+        <input
+          type="file"
+          accept="image/png,image/webp,image/jpeg,image/gif"
+          className="absolute inset-0 opacity-0 cursor-pointer"
+          onChange={(e) => setRawFile(e.target.files?.[0] ?? null)}
+        />
+      </label>
+    );
+  }
+
+  // Stage 2: crop / remove bg
+  if (!finalFile || !finalUrl) {
+    return (
+      <StickerEditor
+        file={rawFile}
+        onCancel={() => setRawFile(null)}
+        onConfirm={(f, url) => { setFinalFile(f); setFinalUrl(url); }}
+      />
+    );
+  }
+
+  // Stage 3: label + upload
   return (
     <div className="grid gap-3 sm:grid-cols-[auto,1fr] items-start">
-      <label className="relative size-28 rounded-2xl border-2 border-dashed border-border bg-surface/60 flex items-center justify-center cursor-pointer overflow-hidden hover:border-petal/50 transition">
-        {preview ? (
-          <img src={preview} alt="preview" className="w-full h-full object-contain" />
-        ) : (
-          <div className="text-center text-candle-muted text-xs flex flex-col items-center gap-1">
-            <Upload className="size-5" />
-            <span>PNG / WebP</span>
-          </div>
-        )}
-        <input type="file" accept="image/png,image/webp,image/jpeg,image/gif" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
-      </label>
+      <div className="size-28 rounded-2xl bg-[conic-gradient(#0002_25%,transparent_0_50%,#0002_0_75%,transparent_0)] bg-[length:14px_14px] border border-border overflow-hidden flex items-center justify-center">
+        <img src={finalUrl} alt="ready" className="w-full h-full object-contain" />
+      </div>
       <div className="space-y-2">
         <input
           value={label}
@@ -193,14 +223,19 @@ function UploadCustomSticker({ onDone }: { onDone: () => void }) {
             </button>
           ))}
         </div>
-        <button
-          onClick={submit}
-          disabled={uploading || !file || !label.trim()}
-          className="h-10 px-4 rounded-xl bg-petal text-velvet font-semibold text-sm flex items-center gap-2 disabled:opacity-50"
-        >
-          {uploading ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />}
-          Add sticker
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={submit}
+            disabled={uploading || !label.trim()}
+            className="h-10 px-4 rounded-xl bg-petal text-velvet font-semibold text-sm flex items-center gap-2 disabled:opacity-50"
+          >
+            {uploading ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />}
+            Add sticker
+          </button>
+          <button onClick={reset} className="h-10 px-3 rounded-xl border border-border text-sm">
+            Start over
+          </button>
+        </div>
       </div>
     </div>
   );
