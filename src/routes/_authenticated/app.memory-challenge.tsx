@@ -98,6 +98,10 @@ async function toCompressedDataUrl(file: File, max = 900, quality = 0.75): Promi
 }
 
 function MemoryChallenge() {
+  const { data: prof } = useProfile();
+  const me = prof?.profile;
+  const partner = prof?.partner;
+
   const [store, setStore] = useState<Store>({ streak: 0, lastDate: null, entries: [] });
   const [busy, setBusy] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
