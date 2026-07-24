@@ -223,48 +223,13 @@ export default function PairAnniversaryCelebration() {
     return () => { alive = false; };
   }, []);
 
-  const theme = useMemo(() => (milestone ? themeFor(milestone) : null), [milestone]);
-
-  const particles = useMemo(
-    () => Array.from({ length: 46 }, (_, i) => ({
-      left: Math.random() * 100,
-      delay: Math.random() * 2.4,
-      dur: 3.6 + Math.random() * 3.2,
-      size: 8 + Math.random() * 18,
-      rot: Math.random() * 360,
-      color: theme?.particleColors[i % (theme?.particleColors.length || 1)] || "#ec4899",
-      shape: i % 3 === 0 ? "heart" : i % 3 === 1 ? "star" : "spark",
-      key: i,
-    })),
-    [theme, milestone?.kind, milestone?.count],
-  );
-
-  const rays = useMemo(
-    () => Array.from({ length: 14 }, (_, i) => ({
-      key: i,
-      angle: (i * 360) / 14,
-      delay: i * 0.06,
-    })),
-    [milestone?.kind, milestone?.count],
-  );
-
-  const fireworks = useMemo(
-    () => Array.from({ length: 5 }, (_, i) => ({
-      key: i,
-      top: 18 + Math.random() * 40,
-      left: 10 + Math.random() * 80,
-      delay: i * 0.4,
-      color: theme?.particleColors[i % (theme?.particleColors.length || 1)] || "#ec4899",
-    })),
-    [theme, milestone?.kind, milestone?.count],
-  );
-
-  if (!open || !milestone || !theme) return null;
+  if (!open || !milestone) return null;
 
   return (
     <MilestoneOverlay milestone={milestone} partnerName={partnerName} onClose={() => setOpen(false)} />
   );
 }
+
 
 export function MilestonePreview({
   milestone,
