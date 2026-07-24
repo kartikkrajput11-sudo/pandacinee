@@ -38,9 +38,14 @@ import duoDance from "@/assets/stickers/panda-duo-dance.png";
 import duoCozy from "@/assets/stickers/panda-duo-cozy.png";
 import duoSelfie from "@/assets/stickers/panda-duo-selfie.png";
 import duoHeart from "@/assets/stickers/panda-duo-heart.png";
-import duoHighfive from "@/assets/stickers/panda-duo-highfive.png";
+import duoLipkiss from "@/assets/stickers/panda-duo-lipkiss.png";
+import duoBed from "@/assets/stickers/panda-duo-bed.png";
+import duoDip from "@/assets/stickers/panda-duo-dip.png";
+import flirt from "@/assets/stickers/panda-flirt.png";
+import bath from "@/assets/stickers/panda-bath.png";
+import tease from "@/assets/stickers/panda-tease.png";
 
-export type PandaStickerCategory = "love" | "joy" | "celebrate" | "wow" | "greet" | "chill" | "sad" | "partners";
+export type PandaStickerCategory = "love" | "joy" | "celebrate" | "wow" | "greet" | "chill" | "sad" | "partners" | "adult";
 
 export type PandaStickerId =
   | "happy" | "love" | "sad" | "laugh" | "wink" | "kiss"
@@ -48,7 +53,8 @@ export type PandaStickerId =
   | "cry" | "blush" | "party" | "stars" | "think" | "wave" | "dance" | "heart-hands"
   | "confused" | "proud" | "pleading" | "mindblown" | "cozy" | "gift"
   | "cake" | "salute" | "facepalm" | "shrug" | "flex" | "gamer"
-  | "duo-hug" | "duo-kiss" | "duo-hands" | "duo-dance" | "duo-cozy" | "duo-selfie" | "duo-heart" | "duo-highfive";
+  | "duo-hug" | "duo-kiss" | "duo-hands" | "duo-dance" | "duo-cozy" | "duo-selfie" | "duo-heart" | "duo-highfive"
+  | "duo-lipkiss" | "duo-bed" | "duo-dip" | "flirt" | "bath" | "tease";
 
 export const PANDA_STICKERS: { id: PandaStickerId; url: string; label: string; category: PandaStickerCategory }[] = [
   // 💞 Partners (duo pandas)
@@ -106,9 +112,19 @@ export const PANDA_STICKERS: { id: PandaStickerId; url: string; label: string; c
   { id: "cry",          url: cry,         label: "Crying",        category: "sad" },
   { id: "angry",        url: angry,       label: "Angry",         category: "sad" },
   { id: "facepalm",     url: facepalm,    label: "Facepalm",      category: "sad" },
+
+  // 🔞 Adult (18+)
+  { id: "duo-lipkiss",  url: duoLipkiss,  label: "Lip kiss",      category: "adult" },
+  { id: "duo-dip",      url: duoDip,      label: "Dip kiss",      category: "adult" },
+  { id: "duo-bed",      url: duoBed,      label: "In bed",        category: "adult" },
+  { id: "tease",        url: tease,       label: "Tease",         category: "adult" },
+  { id: "flirt",        url: flirt,       label: "Flirt rose",    category: "adult" },
+  { id: "bath",         url: bath,        label: "Bubble bath",   category: "adult" },
 ];
 
-export const PANDA_CATEGORY_ORDER: { id: PandaStickerCategory; label: string; emoji: string }[] = [
+export const ADULT_CATEGORY: PandaStickerCategory = "adult";
+
+export const PANDA_CATEGORY_ORDER: { id: PandaStickerCategory; label: string; emoji: string; adult?: boolean }[] = [
   { id: "partners",  label: "Partners",  emoji: "💞" },
   { id: "love",      label: "Love",      emoji: "❤️" },
   { id: "joy",       label: "Joy",       emoji: "😊" },
@@ -117,7 +133,20 @@ export const PANDA_CATEGORY_ORDER: { id: PandaStickerCategory; label: string; em
   { id: "greet",     label: "Greet",     emoji: "👋" },
   { id: "chill",     label: "Chill",     emoji: "🛌" },
   { id: "sad",       label: "Feelings",  emoji: "💧" },
+  { id: "adult",     label: "18+",       emoji: "🔞", adult: true },
 ];
+
+const ADULT_OK_KEY = "panda_adult_ok_v1";
+
+export function isAdultUnlocked(): boolean {
+  try { return localStorage.getItem(ADULT_OK_KEY) === "1"; } catch { return false; }
+}
+export function unlockAdult() {
+  try { localStorage.setItem(ADULT_OK_KEY, "1"); } catch {}
+}
+export function lockAdult() {
+  try { localStorage.removeItem(ADULT_OK_KEY); } catch {}
+}
 
 
 
