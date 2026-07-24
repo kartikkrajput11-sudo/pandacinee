@@ -45,6 +45,10 @@ import duoDip from "@/assets/stickers/panda-duo-dip.png";
 import flirt from "@/assets/stickers/panda-flirt.png";
 import bath from "@/assets/stickers/panda-bath.png";
 import tease from "@/assets/stickers/panda-tease.png";
+import peach from "@/assets/stickers/panda-peach.png";
+import cuffs from "@/assets/stickers/panda-cuffs.png";
+import unwrap from "@/assets/stickers/panda-unwrap.png";
+import thirsty from "@/assets/stickers/panda-thirsty.png";
 
 export type PandaStickerCategory = "love" | "joy" | "celebrate" | "wow" | "greet" | "chill" | "sad" | "partners" | "adult";
 
