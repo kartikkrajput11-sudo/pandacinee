@@ -128,6 +128,29 @@ function Movies() {
     return () => { alive = false; };
   }, [q]);
 
+  // Live suggestions (YouTube-style) as the user types — tolerant to typos via TMDB fuzzy match
+  useEffect(() => {
+    const term = input.trim();
+    if (term.length < 2 || term === q.trim()) {
+      setSuggestions([]);
+      return;
+    }
+    let alive = true;
+    const t = setTimeout(() => {
+      multi({ data: { q: term } })
+        .then((r) => {
+          if (!alive) return;
+          const items = (r as MultiItem[])
+            .filter((m) => m.title && (m.poster_path || m.backdrop_path))
+            .slice(0, 8);
+          setSuggestions(items);
+        })
+        .catch(() => alive && setSuggestions([]));
+    }, 220);
+    return () => { alive = false; clearTimeout(t); };
+  }, [input, q]);
+
+
   // Browse mode — load all rails (movies + tv) in parallel
   useEffect(() => {
     let alive = true;
