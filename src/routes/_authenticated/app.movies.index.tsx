@@ -297,7 +297,10 @@ function Movies() {
           setInput={setInput}
           onSubmit={onSubmit}
           onClear={() => setInput("")}
+          suggestions={suggestions}
+          onPick={(title) => { setInput(title); setSuggestions([]); updateSearch({ q: title }); }}
           inline
+
         />
 
         {filterBar}
