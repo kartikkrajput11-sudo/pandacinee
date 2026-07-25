@@ -189,14 +189,25 @@ function PartyRoom() {
       {/* Player */}
       <div className="px-3 pt-3">
         <div className="relative rounded-2xl overflow-hidden bg-black border border-white/[0.06] shadow-[0_20px_60px_-20px_rgba(0,0,0,0.7)]">
-          <iframe
-            key={embedUrl}
-            src={embedUrl}
-            allowFullScreen
-            allow="autoplay; fullscreen; picture-in-picture"
-            className="w-full aspect-video bg-black"
-          />
+          {activeServer.native ? (
+            <div className="w-full aspect-video bg-black">
+              <CustomMoviePlayer
+                key={activeServer.url}
+                src={activeServer.url}
+                poster={movie?.backdrop_path ?? movie?.poster_path ?? null}
+              />
+            </div>
+          ) : (
+            <iframe
+              key={activeServer.url}
+              src={activeServer.url}
+              allowFullScreen
+              allow="autoplay; fullscreen; picture-in-picture"
+              className="w-full aspect-video bg-black"
+            />
+          )}
         </div>
+
         <div className="mt-2 flex items-center gap-1.5 overflow-x-auto no-scrollbar px-0.5">
           {servers.map((s, i) => (
             <button
