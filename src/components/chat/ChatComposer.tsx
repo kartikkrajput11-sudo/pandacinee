@@ -141,7 +141,7 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
   }
 
 
-  async function sendWatchInvite(movie: TmdbMovie) {
+  async function sendWatchInvite(movie: TmdbMovie & { media_type?: "movie" | "tv" }) {
     setWatchPickerOpen(false);
     setMenuOpen(false);
     try {
@@ -150,7 +150,7 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
         content: movie.title,
         media_meta: {
           tmdb_id: movie.id,
-          media_type: "movie",
+          media_type: movie.media_type === "tv" ? "tv" : "movie",
           poster_path: movie.poster_path,
           release_date: movie.release_date,
           vote_average: movie.vote_average,

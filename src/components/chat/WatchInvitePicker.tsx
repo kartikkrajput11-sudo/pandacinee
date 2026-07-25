@@ -1,19 +1,21 @@
 import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Search, X, Film } from "lucide-react";
-import { tmdbSearch, type TmdbMovie } from "@/lib/tmdb.functions";
+import { tmdbMulti, type TmdbMovie } from "@/lib/tmdb.functions";
+
+type PickItem = TmdbMovie & { media_type?: "movie" | "tv" };
 import { poster } from "@/routes/_authenticated/app.movies";
 
 type Props = {
   open: boolean;
   onClose: () => void;
-  onPick: (movie: TmdbMovie) => void;
+  onPick: (movie: PickItem) => void;
 };
 
 export function WatchInvitePicker({ open, onClose, onPick }: Props) {
-  const runSearch = useServerFn(tmdbSearch);
+  const runSearch = useServerFn(tmdbMulti);
   const [q, setQ] = useState("");
-  const [results, setResults] = useState<TmdbMovie[]>([]);
+  const [results, setResults] = useState<PickItem[]>([]);
   const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -66,7 +68,7 @@ export function WatchInvitePicker({ open, onClose, onPick }: Props) {
           </div>
           <div className="flex-1">
             <p className="text-[10px] uppercase tracking-widest text-petal">Watch together</p>
-            <h2 className="font-serif italic text-lg leading-tight">Send a movie invite</h2>
+            <h2 className="font-serif italic text-lg leading-tight">Send a movie or show invite</h2>
           </div>
           <button onClick={onClose} className="size-9 rounded-full bg-surface border border-border flex items-center justify-center text-candle-muted">
             <X className="size-4" />
@@ -80,7 +82,7 @@ export function WatchInvitePicker({ open, onClose, onPick }: Props) {
               ref={inputRef}
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="Search a movie…"
+              placeholder="Search a movie or show…"
               className="w-full pl-9 pr-3 py-2.5 bg-surface border border-border rounded-full text-sm text-candle placeholder:text-candle-muted focus:outline-none focus:border-petal/60"
             />
           </div>
@@ -100,6 +102,7 @@ export function WatchInvitePicker({ open, onClose, onPick }: Props) {
           <ul className="space-y-1">
             {results.map((m) => {
               const year = m.release_date ? m.release_date.slice(0, 4) : "";
+              const isTv = m.media_type === "tv";
               const p = poster(m.poster_path, "w185");
               return (
                 <li key={m.id}>
@@ -115,7 +118,7 @@ export function WatchInvitePicker({ open, onClose, onPick }: Props) {
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-serif italic text-sm truncate">{m.title}</p>
+                      <p className="font-serif italic text-sm truncate">{m.title}{isTv && <span className="ml-1.5 text-[9px] uppercase tracking-widest text-petal not-italic">TV</span>}</p>
                       <p className="text-[11px] text-candle-muted">
                         {year}
                         {m.vote_average > 0 && <span className="ml-2 text-petal">★ {m.vote_average.toFixed(1)}</span>}
