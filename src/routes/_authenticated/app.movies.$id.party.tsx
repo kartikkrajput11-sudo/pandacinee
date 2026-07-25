@@ -52,7 +52,8 @@ function PartyRoom() {
   }, [search.with, realPartner, friendsQuery.data?.profiles]);
 
   const [movie, setMovie] = useState<any>(null);
-  const [isTv, setIsTv] = useState(false);
+  const [isTv, setIsTv] = useState<boolean>(search.type === "tv");
+  const [serverIdx, setServerIdx] = useState(0);
 
   useEffect(() => {
     let alive = true;
@@ -60,7 +61,7 @@ function PartyRoom() {
       .then((m) => {
         if (!alive || !m) return;
         setMovie(m);
-        if (m.media_type === "tv") setIsTv(true);
+        if (m.media_type === "tv" || m.first_air_date || m.number_of_seasons) setIsTv(true);
       })
       .catch(() => {});
     // Check custom overrides for media_type
@@ -86,20 +87,37 @@ function PartyRoom() {
   const season = search.season ?? 1;
   const episode = search.episode ?? 1;
 
-  const embedUrl = useMemo(() => {
-    const base =
-      isTv
-        ? `https://vidlink.pro/tv/${tmdbId}/${season}/${episode}`
-        : `https://vidlink.pro/movie/${tmdbId}`;
-    const params = new URLSearchParams({
-      primaryColor: "ee82af",
-      secondaryColor: "ee82af",
-      iconColor: "ffffff",
-      autoplay: "true",
-      title: "true",
-    });
-    return `${base}?${params.toString()}`;
+  const servers = useMemo(() => {
+    const mk = (label: string, url: string) => ({ label, url });
+    return [
+      mk(
+        "Panda Stream HD",
+        isTv
+          ? `https://www.vidking.net/embed/tv/${tmdbId}/${season}/${episode}?color=ee82af&autoPlay=true`
+          : `https://www.vidking.net/embed/movie/${tmdbId}?color=ee82af&autoPlay=true`,
+      ),
+      mk(
+        "Rose Cinema",
+        isTv
+          ? `https://vidsrc.cc/v2/embed/tv/${tmdbId}/${season}/${episode}?autoPlay=true`
+          : `https://vidsrc.cc/v2/embed/movie/${tmdbId}?autoPlay=true`,
+      ),
+      mk(
+        "Moonlit Reel",
+        isTv
+          ? `https://vidsrc.to/embed/tv/${tmdbId}/${season}/${episode}`
+          : `https://vidsrc.to/embed/movie/${tmdbId}`,
+      ),
+      mk(
+        "Twin Reel Mirror",
+        isTv
+          ? `https://vidlink.pro/tv/${tmdbId}/${season}/${episode}?primaryColor=ee82af&autoplay=true`
+          : `https://vidlink.pro/movie/${tmdbId}?primaryColor=ee82af&autoplay=true`,
+      ),
+    ];
   }, [tmdbId, isTv, season, episode]);
+
+  const embedUrl = servers[Math.min(serverIdx, servers.length - 1)].url;
 
   if (!me) {
     return <div className="p-8 text-center text-candle-muted">Loading…</div>;
