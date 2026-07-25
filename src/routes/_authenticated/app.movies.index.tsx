@@ -45,7 +45,7 @@ export const Route = createFileRoute("/_authenticated/app/movies/")({
   component: Movies,
   validateSearch: (s: Record<string, unknown>) => ({
     q: typeof s.q === "string" ? s.q : "",
-    type: (s.type === "movie" || s.type === "tv" ? s.type : "all") as "all" | "movie" | "tv",
+    type: (s.type === "movie" || s.type === "tv" || s.type === "series" ? s.type : "all") as "all" | "movie" | "tv" | "series",
     minRating: typeof s.minRating === "number" ? s.minRating : 0,
   }),
 });
@@ -105,10 +105,10 @@ function Movies() {
 
   useEffect(() => { setInput(q); }, [q]);
 
-  function updateSearch(patch: Partial<{ q: string; type: "all" | "movie" | "tv"; minRating: number }>) {
+  function updateSearch(patch: Partial<{ q: string; type: "all" | "movie" | "tv" | "series"; minRating: number }>) {
     navigate({
       to: "/app/movies",
-      search: (prev: { q: string; type: "all" | "movie" | "tv"; minRating: number }) => ({ ...prev, ...patch }),
+      search: (prev: { q: string; type: "all" | "movie" | "tv" | "series"; minRating: number }) => ({ ...prev, ...patch }),
     });
   }
 
@@ -190,18 +190,17 @@ function Movies() {
   }
 
   const featured = useMemo(() => {
-    const source = type === "tv" ? tvTrend : trendingList;
+    const source = type === "tv" || type === "series" ? tvTrend : trendingList;
     if (source.length === 0) return undefined;
-    // Skip titles already in Continue Watching so the hero always highlights
-    // a fresh trending pick, not one the user just watched.
     const recentIds = new Set(recent.map((r) => r.id));
     const pick = source.find((m) => !recentIds.has(m.id)) ?? source[0];
     return applyOverride(pick, overrides.get(pick.id));
   }, [type, trendingList, tvTrend, overrides, recent]);
 
 
-  const showMovies = type !== "tv";
-  const showShows = type !== "movie";
+  const showMovies = type === "all" || type === "movie";
+  const showShows = type === "all" || type === "tv";
+  const showSeries = type === "all" || type === "series";
 
   // Filter bar reused in browse and search
   const filterBar = (
@@ -216,7 +215,7 @@ function Movies() {
   // Search results view
   if (q.trim()) {
     const filtered = (searchResults ?? [])
-      .filter((m) => (type === "all" ? true : (m.media_type ?? "movie") === type))
+      .filter((m) => (type === "all" ? true : type === "series" ? (m.media_type ?? "movie") === "tv" : (m.media_type ?? "movie") === type))
       .filter((m) => (m.vote_average ?? 0) >= minRating);
     return (
       <div className="pt-10 px-5 pb-24">
@@ -261,7 +260,7 @@ function Movies() {
     <div className="pb-28 min-h-screen bg-background">
       {/* Featured hero */}
       {featured && (
-        <div data-tour="movies-hero"><FeaturedHero movie={featured} isTv={type === "tv"} /></div>
+        <div data-tour="movies-hero"><FeaturedHero movie={featured} isTv={type === "tv" || type === "series"} /></div>
       )}
 
 
@@ -358,6 +357,11 @@ function Movies() {
               loading={loading}
               tvBadge
             />
+          </>
+        )}
+
+        {showSeries && (
+          <>
             <Rail
               title="On Air Tonight"
               icon={<Play className="size-3.5 text-petal" />}
@@ -396,15 +400,16 @@ function Movies() {
 function FilterBar({
   type, minRating, onType, onMinRating,
 }: {
-  type: "all" | "movie" | "tv";
+  type: "all" | "movie" | "tv" | "series";
   minRating: number;
-  onType: (t: "all" | "movie" | "tv") => void;
+  onType: (t: "all" | "movie" | "tv" | "series") => void;
   onMinRating: (r: number) => void;
 }) {
-  const typeOptions: { id: "all" | "movie" | "tv"; label: string; icon: React.ReactNode }[] = [
+  const typeOptions: { id: "all" | "movie" | "tv" | "series"; label: string; icon: React.ReactNode }[] = [
     { id: "all", label: "All", icon: <Sparkles className="size-3" /> },
     { id: "movie", label: "Movies", icon: <Film className="size-3" /> },
     { id: "tv", label: "Shows", icon: <Tv className="size-3" /> },
+    { id: "series", label: "Series", icon: <Play className="size-3" /> },
   ];
   const ratingOptions = [0, 6, 7, 8, 9];
   return (
