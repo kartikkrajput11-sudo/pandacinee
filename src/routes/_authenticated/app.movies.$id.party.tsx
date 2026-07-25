@@ -8,6 +8,7 @@ import { useFriendships } from "@/hooks/useFriends";
 import { supabase } from "@/integrations/supabase/client";
 import { WatchTogetherPanel } from "@/components/watch/WatchTogetherPanel";
 import { AvatarImg } from "@/components/AvatarImg";
+import { CustomMoviePlayer } from "@/components/CustomMoviePlayer";
 
 export const Route = createFileRoute("/_authenticated/app/movies/$id/party")({
   validateSearch: (raw: Record<string, unknown>) => {
@@ -54,6 +55,7 @@ function PartyRoom() {
   const [movie, setMovie] = useState<any>(null);
   const [isTv, setIsTv] = useState<boolean>(search.type === "tv");
   const [serverIdx, setServerIdx] = useState(0);
+  const [pandacineSrc, setPandacineSrc] = useState<string | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -64,13 +66,13 @@ function PartyRoom() {
         if (m.media_type === "tv" || m.first_air_date || m.number_of_seasons) setIsTv(true);
       })
       .catch(() => {});
-    // Check custom overrides for media_type
+    // Check custom overrides for media_type + Pandacine-uploaded video
     supabase
       .from("custom_movies")
-      .select("media_type, title, poster_url")
+      .select("id, media_type, title, poster_url, video_url, video_storage_path")
       .eq("tmdb_id", tmdbId)
       .maybeSingle()
-      .then(({ data }) => {
+      .then(async ({ data }) => {
         if (!alive || !data) return;
         if (data.media_type === "tv") setIsTv(true);
         setMovie((prev: any) => ({
@@ -78,46 +80,65 @@ function PartyRoom() {
           title: prev?.title || data.title,
           poster_path: prev?.poster_path || data.poster_url,
         }));
+        // Resolve movie-level Pandacine source (episode overrides not wired for party yet)
+        if (data.media_type !== "tv") {
+          if (data.video_storage_path) {
+            const { data: signed } = await supabase.storage
+              .from("custom-movies")
+              .createSignedUrl(data.video_storage_path, 60 * 60 * 6);
+            if (!alive) return;
+            if (signed?.signedUrl) setPandacineSrc(signed.signedUrl);
+          } else if (data.video_url) {
+            setPandacineSrc(data.video_url);
+          }
+        }
       });
     return () => {
       alive = false;
     };
   }, [tmdbId, fetchMovie]);
 
+
   const season = search.season ?? 1;
   const episode = search.episode ?? 1;
 
-  const servers = useMemo(() => {
-    const mk = (label: string, url: string) => ({ label, url });
-    return [
-      mk(
-        "Panda Stream HD",
-        isTv
+  type Server = { label: string; url: string; native?: boolean };
+  const servers = useMemo<Server[]>(() => {
+    const list: Server[] = [];
+    if (pandacineSrc && !isTv) {
+      list.push({ label: "Pandacine", url: pandacineSrc, native: true });
+    }
+    list.push(
+      {
+        label: "Panda Stream HD",
+        url: isTv
           ? `https://www.vidking.net/embed/tv/${tmdbId}/${season}/${episode}?color=ee82af&autoPlay=true`
           : `https://www.vidking.net/embed/movie/${tmdbId}?color=ee82af&autoPlay=true`,
-      ),
-      mk(
-        "Rose Cinema",
-        isTv
+      },
+      {
+        label: "Rose Cinema",
+        url: isTv
           ? `https://vidsrc.cc/v2/embed/tv/${tmdbId}/${season}/${episode}?autoPlay=true`
           : `https://vidsrc.cc/v2/embed/movie/${tmdbId}?autoPlay=true`,
-      ),
-      mk(
-        "Moonlit Reel",
-        isTv
+      },
+      {
+        label: "Moonlit Reel",
+        url: isTv
           ? `https://vidsrc.to/embed/tv/${tmdbId}/${season}/${episode}`
           : `https://vidsrc.to/embed/movie/${tmdbId}`,
-      ),
-      mk(
-        "Twin Reel Mirror",
-        isTv
+      },
+      {
+        label: "Twin Reel Mirror",
+        url: isTv
           ? `https://vidlink.pro/tv/${tmdbId}/${season}/${episode}?primaryColor=ee82af&autoplay=true`
           : `https://vidlink.pro/movie/${tmdbId}?primaryColor=ee82af&autoplay=true`,
-      ),
-    ];
-  }, [tmdbId, isTv, season, episode]);
+      },
+    );
+    return list;
+  }, [tmdbId, isTv, season, episode, pandacineSrc]);
 
-  const embedUrl = servers[Math.min(serverIdx, servers.length - 1)].url;
+  const activeServer = servers[Math.min(serverIdx, servers.length - 1)];
+
 
   if (!me) {
     return <div className="p-8 text-center text-candle-muted">Loading…</div>;
@@ -168,14 +189,25 @@ function PartyRoom() {
       {/* Player */}
       <div className="px-3 pt-3">
         <div className="relative rounded-2xl overflow-hidden bg-black border border-white/[0.06] shadow-[0_20px_60px_-20px_rgba(0,0,0,0.7)]">
-          <iframe
-            key={embedUrl}
-            src={embedUrl}
-            allowFullScreen
-            allow="autoplay; fullscreen; picture-in-picture"
-            className="w-full aspect-video bg-black"
-          />
+          {activeServer.native ? (
+            <div className="w-full aspect-video bg-black">
+              <CustomMoviePlayer
+                key={activeServer.url}
+                src={activeServer.url}
+                poster={movie?.backdrop_path ?? movie?.poster_path ?? null}
+              />
+            </div>
+          ) : (
+            <iframe
+              key={activeServer.url}
+              src={activeServer.url}
+              allowFullScreen
+              allow="autoplay; fullscreen; picture-in-picture"
+              className="w-full aspect-video bg-black"
+            />
+          )}
         </div>
+
         <div className="mt-2 flex items-center gap-1.5 overflow-x-auto no-scrollbar px-0.5">
           {servers.map((s, i) => (
             <button
