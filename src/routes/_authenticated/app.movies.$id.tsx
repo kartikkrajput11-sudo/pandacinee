@@ -13,6 +13,9 @@ import { trackRecentMovie } from "@/lib/recent-movies";
 
 
 export const Route = createFileRoute("/_authenticated/app/movies/$id")({
+  validateSearch: (s: Record<string, unknown>) => ({
+    type: s.type === "tv" || s.type === "movie" ? (s.type as "tv" | "movie") : undefined,
+  }),
   component: MovieDetail,
 });
 
@@ -33,6 +36,7 @@ function MovieDetail() {
 }
 
 function MovieDetailInner({ id }: { id: string }) {
+  const { type: typeHint } = Route.useSearch();
   const fetchMovie = useServerFn(tmdbMovie);
   const fetchTv = useServerFn(tmdbTvFull);
   const fetchSources = useServerFn(watchmodeSources);
@@ -41,7 +45,7 @@ function MovieDetailInner({ id }: { id: string }) {
   const me = prof?.profile;
   const partner = prof?.partner;
   const [movie, setMovie] = useState<any>(null);
-  const [isTv, setIsTv] = useState(false);
+  const [isTv, setIsTv] = useState(typeHint === "tv");
   const [sources, setSources] = useState<WatchSource[]>([]);
   const [region, setRegion] = useState<string>("US");
   const [selectedSeason, setSelectedSeason] = useState<number>(1);
@@ -71,9 +75,12 @@ function MovieDetailInner({ id }: { id: string }) {
       const tvHasSeasons = !!(tvRes && Array.isArray(tvRes.seasons) && tvRes.seasons.length);
       const movieLooksReal = !!(movieRes && (movieRes.release_date || movieRes.runtime));
       const preferTv =
-        ov?.media_type === "tv" ||
-        (tvHasSeasons && !movieLooksReal) ||
-        (tvHasSeasons && movieRes?.media_type === "tv");
+        typeHint === "tv" ||
+        (typeHint !== "movie" && (
+          ov?.media_type === "tv" ||
+          (tvHasSeasons && !movieLooksReal) ||
+          (tvHasSeasons && movieRes?.media_type === "tv")
+        ));
       const tv = preferTv && !!tvRes;
       setIsTv(tv);
 
@@ -102,7 +109,7 @@ function MovieDetailInner({ id }: { id: string }) {
       .then((r) => alive && setSources(r.sources))
       .catch(() => alive && setSources([]));
     return () => { alive = false; };
-  }, [id]);
+  }, [id, typeHint]);
 
 
   // Load season episodes when this is a TV series

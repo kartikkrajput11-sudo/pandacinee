@@ -287,7 +287,7 @@ function Movies() {
           <div className="grid grid-cols-3 gap-3">
             {overlay(filtered).map((m) => (
               <div key={m.id} className="relative">
-                <MovieCard id={m.id} title={m.title} poster_path={m.poster_path} vote_average={m.vote_average} />
+                <MovieCard id={m.id} title={m.title} poster_path={m.poster_path} vote_average={m.vote_average} mediaType={(m as MultiItem).media_type === "tv" ? "tv" : "movie"} />
                 {(m as MultiItem).media_type === "tv" && (
                   <span className="absolute top-1.5 left-1.5 inline-flex items-center gap-0.5 h-5 px-1.5 rounded-full bg-velvet/85 backdrop-blur border border-petal/30 text-petal text-[9px] uppercase tracking-widest">
                     <Tv className="size-2.5" /> TV
@@ -653,6 +653,7 @@ function FeaturedHero({ movie, isTv = false }: { movie: TmdbMovie; isTv?: boolea
           <Link
             to="/app/movies/$id"
             params={{ id: String(movie.id) }}
+            search={{ type: isTv ? "tv" : "movie" }}
             className="inline-flex items-center gap-2 py-3 px-7 rounded-full bg-candle text-velvet font-semibold text-sm shadow-[0_20px_60px_-20px] shadow-black/60 hover:brightness-110 transition-all"
           >
             <Play className="size-4 fill-velvet" />
@@ -706,6 +707,7 @@ function Rail({
                   key={m.id}
                   to="/app/movies/$id"
                   params={{ id: String(m.id) }}
+                  search={{ type: tvBadge ? "tv" : "movie" }}
                   className="w-44 shrink-0 group"
                 >
                   <div className="aspect-video rounded-xl overflow-hidden bg-velvet border border-border relative">
@@ -735,6 +737,7 @@ function Rail({
                     title={m.title}
                     poster_path={m.poster_path}
                     vote_average={m.vote_average}
+                    mediaType={tvBadge ? "tv" : (m as any).media_type === "tv" ? "tv" : "movie"}
                   />
                   {tvBadge && (
                     <span className="absolute top-1.5 left-1.5 inline-flex items-center gap-0.5 h-4 px-1.5 rounded-full bg-velvet/85 backdrop-blur border border-petal/30 text-petal text-[8px] uppercase tracking-widest">
