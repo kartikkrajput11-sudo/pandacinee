@@ -49,8 +49,8 @@ type Source = { id: string; label: string; url: (tmdb: number, startAt?: number,
 const SOURCES: Source[] = [
   {
     id: "vidking-auto",
-    label: "Panda Stream HD",
-    hint: "Primary stream — autoplay",
+    label: "Panda HD",
+    hint: "Primary — autoplay",
     url: (id, t, mt, s, e) => {
       const base = mt === "tv" && s != null && e != null
         ? `https://www.vidking.net/embed/tv/${id}/${s}/${e}`
@@ -60,8 +60,8 @@ const SOURCES: Source[] = [
   },
   {
     id: "vidking-manual",
-    label: "Panda Stream Manual",
-    hint: "Press play inside the player",
+    label: "Panda M",
+    hint: "Manual play",
     url: (id, t, mt, s, e) => {
       const base = mt === "tv" && s != null && e != null
         ? `https://www.vidking.net/embed/tv/${id}/${s}/${e}`
@@ -71,8 +71,8 @@ const SOURCES: Source[] = [
   },
   {
     id: "vidsrc-cc",
-    label: "Velvet Reel HD",
-    hint: "vidsrc.cc — auto-latest sources",
+    label: "Velvet",
+    hint: "vidsrc.cc",
     url: (id, _t, mt, s, e) => {
       if (mt === "tv" && s != null && e != null) {
         return `https://vidsrc.cc/v2/embed/tv/${id}/${s}/${e}?autoPlay=true`;
@@ -82,8 +82,8 @@ const SOURCES: Source[] = [
   },
   {
     id: "vidsrc-to",
-    label: "Rose Cinema",
-    hint: "vidsrc.to — multi-server picker",
+    label: "Rose",
+    hint: "vidsrc.to",
     url: (id, _t, mt, s, e) => {
       if (mt === "tv" && s != null && e != null) {
         return `https://vidsrc.to/embed/tv/${id}/${s}/${e}`;
@@ -93,8 +93,8 @@ const SOURCES: Source[] = [
   },
   {
     id: "vidlink",
-    label: "Moonlit Reel",
-    hint: "vidlink.pro — clean UI",
+    label: "Moonlit",
+    hint: "vidlink.pro",
     url: (id, _t, mt, s, e) => {
       const base = mt === "tv" && s != null && e != null
         ? `https://vidlink.pro/tv/${id}/${s}/${e}`
@@ -104,8 +104,8 @@ const SOURCES: Source[] = [
   },
   {
     id: "autoembed",
-    label: "Twin Reel HD",
-    hint: "autoembed.cc — HD mirrors",
+    label: "Twin",
+    hint: "autoembed.cc",
     url: (id, _t, mt, s, e) => {
       if (mt === "tv" && s != null && e != null) {
         return `https://player.autoembed.cc/embed/tv/${id}/${s}/${e}`;
@@ -115,8 +115,8 @@ const SOURCES: Source[] = [
   },
   {
     id: "2embed",
-    label: "Community Mirror",
-    hint: "2embed.cc — legacy fallback",
+    label: "Mirror",
+    hint: "2embed.cc",
     url: (id, _t, mt, s, e) => {
       if (mt === "tv" && s != null && e != null) {
         return `https://www.2embed.cc/embedtv/${id}&s=${s}&e=${e}`;
