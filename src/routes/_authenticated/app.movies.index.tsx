@@ -217,7 +217,7 @@ function Movies() {
   // Search results view
   if (q.trim()) {
     const filtered = (searchResults ?? [])
-      .filter((m) => (type === "all" ? true : (m.media_type ?? "movie") === type))
+      .filter((m) => (type === "all" ? true : type === "series" ? (m.media_type ?? "movie") === "tv" : (m.media_type ?? "movie") === type))
       .filter((m) => (m.vote_average ?? 0) >= minRating);
     return (
       <div className="pt-10 px-5 pb-24">
