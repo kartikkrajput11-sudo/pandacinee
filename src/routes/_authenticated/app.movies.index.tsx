@@ -359,6 +359,11 @@ function Movies() {
               loading={loading}
               tvBadge
             />
+          </>
+        )}
+
+        {showSeries && (
+          <>
             <Rail
               title="On Air Tonight"
               icon={<Play className="size-3.5 text-petal" />}
