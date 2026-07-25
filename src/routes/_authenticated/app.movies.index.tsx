@@ -11,6 +11,7 @@ import {
   tmdbTvTrending,
   tmdbTvCategory,
   tmdbTvDiscover,
+  tmdbTvByCountry,
   tmdbMulti,
   type TmdbMovie,
 } from "@/lib/tmdb.functions";
