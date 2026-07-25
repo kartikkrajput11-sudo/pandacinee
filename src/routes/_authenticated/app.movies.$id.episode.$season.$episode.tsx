@@ -89,7 +89,7 @@ function EpisodeDetail() {
             navigate({
               to: "/app/movies/$id/watch",
               params: { id: String(tmdbId) },
-              search: { season: s, episode: e },
+              search: { season: s, episode: e, type: "tv" as const },
             })
           }
           className="w-full flex items-center justify-center gap-3 py-4 mt-6 rounded-2xl bg-petal text-velvet font-bold text-sm tracking-wide shadow-[0_20px_60px_-20px] shadow-petal/60 active:scale-[0.98] transition-transform"
