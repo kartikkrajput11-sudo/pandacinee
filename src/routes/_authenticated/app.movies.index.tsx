@@ -681,6 +681,8 @@ function Rail({
   tvBadge?: boolean;
 }) {
   if (!loading && movies.length === 0) return null;
+  const [expanded, setExpanded] = useState(false);
+  const canExpand = !loading && movies.length > 0;
   return (
     <section className="mt-10">
       <div className="mb-4 flex items-end justify-between gap-3">
@@ -688,16 +690,32 @@ function Rail({
           <div className="w-px h-6 bg-petal/50 shrink-0" />
           <h3 className="font-serif italic text-2xl text-candle leading-none truncate">{title}</h3>
         </div>
-        <span className="text-[10px] tracking-[0.2em] uppercase text-petal font-semibold shrink-0">View All</span>
+        {canExpand && (
+          <button
+            type="button"
+            onClick={() => setExpanded((v) => !v)}
+            className="text-[10px] tracking-[0.2em] uppercase text-petal font-semibold shrink-0 hover:text-petal/80 transition-colors"
+          >
+            {expanded ? "Show Less" : "View All"}
+          </button>
+        )}
       </div>
 
-      <div className="flex gap-3 overflow-x-auto no-scrollbar -mx-5 px-5 pb-2">
+      <div
+        className={
+          expanded
+            ? variant === "wide"
+              ? "grid grid-cols-2 gap-3"
+              : "grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3"
+            : "flex gap-3 overflow-x-auto no-scrollbar -mx-5 px-5 pb-2"
+        }
+      >
         {loading
           ? Array.from({ length: 6 }).map((_, i) => (
               <div
                 key={i}
-                className={`shrink-0 rounded-xl bg-velvet animate-pulse ${
-                  variant === "wide" ? "w-40 h-24" : "w-28 aspect-[2/3]"
+                className={`${expanded ? "" : "shrink-0"} rounded-xl bg-velvet animate-pulse ${
+                  variant === "wide" ? (expanded ? "w-full aspect-video" : "w-40 h-24") : (expanded ? "w-full aspect-[2/3]" : "w-28 aspect-[2/3]")
                 }`}
               />
             ))
@@ -708,7 +726,7 @@ function Rail({
                   to="/app/movies/$id"
                   params={{ id: String(m.id) }}
                   search={{ type: tvBadge ? "tv" : "movie" }}
-                  className="w-44 shrink-0 group"
+                  className={`${expanded ? "w-full" : "w-44 shrink-0"} group`}
                 >
                   <div className="aspect-video rounded-xl overflow-hidden bg-velvet border border-border relative">
                     {m.backdrop_path || m.poster_path ? (
@@ -731,7 +749,7 @@ function Rail({
                   </div>
                 </Link>
               ) : (
-                <div key={m.id} className="w-28 shrink-0 relative">
+                <div key={m.id} className={`${expanded ? "w-full" : "w-28 shrink-0"} relative`}>
                   <MovieCard
                     id={m.id}
                     title={m.title}
@@ -751,6 +769,7 @@ function Rail({
     </section>
   );
 }
+
 
 function GenreChip({ label, icon, genre }: { label: string; icon: React.ReactNode; genre: number }) {
   return (
