@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Search, X, Film } from "lucide-react";
-import { tmdbSearch, type TmdbMovie } from "@/lib/tmdb.functions";
+import { tmdbMulti, type TmdbMovie } from "@/lib/tmdb.functions";
+
+type PickItem = TmdbMovie & { media_type?: "movie" | "tv" };
 import { poster } from "@/routes/_authenticated/app.movies";
 
 type Props = {
