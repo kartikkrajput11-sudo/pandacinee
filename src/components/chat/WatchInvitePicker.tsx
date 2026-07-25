@@ -102,6 +102,7 @@ export function WatchInvitePicker({ open, onClose, onPick }: Props) {
           <ul className="space-y-1">
             {results.map((m) => {
               const year = m.release_date ? m.release_date.slice(0, 4) : "";
+              const isTv = m.media_type === "tv";
               const p = poster(m.poster_path, "w185");
               return (
                 <li key={m.id}>
