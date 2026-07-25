@@ -578,6 +578,8 @@ function CatalogWatch({ id }: { id: string }) {
   const currentSource = allSources[sourceIdx] ?? allSources[0];
   const isPandacine = currentSource?.kind === "pandacine";
 
+  const [forceAutoplay, setForceAutoplay] = useState(false);
+
   const src = useMemo(() => {
     if (!currentSource || currentSource.kind === "pandacine") return "";
     const mt = isTv ? "tv" : "movie";
@@ -585,8 +587,13 @@ function CatalogWatch({ id }: { id: string }) {
     const e = isTv ? episode : undefined;
     // When host paused, force a manual (no-autoplay) URL so playback stops at that time.
     if (pausedByHost) return SOURCES[1].url(tmdbId, startAt, mt, s, e);
+    // When following a host play/seek/resume, force the autoPlay variant so the
+    // follower's iframe actually starts on reload — even if they're on the
+    // Manual (Panda M) source. Otherwise the reloaded iframe sits paused
+    // waiting for a click, which was the "stuck on last synced frame" bug.
+    if (forceAutoplay) return SOURCES[0].url(tmdbId, startAt, mt, s, e);
     return currentSource.buildUrl!(tmdbId, startAt, mt, s, e);
-  }, [currentSource, tmdbId, startAt, pausedByHost, isTv, season, episode]);
+  }, [currentSource, tmdbId, startAt, pausedByHost, forceAutoplay, isTv, season, episode]);
 
   // Reload iframe when episode changes
   useEffect(() => {
@@ -598,9 +605,10 @@ function CatalogWatch({ id }: { id: string }) {
 
 
 
-  const applySeek = useCallback((time: number, opts?: { pause?: boolean }) => {
+  const applySeek = useCallback((time: number, opts?: { pause?: boolean; autoplay?: boolean }) => {
     setStartAt(time);
     setPausedByHost(!!opts?.pause);
+    setForceAutoplay(!opts?.pause && !!opts?.autoplay);
     setStarted(true);
     setPlayerLoading(true);
     setIframeKey((k) => k + 1);
