@@ -49,8 +49,8 @@ type Source = { id: string; label: string; url: (tmdb: number, startAt?: number,
 const SOURCES: Source[] = [
   {
     id: "vidking-auto",
-    label: "Panda Stream HD",
-    hint: "Primary stream — autoplay",
+    label: "Panda HD",
+    hint: "Primary — autoplay",
     url: (id, t, mt, s, e) => {
       const base = mt === "tv" && s != null && e != null
         ? `https://www.vidking.net/embed/tv/${id}/${s}/${e}`
@@ -60,8 +60,8 @@ const SOURCES: Source[] = [
   },
   {
     id: "vidking-manual",
-    label: "Panda Stream Manual",
-    hint: "Press play inside the player",
+    label: "Panda M",
+    hint: "Manual play",
     url: (id, t, mt, s, e) => {
       const base = mt === "tv" && s != null && e != null
         ? `https://www.vidking.net/embed/tv/${id}/${s}/${e}`
@@ -71,8 +71,8 @@ const SOURCES: Source[] = [
   },
   {
     id: "vidsrc-cc",
-    label: "Velvet Reel HD",
-    hint: "vidsrc.cc — auto-latest sources",
+    label: "Velvet",
+    hint: "vidsrc.cc",
     url: (id, _t, mt, s, e) => {
       if (mt === "tv" && s != null && e != null) {
         return `https://vidsrc.cc/v2/embed/tv/${id}/${s}/${e}?autoPlay=true`;
@@ -82,8 +82,8 @@ const SOURCES: Source[] = [
   },
   {
     id: "vidsrc-to",
-    label: "Rose Cinema",
-    hint: "vidsrc.to — multi-server picker",
+    label: "Rose",
+    hint: "vidsrc.to",
     url: (id, _t, mt, s, e) => {
       if (mt === "tv" && s != null && e != null) {
         return `https://vidsrc.to/embed/tv/${id}/${s}/${e}`;
@@ -93,8 +93,8 @@ const SOURCES: Source[] = [
   },
   {
     id: "vidlink",
-    label: "Moonlit Reel",
-    hint: "vidlink.pro — clean UI",
+    label: "Moonlit",
+    hint: "vidlink.pro",
     url: (id, _t, mt, s, e) => {
       const base = mt === "tv" && s != null && e != null
         ? `https://vidlink.pro/tv/${id}/${s}/${e}`
@@ -104,8 +104,8 @@ const SOURCES: Source[] = [
   },
   {
     id: "autoembed",
-    label: "Twin Reel HD",
-    hint: "autoembed.cc — HD mirrors",
+    label: "Twin",
+    hint: "autoembed.cc",
     url: (id, _t, mt, s, e) => {
       if (mt === "tv" && s != null && e != null) {
         return `https://player.autoembed.cc/embed/tv/${id}/${s}/${e}`;
@@ -115,8 +115,8 @@ const SOURCES: Source[] = [
   },
   {
     id: "2embed",
-    label: "Community Mirror",
-    hint: "2embed.cc — legacy fallback",
+    label: "Mirror",
+    hint: "2embed.cc",
     url: (id, _t, mt, s, e) => {
       if (mt === "tv" && s != null && e != null) {
         return `https://www.2embed.cc/embedtv/${id}&s=${s}&e=${e}`;
@@ -1622,9 +1622,8 @@ function CatalogWatch({ id }: { id: string }) {
                     <span className="truncate">{currentSource?.label ?? "Server"}</span>
                   </button>
                   {sourceMenuOpen && (
-                    <div className="absolute z-20 top-full mt-2 left-1/2 -translate-x-1/2 w-[15rem] rounded-2xl bg-velvet/95 backdrop-blur border border-petal/25 shadow-2xl shadow-black/60 p-2">
-                      <div className="px-1 pb-1.5 text-[9px] uppercase tracking-[0.3em] text-candle-muted/80">Streams</div>
-                      <div className="grid grid-cols-2 gap-1.5">
+                    <div className="absolute z-20 top-full mt-2 left-1/2 -translate-x-1/2 w-[13rem] rounded-xl bg-velvet/95 backdrop-blur border border-petal/25 shadow-2xl shadow-black/60 p-1.5">
+                      <div className="grid grid-cols-3 gap-1">
                         {allSources.map((s, i) => {
                           const active = i === sourceIdx;
                           return (
@@ -1632,11 +1631,11 @@ function CatalogWatch({ id }: { id: string }) {
                               key={s.id}
                               onClick={() => switchSource(i)}
                               title={s.hint}
-                              className={`relative h-9 rounded-xl border text-[10.5px] leading-tight px-2 flex items-center justify-center text-center transition ${active ? "bg-petal/20 border-petal/60 text-petal shadow-inner shadow-petal/10" : "bg-surface/60 border-border/60 text-candle hover:border-petal/40 hover:text-petal"}`}
+                              className={`relative h-7 rounded-md border text-[10px] px-1 flex items-center justify-center transition ${active ? "bg-petal/25 border-petal/60 text-petal" : "bg-surface/60 border-border/50 text-candle hover:border-petal/40 hover:text-petal"}`}
                             >
                               <span className="truncate">{s.label}</span>
                               {s.kind === "pandacine" && (
-                                <span className="absolute -top-1 -right-1 size-1.5 rounded-full bg-petal shadow shadow-petal/60" />
+                                <span className="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-petal" />
                               )}
                             </button>
                           );
