@@ -393,9 +393,44 @@ function Movies() {
         {showShows && (
           <>
             <Rail
-              title="Trending Shows"
+              title="Trending on TV"
               icon={<Tv className="size-3.5 text-petal" />}
               movies={overlay(tvTrend)}
+              loading={loading}
+              tvBadge
+            />
+            <Rail
+              title="US Television"
+              icon={<Tv className="size-3.5 text-petal" />}
+              movies={overlay(tvUS)}
+              loading={loading}
+              tvBadge
+            />
+            <Rail
+              title="UK Television"
+              icon={<Tv className="size-3.5 text-petal" />}
+              movies={overlay(tvUK)}
+              loading={loading}
+              tvBadge
+            />
+            <Rail
+              title="Indian TV Shows"
+              icon={<Tv className="size-3.5 text-petal" />}
+              movies={overlay(tvIN)}
+              loading={loading}
+              tvBadge
+            />
+            <Rail
+              title="Pakistani Dramas"
+              icon={<Tv className="size-3.5 text-petal" />}
+              movies={overlay(tvPK)}
+              loading={loading}
+              tvBadge
+            />
+            <Rail
+              title="Turkish Dramas"
+              icon={<Tv className="size-3.5 text-petal" />}
+              movies={overlay(tvTR)}
               loading={loading}
               tvBadge
             />
@@ -408,6 +443,7 @@ function Movies() {
             />
           </>
         )}
+
 
         {showSeries && (
           <>
