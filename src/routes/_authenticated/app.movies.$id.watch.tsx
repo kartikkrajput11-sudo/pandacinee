@@ -70,9 +70,53 @@ const SOURCES: Source[] = [
     },
   },
   {
+    id: "vidsrc-cc",
+    label: "Velvet Reel HD",
+    hint: "vidsrc.cc — auto-latest sources",
+    url: (id, _t, mt, s, e) => {
+      if (mt === "tv" && s != null && e != null) {
+        return `https://vidsrc.cc/v2/embed/tv/${id}/${s}/${e}?autoPlay=true`;
+      }
+      return `https://vidsrc.cc/v2/embed/movie/${id}?autoPlay=true`;
+    },
+  },
+  {
+    id: "vidsrc-to",
+    label: "Rose Cinema",
+    hint: "vidsrc.to — multi-server picker",
+    url: (id, _t, mt, s, e) => {
+      if (mt === "tv" && s != null && e != null) {
+        return `https://vidsrc.to/embed/tv/${id}/${s}/${e}`;
+      }
+      return `https://vidsrc.to/embed/movie/${id}`;
+    },
+  },
+  {
+    id: "vidlink",
+    label: "Moonlit Reel",
+    hint: "vidlink.pro — clean UI",
+    url: (id, _t, mt, s, e) => {
+      const base = mt === "tv" && s != null && e != null
+        ? `https://vidlink.pro/tv/${id}/${s}/${e}`
+        : `https://vidlink.pro/movie/${id}`;
+      return `${base}?primaryColor=ee82af&secondaryColor=ee82af&iconColor=ffffff&autoplay=true`;
+    },
+  },
+  {
+    id: "autoembed",
+    label: "Twin Reel HD",
+    hint: "autoembed.cc — HD mirrors",
+    url: (id, _t, mt, s, e) => {
+      if (mt === "tv" && s != null && e != null) {
+        return `https://player.autoembed.cc/embed/tv/${id}/${s}/${e}`;
+      }
+      return `https://player.autoembed.cc/embed/movie/${id}`;
+    },
+  },
+  {
     id: "2embed",
-    label: "Twin Reel Mirror",
-    hint: "Community fallback",
+    label: "Community Mirror",
+    hint: "2embed.cc — legacy fallback",
     url: (id, _t, mt, s, e) => {
       if (mt === "tv" && s != null && e != null) {
         return `https://www.2embed.cc/embedtv/${id}&s=${s}&e=${e}`;
@@ -386,7 +430,7 @@ function CatalogWatch({ id }: { id: string }) {
   // sync them) can't feed back as a phantom "partner paused".
   useEffect(() => {
     const onMessage = (event: MessageEvent) => {
-      const okOrigin = /vidking\.net|2embed\.cc/.test(String(event.origin));
+      const okOrigin = /vidking\.net|2embed\.cc|vidsrc\.(cc|to)|vidlink\.pro|autoembed\.cc/.test(String(event.origin));
       if (!okOrigin) return;
       try {
         const raw = typeof event.data === "string" ? JSON.parse(event.data) : event.data;
