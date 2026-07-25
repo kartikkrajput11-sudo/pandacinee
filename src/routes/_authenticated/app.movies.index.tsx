@@ -105,10 +105,10 @@ function Movies() {
 
   useEffect(() => { setInput(q); }, [q]);
 
-  function updateSearch(patch: Partial<{ q: string; type: "all" | "movie" | "tv"; minRating: number }>) {
+  function updateSearch(patch: Partial<{ q: string; type: "all" | "movie" | "tv" | "series"; minRating: number }>) {
     navigate({
       to: "/app/movies",
-      search: (prev: { q: string; type: "all" | "movie" | "tv"; minRating: number }) => ({ ...prev, ...patch }),
+      search: (prev: { q: string; type: "all" | "movie" | "tv" | "series"; minRating: number }) => ({ ...prev, ...patch }),
     });
   }
 
