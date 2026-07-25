@@ -10,11 +10,12 @@ export function poster(path: string | null, size: "w185" | "w342" | "w500" | "or
   return `https://image.tmdb.org/t/p/${size}${path}`;
 }
 
-export function MovieCard({ id, title, poster_path, vote_average }: { id: number; title: string; poster_path: string | null; vote_average: number }) {
+export function MovieCard({ id, title, poster_path, vote_average, mediaType }: { id: number; title: string; poster_path: string | null; vote_average: number; mediaType?: "movie" | "tv" }) {
   return (
     <Link
       to="/app/movies/$id"
       params={{ id: String(id) }}
+      search={mediaType ? { type: mediaType } : {}}
       className="block group"
     >
       <div className="aspect-[2/3] rounded-2xl overflow-hidden bg-velvet border border-border relative">
