@@ -1622,25 +1622,26 @@ function CatalogWatch({ id }: { id: string }) {
                     <span className="truncate">{currentSource?.label ?? "Server"}</span>
                   </button>
                   {sourceMenuOpen && (
-                    <div className="absolute z-20 top-full mt-2 left-1/2 -translate-x-1/2 min-w-[14rem] rounded-2xl bg-velvet border border-border shadow-2xl shadow-black/60 overflow-hidden">
-                      {allSources.map((s, i) => (
-                        <button
-                          key={s.id}
-                          onClick={() => switchSource(i)}
-                          className="w-full px-3 py-2.5 flex items-start gap-2 text-left hover:bg-petal/10 border-b border-border/50 last:border-0"
-                        >
-                          <Check className={`size-3.5 mt-0.5 shrink-0 ${i === sourceIdx ? "text-petal" : "text-transparent"}`} />
-                          <div className="min-w-0">
-                            <div className="text-xs text-candle font-medium flex items-center gap-1.5">
-                              {s.label}
+                    <div className="absolute z-20 top-full mt-2 left-1/2 -translate-x-1/2 w-[15rem] rounded-2xl bg-velvet/95 backdrop-blur border border-petal/25 shadow-2xl shadow-black/60 p-2">
+                      <div className="px-1 pb-1.5 text-[9px] uppercase tracking-[0.3em] text-candle-muted/80">Streams</div>
+                      <div className="grid grid-cols-2 gap-1.5">
+                        {allSources.map((s, i) => {
+                          const active = i === sourceIdx;
+                          return (
+                            <button
+                              key={s.id}
+                              onClick={() => switchSource(i)}
+                              title={s.hint}
+                              className={`relative h-9 rounded-xl border text-[10.5px] leading-tight px-2 flex items-center justify-center text-center transition ${active ? "bg-petal/20 border-petal/60 text-petal shadow-inner shadow-petal/10" : "bg-surface/60 border-border/60 text-candle hover:border-petal/40 hover:text-petal"}`}
+                            >
+                              <span className="truncate">{s.label}</span>
                               {s.kind === "pandacine" && (
-                                <span className="text-[8px] uppercase tracking-widest px-1.5 py-0.5 rounded-full bg-petal/20 text-petal border border-petal/40">Ours</span>
+                                <span className="absolute -top-1 -right-1 size-1.5 rounded-full bg-petal shadow shadow-petal/60" />
                               )}
-                            </div>
-                            <div className="text-[10px] text-candle-muted truncate">{s.hint}</div>
-                          </div>
-                        </button>
-                      ))}
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
                   )}
                 </div>
