@@ -75,7 +75,7 @@ export const Route = createFileRoute("/_authenticated/app/movies/list")({
 
 function ListPage() {
   const { category } = Route.useSearch();
-  const meta = META[category] ?? META["trending-movies"];
+  const meta = META[category as CatKey] ?? META["trending-movies"];
   const [items, setItems] = useState<TmdbMovie[]>([]);
   const [loading, setLoading] = useState(true);
 
