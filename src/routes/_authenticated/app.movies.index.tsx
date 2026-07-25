@@ -706,6 +706,7 @@ function Rail({
                   key={m.id}
                   to="/app/movies/$id"
                   params={{ id: String(m.id) }}
+                  search={{ type: tvBadge ? "tv" : "movie" }}
                   className="w-44 shrink-0 group"
                 >
                   <div className="aspect-video rounded-xl overflow-hidden bg-velvet border border-border relative">
@@ -735,6 +736,7 @@ function Rail({
                     title={m.title}
                     poster_path={m.poster_path}
                     vote_average={m.vote_average}
+                    mediaType={tvBadge ? "tv" : (m as any).media_type === "tv" ? "tv" : "movie"}
                   />
                   {tvBadge && (
                     <span className="absolute top-1.5 left-1.5 inline-flex items-center gap-0.5 h-4 px-1.5 rounded-full bg-velvet/85 backdrop-blur border border-petal/30 text-petal text-[8px] uppercase tracking-widest">
