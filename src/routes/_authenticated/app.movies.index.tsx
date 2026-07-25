@@ -536,7 +536,7 @@ function SearchHeader({
                     className="w-full flex items-center gap-3 px-3 py-2 hover:bg-white/5 text-left transition-colors"
                   >
                     {s.poster_path ? (
-                      <img src={poster(s.poster_path, "w92") ?? ""} alt="" className="w-8 h-11 object-cover rounded-md flex-shrink-0" />
+                      <img src={poster(s.poster_path, "w185") ?? ""} alt="" className="w-8 h-11 object-cover rounded-md flex-shrink-0" />
                     ) : (
                       <div className="w-8 h-11 rounded-md bg-white/5 flex-shrink-0" />
                     )}
