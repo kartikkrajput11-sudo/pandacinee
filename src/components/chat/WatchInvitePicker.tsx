@@ -118,7 +118,7 @@ export function WatchInvitePicker({ open, onClose, onPick }: Props) {
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-serif italic text-sm truncate">{m.title}</p>
+                      <p className="font-serif italic text-sm truncate">{m.title}{isTv && <span className="ml-1.5 text-[9px] uppercase tracking-widest text-petal not-italic">TV</span>}</p>
                       <p className="text-[11px] text-candle-muted">
                         {year}
                         {m.vote_average > 0 && <span className="ml-2 text-petal">★ {m.vote_average.toFixed(1)}</span>}
