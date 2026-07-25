@@ -260,7 +260,7 @@ function Movies() {
     <div className="pb-28 min-h-screen bg-background">
       {/* Featured hero */}
       {featured && (
-        <div data-tour="movies-hero"><FeaturedHero movie={featured} isTv={type === "tv"} /></div>
+        <div data-tour="movies-hero"><FeaturedHero movie={featured} isTv={type === "tv" || type === "series"} /></div>
       )}
 
 
