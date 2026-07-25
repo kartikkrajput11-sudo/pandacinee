@@ -76,6 +76,7 @@ function Movies() {
   type MultiItem = TmdbMovie & { media_type?: "movie" | "tv" };
   const [searchResults, setSearchResults] = useState<MultiItem[] | null>(null);
   const [searchLoading, setSearchLoading] = useState(false);
+  const [suggestions, setSuggestions] = useState<MultiItem[]>([]);
 
   const [trendingList, setTrendingList] = useState<TmdbMovie[]>([]);
   const [popular, setPopular] = useState<TmdbMovie[]>([]);
@@ -126,6 +127,29 @@ function Movies() {
       .finally(() => alive && setSearchLoading(false));
     return () => { alive = false; };
   }, [q]);
+
+  // Live suggestions (YouTube-style) as the user types — tolerant to typos via TMDB fuzzy match
+  useEffect(() => {
+    const term = input.trim();
+    if (term.length < 2 || term === q.trim()) {
+      setSuggestions([]);
+      return;
+    }
+    let alive = true;
+    const t = setTimeout(() => {
+      multi({ data: { q: term } })
+        .then((r) => {
+          if (!alive) return;
+          const items = (r as MultiItem[])
+            .filter((m) => m.title && (m.poster_path || m.backdrop_path))
+            .slice(0, 8);
+          setSuggestions(items);
+        })
+        .catch(() => alive && setSuggestions([]));
+    }, 220);
+    return () => { alive = false; clearTimeout(t); };
+  }, [input, q]);
+
 
   // Browse mode — load all rails (movies + tv) in parallel
   useEffect(() => {
@@ -224,7 +248,10 @@ function Movies() {
           setInput={setInput}
           onSubmit={onSubmit}
           onClear={() => { setInput(""); updateSearch({ q: "" }); }}
+          suggestions={suggestions}
+          onPick={(title) => { setInput(title); setSuggestions([]); updateSearch({ q: title }); }}
         />
+
         {filterBar}
         <p className="text-[10px] uppercase tracking-widest text-candle-muted mb-3 mt-4">
           Results for “{q}” · {filtered.length}
@@ -270,7 +297,10 @@ function Movies() {
           setInput={setInput}
           onSubmit={onSubmit}
           onClear={() => setInput("")}
+          suggestions={suggestions}
+          onPick={(title) => { setInput(title); setSuggestions([]); updateSearch({ q: title }); }}
           inline
+
         />
 
         {filterBar}
@@ -456,14 +486,18 @@ function FilterBar({
 
 
 function SearchHeader({
-  input, setInput, onSubmit, onClear, inline = false,
+  input, setInput, onSubmit, onClear, inline = false, suggestions = [], onPick,
 }: {
   input: string;
   setInput: (v: string) => void;
   onSubmit: (e: React.FormEvent) => void;
   onClear: () => void;
   inline?: boolean;
+  suggestions?: (TmdbMovie & { media_type?: "movie" | "tv" })[];
+  onPick?: (title: string) => void;
 }) {
+  const [focused, setFocused] = useState(false);
+  const open = focused && suggestions.length > 0;
   return (
     <>
       {!inline && (
@@ -481,11 +515,45 @@ function SearchHeader({
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
+            onFocus={() => setFocused(true)}
+            onBlur={() => setTimeout(() => setFocused(false), 150)}
             placeholder="Search titles, genres…"
             className="w-full bg-white/5 border border-white/10 rounded-2xl py-3.5 pl-11 pr-16 text-sm text-candle placeholder:text-candle-muted/40 focus:outline-none focus:border-petal/40 transition-all shadow-inner"
           />
           {input && (
             <button type="button" onClick={onClear} className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-petal">Clear</button>
+          )}
+          {open && (
+            <div className="absolute left-0 right-0 top-full mt-2 rounded-2xl bg-velvet/95 backdrop-blur-2xl border border-white/10 shadow-[0_30px_60px_-20px_rgba(0,0,0,0.6)] overflow-hidden z-50">
+              {suggestions.map((s) => {
+                const year = s.release_date ? s.release_date.slice(0, 4) : "";
+                return (
+                  <button
+                    key={`${s.media_type ?? "movie"}-${s.id}`}
+                    type="button"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => onPick?.(s.title)}
+                    className="w-full flex items-center gap-3 px-3 py-2 hover:bg-white/5 text-left transition-colors"
+                  >
+                    {s.poster_path ? (
+                      <img src={poster(s.poster_path, "w185") ?? ""} alt="" className="w-8 h-11 object-cover rounded-md flex-shrink-0" />
+                    ) : (
+                      <div className="w-8 h-11 rounded-md bg-white/5 flex-shrink-0" />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <Search className="size-3 text-candle-muted/50 flex-shrink-0" />
+                        <p className="text-sm text-candle truncate">{s.title}</p>
+                      </div>
+                      <p className="text-[10px] uppercase tracking-widest text-candle-muted/60 mt-0.5">
+                        {(s.media_type ?? "movie") === "tv" ? "Series" : "Movie"}{year ? ` · ${year}` : ""}
+                        {s.vote_average ? ` · ★ ${s.vote_average.toFixed(1)}` : ""}
+                      </p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
           )}
         </div>
       </form>
@@ -493,6 +561,7 @@ function SearchHeader({
     </>
   );
 }
+
 
 function FeaturedHero({ movie, isTv = false }: { movie: TmdbMovie; isTv?: boolean }) {
   return (
