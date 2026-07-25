@@ -55,7 +55,7 @@ const SOURCES: Source[] = [
       const base = mt === "tv" && s != null && e != null
         ? `https://www.vidking.net/embed/tv/${id}/${s}/${e}`
         : `https://www.vidking.net/embed/movie/${id}`;
-      return `${base}?color=ee82af&autoPlay=true${t ? `&progress=${Math.floor(t)}` : ""}`;
+      return `${base}?color=9146ff&autoPlay=true${t ? `&progress=${Math.floor(t)}` : ""}`;
     },
   },
   {
