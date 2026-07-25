@@ -109,7 +109,7 @@ function MovieDetailInner({ id }: { id: string }) {
       .then((r) => alive && setSources(r.sources))
       .catch(() => alive && setSources([]));
     return () => { alive = false; };
-  }, [id]);
+  }, [id, typeHint]);
 
 
   // Load season episodes when this is a TV series
