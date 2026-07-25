@@ -75,9 +75,12 @@ function MovieDetailInner({ id }: { id: string }) {
       const tvHasSeasons = !!(tvRes && Array.isArray(tvRes.seasons) && tvRes.seasons.length);
       const movieLooksReal = !!(movieRes && (movieRes.release_date || movieRes.runtime));
       const preferTv =
-        ov?.media_type === "tv" ||
-        (tvHasSeasons && !movieLooksReal) ||
-        (tvHasSeasons && movieRes?.media_type === "tv");
+        typeHint === "tv" ||
+        (typeHint !== "movie" && (
+          ov?.media_type === "tv" ||
+          (tvHasSeasons && !movieLooksReal) ||
+          (tvHasSeasons && movieRes?.media_type === "tv")
+        ));
       const tv = preferTv && !!tvRes;
       setIsTv(tv);
 
