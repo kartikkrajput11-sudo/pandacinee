@@ -202,7 +202,7 @@ function CatalogWatch({ id }: { id: string }) {
   const lastVidkingReloadRef = useRef(0);
 
   // TV series state (populated when the admin marked this TMDB id as media_type=tv)
-  const [isTv, setIsTv] = useState(false);
+  const [isTv, setIsTv] = useState(search.type === "tv");
   const [customMovieId, setCustomMovieId] = useState<string | null>(null);
   const [tvSeasons, setTvSeasons] = useState<{ season_number: number; episode_count: number; name: string }[]>([]);
   const [season, setSeason] = useState<number>(search.season ?? 1);
@@ -339,20 +339,21 @@ function CatalogWatch({ id }: { id: string }) {
       });
 
     // 2) Enrich with TMDB in the background (release date, genres, etc.)
-    fetchMovie({ data: { id: tmdbId } })
-      .catch(() => null)
-      .then((m) => {
+    const tvHint = search.type === "tv";
+    const enrichPromise = tvHint
+      ? tvDetailFn({ data: { id: tmdbId } }).catch(() => null)
+      : fetchMovie({ data: { id: tmdbId } }).catch(() => null);
+    enrichPromise.then((m: any) => {
         if (!alive || !m) return;
         setMovie((prev: any) => ({
           ...m,
-          // Prefer any local overrides already in state
-          title: prev?.title || m.title,
+          title: prev?.title || m.title || m.name,
           overview: prev?.overview || m.overview,
           poster_path: prev?.poster_path || m.poster_path,
           backdrop_path: prev?.backdrop_path || m.backdrop_path,
           runtime: prev?.runtime || m.runtime,
         }));
-        if (m.media_type === "tv") setIsTv(true);
+        if (tvHint || m.media_type === "tv" || Array.isArray(m.seasons)) setIsTv(true);
       });
 
     // 3) After local paint, if it's a TV show fetch season list + episode overrides
