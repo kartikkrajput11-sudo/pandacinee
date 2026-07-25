@@ -659,7 +659,7 @@ function CatalogWatch({ id }: { id: string }) {
     if (!bothPandacine && !bothIframe) return;
     if (peer.updatedAt <= lastAppliedPeerEventRef.current) return;
     const evt = peer.event;
-    if (evt !== "play" && evt !== "pause" && evt !== "seeked" && evt !== "timeupdate" && evt !== "ratechange") return;
+    if (evt !== "play" && evt !== "pause" && evt !== "seeked" && evt !== "timeupdate" && evt !== "ratechange" && evt !== "ended") return;
 
     // Iframe-mode drift gate — reloading an iframe forces a re-buffer, which
     // shows up to the user as "the follower keeps buffering". So we only react
@@ -785,6 +785,9 @@ function CatalogWatch({ id }: { id: string }) {
       if (effectiveEvt === "pause") {
         applySeek(peer.currentTime, { pause: true });
         toast.info(`${partner?.display_name.split(" ")[0]} paused`);
+      } else if (effectiveEvt === "ended") {
+        applySeek(peer.currentTime, { pause: true });
+        toast.info(`${partner?.display_name.split(" ")[0]} finished the movie 🎬`);
       } else if (effectiveEvt === "play" || effectiveEvt === "seeked" || effectiveEvt === "timeupdate") {
         applySeek(peer.currentTime, { pause: false, autoplay: true });
         if (effectiveEvt === "seeked") toast.info(`${partner?.display_name.split(" ")[0]} skipped`);
