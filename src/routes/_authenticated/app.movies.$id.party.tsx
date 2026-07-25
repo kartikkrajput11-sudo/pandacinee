@@ -14,11 +14,13 @@ export const Route = createFileRoute("/_authenticated/app/movies/$id/party")({
     const s = Number(raw.season);
     const e = Number(raw.episode);
     const w = typeof raw.with === "string" && raw.with.length > 0 ? raw.with : undefined;
+    const t = raw.type === "tv" ? "tv" : raw.type === "movie" ? "movie" : undefined;
     return {
       season: Number.isFinite(s) && s > 0 ? Math.floor(s) : undefined,
       episode: Number.isFinite(e) && e > 0 ? Math.floor(e) : undefined,
       with: w,
-    } as { season?: number; episode?: number; with?: string };
+      type: t,
+    } as { season?: number; episode?: number; with?: string; type?: "movie" | "tv" };
   },
   component: PartyRoom,
 });
