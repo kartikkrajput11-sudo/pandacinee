@@ -248,7 +248,10 @@ function Movies() {
           setInput={setInput}
           onSubmit={onSubmit}
           onClear={() => { setInput(""); updateSearch({ q: "" }); }}
+          suggestions={suggestions}
+          onPick={(title) => { setInput(title); setSuggestions([]); updateSearch({ q: title }); }}
         />
+
         {filterBar}
         <p className="text-[10px] uppercase tracking-widest text-candle-muted mb-3 mt-4">
           Results for “{q}” · {filtered.length}
