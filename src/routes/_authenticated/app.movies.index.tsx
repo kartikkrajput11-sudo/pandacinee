@@ -92,6 +92,12 @@ function Movies() {
   const [tvTop, setTvTop] = useState<TmdbMovie[]>([]);
   const [tvOnAir, setTvOnAir] = useState<TmdbMovie[]>([]);
   const [tvRomance, setTvRomance] = useState<TmdbMovie[]>([]);
+  const [tvUS, setTvUS] = useState<TmdbMovie[]>([]);
+  const [tvUK, setTvUK] = useState<TmdbMovie[]>([]);
+  const [tvIN, setTvIN] = useState<TmdbMovie[]>([]);
+  const [tvPK, setTvPK] = useState<TmdbMovie[]>([]);
+  const [tvTR, setTvTR] = useState<TmdbMovie[]>([]);
+  const byCountry = useServerFn(tmdbTvByCountry);
   const [recent, setRecent] = useState<TmdbMovie[]>([]);
   const [custom, setCustom] = useState<CustomMovieRow[]>([]);
   const [overrides, setOverrides] = useState<Map<number, CustomMovieRow>>(new Map());
