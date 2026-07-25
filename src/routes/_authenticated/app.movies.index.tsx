@@ -11,6 +11,7 @@ import {
   tmdbTvTrending,
   tmdbTvCategory,
   tmdbTvDiscover,
+  tmdbTvByCountry,
   tmdbMulti,
   type TmdbMovie,
 } from "@/lib/tmdb.functions";
@@ -91,6 +92,12 @@ function Movies() {
   const [tvTop, setTvTop] = useState<TmdbMovie[]>([]);
   const [tvOnAir, setTvOnAir] = useState<TmdbMovie[]>([]);
   const [tvRomance, setTvRomance] = useState<TmdbMovie[]>([]);
+  const [tvUS, setTvUS] = useState<TmdbMovie[]>([]);
+  const [tvUK, setTvUK] = useState<TmdbMovie[]>([]);
+  const [tvIN, setTvIN] = useState<TmdbMovie[]>([]);
+  const [tvPK, setTvPK] = useState<TmdbMovie[]>([]);
+  const [tvTR, setTvTR] = useState<TmdbMovie[]>([]);
+  const byCountry = useServerFn(tmdbTvByCountry);
   const [recent, setRecent] = useState<TmdbMovie[]>([]);
   const [custom, setCustom] = useState<CustomMovieRow[]>([]);
   const [overrides, setOverrides] = useState<Map<number, CustomMovieRow>>(new Map());
@@ -185,6 +192,18 @@ function Movies() {
       setTvOnAir(tonair);
       setTvRomance(trom);
       setLoading(false);
+    });
+
+    // Regional broadcast-TV rails — scripted / reality / talk shows only, excluding web miniseries.
+    Promise.all([
+      byCountry({ data: { country: "US" } }).catch(() => [] as TmdbMovie[]),
+      byCountry({ data: { country: "GB" } }).catch(() => [] as TmdbMovie[]),
+      byCountry({ data: { country: "IN" } }).catch(() => [] as TmdbMovie[]),
+      byCountry({ data: { country: "PK" } }).catch(() => [] as TmdbMovie[]),
+      byCountry({ data: { country: "TR" } }).catch(() => [] as TmdbMovie[]),
+    ]).then(([us, gb, ind, pk, tr]) => {
+      if (!alive) return;
+      setTvUS(us); setTvUK(gb); setTvIN(ind); setTvPK(pk); setTvTR(tr);
     });
 
     const ids = readRecentMovies();
@@ -374,9 +393,44 @@ function Movies() {
         {showShows && (
           <>
             <Rail
-              title="Trending Shows"
+              title="Trending on TV"
               icon={<Tv className="size-3.5 text-petal" />}
               movies={overlay(tvTrend)}
+              loading={loading}
+              tvBadge
+            />
+            <Rail
+              title="US Television"
+              icon={<Tv className="size-3.5 text-petal" />}
+              movies={overlay(tvUS)}
+              loading={loading}
+              tvBadge
+            />
+            <Rail
+              title="UK Television"
+              icon={<Tv className="size-3.5 text-petal" />}
+              movies={overlay(tvUK)}
+              loading={loading}
+              tvBadge
+            />
+            <Rail
+              title="Indian TV Shows"
+              icon={<Tv className="size-3.5 text-petal" />}
+              movies={overlay(tvIN)}
+              loading={loading}
+              tvBadge
+            />
+            <Rail
+              title="Pakistani Dramas"
+              icon={<Tv className="size-3.5 text-petal" />}
+              movies={overlay(tvPK)}
+              loading={loading}
+              tvBadge
+            />
+            <Rail
+              title="Turkish Dramas"
+              icon={<Tv className="size-3.5 text-petal" />}
+              movies={overlay(tvTR)}
               loading={loading}
               tvBadge
             />
@@ -389,6 +443,7 @@ function Movies() {
             />
           </>
         )}
+
 
         {showSeries && (
           <>

@@ -168,6 +168,23 @@ export const tmdbTvDiscover = createServerFn({ method: "GET" })
     return r.results.slice(0, 20).map(tvToMovieShape);
   });
 
+/** Broadcast TV shows filtered by origin country (excludes web-only miniseries).
+ *  with_type: 0 Documentary, 2 Miniseries, 3 Reality, 4 Scripted, 5 Talk.
+ *  We keep Scripted/Reality/Talk which matches traditional television. */
+export const tmdbTvByCountry = createServerFn({ method: "GET" })
+  .inputValidator((d: { country: string }) => d)
+  .handler(async ({ data }) => {
+    const r = await tmdb<{ results: any[] }>(`/discover/tv`, {
+      with_origin_country: data.country,
+      with_type: "3|4|5",
+      sort_by: "popularity.desc",
+      include_adult: "false",
+      "vote_count.gte": 20,
+    });
+    return r.results.slice(0, 20).map(tvToMovieShape);
+  });
+
+
 /** Multi search — returns movies + tv shows in a movie-shaped list with `media_type`. */
 export const tmdbMulti = createServerFn({ method: "GET" })
   .inputValidator((d: { q: string }) => d)
