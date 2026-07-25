@@ -194,6 +194,18 @@ function Movies() {
       setLoading(false);
     });
 
+    // Regional broadcast-TV rails — scripted / reality / talk shows only, excluding web miniseries.
+    Promise.all([
+      byCountry({ data: { country: "US" } }).catch(() => [] as TmdbMovie[]),
+      byCountry({ data: { country: "GB" } }).catch(() => [] as TmdbMovie[]),
+      byCountry({ data: { country: "IN" } }).catch(() => [] as TmdbMovie[]),
+      byCountry({ data: { country: "PK" } }).catch(() => [] as TmdbMovie[]),
+      byCountry({ data: { country: "TR" } }).catch(() => [] as TmdbMovie[]),
+    ]).then(([us, gb, ind, pk, tr]) => {
+      if (!alive) return;
+      setTvUS(us); setTvUK(gb); setTvIN(ind); setTvPK(pk); setTvTR(tr);
+    });
+
     const ids = readRecentMovies();
     if (ids.length) {
       batch({ data: { ids } }).then((r) => alive && setRecent(r)).catch(() => {});
