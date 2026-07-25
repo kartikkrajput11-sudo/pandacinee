@@ -344,48 +344,56 @@ function Movies() {
               icon={<Flame className="size-3.5 text-petal" />}
               movies={overlay(trendingList.slice(type === "movie" ? 0 : 1))}
               loading={loading}
+              category="trending-movies"
             />
             <Rail
               title="Date Night · Romance"
               icon={<Heart className="size-3.5 text-petal" />}
               movies={overlay(dateNight)}
               loading={loading}
+              category="date-night"
             />
             <Rail
               title="In Theaters Now"
               icon={<Play className="size-3.5 text-petal" />}
               movies={overlay(nowPlaying)}
               loading={loading}
+              category="now-playing"
             />
             <Rail
               title="Feel-Good · Comedy"
               icon={<Sparkles className="size-3.5 text-petal" />}
               movies={overlay(feelGood)}
               loading={loading}
+              category="feel-good"
             />
             <Rail
               title="Popular Movies"
               icon={<Star className="size-3.5 text-petal" />}
               movies={overlay(popular)}
               loading={loading}
+              category="popular-movies"
             />
             <Rail
               title="Edge of Your Seat · Thrillers"
               icon={<Ghost className="size-3.5 text-petal" />}
               movies={overlay(thrillers)}
               loading={loading}
+              category="thrillers"
             />
             <Rail
               title="Top Rated Movies"
               icon={<Star className="size-3.5 text-petal" />}
               movies={overlay(topRated)}
               loading={loading}
+              category="top-rated-movies"
             />
             <Rail
               title="Coming Soon"
               icon={<Calendar className="size-3.5 text-petal" />}
               movies={overlay(upcoming)}
               loading={loading}
+              category="upcoming"
             />
           </>
         )}
@@ -398,6 +406,7 @@ function Movies() {
               movies={overlay(tvTop)}
               loading={loading}
               tvBadge
+              category="top-shows"
             />
             <Rail
               title="US Television"
@@ -405,6 +414,7 @@ function Movies() {
               movies={overlay(tvUS)}
               loading={loading}
               tvBadge
+              category="tv-us"
             />
             <Rail
               title="UK Television"
@@ -412,6 +422,7 @@ function Movies() {
               movies={overlay(tvUK)}
               loading={loading}
               tvBadge
+              category="tv-uk"
             />
             <Rail
               title="Indian TV Shows"
@@ -419,6 +430,7 @@ function Movies() {
               movies={overlay(tvIN)}
               loading={loading}
               tvBadge
+              category="tv-in"
             />
             <Rail
               title="Pakistani Dramas"
@@ -426,6 +438,7 @@ function Movies() {
               movies={overlay(tvPK)}
               loading={loading}
               tvBadge
+              category="tv-pk"
             />
             <Rail
               title="Turkish Dramas"
@@ -433,6 +446,7 @@ function Movies() {
               movies={overlay(tvTR)}
               loading={loading}
               tvBadge
+              category="tv-tr"
             />
             <Rail
               title="Popular Shows"
@@ -440,6 +454,7 @@ function Movies() {
               movies={overlay(tvPopular)}
               loading={loading}
               tvBadge
+              category="popular-shows"
             />
           </>
         )}
@@ -453,6 +468,7 @@ function Movies() {
               movies={overlay(tvOnAir)}
               loading={loading}
               tvBadge
+              category="on-air"
             />
             <Rail
               title="Romance Series"
@@ -460,6 +476,7 @@ function Movies() {
               movies={overlay(tvRomance)}
               loading={loading}
               tvBadge
+              category="romance-series"
             />
             <Rail
               title="Top Rated Series"
@@ -467,6 +484,7 @@ function Movies() {
               movies={overlay(tvTop)}
               loading={loading}
               tvBadge
+              category="top-rated-series"
             />
           </>
         )}
