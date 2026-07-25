@@ -55,6 +55,7 @@ function PartyRoom() {
   const [movie, setMovie] = useState<any>(null);
   const [isTv, setIsTv] = useState<boolean>(search.type === "tv");
   const [serverIdx, setServerIdx] = useState(0);
+  const [pandacineSrc, setPandacineSrc] = useState<string | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -65,13 +66,13 @@ function PartyRoom() {
         if (m.media_type === "tv" || m.first_air_date || m.number_of_seasons) setIsTv(true);
       })
       .catch(() => {});
-    // Check custom overrides for media_type
+    // Check custom overrides for media_type + Pandacine-uploaded video
     supabase
       .from("custom_movies")
-      .select("media_type, title, poster_url")
+      .select("id, media_type, title, poster_url, video_url, video_storage_path")
       .eq("tmdb_id", tmdbId)
       .maybeSingle()
-      .then(({ data }) => {
+      .then(async ({ data }) => {
         if (!alive || !data) return;
         if (data.media_type === "tv") setIsTv(true);
         setMovie((prev: any) => ({
@@ -79,11 +80,24 @@ function PartyRoom() {
           title: prev?.title || data.title,
           poster_path: prev?.poster_path || data.poster_url,
         }));
+        // Resolve movie-level Pandacine source (episode overrides not wired for party yet)
+        if (data.media_type !== "tv") {
+          if (data.video_storage_path) {
+            const { data: signed } = await supabase.storage
+              .from("custom-movies")
+              .createSignedUrl(data.video_storage_path, 60 * 60 * 6);
+            if (!alive) return;
+            if (signed?.signedUrl) setPandacineSrc(signed.signedUrl);
+          } else if (data.video_url) {
+            setPandacineSrc(data.video_url);
+          }
+        }
       });
     return () => {
       alive = false;
     };
   }, [tmdbId, fetchMovie]);
+
 
   const season = search.season ?? 1;
   const episode = search.episode ?? 1;
