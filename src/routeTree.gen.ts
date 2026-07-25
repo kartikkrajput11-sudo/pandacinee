@@ -67,6 +67,7 @@ import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/e
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
 import { Route as AuthenticatedAppUserUserIdRouteImport } from './routes/_authenticated/app.user.$userId'
+import { Route as AuthenticatedAppMoviesListRouteImport } from './routes/_authenticated/app.movies.list'
 import { Route as AuthenticatedAppMoviesIdRouteImport } from './routes/_authenticated/app.movies.$id'
 import { Route as AuthenticatedAppLettersIdRouteImport } from './routes/_authenticated/app.letters.$id'
 import { Route as AuthenticatedAppGroupMatchMatchIdRouteImport } from './routes/_authenticated/app.group-match.$matchId'
@@ -390,6 +391,12 @@ const AuthenticatedAppUserUserIdRoute =
     path: '/user/$userId',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppMoviesListRoute =
+  AuthenticatedAppMoviesListRouteImport.update({
+    id: '/list',
+    path: '/list',
+    getParentRoute: () => AuthenticatedAppMoviesRoute,
+  } as any)
 const AuthenticatedAppMoviesIdRoute =
   AuthenticatedAppMoviesIdRouteImport.update({
     id: '/$id',
@@ -530,6 +537,7 @@ export interface FileRoutesByFullPath {
   '/app/group-match/$matchId': typeof AuthenticatedAppGroupMatchMatchIdRoute
   '/app/letters/$id': typeof AuthenticatedAppLettersIdRoute
   '/app/movies/$id': typeof AuthenticatedAppMoviesIdRouteWithChildren
+  '/app/movies/list': typeof AuthenticatedAppMoviesListRoute
   '/app/user/$userId': typeof AuthenticatedAppUserUserIdRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
@@ -601,6 +609,7 @@ export interface FileRoutesByTo {
   '/app/group-match/$matchId': typeof AuthenticatedAppGroupMatchMatchIdRoute
   '/app/letters/$id': typeof AuthenticatedAppLettersIdRoute
   '/app/movies/$id': typeof AuthenticatedAppMoviesIdRouteWithChildren
+  '/app/movies/list': typeof AuthenticatedAppMoviesListRoute
   '/app/user/$userId': typeof AuthenticatedAppUserUserIdRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
@@ -675,6 +684,7 @@ export interface FileRoutesById {
   '/_authenticated/app/group-match/$matchId': typeof AuthenticatedAppGroupMatchMatchIdRoute
   '/_authenticated/app/letters/$id': typeof AuthenticatedAppLettersIdRoute
   '/_authenticated/app/movies/$id': typeof AuthenticatedAppMoviesIdRouteWithChildren
+  '/_authenticated/app/movies/list': typeof AuthenticatedAppMoviesListRoute
   '/_authenticated/app/user/$userId': typeof AuthenticatedAppUserUserIdRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
@@ -750,6 +760,7 @@ export interface FileRouteTypes {
     | '/app/group-match/$matchId'
     | '/app/letters/$id'
     | '/app/movies/$id'
+    | '/app/movies/list'
     | '/app/user/$userId'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
@@ -821,6 +832,7 @@ export interface FileRouteTypes {
     | '/app/group-match/$matchId'
     | '/app/letters/$id'
     | '/app/movies/$id'
+    | '/app/movies/list'
     | '/app/user/$userId'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
@@ -894,6 +906,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/group-match/$matchId'
     | '/_authenticated/app/letters/$id'
     | '/_authenticated/app/movies/$id'
+    | '/_authenticated/app/movies/list'
     | '/_authenticated/app/user/$userId'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
@@ -1340,6 +1353,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppUserUserIdRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/movies/list': {
+      id: '/_authenticated/app/movies/list'
+      path: '/list'
+      fullPath: '/app/movies/list'
+      preLoaderRoute: typeof AuthenticatedAppMoviesListRouteImport
+      parentRoute: typeof AuthenticatedAppMoviesRoute
+    }
     '/_authenticated/app/movies/$id': {
       id: '/_authenticated/app/movies/$id'
       path: '/$id'
@@ -1462,12 +1482,14 @@ const AuthenticatedAppMoviesIdRouteWithChildren =
 
 interface AuthenticatedAppMoviesRouteChildren {
   AuthenticatedAppMoviesIdRoute: typeof AuthenticatedAppMoviesIdRouteWithChildren
+  AuthenticatedAppMoviesListRoute: typeof AuthenticatedAppMoviesListRoute
   AuthenticatedAppMoviesIndexRoute: typeof AuthenticatedAppMoviesIndexRoute
 }
 
 const AuthenticatedAppMoviesRouteChildren: AuthenticatedAppMoviesRouteChildren =
   {
     AuthenticatedAppMoviesIdRoute: AuthenticatedAppMoviesIdRouteWithChildren,
+    AuthenticatedAppMoviesListRoute: AuthenticatedAppMoviesListRoute,
     AuthenticatedAppMoviesIndexRoute: AuthenticatedAppMoviesIndexRoute,
   }
 

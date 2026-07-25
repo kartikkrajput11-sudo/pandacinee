@@ -344,48 +344,56 @@ function Movies() {
               icon={<Flame className="size-3.5 text-petal" />}
               movies={overlay(trendingList.slice(type === "movie" ? 0 : 1))}
               loading={loading}
+              category="trending-movies"
             />
             <Rail
               title="Date Night · Romance"
               icon={<Heart className="size-3.5 text-petal" />}
               movies={overlay(dateNight)}
               loading={loading}
+              category="date-night"
             />
             <Rail
               title="In Theaters Now"
               icon={<Play className="size-3.5 text-petal" />}
               movies={overlay(nowPlaying)}
               loading={loading}
+              category="now-playing"
             />
             <Rail
               title="Feel-Good · Comedy"
               icon={<Sparkles className="size-3.5 text-petal" />}
               movies={overlay(feelGood)}
               loading={loading}
+              category="feel-good"
             />
             <Rail
               title="Popular Movies"
               icon={<Star className="size-3.5 text-petal" />}
               movies={overlay(popular)}
               loading={loading}
+              category="popular-movies"
             />
             <Rail
               title="Edge of Your Seat · Thrillers"
               icon={<Ghost className="size-3.5 text-petal" />}
               movies={overlay(thrillers)}
               loading={loading}
+              category="thrillers"
             />
             <Rail
               title="Top Rated Movies"
               icon={<Star className="size-3.5 text-petal" />}
               movies={overlay(topRated)}
               loading={loading}
+              category="top-rated-movies"
             />
             <Rail
               title="Coming Soon"
               icon={<Calendar className="size-3.5 text-petal" />}
               movies={overlay(upcoming)}
               loading={loading}
+              category="upcoming"
             />
           </>
         )}
@@ -398,6 +406,7 @@ function Movies() {
               movies={overlay(tvTop)}
               loading={loading}
               tvBadge
+              category="top-shows"
             />
             <Rail
               title="US Television"
@@ -405,6 +414,7 @@ function Movies() {
               movies={overlay(tvUS)}
               loading={loading}
               tvBadge
+              category="tv-us"
             />
             <Rail
               title="UK Television"
@@ -412,6 +422,7 @@ function Movies() {
               movies={overlay(tvUK)}
               loading={loading}
               tvBadge
+              category="tv-uk"
             />
             <Rail
               title="Indian TV Shows"
@@ -419,6 +430,7 @@ function Movies() {
               movies={overlay(tvIN)}
               loading={loading}
               tvBadge
+              category="tv-in"
             />
             <Rail
               title="Pakistani Dramas"
@@ -426,6 +438,7 @@ function Movies() {
               movies={overlay(tvPK)}
               loading={loading}
               tvBadge
+              category="tv-pk"
             />
             <Rail
               title="Turkish Dramas"
@@ -433,6 +446,7 @@ function Movies() {
               movies={overlay(tvTR)}
               loading={loading}
               tvBadge
+              category="tv-tr"
             />
             <Rail
               title="Popular Shows"
@@ -440,6 +454,7 @@ function Movies() {
               movies={overlay(tvPopular)}
               loading={loading}
               tvBadge
+              category="popular-shows"
             />
           </>
         )}
@@ -453,6 +468,7 @@ function Movies() {
               movies={overlay(tvOnAir)}
               loading={loading}
               tvBadge
+              category="on-air"
             />
             <Rail
               title="Romance Series"
@@ -460,6 +476,7 @@ function Movies() {
               movies={overlay(tvRomance)}
               loading={loading}
               tvBadge
+              category="romance-series"
             />
             <Rail
               title="Top Rated Series"
@@ -467,6 +484,7 @@ function Movies() {
               movies={overlay(tvTop)}
               loading={loading}
               tvBadge
+              category="top-rated-series"
             />
           </>
         )}
@@ -671,7 +689,7 @@ function FeaturedHero({ movie, isTv = false }: { movie: TmdbMovie; isTv?: boolea
 
 
 function Rail({
-  title, icon, movies, loading = false, variant = "poster", tvBadge = false,
+  title, icon, movies, loading = false, variant = "poster", tvBadge = false, category,
 }: {
   title: string;
   icon: React.ReactNode;
@@ -679,10 +697,9 @@ function Rail({
   loading?: boolean;
   variant?: "poster" | "wide";
   tvBadge?: boolean;
+  category?: string;
 }) {
   if (!loading && movies.length === 0) return null;
-  const [expanded, setExpanded] = useState(false);
-  const canExpand = !loading && movies.length > 0;
   return (
     <section className="mt-10">
       <div className="mb-4 flex items-end justify-between gap-3">
@@ -690,32 +707,26 @@ function Rail({
           <div className="w-px h-6 bg-petal/50 shrink-0" />
           <h3 className="font-serif italic text-2xl text-candle leading-none truncate">{title}</h3>
         </div>
-        {canExpand && (
-          <button
-            type="button"
-            onClick={() => setExpanded((v) => !v)}
-            className="text-[10px] tracking-[0.2em] uppercase text-petal font-semibold shrink-0 hover:text-petal/80 transition-colors"
+        {category ? (
+          <Link
+            to="/app/movies/list"
+            search={{ category }}
+            className="text-[10px] tracking-[0.2em] uppercase text-petal font-semibold shrink-0 hover:text-candle transition-colors"
           >
-            {expanded ? "Show Less" : "View All"}
-          </button>
+            View All
+          </Link>
+        ) : (
+          <span className="text-[10px] tracking-[0.2em] uppercase text-petal font-semibold shrink-0">View All</span>
         )}
       </div>
 
-      <div
-        className={
-          expanded
-            ? variant === "wide"
-              ? "grid grid-cols-2 gap-3"
-              : "grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3"
-            : "flex gap-3 overflow-x-auto no-scrollbar -mx-5 px-5 pb-2"
-        }
-      >
+      <div className="flex gap-3 overflow-x-auto no-scrollbar -mx-5 px-5 pb-2">
         {loading
           ? Array.from({ length: 6 }).map((_, i) => (
               <div
                 key={i}
-                className={`${expanded ? "" : "shrink-0"} rounded-xl bg-velvet animate-pulse ${
-                  variant === "wide" ? (expanded ? "w-full aspect-video" : "w-40 h-24") : (expanded ? "w-full aspect-[2/3]" : "w-28 aspect-[2/3]")
+                className={`shrink-0 rounded-xl bg-velvet animate-pulse ${
+                  variant === "wide" ? "w-40 h-24" : "w-28 aspect-[2/3]"
                 }`}
               />
             ))
@@ -726,7 +737,7 @@ function Rail({
                   to="/app/movies/$id"
                   params={{ id: String(m.id) }}
                   search={{ type: tvBadge ? "tv" : "movie" }}
-                  className={`${expanded ? "w-full" : "w-44 shrink-0"} group`}
+                  className="w-44 shrink-0 group"
                 >
                   <div className="aspect-video rounded-xl overflow-hidden bg-velvet border border-border relative">
                     {m.backdrop_path || m.poster_path ? (
@@ -749,7 +760,7 @@ function Rail({
                   </div>
                 </Link>
               ) : (
-                <div key={m.id} className={`${expanded ? "w-full" : "w-28 shrink-0"} relative`}>
+                <div key={m.id} className="w-28 shrink-0 relative">
                   <MovieCard
                     id={m.id}
                     title={m.title}
@@ -769,7 +780,6 @@ function Rail({
     </section>
   );
 }
-
 
 function GenreChip({ label, icon, genre }: { label: string; icon: React.ReactNode; genre: number }) {
   return (
