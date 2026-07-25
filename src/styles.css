@@ -1654,3 +1654,13 @@ body { overscroll-behavior-y: contain; }
     radial-gradient(80% 60% at 50% 40%, color-mix(in oklab, var(--petal) 18%, transparent), transparent 70%),
     linear-gradient(to bottom, color-mix(in oklab, var(--petal) 12%, transparent), transparent);
 }
+
+/* Movie stage fullscreen: fill the viewport instead of keeping aspect-video. */
+#movie-stage:fullscreen,
+#movie-stage:-webkit-full-screen {
+  width: 100vw;
+  height: 100vh;
+  aspect-ratio: auto;
+  border-radius: 0;
+  border: 0;
+}
