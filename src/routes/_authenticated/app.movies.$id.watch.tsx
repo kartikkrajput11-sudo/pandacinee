@@ -786,7 +786,7 @@ function CatalogWatch({ id }: { id: string }) {
         applySeek(peer.currentTime, { pause: true });
         toast.info(`${partner?.display_name.split(" ")[0]} paused`);
       } else if (effectiveEvt === "play" || effectiveEvt === "seeked" || effectiveEvt === "timeupdate") {
-        applySeek(peer.currentTime, { pause: false });
+        applySeek(peer.currentTime, { pause: false, autoplay: true });
         if (effectiveEvt === "seeked") toast.info(`${partner?.display_name.split(" ")[0]} skipped`);
         else if (effectiveEvt === "play") toast.info(`${partner?.display_name.split(" ")[0]} resumed — starting together`);
         else toast.info("Re-syncing with partner…");
