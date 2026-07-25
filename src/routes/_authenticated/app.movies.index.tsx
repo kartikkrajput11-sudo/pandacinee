@@ -400,15 +400,16 @@ function Movies() {
 function FilterBar({
   type, minRating, onType, onMinRating,
 }: {
-  type: "all" | "movie" | "tv";
+  type: "all" | "movie" | "tv" | "series";
   minRating: number;
-  onType: (t: "all" | "movie" | "tv") => void;
+  onType: (t: "all" | "movie" | "tv" | "series") => void;
   onMinRating: (r: number) => void;
 }) {
-  const typeOptions: { id: "all" | "movie" | "tv"; label: string; icon: React.ReactNode }[] = [
+  const typeOptions: { id: "all" | "movie" | "tv" | "series"; label: string; icon: React.ReactNode }[] = [
     { id: "all", label: "All", icon: <Sparkles className="size-3" /> },
     { id: "movie", label: "Movies", icon: <Film className="size-3" /> },
     { id: "tv", label: "Shows", icon: <Tv className="size-3" /> },
+    { id: "series", label: "Series", icon: <Play className="size-3" /> },
   ];
   const ratingOptions = [0, 6, 7, 8, 9];
   return (
