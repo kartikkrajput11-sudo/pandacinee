@@ -328,7 +328,7 @@ function Movies() {
           <CustomRail title="Fresh Arrivals" movies={custom} />
         )}
 
-        {recent.length > 0 && (
+        {recent.length > 0 && type === "all" && (
           <Rail
             title="Continue Watching"
             icon={<Clock className="size-3.5 text-petal" />}
