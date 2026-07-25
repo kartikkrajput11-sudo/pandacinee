@@ -1622,25 +1622,43 @@ function CatalogWatch({ id }: { id: string }) {
                     <span className="truncate">{currentSource?.label ?? "Server"}</span>
                   </button>
                   {sourceMenuOpen && (
-                    <div className="absolute z-20 top-full mt-2 left-1/2 -translate-x-1/2 w-[13rem] rounded-xl bg-velvet/95 backdrop-blur border border-petal/25 shadow-2xl shadow-black/60 p-1.5">
-                      <div className="grid grid-cols-3 gap-1">
-                        {allSources.map((s, i) => {
+                    <div className="absolute z-20 top-full mt-2 left-1/2 -translate-x-1/2 w-[16rem] rounded-2xl bg-velvet/95 backdrop-blur-xl border border-petal/25 shadow-2xl shadow-black/60 p-2.5 space-y-2">
+                      {(() => {
+                        const ours = allSources.filter((s) => s.id.startsWith("vidking") || s.kind === "pandacine");
+                        const mirrors = allSources.filter((s) => !s.id.startsWith("vidking") && s.kind !== "pandacine");
+                        const Chip = ({ s }: { s: (typeof allSources)[number] }) => {
+                          const i = allSources.indexOf(s);
                           const active = i === sourceIdx;
                           return (
                             <button
                               key={s.id}
                               onClick={() => switchSource(i)}
                               title={s.hint}
-                              className={`relative h-7 rounded-md border text-[10px] px-1 flex items-center justify-center transition ${active ? "bg-petal/25 border-petal/60 text-petal" : "bg-surface/60 border-border/50 text-candle hover:border-petal/40 hover:text-petal"}`}
+                              className={`h-7 rounded-full border text-[10.5px] px-2.5 flex items-center gap-1 shrink-0 transition ${active ? "bg-petal/25 border-petal/60 text-petal shadow-inner shadow-petal/10" : "bg-surface/60 border-border/50 text-candle hover:border-petal/40 hover:text-petal"}`}
                             >
+                              {active && <span className="size-1 rounded-full bg-petal" />}
                               <span className="truncate">{s.label}</span>
-                              {s.kind === "pandacine" && (
-                                <span className="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-petal" />
-                              )}
                             </button>
                           );
-                        })}
-                      </div>
+                        };
+                        return (
+                          <>
+                            <div>
+                              <div className="px-1 mb-1 text-[8.5px] uppercase tracking-[0.3em] text-petal/70">Pandacine</div>
+                              <div className="flex flex-wrap gap-1">
+                                {ours.map((s) => <Chip key={s.id} s={s} />)}
+                              </div>
+                            </div>
+                            <div className="h-px bg-gradient-to-r from-transparent via-petal/25 to-transparent" />
+                            <div>
+                              <div className="px-1 mb-1 text-[8.5px] uppercase tracking-[0.3em] text-candle-muted/70">Mirrors</div>
+                              <div className="flex flex-wrap gap-1">
+                                {mirrors.map((s) => <Chip key={s.id} s={s} />)}
+                              </div>
+                            </div>
+                          </>
+                        );
+                      })()}
                     </div>
                   )}
                 </div>
