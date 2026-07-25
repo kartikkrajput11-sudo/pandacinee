@@ -659,7 +659,7 @@ function CatalogWatch({ id }: { id: string }) {
     if (!bothPandacine && !bothIframe) return;
     if (peer.updatedAt <= lastAppliedPeerEventRef.current) return;
     const evt = peer.event;
-    if (evt !== "play" && evt !== "pause" && evt !== "seeked" && evt !== "timeupdate" && evt !== "ratechange") return;
+    if (evt !== "play" && evt !== "pause" && evt !== "seeked" && evt !== "timeupdate" && evt !== "ratechange" && evt !== "ended") return;
 
     // Iframe-mode drift gate — reloading an iframe forces a re-buffer, which
     // shows up to the user as "the follower keeps buffering". So we only react
