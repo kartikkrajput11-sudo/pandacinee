@@ -68,7 +68,7 @@ function Play() {
         title="Play together"
         subtitle="An arcade for two — pick a game, invite your panda, and let the night unfold."
         leading={
-          <Link to="/app" className="text-candle-muted p-2 -ml-2 rounded-full hover:bg-surface transition-colors">
+          <Link to="/app" className="inline-flex items-center justify-center size-9 rounded-full text-candle-muted hover:bg-surface hover:text-candle transition-colors">
             <ArrowLeft className="size-5" />
           </Link>
         }
