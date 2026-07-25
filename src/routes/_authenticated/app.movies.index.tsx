@@ -200,8 +200,9 @@ function Movies() {
   }, [type, trendingList, tvTrend, overrides, recent]);
 
 
-  const showMovies = type !== "tv";
-  const showShows = type !== "movie";
+  const showMovies = type === "all" || type === "movie";
+  const showShows = type === "all" || type === "tv";
+  const showSeries = type === "all" || type === "series";
 
   // Filter bar reused in browse and search
   const filterBar = (
