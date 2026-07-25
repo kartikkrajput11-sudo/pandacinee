@@ -36,6 +36,7 @@ function MovieDetail() {
 }
 
 function MovieDetailInner({ id }: { id: string }) {
+  const { type: typeHint } = Route.useSearch();
   const fetchMovie = useServerFn(tmdbMovie);
   const fetchTv = useServerFn(tmdbTvFull);
   const fetchSources = useServerFn(watchmodeSources);
@@ -44,7 +45,7 @@ function MovieDetailInner({ id }: { id: string }) {
   const me = prof?.profile;
   const partner = prof?.partner;
   const [movie, setMovie] = useState<any>(null);
-  const [isTv, setIsTv] = useState(false);
+  const [isTv, setIsTv] = useState(typeHint === "tv");
   const [sources, setSources] = useState<WatchSource[]>([]);
   const [region, setRegion] = useState<string>("US");
   const [selectedSeason, setSelectedSeason] = useState<number>(1);
