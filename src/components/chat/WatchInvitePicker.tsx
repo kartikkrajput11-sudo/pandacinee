@@ -9,13 +9,13 @@ import { poster } from "@/routes/_authenticated/app.movies";
 type Props = {
   open: boolean;
   onClose: () => void;
-  onPick: (movie: TmdbMovie) => void;
+  onPick: (movie: PickItem) => void;
 };
 
 export function WatchInvitePicker({ open, onClose, onPick }: Props) {
-  const runSearch = useServerFn(tmdbSearch);
+  const runSearch = useServerFn(tmdbMulti);
   const [q, setQ] = useState("");
-  const [results, setResults] = useState<TmdbMovie[]>([]);
+  const [results, setResults] = useState<PickItem[]>([]);
   const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
