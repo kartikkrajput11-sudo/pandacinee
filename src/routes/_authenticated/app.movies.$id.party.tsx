@@ -102,37 +102,43 @@ function PartyRoom() {
   const season = search.season ?? 1;
   const episode = search.episode ?? 1;
 
-  const servers = useMemo(() => {
-    const mk = (label: string, url: string) => ({ label, url });
-    return [
-      mk(
-        "Panda Stream HD",
-        isTv
+  type Server = { label: string; url: string; native?: boolean };
+  const servers = useMemo<Server[]>(() => {
+    const list: Server[] = [];
+    if (pandacineSrc && !isTv) {
+      list.push({ label: "Pandacine", url: pandacineSrc, native: true });
+    }
+    list.push(
+      {
+        label: "Panda Stream HD",
+        url: isTv
           ? `https://www.vidking.net/embed/tv/${tmdbId}/${season}/${episode}?color=ee82af&autoPlay=true`
           : `https://www.vidking.net/embed/movie/${tmdbId}?color=ee82af&autoPlay=true`,
-      ),
-      mk(
-        "Rose Cinema",
-        isTv
+      },
+      {
+        label: "Rose Cinema",
+        url: isTv
           ? `https://vidsrc.cc/v2/embed/tv/${tmdbId}/${season}/${episode}?autoPlay=true`
           : `https://vidsrc.cc/v2/embed/movie/${tmdbId}?autoPlay=true`,
-      ),
-      mk(
-        "Moonlit Reel",
-        isTv
+      },
+      {
+        label: "Moonlit Reel",
+        url: isTv
           ? `https://vidsrc.to/embed/tv/${tmdbId}/${season}/${episode}`
           : `https://vidsrc.to/embed/movie/${tmdbId}`,
-      ),
-      mk(
-        "Twin Reel Mirror",
-        isTv
+      },
+      {
+        label: "Twin Reel Mirror",
+        url: isTv
           ? `https://vidlink.pro/tv/${tmdbId}/${season}/${episode}?primaryColor=ee82af&autoplay=true`
           : `https://vidlink.pro/movie/${tmdbId}?primaryColor=ee82af&autoplay=true`,
-      ),
-    ];
-  }, [tmdbId, isTv, season, episode]);
+      },
+    );
+    return list;
+  }, [tmdbId, isTv, season, episode, pandacineSrc]);
 
-  const embedUrl = servers[Math.min(serverIdx, servers.length - 1)].url;
+  const activeServer = servers[Math.min(serverIdx, servers.length - 1)];
+
 
   if (!me) {
     return <div className="p-8 text-center text-candle-muted">Loading…</div>;
