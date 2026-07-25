@@ -56,6 +56,29 @@ function PartyRoom() {
   const [isTv, setIsTv] = useState<boolean>(search.type === "tv");
   const [serverIdx, setServerIdx] = useState(0);
   const [pandacineSrc, setPandacineSrc] = useState<string | null>(null);
+  const [partnerHere, setPartnerHere] = useState(false);
+
+  // Presence: track whether partner has joined this party room
+  useEffect(() => {
+    if (!me?.id || !partner?.id) return;
+    const roomKey = [me.id, partner.id].sort().join(":");
+    const channel = supabase.channel(`party:${tmdbId}:${roomKey}`, {
+      config: { presence: { key: me.id } },
+    });
+    channel
+      .on("presence", { event: "sync" }, () => {
+        const state = channel.presenceState() as Record<string, unknown>;
+        setPartnerHere(Boolean(state[partner.id]));
+      })
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED") {
+          channel.track({ at: Date.now() });
+        }
+      });
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [me?.id, partner?.id, tmdbId]);
 
   useEffect(() => {
     let alive = true;
