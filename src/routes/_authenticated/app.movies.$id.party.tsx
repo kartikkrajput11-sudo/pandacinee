@@ -176,8 +176,23 @@ function PartyRoom() {
             className="w-full aspect-video bg-black"
           />
         </div>
-        <p className="mt-2 text-[10px] text-candle-muted/70 text-center tracking-wide">
-          Cozy up in your own tabs · Chat lives on the right
+        <div className="mt-2 flex items-center gap-1.5 overflow-x-auto no-scrollbar px-0.5">
+          {servers.map((s, i) => (
+            <button
+              key={s.label}
+              onClick={() => setServerIdx(i)}
+              className={`shrink-0 h-6 px-2.5 rounded-full text-[10px] tracking-wide border transition ${
+                i === serverIdx
+                  ? "bg-petal text-velvet border-petal petal-glow"
+                  : "bg-white/[0.03] text-candle-muted border-white/[0.06] hover:bg-white/[0.06]"
+              }`}
+            >
+              {s.label}
+            </button>
+          ))}
+        </div>
+        <p className="mt-1.5 text-[10px] text-candle-muted/70 text-center tracking-wide">
+          If a server says "couldn't find this content", tap another above.
         </p>
       </div>
 
