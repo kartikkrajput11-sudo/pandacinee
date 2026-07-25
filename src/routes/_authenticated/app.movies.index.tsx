@@ -76,6 +76,7 @@ function Movies() {
   type MultiItem = TmdbMovie & { media_type?: "movie" | "tv" };
   const [searchResults, setSearchResults] = useState<MultiItem[] | null>(null);
   const [searchLoading, setSearchLoading] = useState(false);
+  const [suggestions, setSuggestions] = useState<MultiItem[]>([]);
 
   const [trendingList, setTrendingList] = useState<TmdbMovie[]>([]);
   const [popular, setPopular] = useState<TmdbMovie[]>([]);
