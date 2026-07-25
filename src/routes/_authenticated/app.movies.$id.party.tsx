@@ -8,6 +8,7 @@ import { useFriendships } from "@/hooks/useFriends";
 import { supabase } from "@/integrations/supabase/client";
 import { WatchTogetherPanel } from "@/components/watch/WatchTogetherPanel";
 import { AvatarImg } from "@/components/AvatarImg";
+import { CustomMoviePlayer } from "@/components/CustomMoviePlayer";
 
 export const Route = createFileRoute("/_authenticated/app/movies/$id/party")({
   validateSearch: (raw: Record<string, unknown>) => {
