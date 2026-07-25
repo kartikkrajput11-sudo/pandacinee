@@ -287,7 +287,7 @@ function Movies() {
           <div className="grid grid-cols-3 gap-3">
             {overlay(filtered).map((m) => (
               <div key={m.id} className="relative">
-                <MovieCard id={m.id} title={m.title} poster_path={m.poster_path} vote_average={m.vote_average} />
+                <MovieCard id={m.id} title={m.title} poster_path={m.poster_path} vote_average={m.vote_average} mediaType={(m as MultiItem).media_type === "tv" ? "tv" : "movie"} />
                 {(m as MultiItem).media_type === "tv" && (
                   <span className="absolute top-1.5 left-1.5 inline-flex items-center gap-0.5 h-5 px-1.5 rounded-full bg-velvet/85 backdrop-blur border border-petal/30 text-petal text-[9px] uppercase tracking-widest">
                     <Tv className="size-2.5" /> TV
