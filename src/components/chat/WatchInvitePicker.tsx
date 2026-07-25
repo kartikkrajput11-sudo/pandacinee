@@ -82,7 +82,7 @@ export function WatchInvitePicker({ open, onClose, onPick }: Props) {
               ref={inputRef}
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="Search a movie…"
+              placeholder="Search a movie or show…"
               className="w-full pl-9 pr-3 py-2.5 bg-surface border border-border rounded-full text-sm text-candle placeholder:text-candle-muted focus:outline-none focus:border-petal/60"
             />
           </div>
