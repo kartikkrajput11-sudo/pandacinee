@@ -14,11 +14,13 @@ export const Route = createFileRoute("/_authenticated/app/movies/$id/party")({
     const s = Number(raw.season);
     const e = Number(raw.episode);
     const w = typeof raw.with === "string" && raw.with.length > 0 ? raw.with : undefined;
+    const t = raw.type === "tv" ? "tv" : raw.type === "movie" ? "movie" : undefined;
     return {
       season: Number.isFinite(s) && s > 0 ? Math.floor(s) : undefined,
       episode: Number.isFinite(e) && e > 0 ? Math.floor(e) : undefined,
       with: w,
-    } as { season?: number; episode?: number; with?: string };
+      type: t,
+    } as { season?: number; episode?: number; with?: string; type?: "movie" | "tv" };
   },
   component: PartyRoom,
 });
@@ -50,7 +52,8 @@ function PartyRoom() {
   }, [search.with, realPartner, friendsQuery.data?.profiles]);
 
   const [movie, setMovie] = useState<any>(null);
-  const [isTv, setIsTv] = useState(false);
+  const [isTv, setIsTv] = useState<boolean>(search.type === "tv");
+  const [serverIdx, setServerIdx] = useState(0);
 
   useEffect(() => {
     let alive = true;
@@ -58,7 +61,7 @@ function PartyRoom() {
       .then((m) => {
         if (!alive || !m) return;
         setMovie(m);
-        if (m.media_type === "tv") setIsTv(true);
+        if (m.media_type === "tv" || m.first_air_date || m.number_of_seasons) setIsTv(true);
       })
       .catch(() => {});
     // Check custom overrides for media_type
@@ -84,20 +87,37 @@ function PartyRoom() {
   const season = search.season ?? 1;
   const episode = search.episode ?? 1;
 
-  const embedUrl = useMemo(() => {
-    const base =
-      isTv
-        ? `https://vidlink.pro/tv/${tmdbId}/${season}/${episode}`
-        : `https://vidlink.pro/movie/${tmdbId}`;
-    const params = new URLSearchParams({
-      primaryColor: "ee82af",
-      secondaryColor: "ee82af",
-      iconColor: "ffffff",
-      autoplay: "true",
-      title: "true",
-    });
-    return `${base}?${params.toString()}`;
+  const servers = useMemo(() => {
+    const mk = (label: string, url: string) => ({ label, url });
+    return [
+      mk(
+        "Panda Stream HD",
+        isTv
+          ? `https://www.vidking.net/embed/tv/${tmdbId}/${season}/${episode}?color=ee82af&autoPlay=true`
+          : `https://www.vidking.net/embed/movie/${tmdbId}?color=ee82af&autoPlay=true`,
+      ),
+      mk(
+        "Rose Cinema",
+        isTv
+          ? `https://vidsrc.cc/v2/embed/tv/${tmdbId}/${season}/${episode}?autoPlay=true`
+          : `https://vidsrc.cc/v2/embed/movie/${tmdbId}?autoPlay=true`,
+      ),
+      mk(
+        "Moonlit Reel",
+        isTv
+          ? `https://vidsrc.to/embed/tv/${tmdbId}/${season}/${episode}`
+          : `https://vidsrc.to/embed/movie/${tmdbId}`,
+      ),
+      mk(
+        "Twin Reel Mirror",
+        isTv
+          ? `https://vidlink.pro/tv/${tmdbId}/${season}/${episode}?primaryColor=ee82af&autoplay=true`
+          : `https://vidlink.pro/movie/${tmdbId}?primaryColor=ee82af&autoplay=true`,
+      ),
+    ];
   }, [tmdbId, isTv, season, episode]);
+
+  const embedUrl = servers[Math.min(serverIdx, servers.length - 1)].url;
 
   if (!me) {
     return <div className="p-8 text-center text-candle-muted">Loading…</div>;
@@ -156,8 +176,23 @@ function PartyRoom() {
             className="w-full aspect-video bg-black"
           />
         </div>
-        <p className="mt-2 text-[10px] text-candle-muted/70 text-center tracking-wide">
-          Cozy up in your own tabs · Chat lives on the right
+        <div className="mt-2 flex items-center gap-1.5 overflow-x-auto no-scrollbar px-0.5">
+          {servers.map((s, i) => (
+            <button
+              key={s.label}
+              onClick={() => setServerIdx(i)}
+              className={`shrink-0 h-6 px-2.5 rounded-full text-[10px] tracking-wide border transition ${
+                i === serverIdx
+                  ? "bg-petal text-velvet border-petal petal-glow"
+                  : "bg-white/[0.03] text-candle-muted border-white/[0.06] hover:bg-white/[0.06]"
+              }`}
+            >
+              {s.label}
+            </button>
+          ))}
+        </div>
+        <p className="mt-1.5 text-[10px] text-candle-muted/70 text-center tracking-wide">
+          If a server says "couldn't find this content", tap another above.
         </p>
       </div>
 
