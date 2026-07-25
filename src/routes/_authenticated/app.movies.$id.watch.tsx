@@ -929,7 +929,11 @@ function CatalogWatch({ id }: { id: string }) {
 
 
   function openFullscreen() {
-    const el = document.getElementById("movie-frame");
+    // Fullscreen the wrapper (not the iframe) so the floating chat/reactions
+    // FAB portaled into `document.fullscreenElement` stays visible.
+    const el =
+      document.getElementById("movie-stage") ||
+      document.getElementById("movie-frame");
     if (el && (el as any).requestFullscreen) (el as any).requestFullscreen();
   }
 
@@ -1293,7 +1297,7 @@ function CatalogWatch({ id }: { id: string }) {
           <div aria-hidden className="absolute -inset-1 rounded-[28px] bg-gradient-to-br from-petal/30 via-transparent to-petal/10 blur-2xl opacity-70 pointer-events-none" />
           {/* Hairline conic sheen on the frame */}
           <div aria-hidden className="absolute -inset-[1px] rounded-2xl md:rounded-3xl bg-[conic-gradient(from_120deg,transparent_0deg,rgba(238,130,175,0.35)_60deg,transparent_140deg,transparent_220deg,rgba(238,130,175,0.25)_300deg,transparent_360deg)] opacity-60 pointer-events-none" />
-          <div className="relative rounded-2xl md:rounded-3xl overflow-hidden bg-black border border-petal/30 aspect-video shadow-[0_40px_100px_-24px_rgba(238,130,175,0.4),0_0_0_1px_rgba(238,130,175,0.15)_inset] transition-shadow duration-700 group-hover/player:shadow-[0_50px_120px_-20px_rgba(238,130,175,0.55),0_0_0_1px_rgba(238,130,175,0.25)_inset]">
+          <div id="movie-stage" className="relative rounded-2xl md:rounded-3xl overflow-hidden bg-black border border-petal/30 aspect-video shadow-[0_40px_100px_-24px_rgba(238,130,175,0.4),0_0_0_1px_rgba(238,130,175,0.15)_inset] transition-shadow duration-700 group-hover/player:shadow-[0_50px_120px_-20px_rgba(238,130,175,0.55),0_0_0_1px_rgba(238,130,175,0.25)_inset]">
 
             {started ? (
               isPandacine && pandacine ? (
