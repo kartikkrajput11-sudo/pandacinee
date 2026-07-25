@@ -929,7 +929,11 @@ function CatalogWatch({ id }: { id: string }) {
 
 
   function openFullscreen() {
-    const el = document.getElementById("movie-frame");
+    // Fullscreen the wrapper (not the iframe) so the floating chat/reactions
+    // FAB portaled into `document.fullscreenElement` stays visible.
+    const el =
+      document.getElementById("movie-stage") ||
+      document.getElementById("movie-frame");
     if (el && (el as any).requestFullscreen) (el as any).requestFullscreen();
   }
 
