@@ -653,6 +653,7 @@ function FeaturedHero({ movie, isTv = false }: { movie: TmdbMovie; isTv?: boolea
           <Link
             to="/app/movies/$id"
             params={{ id: String(movie.id) }}
+            search={{ type: isTv ? "tv" : "movie" }}
             className="inline-flex items-center gap-2 py-3 px-7 rounded-full bg-candle text-velvet font-semibold text-sm shadow-[0_20px_60px_-20px] shadow-black/60 hover:brightness-110 transition-all"
           >
             <Play className="size-4 fill-velvet" />
