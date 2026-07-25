@@ -671,7 +671,7 @@ function FeaturedHero({ movie, isTv = false }: { movie: TmdbMovie; isTv?: boolea
 
 
 function Rail({
-  title, icon, movies, loading = false, variant = "poster", tvBadge = false,
+  title, icon, movies, loading = false, variant = "poster", tvBadge = false, category,
 }: {
   title: string;
   icon: React.ReactNode;
@@ -679,6 +679,7 @@ function Rail({
   loading?: boolean;
   variant?: "poster" | "wide";
   tvBadge?: boolean;
+  category?: string;
 }) {
   if (!loading && movies.length === 0) return null;
   return (
@@ -688,7 +689,17 @@ function Rail({
           <div className="w-px h-6 bg-petal/50 shrink-0" />
           <h3 className="font-serif italic text-2xl text-candle leading-none truncate">{title}</h3>
         </div>
-        <span className="text-[10px] tracking-[0.2em] uppercase text-petal font-semibold shrink-0">View All</span>
+        {category ? (
+          <Link
+            to="/app/movies/list"
+            search={{ category }}
+            className="text-[10px] tracking-[0.2em] uppercase text-petal font-semibold shrink-0 hover:text-candle transition-colors"
+          >
+            View All
+          </Link>
+        ) : (
+          <span className="text-[10px] tracking-[0.2em] uppercase text-petal font-semibold shrink-0">View All</span>
+        )}
       </div>
 
       <div className="flex gap-3 overflow-x-auto no-scrollbar -mx-5 px-5 pb-2">
