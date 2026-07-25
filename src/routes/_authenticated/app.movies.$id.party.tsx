@@ -200,7 +200,17 @@ function PartyRoom() {
           </div>
           <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.06]">
             <Users className="size-3 text-petal" />
-            <AvatarImg src={partner.avatar_url} alt={partner.display_name} className="size-5 rounded-full" />
+            <div className="relative">
+              <AvatarImg src={partner.avatar_url} alt={partner.display_name} className="size-5 rounded-full" />
+              <span
+                className={`absolute -bottom-0.5 -right-0.5 size-2 rounded-full ring-1 ring-velvet ${
+                  partnerHere ? "bg-emerald-400 animate-pulse" : "bg-white/25"
+                }`}
+              />
+            </div>
+            <span className={`text-[9px] tracking-wide ${partnerHere ? "text-emerald-300" : "text-candle-muted/70"}`}>
+              {partnerHere ? "In the room" : "Not here yet"}
+            </span>
           </div>
         </div>
         <div className="px-4 pb-2 text-[10px] text-candle-muted/80 italic flex items-center gap-1.5">
