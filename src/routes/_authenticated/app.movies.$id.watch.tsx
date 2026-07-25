@@ -1634,7 +1634,7 @@ function CatalogWatch({ id }: { id: string }) {
                               key={s.id}
                               onClick={() => switchSource(i)}
                               title={s.hint}
-                              className={`h-7 rounded-full border text-[10.5px] px-2.5 flex items-center gap-1 shrink-0 transition ${active ? "bg-petal/25 border-petal/60 text-petal shadow-inner shadow-petal/10" : "bg-surface/60 border-border/50 text-candle hover:border-petal/40 hover:text-petal"}`}
+                              className={`h-5 rounded-full border text-[9.5px] px-1.5 flex items-center gap-1 shrink-0 transition ${active ? "bg-petal/25 border-petal/60 text-petal shadow-inner shadow-petal/10" : "bg-surface/60 border-border/50 text-candle hover:border-petal/40 hover:text-petal"}`}
                             >
                               {active && <span className="size-1 rounded-full bg-petal" />}
                               <span className="truncate">{s.label}</span>
