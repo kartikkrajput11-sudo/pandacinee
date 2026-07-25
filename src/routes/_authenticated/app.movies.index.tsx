@@ -393,9 +393,9 @@ function Movies() {
         {showShows && (
           <>
             <Rail
-              title="Trending on TV"
-              icon={<Tv className="size-3.5 text-petal" />}
-              movies={overlay(tvTrend)}
+              title="Top Shows"
+              icon={<Star className="size-3.5 text-petal" />}
+              movies={overlay(tvTop)}
               loading={loading}
               tvBadge
             />
