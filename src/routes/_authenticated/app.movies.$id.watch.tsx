@@ -959,25 +959,26 @@ function CatalogWatch({ id }: { id: string }) {
 
   return (
     <div className={`relative min-h-screen pt-6 pb-24 transition-colors duration-500 ${cinemaMode ? "bg-black" : ""}`}>
+      {/* Floating chat toggle — always visible over the player so chat is reachable
+          even when the embed is expanded/cinema mode. */}
+      {partner && (
+        <Link
+          to="/app/chat/$peerId"
+          params={{ peerId: partner.id }}
+          className="fixed top-4 right-4 z-[60] h-10 px-4 rounded-full bg-black/85 border border-petal/40 text-petal hover:text-white hover:bg-petal/90 hover:border-petal text-[10px] uppercase tracking-[0.3em] flex items-center gap-2 backdrop-blur shadow-[0_10px_30px_-10px_rgba(0,0,0,0.6)] transition-colors"
+          title="Whisper in chat"
+        >
+          <MessageCircle className="size-3.5" />
+          <span>Chat</span>
+        </Link>
+      )}
       {cinemaMode && (
-        <div className="fixed top-4 right-4 z-[60] flex items-center gap-2">
-          {partner && (
-            <Link
-              to="/app/chat/$peerId"
-              params={{ peerId: partner.id }}
-              className="h-9 px-3 rounded-full bg-black/80 border border-white/10 text-white/80 hover:text-petal hover:border-petal/40 text-[10px] uppercase tracking-[0.3em] flex items-center gap-1.5 backdrop-blur"
-              title="Whisper in chat"
-            >
-              <MessageCircle className="size-3" /> Chat
-            </Link>
-          )}
-          <button
-            onClick={() => setCinemaMode(false)}
-            className="h-9 px-3 rounded-full bg-black/80 border border-white/10 text-white/80 hover:text-white text-[10px] uppercase tracking-[0.3em] flex items-center gap-1.5 backdrop-blur"
-          >
-            <X className="size-3" /> Exit cinema
-          </button>
-        </div>
+        <button
+          onClick={() => setCinemaMode(false)}
+          className={`fixed top-4 z-[60] h-10 px-4 rounded-full bg-black/85 border border-white/10 text-white/80 hover:text-white text-[10px] uppercase tracking-[0.3em] flex items-center gap-1.5 backdrop-blur shadow-[0_10px_30px_-10px_rgba(0,0,0,0.6)] ${partner ? "right-[7.5rem]" : "right-4"}`}
+        >
+          <X className="size-3" /> Exit cinema
+        </button>
       )}
       {/* Ambient backdrop glow (episode-aware on series) */}
       {backdropUrl && (
