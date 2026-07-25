@@ -68,7 +68,7 @@ export function WatchInvitePicker({ open, onClose, onPick }: Props) {
           </div>
           <div className="flex-1">
             <p className="text-[10px] uppercase tracking-widest text-petal">Watch together</p>
-            <h2 className="font-serif italic text-lg leading-tight">Send a movie invite</h2>
+            <h2 className="font-serif italic text-lg leading-tight">Send a movie or show invite</h2>
           </div>
           <button onClick={onClose} className="size-9 rounded-full bg-surface border border-border flex items-center justify-center text-candle-muted">
             <X className="size-4" />
