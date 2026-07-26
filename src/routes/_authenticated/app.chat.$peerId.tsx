@@ -29,7 +29,6 @@ import { UserAvatar } from "@/components/UserAvatar";
 import { ForwardDialog, canForward } from "@/components/chat/ForwardDialog";
 import { SharedMediaDrawer } from "@/components/chat/SharedMediaDrawer";
 import { ScheduleDialog } from "@/components/chat/ScheduleDialog";
-import { Chat3DPhoneDemo } from "@/components/chat/Chat3DPhoneDemo";
 import { markDmReadNow } from "@/lib/dmRead";
 
 
@@ -37,16 +36,6 @@ import { markDmReadNow } from "@/lib/dmRead";
 import type { MessageRow } from "@/lib/chat";
 
 export const Route = createFileRoute("/_authenticated/app/chat/$peerId")({
-  head: () => ({
-    meta: [
-      { title: "Private Chat — PANDACINE" },
-      { name: "description", content: "Chat privately on PANDACINE with voice notes, stickers, reactions, and 3D chat previews." },
-      { property: "og:title", content: "Private Chat — PANDACINE" },
-      { property: "og:description", content: "Chat privately on PANDACINE with voice notes, stickers, reactions, and 3D chat previews." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
   component: ChatPeer,
 });
 
@@ -403,7 +392,6 @@ function ChatPeer() {
         </Link>
         <div className="flex items-center gap-4 text-candle/55 shrink-0">
           <ChatSearch messages={messages} onJump={jumpTo} />
-          <Chat3DPhoneDemo meName={me.display_name} peerName={peerDisplay} />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="hover:text-petal transition-colors" aria-label="Call">

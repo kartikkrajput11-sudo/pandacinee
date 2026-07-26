@@ -11,7 +11,6 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UnsubscribeRouteImport } from './routes/unsubscribe'
 import { Route as TermsRouteImport } from './routes/terms'
-import { Route as ShowcaseRouteImport } from './routes/showcase'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as AuthRouteImport } from './routes/auth'
@@ -92,11 +91,6 @@ const UnsubscribeRoute = UnsubscribeRouteImport.update({
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ShowcaseRoute = ShowcaseRouteImport.update({
-  id: '/showcase',
-  path: '/showcase',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -493,7 +487,6 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/showcase': typeof ShowcaseRoute
   '/terms': typeof TermsRoute
   '/unsubscribe': typeof UnsubscribeRoute
   '/app': typeof AuthenticatedAppRouteWithChildren
@@ -568,7 +561,6 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/showcase': typeof ShowcaseRoute
   '/terms': typeof TermsRoute
   '/unsubscribe': typeof UnsubscribeRoute
   '/api/livekit-token': typeof ApiLivekitTokenRoute
@@ -642,7 +634,6 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/showcase': typeof ShowcaseRoute
   '/terms': typeof TermsRoute
   '/unsubscribe': typeof UnsubscribeRoute
   '/_authenticated/app': typeof AuthenticatedAppRouteWithChildren
@@ -719,7 +710,6 @@ export interface FileRouteTypes {
     | '/auth'
     | '/privacy'
     | '/reset-password'
-    | '/showcase'
     | '/terms'
     | '/unsubscribe'
     | '/app'
@@ -794,7 +784,6 @@ export interface FileRouteTypes {
     | '/auth'
     | '/privacy'
     | '/reset-password'
-    | '/showcase'
     | '/terms'
     | '/unsubscribe'
     | '/api/livekit-token'
@@ -867,7 +856,6 @@ export interface FileRouteTypes {
     | '/auth'
     | '/privacy'
     | '/reset-password'
-    | '/showcase'
     | '/terms'
     | '/unsubscribe'
     | '/_authenticated/app'
@@ -944,7 +932,6 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   PrivacyRoute: typeof PrivacyRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
-  ShowcaseRoute: typeof ShowcaseRoute
   TermsRoute: typeof TermsRoute
   UnsubscribeRoute: typeof UnsubscribeRoute
   ApiLivekitTokenRoute: typeof ApiLivekitTokenRoute
@@ -972,13 +959,6 @@ declare module '@tanstack/react-router' {
       path: '/terms'
       fullPath: '/terms'
       preLoaderRoute: typeof TermsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/showcase': {
-      id: '/showcase'
-      path: '/showcase'
-      fullPath: '/showcase'
-      preLoaderRoute: typeof ShowcaseRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reset-password': {
@@ -1661,7 +1641,6 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   PrivacyRoute: PrivacyRoute,
   ResetPasswordRoute: ResetPasswordRoute,
-  ShowcaseRoute: ShowcaseRoute,
   TermsRoute: TermsRoute,
   UnsubscribeRoute: UnsubscribeRoute,
   ApiLivekitTokenRoute: ApiLivekitTokenRoute,
