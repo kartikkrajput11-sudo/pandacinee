@@ -27,7 +27,8 @@ export function ScrollGlobe({ sections, globeConfig, className }: ScrollGlobePro
   const [globeTransform, setGlobeTransform] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
   const sectionRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const animationFrameId = useRef<number>();
+  const animationFrameId = useRef<number | undefined>(undefined);
+
 
   const defaultPositions = useMemo(
     () =>
@@ -177,7 +178,9 @@ export function ScrollGlobe({ sections, globeConfig, className }: ScrollGlobePro
       {sections.map((section, index) => (
         <section
           key={section.id}
-          ref={(el) => (sectionRefs.current[index] = el)}
+          ref={(el) => {
+            sectionRefs.current[index] = el;
+          }}
           className={cn(
             "relative min-h-screen flex flex-col justify-center px-4 sm:px-6 md:px-8 lg:px-12 z-20 py-12 sm:py-16 lg:py-20",
             "w-full max-w-full overflow-hidden",
