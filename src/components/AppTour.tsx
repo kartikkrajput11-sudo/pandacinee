@@ -451,7 +451,7 @@ export function AppTour({ open, onClose }: { open: boolean; onClose: () => void 
           </div>
         </div>
       </motion.div>
-    </div>,
+    </motion.div>,
     document.body,
   );
 }
