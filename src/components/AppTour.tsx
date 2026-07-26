@@ -1,7 +1,10 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, Suspense, lazy } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "@tanstack/react-router";
 import { X, ArrowRight, ArrowLeft, Sparkles } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+
+const PandaGuide3D = lazy(() => import("./tour/PandaGuide3D"));
 
 const KEY = "pandacine-tour-v2";
 
@@ -19,7 +22,9 @@ type Step = {
   title: string;
   body: string;
   placement?: "top" | "bottom" | "auto";
+  mood?: "wave" | "cheer" | "peek" | "sleep";
 };
+
 
 const STEPS: Step[] = [
   {
