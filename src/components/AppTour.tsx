@@ -1,7 +1,10 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, Suspense, lazy } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "@tanstack/react-router";
 import { X, ArrowRight, ArrowLeft, Sparkles } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+
+const PandaGuide3D = lazy(() => import("./tour/PandaGuide3D"));
 
 const KEY = "pandacine-tour-v2";
 
@@ -19,7 +22,9 @@ type Step = {
   title: string;
   body: string;
   placement?: "top" | "bottom" | "auto";
+  mood?: "wave" | "cheer" | "peek" | "sleep";
 };
+
 
 const STEPS: Step[] = [
   {
@@ -29,6 +34,7 @@ const STEPS: Step[] = [
     title: "Welcome to PANDACINE",
     body: "Your private velvet room. Everything for you and your panda lives right here.",
     placement: "bottom",
+    mood: "wave",
   },
   {
     route: "/app",
@@ -37,6 +43,7 @@ const STEPS: Step[] = [
     title: "Notifications",
     body: "The bell lights up whenever your panda writes, calls, or invites you — anywhere in the app.",
     placement: "bottom",
+    mood: "peek",
   },
   {
     route: "/app",
@@ -45,6 +52,7 @@ const STEPS: Step[] = [
     title: "Signature little things",
     body: "Love letters, timeline, constellation, watchlist — small daily rituals that make it feel like home.",
     placement: "top",
+    mood: "wave",
   },
   {
     route: "/app/chat",
@@ -53,6 +61,7 @@ const STEPS: Step[] = [
     title: "Chats & groups",
     body: "Voice notes, pins, forwards, view-once media, locked chats, polls, group codes. In groups your panda's messages glow softly so you never miss them.",
     placement: "bottom",
+    mood: "wave",
   },
   {
     route: "/app/chat",
@@ -61,6 +70,7 @@ const STEPS: Step[] = [
     title: "Affections",
     body: "Send a kiss, hug, headpat, handhold, boop or nudge — each plays a full-screen panda animation on your partner's device. Tiny rituals, big warmth.",
     placement: "bottom",
+    mood: "cheer",
   },
   {
     route: "/app/play",
@@ -69,6 +79,7 @@ const STEPS: Step[] = [
     title: "Games for two — and eight",
     body: "Chess, Ludo, Uno, 8-Ball Pool, Hide & Seek, Know-Me, Scribble. Duels for two, or seat up to eight friends. Observers can chat too.",
     placement: "top",
+    mood: "cheer",
   },
   {
     route: "/app/movies",
@@ -77,6 +88,7 @@ const STEPS: Step[] = [
     title: "Movies & series, synced",
     body: "Watch films together in lock-step: ready-check handshakes, rewind-on-buffer, and gentle drift correction — as if you were on the same couch.",
     placement: "bottom",
+    mood: "sleep",
   },
   {
     route: "/app/me",
@@ -85,6 +97,7 @@ const STEPS: Step[] = [
     title: "Badges & achievements",
     body: "Earn coins from rituals, streaks and movie nights, then buy honors — Candle Keeper, Night Owls, Eternal Flame. Equip up to three to shine on your profile.",
     placement: "top",
+    mood: "cheer",
   },
   {
     route: "/app",
@@ -93,8 +106,10 @@ const STEPS: Step[] = [
     title: "You're all set",
     body: "That's the whole cinema. Wander in — your panda is waiting.",
     placement: "bottom",
+    mood: "wave",
   },
 ];
+
 
 /* Wait for an element matching selector, up to timeout ms. */
 function waitForEl(selector: string, timeout = 4000): Promise<HTMLElement | null> {
@@ -269,7 +284,14 @@ export function AppTour({ open, onClose }: { open: boolean; onClose: () => void 
 
 
   return createPortal(
-    <div className="fixed inset-0 z-[300] animate-fade-in">
+    <motion.div
+      className="fixed inset-0 z-[300]"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.3 }}
+    >
+
       {/* Spotlight overlay via SVG mask */}
       <svg className="absolute inset-0 w-full h-full pointer-events-auto" aria-hidden>
         <defs>
@@ -338,15 +360,13 @@ export function AppTour({ open, onClose }: { open: boolean; onClose: () => void 
       </div>
 
       {/* Tooltip card */}
-      <div
+      <motion.div
         ref={tipRef}
-        className="absolute animate-fade-in"
-        style={{
-          left: tipX,
-          top: tipY,
-          width: tooltipW,
-          transition: "left 220ms cubic-bezier(.22,.61,.36,1), top 220ms cubic-bezier(.22,.61,.36,1)",
-        }}
+        className="absolute"
+        initial={false}
+        animate={{ left: tipX, top: tipY }}
+        transition={{ type: "spring", stiffness: 260, damping: 30 }}
+        style={{ width: tooltipW }}
       >
         {arrow === "up" && spot && (
           <div
@@ -375,40 +395,64 @@ export function AppTour({ open, onClose }: { open: boolean; onClose: () => void 
         <div className="relative rounded-3xl p-[1px] bg-gradient-to-b from-petal/50 via-petal/15 to-transparent shadow-[0_30px_100px_-30px_rgba(0,0,0,0.9)]">
           <div className="relative rounded-3xl bg-surface/95 backdrop-blur-xl border border-petal/30 p-5 overflow-hidden">
             <div aria-hidden className="pointer-events-none absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-petal/70 to-transparent" />
-            <div className="flex items-center gap-2 mb-2">
-              <Sparkles className="size-3.5 text-petal" />
-              <p className="text-[10px] uppercase tracking-[0.32em] text-petal/90">{step.eyebrow}</p>
+
+            {/* 3D Panda mascot */}
+            <div className="absolute -top-8 -right-4 w-28 h-28 pointer-events-none drop-shadow-[0_10px_20px_rgba(236,120,155,0.35)]">
+              <Suspense fallback={null}>
+                <PandaGuide3D mood={step.mood ?? "wave"} />
+              </Suspense>
             </div>
-            <h2 className="font-serif italic text-2xl leading-tight text-candle mb-2">
-              {step.title}
-            </h2>
-            <div aria-hidden className="h-px w-12 bg-gradient-to-r from-petal/70 via-petal/30 to-transparent mb-3" />
-            <p className="text-sm text-candle-muted leading-relaxed">{step.body}</p>
+
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 14, filter: "blur(6px)" }}
+                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                exit={{ opacity: 0, y: -10, filter: "blur(6px)" }}
+                transition={{ duration: 0.35, ease: [0.22, 0.61, 0.36, 1] }}
+                className="pr-24"
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <Sparkles className="size-3.5 text-petal" />
+                  <p className="text-[10px] uppercase tracking-[0.32em] text-petal/90">{step.eyebrow}</p>
+                </div>
+                <h2 className="font-serif italic text-2xl leading-tight text-candle mb-2">
+                  {step.title}
+                </h2>
+                <div aria-hidden className="h-px w-12 bg-gradient-to-r from-petal/70 via-petal/30 to-transparent mb-3" />
+                <p className="text-sm text-candle-muted leading-relaxed">{step.body}</p>
+              </motion.div>
+            </AnimatePresence>
 
             <div className="flex items-center gap-2 mt-5">
-              <button
+              <motion.button
+                whileTap={{ scale: 0.92 }}
                 onClick={prev}
                 disabled={i === 0}
                 className="size-10 rounded-full bg-velvet border border-border text-candle-muted hover:text-petal disabled:opacity-30 flex items-center justify-center"
                 aria-label="Previous"
               >
                 <ArrowLeft className="size-4" />
-              </button>
+              </motion.button>
               {i < total - 1 ? (
-                <button
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.96 }}
                   onClick={next}
                   disabled={!ready}
                   className="flex-1 py-2.5 bg-petal text-velvet rounded-full font-semibold text-sm petal-glow flex items-center justify-center gap-2 disabled:opacity-60"
                 >
                   Continue <ArrowRight className="size-4" />
-                </button>
+                </motion.button>
               ) : (
-                <button
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.96 }}
                   onClick={finish}
                   className="flex-1 py-2.5 bg-petal text-velvet rounded-full font-semibold text-sm petal-glow flex items-center justify-center gap-2"
                 >
                   Enter PANDACINE
-                </button>
+                </motion.button>
               )}
               <span className="text-[10px] uppercase tracking-widest text-candle-muted whitespace-nowrap px-1">
                 {i + 1} / {total}
@@ -416,8 +460,9 @@ export function AppTour({ open, onClose }: { open: boolean; onClose: () => void 
             </div>
           </div>
         </div>
-      </div>
-    </div>,
+      </motion.div>
+    </motion.div>,
     document.body,
   );
 }
+
