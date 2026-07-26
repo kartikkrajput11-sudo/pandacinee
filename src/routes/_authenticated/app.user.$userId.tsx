@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { ArrowLeft, MessageCircle, Phone, Video, Heart, Ban, ShieldCheck } from "lucide-react";
+import { ArrowLeft, MessageCircle, Phone, Video, Heart, Ban, ShieldCheck, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile, type Profile } from "@/hooks/useProfile";
@@ -20,6 +20,10 @@ function UserProfilePage() {
   const partner = myData?.partner;
   const isPartner = partner?.id === userId;
   const isMe = me?.id === userId;
+
+  function openTour() {
+    window.dispatchEvent(new CustomEvent("pandacine:open-tour"));
+  }
 
   const qc = useQueryClient();
   const [busy, setBusy] = useState(false);
@@ -110,13 +114,22 @@ function UserProfilePage() {
       />
 
       <header className="relative flex items-center justify-between px-5 pt-6">
-        <button
-          onClick={() => router.history.back()}
-          aria-label="Back"
-          className="size-9 rounded-full border border-candle/15 bg-velvet/60 backdrop-blur flex items-center justify-center text-candle/70 hover:text-petal transition-colors"
-        >
-          <ArrowLeft className="size-4" strokeWidth={1.5} />
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => router.history.back()}
+            aria-label="Back"
+            className="size-9 rounded-full border border-candle/15 bg-velvet/60 backdrop-blur flex items-center justify-center text-candle/70 hover:text-petal transition-colors"
+          >
+            <ArrowLeft className="size-4" strokeWidth={1.5} />
+          </button>
+          <button
+            onClick={openTour}
+            aria-label="Take a tour"
+            className="size-9 rounded-full border border-petal/30 bg-petal/[0.08] backdrop-blur flex items-center justify-center text-petal hover:text-candle hover:bg-petal/20 transition-colors"
+          >
+            <Sparkles className="size-4" strokeWidth={1.5} />
+          </button>
+        </div>
         <span className="text-[9px] uppercase tracking-[0.35em] text-candle/40 font-semibold">Profile</span>
         <span className="size-9" />
       </header>
