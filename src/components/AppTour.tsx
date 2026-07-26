@@ -274,7 +274,14 @@ export function AppTour({ open, onClose }: { open: boolean; onClose: () => void 
 
 
   return createPortal(
-    <div className="fixed inset-0 z-[300] animate-fade-in">
+    <motion.div
+      className="fixed inset-0 z-[300]"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.3 }}
+    >
+
       {/* Spotlight overlay via SVG mask */}
       <svg className="absolute inset-0 w-full h-full pointer-events-auto" aria-hidden>
         <defs>
