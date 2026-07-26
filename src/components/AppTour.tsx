@@ -343,15 +343,13 @@ export function AppTour({ open, onClose }: { open: boolean; onClose: () => void 
       </div>
 
       {/* Tooltip card */}
-      <div
+      <motion.div
         ref={tipRef}
-        className="absolute animate-fade-in"
-        style={{
-          left: tipX,
-          top: tipY,
-          width: tooltipW,
-          transition: "left 220ms cubic-bezier(.22,.61,.36,1), top 220ms cubic-bezier(.22,.61,.36,1)",
-        }}
+        className="absolute"
+        initial={false}
+        animate={{ left: tipX, top: tipY }}
+        transition={{ type: "spring", stiffness: 260, damping: 30 }}
+        style={{ width: tooltipW }}
       >
         {arrow === "up" && spot && (
           <div
@@ -380,40 +378,64 @@ export function AppTour({ open, onClose }: { open: boolean; onClose: () => void 
         <div className="relative rounded-3xl p-[1px] bg-gradient-to-b from-petal/50 via-petal/15 to-transparent shadow-[0_30px_100px_-30px_rgba(0,0,0,0.9)]">
           <div className="relative rounded-3xl bg-surface/95 backdrop-blur-xl border border-petal/30 p-5 overflow-hidden">
             <div aria-hidden className="pointer-events-none absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-petal/70 to-transparent" />
-            <div className="flex items-center gap-2 mb-2">
-              <Sparkles className="size-3.5 text-petal" />
-              <p className="text-[10px] uppercase tracking-[0.32em] text-petal/90">{step.eyebrow}</p>
+
+            {/* 3D Panda mascot */}
+            <div className="absolute -top-8 -right-4 w-28 h-28 pointer-events-none drop-shadow-[0_10px_20px_rgba(236,120,155,0.35)]">
+              <Suspense fallback={null}>
+                <PandaGuide3D mood={step.mood ?? "wave"} />
+              </Suspense>
             </div>
-            <h2 className="font-serif italic text-2xl leading-tight text-candle mb-2">
-              {step.title}
-            </h2>
-            <div aria-hidden className="h-px w-12 bg-gradient-to-r from-petal/70 via-petal/30 to-transparent mb-3" />
-            <p className="text-sm text-candle-muted leading-relaxed">{step.body}</p>
+
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 14, filter: "blur(6px)" }}
+                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                exit={{ opacity: 0, y: -10, filter: "blur(6px)" }}
+                transition={{ duration: 0.35, ease: [0.22, 0.61, 0.36, 1] }}
+                className="pr-24"
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <Sparkles className="size-3.5 text-petal" />
+                  <p className="text-[10px] uppercase tracking-[0.32em] text-petal/90">{step.eyebrow}</p>
+                </div>
+                <h2 className="font-serif italic text-2xl leading-tight text-candle mb-2">
+                  {step.title}
+                </h2>
+                <div aria-hidden className="h-px w-12 bg-gradient-to-r from-petal/70 via-petal/30 to-transparent mb-3" />
+                <p className="text-sm text-candle-muted leading-relaxed">{step.body}</p>
+              </motion.div>
+            </AnimatePresence>
 
             <div className="flex items-center gap-2 mt-5">
-              <button
+              <motion.button
+                whileTap={{ scale: 0.92 }}
                 onClick={prev}
                 disabled={i === 0}
                 className="size-10 rounded-full bg-velvet border border-border text-candle-muted hover:text-petal disabled:opacity-30 flex items-center justify-center"
                 aria-label="Previous"
               >
                 <ArrowLeft className="size-4" />
-              </button>
+              </motion.button>
               {i < total - 1 ? (
-                <button
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.96 }}
                   onClick={next}
                   disabled={!ready}
                   className="flex-1 py-2.5 bg-petal text-velvet rounded-full font-semibold text-sm petal-glow flex items-center justify-center gap-2 disabled:opacity-60"
                 >
                   Continue <ArrowRight className="size-4" />
-                </button>
+                </motion.button>
               ) : (
-                <button
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.96 }}
                   onClick={finish}
                   className="flex-1 py-2.5 bg-petal text-velvet rounded-full font-semibold text-sm petal-glow flex items-center justify-center gap-2"
                 >
                   Enter PANDACINE
-                </button>
+                </motion.button>
               )}
               <span className="text-[10px] uppercase tracking-widest text-candle-muted whitespace-nowrap px-1">
                 {i + 1} / {total}
@@ -421,8 +443,9 @@ export function AppTour({ open, onClose }: { open: boolean; onClose: () => void 
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
     </div>,
     document.body,
   );
 }
+
