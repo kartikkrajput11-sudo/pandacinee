@@ -300,6 +300,7 @@ function Scene({
       </mesh>
 
       {effects.map((item) => {
+        if (item.kind === "nudge") return null;
         if (item.kind === "voice") {
           return (
             <group key={item.id}>
