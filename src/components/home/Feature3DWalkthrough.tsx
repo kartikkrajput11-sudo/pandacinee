@@ -36,7 +36,7 @@ export function Feature3DWalkthrough() {
       <div className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-velvet to-transparent z-20" />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-velvet to-transparent z-20" />
 
-      <div className="relative" style={{ height: `${SCENES.length * 100}vh` }}>
+      <div className="relative" data-walkthrough-root style={{ height: `${SCENES.length * 100}vh` }}>
         {/* Sticky 3D canvas */}
         <div className="sticky top-0 h-screen w-full">
           <Suspense
