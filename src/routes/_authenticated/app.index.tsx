@@ -172,6 +172,9 @@ function Home() {
 
       )}
 
+      {/* Scroll-driven 3D walkthrough */}
+      <Feature3DWalkthrough />
+
       {/* Section: Together */}
       <section className="relative z-10">
         <EditorialSectionHeader eyebrow="✦ Chapter II" title="Together" />
