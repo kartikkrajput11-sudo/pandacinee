@@ -21,6 +21,10 @@ function UserProfilePage() {
   const isPartner = partner?.id === userId;
   const isMe = me?.id === userId;
 
+  function openTour() {
+    window.dispatchEvent(new CustomEvent("pandacine:open-tour"));
+  }
+
   const qc = useQueryClient();
   const [busy, setBusy] = useState(false);
 
