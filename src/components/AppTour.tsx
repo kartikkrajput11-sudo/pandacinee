@@ -34,6 +34,7 @@ const STEPS: Step[] = [
     title: "Welcome to PANDACINE",
     body: "Your private velvet room. Everything for you and your panda lives right here.",
     placement: "bottom",
+    mood: "wave",
   },
   {
     route: "/app",
@@ -42,6 +43,7 @@ const STEPS: Step[] = [
     title: "Notifications",
     body: "The bell lights up whenever your panda writes, calls, or invites you — anywhere in the app.",
     placement: "bottom",
+    mood: "peek",
   },
   {
     route: "/app",
@@ -50,6 +52,7 @@ const STEPS: Step[] = [
     title: "Signature little things",
     body: "Love letters, timeline, constellation, watchlist — small daily rituals that make it feel like home.",
     placement: "top",
+    mood: "wave",
   },
   {
     route: "/app/chat",
@@ -58,6 +61,7 @@ const STEPS: Step[] = [
     title: "Chats & groups",
     body: "Voice notes, pins, forwards, view-once media, locked chats, polls, group codes. In groups your panda's messages glow softly so you never miss them.",
     placement: "bottom",
+    mood: "wave",
   },
   {
     route: "/app/chat",
@@ -66,6 +70,7 @@ const STEPS: Step[] = [
     title: "Affections",
     body: "Send a kiss, hug, headpat, handhold, boop or nudge — each plays a full-screen panda animation on your partner's device. Tiny rituals, big warmth.",
     placement: "bottom",
+    mood: "cheer",
   },
   {
     route: "/app/play",
@@ -74,6 +79,7 @@ const STEPS: Step[] = [
     title: "Games for two — and eight",
     body: "Chess, Ludo, Uno, 8-Ball Pool, Hide & Seek, Know-Me, Scribble. Duels for two, or seat up to eight friends. Observers can chat too.",
     placement: "top",
+    mood: "cheer",
   },
   {
     route: "/app/movies",
@@ -82,6 +88,7 @@ const STEPS: Step[] = [
     title: "Movies & series, synced",
     body: "Watch films together in lock-step: ready-check handshakes, rewind-on-buffer, and gentle drift correction — as if you were on the same couch.",
     placement: "bottom",
+    mood: "sleep",
   },
   {
     route: "/app/me",
@@ -90,6 +97,7 @@ const STEPS: Step[] = [
     title: "Badges & achievements",
     body: "Earn coins from rituals, streaks and movie nights, then buy honors — Candle Keeper, Night Owls, Eternal Flame. Equip up to three to shine on your profile.",
     placement: "top",
+    mood: "cheer",
   },
   {
     route: "/app",
@@ -98,8 +106,10 @@ const STEPS: Step[] = [
     title: "You're all set",
     body: "That's the whole cinema. Wander in — your panda is waiting.",
     placement: "bottom",
+    mood: "wave",
   },
 ];
+
 
 /* Wait for an element matching selector, up to timeout ms. */
 function waitForEl(selector: string, timeout = 4000): Promise<HTMLElement | null> {
