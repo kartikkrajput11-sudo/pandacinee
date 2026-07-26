@@ -8,22 +8,42 @@ const SCENES = [
   {
     eyebrow: "Chapter I",
     title: "Chat like you're touching",
-    body: "Kisses, hugs, nudges, panda stickers — every gesture animates on both screens in real time.",
+    body: "Kisses, hugs, nudges, headpats — every gesture animates on both screens in real time.",
   },
   {
     eyebrow: "Chapter II",
-    title: "Movie nights in sync",
-    body: "Two rooms, one reel. Host controls play, pause and seek — followers stay locked to the second.",
+    title: "Panda stickers & reactions",
+    body: "Long-press to react, double-tap to like, drop a panda sticker mid-sentence.",
   },
   {
     eyebrow: "Chapter III",
-    title: "Play together, always",
-    body: "Uno, Chess, Ludo, Hide & Seek, Know-Me — invite your person or a whole group in a tap.",
+    title: "Voice notes & shared media",
+    body: "Whisper a voice note, share a photo, view-once memories that fade after one glance.",
   },
   {
     eyebrow: "Chapter IV",
-    title: "Rooms, polls & milestones",
-    body: "Group voice notes, polls that feel like velvet, and cinematic celebrations on every anniversary.",
+    title: "Movie nights, perfectly synced",
+    body: "Host controls play, pause, seek — followers stay locked to the second across servers.",
+  },
+  {
+    eyebrow: "Chapter V",
+    title: "Play together, always",
+    body: "Uno, Chess, Ludo, 8-Ball, Hide & Seek, Know-Me — invite your person or a whole group.",
+  },
+  {
+    eyebrow: "Chapter VI",
+    title: "Group rooms & polls",
+    body: "Velvet group chats, custom themes, voice notes, and polls that feel like couture.",
+  },
+  {
+    eyebrow: "Chapter VII",
+    title: "Milestones worth celebrating",
+    body: "7 days, 100, 365 — cinematic anniversary animations rain across both screens.",
+  },
+  {
+    eyebrow: "Chapter VIII",
+    title: "Notifications that find you",
+    body: "A soft slide-in from the right whenever your panda writes — no matter where you are.",
   },
 ];
 
@@ -50,11 +70,11 @@ export function Feature3DWalkthrough() {
           </Suspense>
 
           {/* Progress rail */}
-          <div className="pointer-events-none absolute left-4 top-1/2 z-30 hidden -translate-y-1/2 flex-col gap-3 sm:flex">
-            {SCENES.map((s, i) => (
+          <div className="pointer-events-none absolute left-4 top-1/2 z-30 hidden -translate-y-1/2 flex-col gap-2 sm:flex">
+            {SCENES.map((_, i) => (
               <span
                 key={i}
-                className="h-8 w-[2px] rounded-full bg-petal/25"
+                className="h-6 w-[2px] rounded-full bg-petal/25"
                 data-idx={i}
               />
             ))}
