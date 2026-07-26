@@ -67,7 +67,7 @@ function Phone({
   });
 
   return (
-    <group ref={groupRef} position={[mine ? -0.88 : 0.88, -0.02, 0.06]} scale={1.08}>
+    <group ref={groupRef} position={[mine ? -0.82 : 0.82, -0.02, 0.04]} scale={0.92}>
       <mesh position={[0, 0, -0.035]}>
         <planeGeometry args={[1.42, 2.88]} />
         <meshBasicMaterial color={mine ? "#f0a6ba" : "#f6e8d7"} transparent opacity={0.16} />
@@ -292,7 +292,7 @@ function Scene({
 
   return (
     <>
-      <PerspectiveCamera makeDefault position={[0, 0.15, 4.55]} fov={37} />
+      <PerspectiveCamera makeDefault position={[0, 0.14, 6.05]} fov={39} />
       <ambientLight intensity={0.82} />
       <pointLight position={[-2.6, 2.8, 3.2]} intensity={78} color="#f0a6ba" distance={14} decay={2} />
       <pointLight position={[2.6, 2.4, 3.2]} intensity={54} color="#f6e8d7" distance={14} decay={2} />
