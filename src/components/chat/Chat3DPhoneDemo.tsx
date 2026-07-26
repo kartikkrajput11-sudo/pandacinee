@@ -75,6 +75,7 @@ export function Chat3DPhoneDemo({ meName, peerName }: { meName?: string | null; 
           </div>
 
           <div className="relative min-h-0 flex-1 overflow-hidden bg-gradient-to-b from-petal-soft/20 via-velvet to-background">
+            <div className="pointer-events-none absolute inset-0 z-[1] bg-[radial-gradient(circle_at_50%_32%,color-mix(in_oklab,var(--petal)_24%,transparent),transparent_46%)]" />
             <div className="absolute inset-x-0 top-0 z-10 flex justify-center px-3 pt-3">
               <div className="rounded-full border border-border bg-velvet/70 px-3 py-1 text-[10px] uppercase tracking-[0.24em] text-candle-muted backdrop-blur-md">
                 Mock chat · {names.me} + {names.peer}

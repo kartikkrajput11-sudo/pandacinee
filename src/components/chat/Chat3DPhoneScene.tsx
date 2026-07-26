@@ -67,14 +67,32 @@ function Phone({
   });
 
   return (
-    <group ref={groupRef} position={[mine ? -1.05 : 1.05, 0, 0]}>
+    <group ref={groupRef} position={[mine ? -0.88 : 0.88, -0.02, 0.06]} scale={1.08}>
+      <mesh position={[0, 0, -0.035]}>
+        <planeGeometry args={[1.42, 2.88]} />
+        <meshBasicMaterial color={mine ? "#f0a6ba" : "#f6e8d7"} transparent opacity={0.16} />
+      </mesh>
+
       <RoundedBox args={[1.24, 2.62, 0.13]} radius={0.13} smoothness={8} castShadow receiveShadow>
-        <meshPhysicalMaterial color="#151018" roughness={0.26} metalness={0.72} clearcoat={1} clearcoatRoughness={0.18} />
+        <meshPhysicalMaterial
+          color="#2b2031"
+          emissive={mine ? "#2d1020" : "#241d14"}
+          emissiveIntensity={0.38}
+          roughness={0.2}
+          metalness={0.64}
+          clearcoat={1}
+          clearcoatRoughness={0.14}
+        />
       </RoundedBox>
 
       <mesh position={[0, 0, 0.071]}>
         <planeGeometry args={[1.12, 2.44]} />
-        <meshBasicMaterial color="#120c16" />
+        <meshBasicMaterial color="#21152a" />
+      </mesh>
+
+      <mesh position={[0, 0, 0.073]}>
+        <planeGeometry args={[1.03, 2.22]} />
+        <meshBasicMaterial color={mine ? "#f0a6ba" : "#f6e8d7"} transparent opacity={0.055} />
       </mesh>
 
       <mesh position={[0, 1.1, 0.076]}>
@@ -274,15 +292,27 @@ function Scene({
 
   return (
     <>
-      <PerspectiveCamera makeDefault position={[0, 0.25, 5.35]} fov={39} />
-      <ambientLight intensity={0.42} />
-      <pointLight position={[-3, 2.4, 3.5]} intensity={34} color="#f0a6ba" distance={14} decay={2} />
-      <pointLight position={[3, 2.2, 3.5]} intensity={24} color="#f6e8d7" distance={14} decay={2} />
+      <PerspectiveCamera makeDefault position={[0, 0.15, 4.55]} fov={37} />
+      <ambientLight intensity={0.82} />
+      <pointLight position={[-2.6, 2.8, 3.2]} intensity={78} color="#f0a6ba" distance={14} decay={2} />
+      <pointLight position={[2.6, 2.4, 3.2]} intensity={54} color="#f6e8d7" distance={14} decay={2} />
+      <directionalLight position={[0, 2.5, 3]} intensity={1.4} color="#ffffff" />
       <Stars radius={24} depth={18} count={950} factor={2.3} fade speed={0.35} />
+
+      <Html center position={[0, -1.5, 0.3]} zIndexRange={[45, 35]}>
+        <div className="whitespace-nowrap rounded-full border border-petal/30 bg-velvet/75 px-4 py-1.5 text-[10px] font-semibold uppercase tracking-[0.24em] text-candle shadow-petal backdrop-blur-md">
+          live 3D phone chat
+        </div>
+      </Html>
 
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.64, 0]} receiveShadow>
         <circleGeometry args={[4.8, 80]} />
-        <meshStandardMaterial color="#120c16" roughness={0.88} />
+        <meshStandardMaterial color="#24142c" roughness={0.82} emissive="#12071b" emissiveIntensity={0.4} />
+      </mesh>
+
+      <mesh position={[0, -1.38, 0.05]} rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[1.35, 1.48, 96]} />
+        <meshBasicMaterial color="#f0a6ba" transparent opacity={0.36} side={THREE.DoubleSide} />
       </mesh>
 
       <Suspense fallback={null}>
@@ -294,9 +324,9 @@ function Scene({
         </Float>
       </Suspense>
 
-      <mesh position={[0, -0.04, 0]} rotation={[0, 0, Math.PI]}>
+      <mesh position={[0, -0.04, 0.02]} rotation={[0, 0, Math.PI]}>
         <torusGeometry args={[0.83, 0.012, 16, 90, Math.PI]} />
-        <meshBasicMaterial color="#f0a6ba" transparent opacity={0.34} />
+        <meshBasicMaterial color="#f0a6ba" transparent opacity={0.64} />
       </mesh>
 
       {effects.map((item) => {
