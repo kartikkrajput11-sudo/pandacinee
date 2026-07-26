@@ -11,6 +11,7 @@ import { Heart, ArrowRight, Users, LineChart, Clapperboard, BookHeart, Gift, Fea
 import { AvatarImg } from "@/components/AvatarImg";
 import NotificationCenter from "@/components/NotificationCenter";
 import { EditorialPageHeader, EditorialSectionHeader } from "@/components/editorial/SectionHeader";
+import { Feature3DWalkthrough } from "@/components/home/Feature3DWalkthrough";
 
 
 
@@ -170,6 +171,9 @@ function Home() {
         </section>
 
       )}
+
+      {/* Scroll-driven 3D walkthrough */}
+      <Feature3DWalkthrough />
 
       {/* Section: Together */}
       <section className="relative z-10">
