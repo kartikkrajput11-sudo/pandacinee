@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
-import Globe from "@/components/ui/globe";
+import { PandaPhone } from "@/components/ui/panda-phone";
 import { cn } from "@/lib/utils";
+
 
 interface ScrollGlobeProps {
   sections: {
@@ -34,15 +35,18 @@ export function ScrollGlobe({ sections, globeConfig, className }: ScrollGlobePro
     () =>
       sections.map((_, i) => {
         const presets = [
-          { top: "50%", left: "75%", scale: 1.4 },
-          { top: "25%", left: "50%", scale: 0.9 },
-          { top: "15%", left: "90%", scale: 2 },
-          { top: "50%", left: "50%", scale: 1.8 },
+          { top: "50%", left: "72%", scale: 1 },
+          { top: "50%", left: "28%", scale: 1 },
+          { top: "50%", left: "75%", scale: 1.05 },
+          { top: "50%", left: "25%", scale: 1.05 },
+          { top: "50%", left: "72%", scale: 1 },
+          { top: "50%", left: "50%", scale: 1.15 },
         ];
         return presets[i % presets.length];
       }),
     [sections]
   );
+
 
   const calculatedPositions = useMemo(() => {
     const positions = globeConfig?.positions ?? defaultPositions;
@@ -164,16 +168,17 @@ export function ScrollGlobe({ sections, globeConfig, className }: ScrollGlobePro
       </div>
 
       <div
-        className="fixed z-10 pointer-events-none will-change-transform transition-all duration-[1400ms] ease-[cubic-bezier(0.23,1,0.32,1)]"
+        className="fixed z-10 pointer-events-none will-change-transform transition-all duration-[1200ms] ease-[cubic-bezier(0.23,1,0.32,1)] left-1/2 top-1/2"
         style={{
           transform: globeTransform,
-          filter: `opacity(${activeSection === sections.length - 1 ? 0.4 : 0.85})`,
+          filter: `opacity(${activeSection === sections.length - 1 ? 0.55 : 1})`,
         }}
       >
-        <div className="scale-75 sm:scale-90 lg:scale-100">
-          <Globe />
+        <div className="scale-[0.65] sm:scale-75 lg:scale-90">
+          <PandaPhone scene={activeSection} />
         </div>
       </div>
+
 
       {sections.map((section, index) => (
         <section
