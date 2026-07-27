@@ -35,15 +35,18 @@ export function ScrollGlobe({ sections, globeConfig, className }: ScrollGlobePro
     () =>
       sections.map((_, i) => {
         const presets = [
-          { top: "50%", left: "75%", scale: 1.4 },
-          { top: "25%", left: "50%", scale: 0.9 },
-          { top: "15%", left: "90%", scale: 2 },
-          { top: "50%", left: "50%", scale: 1.8 },
+          { top: "50%", left: "72%", scale: 1 },
+          { top: "50%", left: "28%", scale: 1 },
+          { top: "50%", left: "75%", scale: 1.05 },
+          { top: "50%", left: "25%", scale: 1.05 },
+          { top: "50%", left: "72%", scale: 1 },
+          { top: "50%", left: "50%", scale: 1.15 },
         ];
         return presets[i % presets.length];
       }),
     [sections]
   );
+
 
   const calculatedPositions = useMemo(() => {
     const positions = globeConfig?.positions ?? defaultPositions;
