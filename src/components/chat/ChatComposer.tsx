@@ -529,14 +529,25 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
 
           <button
             type="button"
-            onClick={() => setWhisper((w) => !w)}
+            onClick={() => {
+              try {
+                setMenuOpen(true);
+                setStickersOpen(false);
+                setOpenGroup("affection");
+              } catch (err) {
+                console.error("[ChatComposer] failed to open affection panel", err);
+                toast.error("Couldn't open affection");
+              }
+            }}
             className={`size-11 rounded-full flex items-center justify-center shrink-0 transition-colors ${
-              whisper ? "bg-petal text-velvet petal-glow" : "bg-surface border border-border text-petal"
+              openGroup === "affection"
+                ? "bg-petal text-velvet petal-glow"
+                : "bg-surface border border-border text-petal hover:border-petal/60"
             }`}
-            title={whisper ? "Whisper on — text arrives blurred" : "Send as whisper (blurred until tapped)"}
-            aria-label="Toggle whisper mode"
+            title="Send affection — kiss, hug, headpat & more"
+            aria-label="Open affection panel"
           >
-            {whisper ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+            <Heart className="size-4 fill-current" />
           </button>
           <div className="flex-1 relative min-w-0">
             <input
