@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
-import Globe from "@/components/ui/globe";
+import { PandaPhone } from "@/components/ui/panda-phone";
 import { cn } from "@/lib/utils";
+
 
 interface ScrollGlobeProps {
   sections: {
