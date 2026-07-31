@@ -533,7 +533,7 @@ function ChatBubbleImpl({
               <div className="flex flex-col items-center py-2 w-full">
                 <div className="relative w-[210px] bg-velvet border border-candle/20 px-4 pt-4 pb-3 flex flex-col items-center text-center shadow-[0_0_40px_rgba(255,143,166,0.05)]">
                   <span className="absolute top-1.5 left-2 text-[8px] font-semibold tracking-[0.2em] uppercase text-candle/40 max-w-[70%] truncate">from {sender}</span>
-                  <span className="text-5xl mb-2 mt-2 select-none">{affectionFx.emoji}</span>
+                  <img src={affectionFx.img} alt={affectionFx.alt} loading="lazy" className="w-16 h-16 object-contain mb-2 mt-2" style={{ filter: `drop-shadow(0 0 20px ${affectionFx.glow})` }} />
                   <span className={`text-[10px] font-bold tracking-[0.2em] uppercase mb-0.5 ${affectionFx.tone}`}>{affectionFx.label}</span>
                   <p className="font-serif italic text-candle text-base leading-tight">{mine ? affectionFx.mine : affectionFx.theirs}</p>
                   <div className="mt-3 flex flex-col items-center w-full">
