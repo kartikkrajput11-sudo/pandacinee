@@ -119,7 +119,7 @@ export function KissOverlay({ trigger }: { trigger: number }) {
           />
 
           {/* Main lip imprint — draggable */}
-          <MovableAffection hint="drag the kiss">
+          <MovableAffection tint="rose">
             <div
               className="animate-kiss-imprint origin-center"
               style={{

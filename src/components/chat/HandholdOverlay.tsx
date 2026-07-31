@@ -38,7 +38,7 @@ export function HandholdOverlay({ trigger }: { trigger: number }) {
           />
 
           {/* Sticker */}
-          <MovableAffection hint="drag the hands">
+          <MovableAffection tint="rose">
             <img
               src={pandaHandhold}
               alt="two pandas holding hands"

@@ -34,7 +34,7 @@ export function AngerOverlay({ trigger }: { trigger: number }) {
         }}
       />
 
-      <MovableAffection hint="drag the anger">
+      <MovableAffection tint="red">
         <img
           src={pandaAnger}
           alt="angry panda"

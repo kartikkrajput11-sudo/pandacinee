@@ -55,7 +55,7 @@ export function TickleOverlay({ trigger }: { trigger: number }) {
         ))}
       </div>
 
-      <MovableAffection hint="drag the tickle">
+      <MovableAffection tint="gold">
         <div className="relative">
           {/* orbiting feathers */}
           {feathers.map((i) => (

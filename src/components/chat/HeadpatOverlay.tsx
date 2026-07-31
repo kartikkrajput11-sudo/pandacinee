@@ -50,7 +50,7 @@ export function HeadpatOverlay({ trigger }: { trigger: number }) {
           </div>
 
           {/* Descending hand */}
-          <MovableAffection hint="drag the pat">
+          <MovableAffection tint="gold">
             <div
               className="animate-headpat-hand select-none text-[92px] leading-none"
               style={{

@@ -51,7 +51,7 @@ export function BoopOverlay({ trigger }: { trigger: number }) {
           </div>
 
           {/* Sticker with a bouncy pop */}
-          <MovableAffection hint="drag the boop">
+          <MovableAffection tint="gold">
             <img
               src={pandaBoop}
               alt="two pandas booping noses"
