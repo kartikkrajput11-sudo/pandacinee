@@ -9,6 +9,10 @@ import { HugOverlay } from "@/components/chat/HugOverlay";
 import { HeadpatOverlay } from "@/components/chat/HeadpatOverlay";
 import { HandholdOverlay } from "@/components/chat/HandholdOverlay";
 import { BoopOverlay } from "@/components/chat/BoopOverlay";
+import { SlapOverlay } from "@/components/chat/SlapOverlay";
+import { AngerOverlay } from "@/components/chat/AngerOverlay";
+import { TickleOverlay } from "@/components/chat/TickleOverlay";
+import { WinkOverlay } from "@/components/chat/WinkOverlay";
 import { UnlockCelebration } from "@/components/chat/UnlockCelebration";
 import OwnersStoryOverlay from "@/components/OwnersStoryOverlay";
 import { MilestonePreview, type Milestone } from "@/components/PairAnniversaryCelebration";
@@ -30,6 +34,10 @@ export default function AnimationsTab() {
   const [headpatTrigger, setHeadpatTrigger] = useState(0);
   const [handholdTrigger, setHandholdTrigger] = useState(0);
   const [boopTrigger, setBoopTrigger] = useState(0);
+  const [slapTrigger, setSlapTrigger] = useState(0);
+  const [angerTrigger, setAngerTrigger] = useState(0);
+  const [tickleTrigger, setTickleTrigger] = useState(0);
+  const [winkTrigger, setWinkTrigger] = useState(0);
   const [unlockTrigger, setUnlockTrigger] = useState(0);
   const [storyOpen, setStoryOpen] = useState(false);
   const [petalsOn, setPetalsOn] = useState(false);
@@ -54,6 +62,10 @@ export default function AnimationsTab() {
         { label: "Headpat — golden ripple", onTest: () => setHeadpatTrigger((v) => v + 1) },
         { label: "Handhold — pandas holding hands", onTest: () => setHandholdTrigger((v) => v + 1) },
         { label: "Boop — nose-tap ripple", onTest: () => setBoopTrigger((v) => v + 1) },
+        { label: "Slap — movable palm + shake", onTest: () => setSlapTrigger((v) => v + 1), hint: "Drag the palm and release to slap again" },
+        { label: "Anger — steam & red vignette", onTest: () => setAngerTrigger((v) => v + 1) },
+        { label: "Tickle — feather & giggles", onTest: () => setTickleTrigger((v) => v + 1) },
+        { label: "Wink — sheen sweep", onTest: () => setWinkTrigger((v) => v + 1) },
       ],
     },
     {
@@ -207,6 +219,10 @@ export default function AnimationsTab() {
       <HeadpatOverlay trigger={headpatTrigger} />
       <HandholdOverlay trigger={handholdTrigger} />
       <BoopOverlay trigger={boopTrigger} />
+      <SlapOverlay trigger={slapTrigger} />
+      <AngerOverlay trigger={angerTrigger} />
+      <TickleOverlay trigger={tickleTrigger} />
+      <WinkOverlay trigger={winkTrigger} />
       <UnlockCelebration trigger={unlockTrigger} />
       <OwnersStoryOverlay open={storyOpen} onClose={() => setStoryOpen(false)} />
       {petalsOn && (
