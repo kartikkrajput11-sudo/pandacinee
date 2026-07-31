@@ -48,14 +48,25 @@ export function SignedImage({ path, className }: { path: string; className?: str
           onClick={() => setOpen(false)}
           onPointerDown={stop}
         >
-          <button
-            type="button"
-            onClick={(e) => { e.stopPropagation(); setOpen(false); }}
-            className="absolute top-4 right-4 size-11 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/15 flex items-center justify-center backdrop-blur"
-            aria-label="Close"
-          >
-            <X className="size-5" />
-          </button>
+          <div className="absolute top-4 right-4 flex items-center gap-2">
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); saveMediaToGallery(url, { kind: "image" }); }}
+              className="h-11 px-4 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/15 flex items-center gap-2 backdrop-blur text-xs font-medium"
+              aria-label="Save photo to gallery"
+              title="Save to gallery"
+            >
+              <Download className="size-4" /> Save
+            </button>
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); setOpen(false); }}
+              className="size-11 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/15 flex items-center justify-center backdrop-blur"
+              aria-label="Close"
+            >
+              <X className="size-5" />
+            </button>
+          </div>
           <span className="absolute top-5 left-4 text-[9px] uppercase tracking-[0.28em] text-white/70 bg-black/40 backdrop-blur-sm px-2 py-0.5 rounded-full border border-white/10">
             Pandacine
           </span>
