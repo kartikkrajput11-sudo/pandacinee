@@ -213,26 +213,29 @@ export default function AnimationsTab() {
       {/* Live animation demos ─────────────────────────────── */}
       <MicroDemos />
 
-      {/* Overlay hosts */}
-      <KissOverlay trigger={kissTrigger} />
-      <HugOverlay trigger={hugTrigger} />
-      <HeadpatOverlay trigger={headpatTrigger} />
-      <HandholdOverlay trigger={handholdTrigger} />
-      <BoopOverlay trigger={boopTrigger} />
-      <SlapOverlay trigger={slapTrigger} />
-      <AngerOverlay trigger={angerTrigger} />
-      <TickleOverlay trigger={tickleTrigger} />
-      <WinkOverlay trigger={winkTrigger} />
-      <UnlockCelebration trigger={unlockTrigger} />
-      <OwnersStoryOverlay open={storyOpen} onClose={() => setStoryOpen(false)} />
-      {petalsOn && (
-        <div className="pointer-events-none fixed inset-0 z-40 overflow-hidden">
-          <Petals count={20} />
-        </div>
-      )}
-      {anniv && <AnnivPreview name={anniv.name} label={anniv.label} />}
-      {notif && <NotifPreview text={notif} />}
-      {milestone && <MilestonePreview milestone={milestone} onClose={() => setMilestone(null)} />}
+      {/* Overlay hosts — portalled to <body> so the admin panel's
+          backdrop-blur containers don't clip fixed-position effects */}
+      <OverlayPortal>
+        <KissOverlay trigger={kissTrigger} />
+        <HugOverlay trigger={hugTrigger} />
+        <HeadpatOverlay trigger={headpatTrigger} />
+        <HandholdOverlay trigger={handholdTrigger} />
+        <BoopOverlay trigger={boopTrigger} />
+        <SlapOverlay trigger={slapTrigger} />
+        <AngerOverlay trigger={angerTrigger} />
+        <TickleOverlay trigger={tickleTrigger} />
+        <WinkOverlay trigger={winkTrigger} />
+        <UnlockCelebration trigger={unlockTrigger} />
+        <OwnersStoryOverlay open={storyOpen} onClose={() => setStoryOpen(false)} />
+        {petalsOn && (
+          <div className="pointer-events-none fixed inset-0 z-[90] overflow-hidden">
+            <Petals count={20} />
+          </div>
+        )}
+        {anniv && <AnnivPreview name={anniv.name} label={anniv.label} />}
+        {notif && <NotifPreview text={notif} />}
+        {milestone && <MilestonePreview milestone={milestone} onClose={() => setMilestone(null)} />}
+      </OverlayPortal>
 
     </div>
   );
