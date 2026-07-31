@@ -30,7 +30,7 @@ export function SlapOverlay({ trigger }: { trigger: number }) {
     // land the first slap once the swing arrives
     const t1 = window.setTimeout(() => land(cx, cy), 420);
     const t2 = window.setTimeout(() => setPos({ x: cx, y: cy }), 900);
-    const t3 = window.setTimeout(() => { setActive(false); setPos(null); }, 7000);
+    const t3 = window.setTimeout(() => { setActive(false); setPos(null); }, 3200);
     timers.current.push(t1, t2, t3);
     return () => { [t1, t2, t3].forEach(window.clearTimeout); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
