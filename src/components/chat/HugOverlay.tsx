@@ -38,7 +38,7 @@ export function HugOverlay({ trigger }: { trigger: number }) {
           />
 
           {/* Panda sticker */}
-          <MovableAffection hint="drag the hug">
+          <MovableAffection tint="rose">
             <img
               src={pandaHug}
               alt="two pandas hugging"

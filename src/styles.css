@@ -1794,3 +1794,22 @@ body { overscroll-behavior-y: contain; }
   100% { transform: translateX(140%) skewX(-18deg); opacity: 0; }
 }
 .animate-wink-sheen { animation: wink-sheen 1400ms ease-out forwards; }
+
+/* ---- Premium affection stage ---- */
+@keyframes affection-halo { to { transform: rotate(360deg); } }
+@keyframes affection-bloom {
+  0%, 100% { opacity: .75; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.08); }
+}
+@keyframes affection-ring {
+  0%, 100% { opacity: .55; transform: scale(1); }
+  50% { opacity: .9; transform: scale(1.05); }
+}
+@keyframes affection-float {
+  0%, 100% { transform: translateY(0) rotate(-1deg); }
+  50% { transform: translateY(-10px) rotate(1deg); }
+}
+.animate-affection-halo  { animation: affection-halo 9s linear infinite; }
+.animate-affection-bloom { animation: affection-bloom 3.2s ease-in-out infinite; }
+.animate-affection-ring  { animation: affection-ring 2.6s ease-in-out infinite; }
+.animate-affection-float { animation: affection-float 3.4s ease-in-out infinite; }
