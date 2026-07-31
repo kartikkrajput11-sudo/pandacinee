@@ -1813,3 +1813,18 @@ body { overscroll-behavior-y: contain; }
 .animate-affection-bloom { animation: affection-bloom 3.2s ease-in-out infinite; }
 .animate-affection-ring  { animation: affection-ring 2.6s ease-in-out infinite; }
 .animate-affection-float { animation: affection-float 3.4s ease-in-out infinite; }
+
+/* ---- Heartbeat ping ---- */
+@keyframes heartbeat-pulse {
+  0%, 100% { transform: scale(1); }
+  14% { transform: scale(1.22); }
+  28% { transform: scale(1); }
+  42% { transform: scale(1.16); }
+  56% { transform: scale(1); }
+}
+@keyframes heartbeat-wave {
+  0% { transform: scale(0.5); opacity: 0.75; }
+  100% { transform: scale(2.6); opacity: 0; }
+}
+.animate-heartbeat-pulse { animation: heartbeat-pulse 1.15s ease-in-out infinite; }
+.animate-heartbeat-wave { animation: heartbeat-wave 1.3s ease-out infinite; }
