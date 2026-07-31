@@ -4,6 +4,7 @@ import { Heart, Pin, Trash2, Reply, Check, CheckCheck, Download, Zap, Phone, Vid
 import { toast } from "sonner";
 import { translateMessage } from "@/lib/chat-tools.functions";
 import { signMedia, type MessageRow } from "@/lib/chat";
+import { saveMediaToGallery } from "@/lib/save-media";
 import { VoicePlayer } from "./VoicePlayer";
 import { SignedImage } from "./SignedImage";
 import { SignedVideo } from "./SignedVideo";
@@ -147,19 +148,10 @@ function ChatBubbleImpl({
     try {
       const u = await signMedia(m.media_url);
       if (!u) throw new Error("Unable to load media");
-      const res = await fetch(u);
-      const blob = await res.blob();
-      const ext = (m.type === "video" ? "mp4" : (blob.type.split("/")[1] || "jpg")).split(";")[0];
-      const filename = `pandacine-${m.type}-${m.id.slice(0, 8)}.${ext}`;
-      const objectUrl = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = objectUrl;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
-      toast.success(m.type === "video" ? "Video saved" : "Saved to your device");
+      await saveMediaToGallery(u, {
+        kind: m.type === "video" ? "video" : "image",
+        name: `pandacine-${m.type}-${m.id.slice(0, 8)}`,
+      });
     } catch (e: any) {
       toast.error(e?.message ?? "Couldn't save media");
     }
