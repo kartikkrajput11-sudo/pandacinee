@@ -463,16 +463,25 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
               </div>
             )}
 
-            {openGroup === "affection" && (
-              <div className="mt-2 grid grid-cols-2 gap-2 animate-fade-in">
-                <GroupChoice icon={<Heart className="size-4 fill-current" />} label="Kiss" onClick={() => { setOpenGroup(null); sendKiss(); }} />
-                <GroupChoice icon={<HeartHandshake className="size-4" />} label="Hug" onClick={() => { setOpenGroup(null); sendHug(); }} />
-                <GroupChoice icon={<Hand className="size-4" />} label="Headpat" onClick={() => { setOpenGroup(null); sendHeadpat(); }} />
-                <GroupChoice icon={<Handshake className="size-4" />} label="Handhold" onClick={() => { setOpenGroup(null); sendHandhold(); }} />
-                <GroupChoice icon={<Pointer className="size-4" />} label="Boop" onClick={() => { setOpenGroup(null); sendBoop(); }} />
-                <GroupChoice icon={<Zap className="size-4" />} label="Nudge" onClick={() => { setOpenGroup(null); sendNudge(); }} />
-              </div>
-            )}
+          </div>
+        </div>
+      )}
+
+      {openGroup === "affection" && (
+        <div className="relative mx-3 mb-2 rounded-3xl border border-petal/30 bg-surface/90 backdrop-blur-2xl overflow-hidden animate-fade-in petal-glow">
+          <div className="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 w-64 h-24 rounded-full bg-petal/20 blur-3xl" />
+          <div className="relative px-3 pt-2.5 pb-3">
+            <p className="text-[8px] uppercase tracking-[0.32em] text-petal/80 font-medium text-center mb-2">
+              Affection
+            </p>
+            <div className="grid grid-cols-3 gap-2">
+              <GroupChoice icon={<Heart className="size-4 fill-current" />} label="Kiss" onClick={() => { setOpenGroup(null); sendKiss(); }} />
+              <GroupChoice icon={<HeartHandshake className="size-4" />} label="Hug" onClick={() => { setOpenGroup(null); sendHug(); }} />
+              <GroupChoice icon={<Hand className="size-4" />} label="Headpat" onClick={() => { setOpenGroup(null); sendHeadpat(); }} />
+              <GroupChoice icon={<Handshake className="size-4" />} label="Handhold" onClick={() => { setOpenGroup(null); sendHandhold(); }} />
+              <GroupChoice icon={<Pointer className="size-4" />} label="Boop" onClick={() => { setOpenGroup(null); sendBoop(); }} />
+              <GroupChoice icon={<Zap className="size-4" />} label="Nudge" onClick={() => { setOpenGroup(null); sendNudge(); }} />
+            </div>
           </div>
         </div>
       )}
