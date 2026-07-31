@@ -22,6 +22,8 @@ import pandaSlap from "@/assets/panda-slap-sticker.png";
 import pandaAnger from "@/assets/panda-anger-sticker.png";
 import pandaTickle from "@/assets/panda-tickle-sticker.png";
 import pandaWink from "@/assets/panda-wink-sticker.png";
+import { LoveLetterCard, TimeCapsuleCard, ConfessionCard, MoodCard } from "./RitualCards";
+
 
 
 function relTime(iso?: string | null) {
