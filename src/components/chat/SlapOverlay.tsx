@@ -54,6 +54,7 @@ export function SlapOverlay({ trigger }: { trigger: number }) {
 
   return (
     <div className="fixed inset-0 z-40 overflow-hidden pointer-events-none">
+      <div className="absolute inset-0 bg-velvet/50 backdrop-blur-md animate-fade-in" />
       {/* Hot red flash */}
       <div
         className="absolute inset-0 animate-anger-vignette"
