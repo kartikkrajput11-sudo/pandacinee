@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { MovableAffection } from "./MovableAffection";
 
 /**
  * Headpat overlay — a gentle golden hand descends and pats, sending
@@ -14,7 +15,7 @@ export function HeadpatOverlay({ trigger }: { trigger: number }) {
     if (!trigger) return;
     const id = Date.now();
     setBursts((b) => [...b, { id }]);
-    const t = window.setTimeout(() => setBursts((b) => b.filter((x) => x.id !== id)), 2800);
+    const t = window.setTimeout(() => setBursts((b) => b.filter((x) => x.id !== id)), 6000);
     return () => window.clearTimeout(t);
   }, [trigger]);
 
@@ -48,7 +49,7 @@ export function HeadpatOverlay({ trigger }: { trigger: number }) {
           </div>
 
           {/* Descending hand */}
-          <div className="absolute inset-0 flex items-center justify-center">
+          <MovableAffection hint="drag the pat">
             <div
               className="animate-headpat-hand select-none text-[92px] leading-none"
               style={{
@@ -57,7 +58,7 @@ export function HeadpatOverlay({ trigger }: { trigger: number }) {
             >
               ✋
             </div>
-          </div>
+          </MovableAffection>
 
           {/* Sparkles */}
           <div className="absolute inset-0 flex items-center justify-center">

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { MovableAffection } from "./MovableAffection";
 import pandaBoop from "@/assets/panda-boop-sticker.png";
 
 /**
@@ -15,7 +16,7 @@ export function BoopOverlay({ trigger }: { trigger: number }) {
     if (!trigger) return;
     const id = Date.now();
     setBursts((b) => [...b, { id }]);
-    const t = window.setTimeout(() => setBursts((b) => b.filter((x) => x.id !== id)), 2400);
+    const t = window.setTimeout(() => setBursts((b) => b.filter((x) => x.id !== id)), 6000);
     return () => window.clearTimeout(t);
   }, [trigger]);
 
@@ -49,7 +50,7 @@ export function BoopOverlay({ trigger }: { trigger: number }) {
           </div>
 
           {/* Sticker with a bouncy pop */}
-          <div className="absolute inset-0 flex items-center justify-center">
+          <MovableAffection hint="drag the boop">
             <img
               src={pandaBoop}
               alt="two pandas booping noses"
@@ -63,7 +64,7 @@ export function BoopOverlay({ trigger }: { trigger: number }) {
               }}
               draggable={false}
             />
-          </div>
+          </MovableAffection>
 
           {/* Tiny sparks around */}
           <div className="absolute inset-0 flex items-center justify-center">

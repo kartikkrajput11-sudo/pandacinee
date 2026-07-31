@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { MovableAffection } from "./MovableAffection";
+
 
 /**
  * Kiss overlay — a realistic soft lip imprint smooches down at
@@ -115,8 +117,8 @@ export function KissOverlay({ trigger }: { trigger: number }) {
             }}
           />
 
-          {/* Main lip imprint */}
-          <div className="absolute inset-0 flex items-center justify-center">
+          {/* Main lip imprint — draggable */}
+          <MovableAffection hint="drag the kiss">
             <div
               className="animate-kiss-imprint origin-center"
               style={{
@@ -126,7 +128,8 @@ export function KissOverlay({ trigger }: { trigger: number }) {
             >
               <LipMark size={200} />
             </div>
-          </div>
+          </MovableAffection>
+
 
           {/* Drifting small imprints */}
           <div className="absolute inset-0 flex items-end justify-center pb-24">

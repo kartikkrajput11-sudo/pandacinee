@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { MovableAffection } from "./MovableAffection";
 
 /**
  * Anger overlay — a stormy "I'm mad at you" flare: red vignette,
@@ -15,7 +16,7 @@ export function AngerOverlay({ trigger }: { trigger: number }) {
     } catch (err) {
       console.error("[AngerOverlay] vibrate failed", err);
     }
-    const t = window.setTimeout(() => setOn(false), 2400);
+    const t = window.setTimeout(() => setOn(false), 6000);
     return () => window.clearTimeout(t);
   }, [trigger]);
 
@@ -31,13 +32,13 @@ export function AngerOverlay({ trigger }: { trigger: number }) {
         }}
       />
 
-      <div className="absolute inset-0 flex items-center justify-center">
+      <MovableAffection hint="drag the anger">
         <span className="text-7xl animate-anger-throb select-none" style={{ filter: "drop-shadow(0 0 22px hsl(0 90% 55% / 0.7))" }}>
           😤
         </span>
         <span className="absolute -translate-x-16 -translate-y-14 text-4xl animate-anger-throb select-none">💢</span>
         <span className="absolute translate-x-16 -translate-y-12 text-3xl animate-anger-throb select-none" style={{ animationDelay: "120ms" }}>💢</span>
-      </div>
+      </MovableAffection>
 
       {/* Steam puffs */}
       <div className="absolute inset-0 flex items-center justify-center">

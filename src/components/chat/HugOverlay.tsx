@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { MovableAffection } from "./MovableAffection";
 import pandaHug from "@/assets/panda-hug-sticker.png";
 
 /**
@@ -15,7 +16,7 @@ export function HugOverlay({ trigger }: { trigger: number }) {
     if (!trigger) return;
     const id = Date.now();
     setBursts((b) => [...b, { id }]);
-    const t = window.setTimeout(() => setBursts((b) => b.filter((x) => x.id !== id)), 2800);
+    const t = window.setTimeout(() => setBursts((b) => b.filter((x) => x.id !== id)), 6000);
     return () => window.clearTimeout(t);
   }, [trigger]);
 
@@ -36,7 +37,7 @@ export function HugOverlay({ trigger }: { trigger: number }) {
           />
 
           {/* Panda sticker */}
-          <div className="absolute inset-0 flex items-center justify-center">
+          <MovableAffection hint="drag the hug">
             <img
               src={pandaHug}
               alt="two pandas hugging"
@@ -50,7 +51,7 @@ export function HugOverlay({ trigger }: { trigger: number }) {
               }}
               draggable={false}
             />
-          </div>
+          </MovableAffection>
 
           {/* Caption */}
           <div className="absolute inset-x-0 top-[calc(50%+140px)] flex flex-col items-center gap-2 animate-kiss-caption">
