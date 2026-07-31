@@ -181,6 +181,10 @@ function ChatPeer() {
   const [angerTick, setAngerTick] = useState(0);
   const [tickleTick, setTickleTick] = useState(0);
   const [winkTick, setWinkTick] = useState(0);
+  const [heartbeatTick, setHeartbeatTick] = useState(0);
+  const [moodTint, setMoodTint] = useState<string | null>(null);
+  const [duetOpen, setDuetOpen] = useState(false);
+
   const [shake, setShake] = useState(false);
   const lastFxIdRef = useRef<string | null>(null);
   const playedFxRef = useRef<Set<string>>(new Set());
