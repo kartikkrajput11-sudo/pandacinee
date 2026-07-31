@@ -188,6 +188,12 @@ function ChatPeer() {
   const [heartbeatTick, setHeartbeatTick] = useState(0);
   const [moodTint, setMoodTint] = useState<string | null>(null);
   const [duetOpen, setDuetOpen] = useState(false);
+  useEffect(() => {
+    const open = () => setDuetOpen(true);
+    window.addEventListener("pandacine:open-duet", open);
+    return () => window.removeEventListener("pandacine:open-duet", open);
+  }, []);
+
 
   const [shake, setShake] = useState(false);
   const lastFxIdRef = useRef<string | null>(null);
