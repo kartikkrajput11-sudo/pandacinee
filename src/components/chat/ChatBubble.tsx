@@ -171,13 +171,20 @@ function ChatBubbleImpl({
   const isHeadpat = m.type === "headpat";
   const isHandhold = m.type === "handhold";
   const isBoop = m.type === "boop";
+  const AFFECTION_FX: Record<string, { emoji: string; label: string; mine: string; theirs: string; tone: string }> = {
+    slap: { emoji: "🤚", label: "Slap", mine: "a playful smack", theirs: "slapped you 💢", tone: "text-red-300" },
+    anger: { emoji: "😤", label: "Anger", mine: "hmph! I'm mad", theirs: "is mad at you 💢", tone: "text-red-300" },
+    tickle: { emoji: "🪶", label: "Tickle", mine: "tickle tickle", theirs: "tickled you 🪶", tone: "text-petal" },
+    wink: { emoji: "😉", label: "Wink", mine: "sent a wink", theirs: "winked at you 😉", tone: "text-petal" },
+  };
+  const affectionFx = AFFECTION_FX[m.type as string] ?? null;
   const isNudge = m.type === "nudge";
   const isWhisper = m.type === "whisper";
   const isCall = m.type === "call";
   const [whisperRevealed, setWhisperRevealed] = useState(false);
   useSharedTick(isLast);
 
-  const bare = isSticker || isWatchInvite || isGameInvite || isMovieWheel || isKiss || isHug || isHeadpat || isHandhold || isBoop || isNudge || isCall;
+  const bare = isSticker || isWatchInvite || isGameInvite || isMovieWheel || isKiss || isHug || isHeadpat || isHandhold || isBoop || isNudge || isCall || !!affectionFx;
 
   // ---- Gestures: long-press for actions, swipe for reply, double-tap for heart ----
   const [dragX, setDragX] = useState(0);
@@ -360,6 +367,10 @@ function ChatBubbleImpl({
                  replyTo.type === "headpat" ? "✋ headpat" :
                  replyTo.type === "handhold" ? "🤝 handhold" :
                  replyTo.type === "boop" ? "👉 boop" :
+                 replyTo.type === "slap" ? "🤚 slap" :
+                 replyTo.type === "anger" ? "😤 anger" :
+                 replyTo.type === "tickle" ? "🪶 tickle" :
+                 replyTo.type === "wink" ? "😉 wink" :
                  replyTo.type === "whisper" ? "🤫 whisper" :
                  replyTo.type === "sticker" && isPandaStickerContent(replyTo.content) ? "🐼 Sticker" :
                  replyTo.content}
@@ -506,6 +517,25 @@ function ChatBubbleImpl({
                   <div className="absolute top-1 right-1 w-1.5 h-1.5 border-t border-r border-candle/30" />
                   <div className="absolute bottom-1 left-1 w-1.5 h-1.5 border-b border-l border-candle/30" />
                   <div className="absolute bottom-1 right-1 w-1.5 h-1.5 border-b border-r border-candle/30" />
+                </div>
+              </div>
+            );
+          })()}
+
+          {affectionFx && (() => {
+            const time = new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false });
+            const sender = mine ? "You" : (partnerName || "Them");
+            return (
+              <div className="flex flex-col items-center py-2 w-full">
+                <div className="relative w-[210px] bg-velvet border border-candle/20 px-4 pt-4 pb-3 flex flex-col items-center text-center shadow-[0_0_40px_rgba(255,143,166,0.05)]">
+                  <span className="absolute top-1.5 left-2 text-[8px] font-semibold tracking-[0.2em] uppercase text-candle/40 max-w-[70%] truncate">from {sender}</span>
+                  <span className="text-5xl mb-2 mt-2 select-none">{affectionFx.emoji}</span>
+                  <span className={`text-[10px] font-bold tracking-[0.2em] uppercase mb-0.5 ${affectionFx.tone}`}>{affectionFx.label}</span>
+                  <p className="font-serif italic text-candle text-base leading-tight">{mine ? affectionFx.mine : affectionFx.theirs}</p>
+                  <div className="mt-3 flex flex-col items-center w-full">
+                    <div className="h-px w-6 bg-candle/20 mb-1.5" />
+                    <span className="text-[8px] font-bold tracking-[0.2em] uppercase text-candle/30">{time}</span>
+                  </div>
                 </div>
               </div>
             );
@@ -694,6 +724,10 @@ function ChatBubbleImpl({
                m.type === "headpat" ? <span className="opacity-80">✋ Headpat</span> :
                m.type === "handhold" ? <span className="opacity-80">🤝 Handhold</span> :
                m.type === "boop" ? <span className="opacity-80">👉 Boop</span> :
+               m.type === "slap" ? <span className="opacity-80">🤚 Slap</span> :
+               m.type === "anger" ? <span className="opacity-80">😤 Anger</span> :
+               m.type === "tickle" ? <span className="opacity-80">🪶 Tickle</span> :
+               m.type === "wink" ? <span className="opacity-80">😉 Wink</span> :
                m.type === "nudge" ? <span className="opacity-80">👋 Nudge</span> :
                <span className="opacity-80">{m.content}</span>}
             </div>
