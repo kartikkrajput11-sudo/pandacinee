@@ -175,11 +175,11 @@ function ChatBubbleImpl({
   const isHeadpat = m.type === "headpat";
   const isHandhold = m.type === "handhold";
   const isBoop = m.type === "boop";
-  const AFFECTION_FX: Record<string, { emoji: string; label: string; mine: string; theirs: string; tone: string }> = {
-    slap: { emoji: "🤚", label: "Slap", mine: "a playful smack", theirs: "slapped you 💢", tone: "text-red-300" },
-    anger: { emoji: "😤", label: "Anger", mine: "hmph! I'm mad", theirs: "is mad at you 💢", tone: "text-red-300" },
-    tickle: { emoji: "🪶", label: "Tickle", mine: "tickle tickle", theirs: "tickled you 🪶", tone: "text-petal" },
-    wink: { emoji: "😉", label: "Wink", mine: "sent a wink", theirs: "winked at you 😉", tone: "text-petal" },
+  const AFFECTION_FX: Record<string, { img: string; alt: string; label: string; mine: string; theirs: string; tone: string; glow: string }> = {
+    slap: { img: pandaSlap, alt: "Panda slap", label: "Slap", mine: "a playful smack", theirs: "slapped you 💢", tone: "text-red-300", glow: "rgba(255,120,120,0.18)" },
+    anger: { img: pandaAnger, alt: "Angry panda", label: "Anger", mine: "hmph! I'm mad", theirs: "is mad at you 💢", tone: "text-red-300", glow: "rgba(255,120,120,0.18)" },
+    tickle: { img: pandaTickle, alt: "Panda tickle", label: "Tickle", mine: "tickle tickle", theirs: "tickled you 🪶", tone: "text-petal", glow: "rgba(255,143,166,0.18)" },
+    wink: { img: pandaWink, alt: "Panda wink", label: "Wink", mine: "sent a wink", theirs: "winked at you 😉", tone: "text-petal", glow: "rgba(255,143,166,0.18)" },
   };
   const affectionFx = AFFECTION_FX[m.type as string] ?? null;
   const isNudge = m.type === "nudge";
