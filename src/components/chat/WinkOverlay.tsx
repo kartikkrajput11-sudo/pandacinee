@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { MovableAffection } from "./MovableAffection";
 
 /**
  * Wink overlay — a flirty wink with a sheen sweep and drifting sparks.
@@ -14,7 +15,7 @@ export function WinkOverlay({ trigger }: { trigger: number }) {
     } catch (err) {
       console.error("[WinkOverlay] vibrate failed", err);
     }
-    const t = window.setTimeout(() => setOn(false), 2200);
+    const t = window.setTimeout(() => setOn(false), 6000);
     return () => window.clearTimeout(t);
   }, [trigger]);
 

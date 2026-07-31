@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { MovableAffection } from "./MovableAffection";
 
 /**
  * Anger overlay — a stormy "I'm mad at you" flare: red vignette,
@@ -15,7 +16,7 @@ export function AngerOverlay({ trigger }: { trigger: number }) {
     } catch (err) {
       console.error("[AngerOverlay] vibrate failed", err);
     }
-    const t = window.setTimeout(() => setOn(false), 2400);
+    const t = window.setTimeout(() => setOn(false), 6000);
     return () => window.clearTimeout(t);
   }, [trigger]);
 

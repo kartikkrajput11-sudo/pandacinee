@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { MovableAffection } from "./MovableAffection";
 import pandaHug from "@/assets/panda-hug-sticker.png";
 
 /**
@@ -15,7 +16,7 @@ export function HugOverlay({ trigger }: { trigger: number }) {
     if (!trigger) return;
     const id = Date.now();
     setBursts((b) => [...b, { id }]);
-    const t = window.setTimeout(() => setBursts((b) => b.filter((x) => x.id !== id)), 2800);
+    const t = window.setTimeout(() => setBursts((b) => b.filter((x) => x.id !== id)), 6000);
     return () => window.clearTimeout(t);
   }, [trigger]);
 

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { MovableAffection } from "./MovableAffection";
 
 /**
  * Tickle overlay — a feather squiggles across the screen while
@@ -15,7 +16,7 @@ export function TickleOverlay({ trigger }: { trigger: number }) {
     } catch (err) {
       console.error("[TickleOverlay] vibrate failed", err);
     }
-    const t = window.setTimeout(() => setOn(false), 2400);
+    const t = window.setTimeout(() => setOn(false), 6000);
     return () => window.clearTimeout(t);
   }, [trigger]);
 
