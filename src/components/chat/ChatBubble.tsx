@@ -18,6 +18,10 @@ import pandaHug from "@/assets/panda-hug-sticker.png";
 import pandaHeadpat from "@/assets/panda-headpat-sticker.png";
 import pandaHandhold from "@/assets/panda-handhold-sticker.png";
 import pandaBoop from "@/assets/panda-boop-sticker.png";
+import pandaSlap from "@/assets/panda-slap-sticker.png";
+import pandaAnger from "@/assets/panda-anger-sticker.png";
+import pandaTickle from "@/assets/panda-tickle-sticker.png";
+import pandaWink from "@/assets/panda-wink-sticker.png";
 
 
 function relTime(iso?: string | null) {
