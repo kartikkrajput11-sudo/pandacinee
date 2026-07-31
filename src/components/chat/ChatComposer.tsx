@@ -15,6 +15,8 @@ import { AiStickerPicker } from "./AiStickerPicker";
 import { pandaStickerContent, type PandaStickerId } from "@/lib/panda-stickers";
 import type { AiStickerMood } from "@/lib/ai-stickers.functions";
 import type { TmdbMovie } from "@/lib/tmdb.functions";
+import { preloadAffectionStickers } from "@/lib/affection-preload";
+
 
 const KISS_EMOJIS = ["💋", "💜", "🌸", "🫧", "💫", "🐼", "🌷", "🫶"];
 
@@ -207,6 +209,12 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
   useEffect(() => {
     if (replyTo) onTyping(false);
   }, [replyTo, onTyping]);
+
+  // Warm affection sticker cache so overlays appear instantly
+  useEffect(() => {
+    preloadAffectionStickers();
+  }, []);
+
 
   async function sendText(e?: React.FormEvent) {
     e?.preventDefault();
