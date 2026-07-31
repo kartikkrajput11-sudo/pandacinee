@@ -190,7 +190,9 @@ function ChatBubbleImpl({
   const [whisperRevealed, setWhisperRevealed] = useState(false);
   useSharedTick(isLast);
 
-  const bare = isSticker || isWatchInvite || isGameInvite || isMovieWheel || isKiss || isHug || isHeadpat || isHandhold || isBoop || isNudge || isCall || !!affectionFx;
+  const isRitualCard = m.type === "mood" || m.type === "love_letter" || m.type === "time_capsule" || m.type === "confession";
+  const bare = isSticker || isWatchInvite || isGameInvite || isMovieWheel || isKiss || isHug || isHeadpat || isHandhold || isBoop || isNudge || isCall || isRitualCard || !!affectionFx;
+
 
   // ---- Gestures: long-press for actions, swipe for reply, double-tap for heart ----
   const [dragX, setDragX] = useState(0);
