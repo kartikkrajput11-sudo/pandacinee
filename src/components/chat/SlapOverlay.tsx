@@ -2,11 +2,11 @@ import { useEffect, useRef, useState } from "react";
 import pandaSlap from "@/assets/panda-slap-sticker.png";
 
 /**
- * Slap overlay — a *movable* slap. When it fires the palm swings in and
- * lands with a red imprint, a shockwave and an angry screen shake.
- * For a short window afterwards the palm stays draggable: drag it
- * anywhere and release to land another slap right where you dropped it.
+ * Slap overlay — a cinematic slap. The palm swings in, lands with a red
+ * imprint, a shockwave and an angry screen shake, then settles in the
+ * centre of the stage until the moment fades.
  */
+
 
 type Print = { id: number; x: number; y: number; rot: number };
 
