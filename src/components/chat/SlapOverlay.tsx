@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import pandaSlap from "@/assets/panda-slap-sticker.png";
 
 /**
  * Slap overlay — a *movable* slap. When it fires the palm swings in and
@@ -79,21 +80,27 @@ export function SlapOverlay({ trigger }: { trigger: number }) {
         </div>
       ))}
 
-      {/* Swinging palm (first strike) */}
+      {/* Swinging panda slap (first strike) */}
       {!pos && (
         <div key={swing} className="absolute inset-0 flex items-center justify-center">
-          <span className="text-7xl animate-slap-swipe select-none" style={{ filter: "drop-shadow(0 10px 24px hsl(0 60% 20% / 0.6))" }}>
-            ✋
-          </span>
+          <img
+            src={pandaSlap}
+            alt="panda slapping"
+            width={260}
+            height={260}
+            draggable={false}
+            className="animate-slap-swipe select-none"
+            style={{ width: 260, height: 260, filter: "drop-shadow(0 14px 28px hsl(0 60% 20% / 0.6))" }}
+          />
         </div>
       )}
 
-      {/* Draggable palm — grab and fling for another slap */}
+      {/* Draggable panda — grab and fling for another slap */}
       {pos && (
         <div
           role="button"
           tabIndex={0}
-          aria-label="Drag the palm and release to slap again"
+          aria-label="Drag the panda and release to slap again"
           className="absolute pointer-events-auto cursor-grab active:cursor-grabbing touch-none select-none"
           style={{ left: pos.x, top: pos.y, transform: `translate(-50%,-50%) scale(${dragging ? 1.15 : 1})`, transition: dragging ? "none" : "transform 200ms ease" }}
           onPointerDown={(e) => {
@@ -108,12 +115,20 @@ export function SlapOverlay({ trigger }: { trigger: number }) {
           }}
           onPointerCancel={() => setDragging(false)}
         >
-          <span className="block text-6xl" style={{ filter: "drop-shadow(0 8px 20px hsl(0 60% 20% / 0.6))" }}>✋</span>
-          <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 whitespace-nowrap text-[9px] uppercase tracking-[0.22em] text-red-200/80">
+          <img
+            src={pandaSlap}
+            alt="panda slapping"
+            width={220}
+            height={220}
+            draggable={false}
+            style={{ width: 220, height: 220, filter: "drop-shadow(0 8px 20px hsl(0 60% 20% / 0.6))" }}
+          />
+          <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 whitespace-nowrap text-[9px] uppercase tracking-[0.22em] text-red-200/80">
             drag & release
           </span>
         </div>
       )}
+
 
       {/* Caption */}
       <div className="absolute inset-x-0 top-[calc(50%+150px)] flex flex-col items-center gap-2 animate-kiss-caption">

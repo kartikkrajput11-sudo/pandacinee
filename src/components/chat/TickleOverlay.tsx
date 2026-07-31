@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { MovableAffection } from "./MovableAffection";
+import pandaTickle from "@/assets/panda-tickle-sticker.png";
 
 /**
  * Tickle overlay — a feather squiggles across the screen while
@@ -35,10 +36,16 @@ export function TickleOverlay({ trigger }: { trigger: number }) {
         }}
       />
 
-      <MovableAffection hint="drag the feather">
-        <span className="text-7xl animate-tickle-feather select-none" style={{ filter: "drop-shadow(0 10px 22px hsl(340 40% 20% / 0.45))" }}>
-          🪶
-        </span>
+      <MovableAffection hint="drag the tickle">
+        <img
+          src={pandaTickle}
+          alt="pandas tickling"
+          width={260}
+          height={260}
+          draggable={false}
+          className="animate-kiss-imprint select-none"
+          style={{ width: 260, height: 260, filter: "drop-shadow(0 14px 30px hsl(340 40% 20% / 0.45))" }}
+        />
       </MovableAffection>
 
       <div className="absolute inset-0 flex items-end justify-center pb-24">
