@@ -208,6 +208,12 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
     if (replyTo) onTyping(false);
   }, [replyTo, onTyping]);
 
+  // Warm affection sticker cache so overlays appear instantly
+  useEffect(() => {
+    preloadAffectionStickers();
+  }, []);
+
+
   async function sendText(e?: React.FormEvent) {
     e?.preventDefault();
     if (sending) return; // guard against Enter-key double submits while first send is in flight
