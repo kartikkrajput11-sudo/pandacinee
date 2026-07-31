@@ -15,7 +15,7 @@ export function HeadpatOverlay({ trigger }: { trigger: number }) {
     if (!trigger) return;
     const id = Date.now();
     setBursts((b) => [...b, { id }]);
-    const t = window.setTimeout(() => setBursts((b) => b.filter((x) => x.id !== id)), 6000);
+    const t = window.setTimeout(() => setBursts((b) => b.filter((x) => x.id !== id)), 3000);
     return () => window.clearTimeout(t);
   }, [trigger]);
 

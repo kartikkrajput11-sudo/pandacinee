@@ -17,7 +17,7 @@ export function AngerOverlay({ trigger }: { trigger: number }) {
     } catch (err) {
       console.error("[AngerOverlay] vibrate failed", err);
     }
-    const t = window.setTimeout(() => setOn(false), 6000);
+    const t = window.setTimeout(() => setOn(false), 3000);
     return () => window.clearTimeout(t);
   }, [trigger]);
 
