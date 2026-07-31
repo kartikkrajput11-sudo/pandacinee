@@ -694,6 +694,23 @@ function ChatPeer() {
       <AngerOverlay trigger={angerTick} />
       <TickleOverlay trigger={tickleTick} />
       <WinkOverlay trigger={winkTick} />
+      <HeartbeatOverlay trigger={heartbeatTick} />
+      {moodTint && (
+        <div
+          className="pointer-events-none fixed inset-0 z-0 transition-opacity duration-1000"
+          style={{ background: `radial-gradient(circle at 50% 0%, hsl(${moodById(moodTint)?.hue ?? "342 68% 62%"} / 0.14), transparent 65%)` }}
+        />
+      )}
+      {me && peer && (
+        <DuetCanvas
+          open={duetOpen}
+          onClose={() => setDuetOpen(false)}
+          meId={me.id}
+          roomKey={[me.id, peer.id].sort().join(":")}
+          partnerName={peerDisplay}
+        />
+      )}
+
       <UnlockCelebration trigger={unlockTick || null} />
 
 
