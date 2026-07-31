@@ -341,6 +341,13 @@ function ChatPeer() {
       } else if (m.type === "wink") {
         window.setTimeout(() => setWinkTick((t) => t + 1), delay);
         delay += 420;
+      } else if (m.type === "heartbeat") {
+        window.setTimeout(() => setHeartbeatTick((t) => t + 1), delay);
+        delay += 520;
+      } else if (m.type === "mood") {
+        const id = (m.media_meta as any)?.mood;
+        if (typeof id === "string") setMoodTint(id);
+
       } else if (m.type === "nudge" && !nudgePlayed) {
         nudgePlayed = true;
         window.setTimeout(() => {
