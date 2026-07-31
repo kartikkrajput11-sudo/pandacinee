@@ -25,6 +25,7 @@ export function AngerOverlay({ trigger }: { trigger: number }) {
 
   return (
     <div className="pointer-events-none fixed inset-0 z-40 overflow-hidden">
+      <div className="absolute inset-0 bg-velvet/50 backdrop-blur-md animate-fade-in" />
       <div
         className="absolute inset-0 animate-anger-vignette"
         style={{

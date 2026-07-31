@@ -18,6 +18,10 @@ import pandaHug from "@/assets/panda-hug-sticker.png";
 import pandaHeadpat from "@/assets/panda-headpat-sticker.png";
 import pandaHandhold from "@/assets/panda-handhold-sticker.png";
 import pandaBoop from "@/assets/panda-boop-sticker.png";
+import pandaSlap from "@/assets/panda-slap-sticker.png";
+import pandaAnger from "@/assets/panda-anger-sticker.png";
+import pandaTickle from "@/assets/panda-tickle-sticker.png";
+import pandaWink from "@/assets/panda-wink-sticker.png";
 
 
 function relTime(iso?: string | null) {
@@ -171,11 +175,11 @@ function ChatBubbleImpl({
   const isHeadpat = m.type === "headpat";
   const isHandhold = m.type === "handhold";
   const isBoop = m.type === "boop";
-  const AFFECTION_FX: Record<string, { emoji: string; label: string; mine: string; theirs: string; tone: string }> = {
-    slap: { emoji: "🤚", label: "Slap", mine: "a playful smack", theirs: "slapped you 💢", tone: "text-red-300" },
-    anger: { emoji: "😤", label: "Anger", mine: "hmph! I'm mad", theirs: "is mad at you 💢", tone: "text-red-300" },
-    tickle: { emoji: "🪶", label: "Tickle", mine: "tickle tickle", theirs: "tickled you 🪶", tone: "text-petal" },
-    wink: { emoji: "😉", label: "Wink", mine: "sent a wink", theirs: "winked at you 😉", tone: "text-petal" },
+  const AFFECTION_FX: Record<string, { img: string; alt: string; label: string; mine: string; theirs: string; tone: string; glow: string }> = {
+    slap: { img: pandaSlap, alt: "Panda slap", label: "Slap", mine: "a playful smack", theirs: "slapped you 💢", tone: "text-red-300", glow: "rgba(255,120,120,0.18)" },
+    anger: { img: pandaAnger, alt: "Angry panda", label: "Anger", mine: "hmph! I'm mad", theirs: "is mad at you 💢", tone: "text-red-300", glow: "rgba(255,120,120,0.18)" },
+    tickle: { img: pandaTickle, alt: "Panda tickle", label: "Tickle", mine: "tickle tickle", theirs: "tickled you 🪶", tone: "text-petal", glow: "rgba(255,143,166,0.18)" },
+    wink: { img: pandaWink, alt: "Panda wink", label: "Wink", mine: "sent a wink", theirs: "winked at you 😉", tone: "text-petal", glow: "rgba(255,143,166,0.18)" },
   };
   const affectionFx = AFFECTION_FX[m.type as string] ?? null;
   const isNudge = m.type === "nudge";
@@ -292,7 +296,7 @@ function ChatBubbleImpl({
   };
 
   return (
-    <div className={`group flex ${isKiss || isHug || isHeadpat || isHandhold || isBoop || isNudge ? "justify-center" : mine ? "justify-end" : "justify-start"} mt-1.5 px-1 relative`}>
+    <div className={`group flex ${isKiss || isHug || isHeadpat || isHandhold || isBoop || isNudge || affectionFx ? "justify-center" : mine ? "justify-end" : "justify-start"} mt-1.5 px-1 relative`}>
       {dragX > 0 && (
         <div
           className="absolute top-1/2 -translate-y-1/2 left-3 size-8 rounded-full bg-petal/20 border border-petal/40 flex items-center justify-center text-petal pointer-events-none"
@@ -529,7 +533,7 @@ function ChatBubbleImpl({
               <div className="flex flex-col items-center py-2 w-full">
                 <div className="relative w-[210px] bg-velvet border border-candle/20 px-4 pt-4 pb-3 flex flex-col items-center text-center shadow-[0_0_40px_rgba(255,143,166,0.05)]">
                   <span className="absolute top-1.5 left-2 text-[8px] font-semibold tracking-[0.2em] uppercase text-candle/40 max-w-[70%] truncate">from {sender}</span>
-                  <span className="text-5xl mb-2 mt-2 select-none">{affectionFx.emoji}</span>
+                  <img src={affectionFx.img} alt={affectionFx.alt} loading="lazy" className="w-16 h-16 object-contain mb-2 mt-2" style={{ filter: `drop-shadow(0 0 20px ${affectionFx.glow})` }} />
                   <span className={`text-[10px] font-bold tracking-[0.2em] uppercase mb-0.5 ${affectionFx.tone}`}>{affectionFx.label}</span>
                   <p className="font-serif italic text-candle text-base leading-tight">{mine ? affectionFx.mine : affectionFx.theirs}</p>
                   <div className="mt-3 flex flex-col items-center w-full">
