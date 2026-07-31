@@ -405,7 +405,7 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
             <p className="text-[8px] uppercase tracking-[0.32em] text-candle-muted/70 font-medium text-center mb-2">
               Studio
             </p>
-            <div className="grid grid-cols-4 gap-px rounded-2xl overflow-hidden border border-candle/10 bg-candle/[0.04]">
+            <div className="grid grid-cols-3 gap-px rounded-2xl overflow-hidden border border-candle/10 bg-candle/[0.04]">
               <StudioTile
                 icon={<ImageIcon className="size-4" />}
                 label="Media"
@@ -426,13 +426,6 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
                 onClick={() => setOpenGroup((g) => (g === "together" ? null : "together"))}
                 accent={openGroup === "together"}
                 glow={openGroup === "together"}
-              />
-              <StudioTile
-                icon={<Heart className="size-4 fill-current" />}
-                label="Affection"
-                onClick={() => setOpenGroup((g) => (g === "affection" ? null : "affection"))}
-                accent={openGroup === "affection"}
-                glow={openGroup === "affection"}
               />
             </div>
 
