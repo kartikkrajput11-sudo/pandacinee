@@ -405,7 +405,7 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
             <p className="text-[8px] uppercase tracking-[0.32em] text-candle-muted/70 font-medium text-center mb-2">
               Studio
             </p>
-            <div className="grid grid-cols-4 gap-px rounded-2xl overflow-hidden border border-candle/10 bg-candle/[0.04]">
+            <div className="grid grid-cols-3 gap-px rounded-2xl overflow-hidden border border-candle/10 bg-candle/[0.04]">
               <StudioTile
                 icon={<ImageIcon className="size-4" />}
                 label="Media"
@@ -426,13 +426,6 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
                 onClick={() => setOpenGroup((g) => (g === "together" ? null : "together"))}
                 accent={openGroup === "together"}
                 glow={openGroup === "together"}
-              />
-              <StudioTile
-                icon={<Heart className="size-4 fill-current" />}
-                label="Affection"
-                onClick={() => setOpenGroup((g) => (g === "affection" ? null : "affection"))}
-                accent={openGroup === "affection"}
-                glow={openGroup === "affection"}
               />
             </div>
 
@@ -470,16 +463,25 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
               </div>
             )}
 
-            {openGroup === "affection" && (
-              <div className="mt-2 grid grid-cols-2 gap-2 animate-fade-in">
-                <GroupChoice icon={<Heart className="size-4 fill-current" />} label="Kiss" onClick={() => { setOpenGroup(null); sendKiss(); }} />
-                <GroupChoice icon={<HeartHandshake className="size-4" />} label="Hug" onClick={() => { setOpenGroup(null); sendHug(); }} />
-                <GroupChoice icon={<Hand className="size-4" />} label="Headpat" onClick={() => { setOpenGroup(null); sendHeadpat(); }} />
-                <GroupChoice icon={<Handshake className="size-4" />} label="Handhold" onClick={() => { setOpenGroup(null); sendHandhold(); }} />
-                <GroupChoice icon={<Pointer className="size-4" />} label="Boop" onClick={() => { setOpenGroup(null); sendBoop(); }} />
-                <GroupChoice icon={<Zap className="size-4" />} label="Nudge" onClick={() => { setOpenGroup(null); sendNudge(); }} />
-              </div>
-            )}
+          </div>
+        </div>
+      )}
+
+      {openGroup === "affection" && (
+        <div className="relative mx-3 mb-2 rounded-3xl border border-petal/30 bg-surface/90 backdrop-blur-2xl overflow-hidden animate-fade-in petal-glow">
+          <div className="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 w-64 h-24 rounded-full bg-petal/20 blur-3xl" />
+          <div className="relative px-3 pt-2.5 pb-3">
+            <p className="text-[8px] uppercase tracking-[0.32em] text-petal/80 font-medium text-center mb-2">
+              Affection
+            </p>
+            <div className="grid grid-cols-3 gap-2">
+              <GroupChoice icon={<Heart className="size-4 fill-current" />} label="Kiss" onClick={() => { setOpenGroup(null); sendKiss(); }} />
+              <GroupChoice icon={<HeartHandshake className="size-4" />} label="Hug" onClick={() => { setOpenGroup(null); sendHug(); }} />
+              <GroupChoice icon={<Hand className="size-4" />} label="Headpat" onClick={() => { setOpenGroup(null); sendHeadpat(); }} />
+              <GroupChoice icon={<Handshake className="size-4" />} label="Handhold" onClick={() => { setOpenGroup(null); sendHandhold(); }} />
+              <GroupChoice icon={<Pointer className="size-4" />} label="Boop" onClick={() => { setOpenGroup(null); sendBoop(); }} />
+              <GroupChoice icon={<Zap className="size-4" />} label="Nudge" onClick={() => { setOpenGroup(null); sendNudge(); }} />
+            </div>
           </div>
         </div>
       )}
@@ -531,9 +533,9 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
             type="button"
             onClick={() => {
               try {
-                setMenuOpen(true);
+                setMenuOpen(false);
                 setStickersOpen(false);
-                setOpenGroup("affection");
+                setOpenGroup((g) => (g === "affection" ? null : "affection"));
               } catch (err) {
                 console.error("[ChatComposer] failed to open affection panel", err);
                 toast.error("Couldn't open affection");
