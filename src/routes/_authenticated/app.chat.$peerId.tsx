@@ -14,6 +14,10 @@ import { formatLastSeen } from "@/hooks/usePresenceHeartbeat";
 import { ChatSearch } from "@/components/chat/ChatSearch";
 
 import { KissOverlay } from "@/components/chat/KissOverlay";
+import { HeartbeatOverlay } from "@/components/chat/HeartbeatOverlay";
+import { DuetCanvas } from "@/components/chat/DuetCanvas";
+import { moodById } from "@/lib/rituals";
+
 import { HugOverlay } from "@/components/chat/HugOverlay";
 import { HeadpatOverlay } from "@/components/chat/HeadpatOverlay";
 import { HandholdOverlay } from "@/components/chat/HandholdOverlay";
