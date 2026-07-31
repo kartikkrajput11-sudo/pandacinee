@@ -16,6 +16,8 @@ import { pandaStickerContent, type PandaStickerId } from "@/lib/panda-stickers";
 import type { AiStickerMood } from "@/lib/ai-stickers.functions";
 import type { TmdbMovie } from "@/lib/tmdb.functions";
 import { preloadAffectionStickers } from "@/lib/affection-preload";
+import { RitualsPanel } from "./RitualsPanel";
+
 
 
 const KISS_EMOJIS = ["💋", "💜", "🌸", "🫧", "💫", "🐼", "🌷", "🫶"];
@@ -32,7 +34,7 @@ type Props = {
 
   onSend: (input: {
     content?: string;
-    type?: "text" | "voice" | "image" | "video" | "file" | "sticker" | "watch_invite" | "game_invite" | "kiss" | "hug" | "headpat" | "handhold" | "boop" | "slap" | "anger" | "tickle" | "wink" | "nudge" | "whisper" | "movie_wheel";
+    type?: "text" | "voice" | "image" | "video" | "file" | "sticker" | "watch_invite" | "game_invite" | "kiss" | "hug" | "headpat" | "handhold" | "boop" | "slap" | "anger" | "tickle" | "wink" | "nudge" | "whisper" | "movie_wheel" | "heartbeat" | "mood" | "love_letter" | "time_capsule" | "confession" | string;
     media_url?: string | null;
     media_meta?: Record<string, unknown> | null;
     reply_to_id?: string | null;
@@ -48,8 +50,15 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
   const [sending, setSending] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [stickersOpen, setStickersOpen] = useState(false);
-  const [disappearSecs, setDisappearSecs] = useState<number | null>(null);
+  const [manualDisappear, setManualDisappear] = useState<number | null>(null);
+  const [vanish, setVanish] = useState(false);
+  const [ritualsOpen, setRitualsOpen] = useState(false);
+  // Vanish mode gives every message a default 60s life unless a longer
+  // timer was picked manually.
+  const disappearSecs = vanish ? (manualDisappear ?? 60) : manualDisappear;
+  const setDisappearSecs = setManualDisappear;
   const [disappearMenu, setDisappearMenu] = useState(false);
+
   const [watchPickerOpen, setWatchPickerOpen] = useState(false);
   const [gamePickerOpen, setGamePickerOpen] = useState(false);
   const [wheelOpen, setWheelOpen] = useState(false);
@@ -518,6 +527,37 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
         </div>
       )}
 
+      {ritualsOpen && (
+        <RitualsPanel
+          meId={meId}
+          partnerName={partnerName}
+          vanish={vanish}
+          onToggleVanish={() => {
+            setVanish((v) => {
+              const next = !v;
+              toast[next ? "success" : "message"](
+                next ? "Vanish mode on — new messages fade after 60s" : "Vanish mode off",
+              );
+              return next;
+            });
+          }}
+          onOpenDuet={() => {
+            try {
+              window.dispatchEvent(new CustomEvent("pandacine:open-duet"));
+            } catch (err) {
+              console.error("[ChatComposer] duet open failed", err);
+              toast.error("Couldn't open the duet pad");
+            }
+          }}
+          onSend={async (input: { content?: string; type?: string; media_url?: string | null; media_meta?: Record<string, unknown> | null; disappear_seconds?: number | null }) =>
+            onSend({ ...input, disappear_seconds: input.disappear_seconds ?? disappearSecs })
+          }
+
+          onClose={() => setRitualsOpen(false)}
+        />
+      )}
+
+
       <WatchInvitePicker open={watchPickerOpen} onClose={() => setWatchPickerOpen(false)} onPick={sendWatchInvite} />
       <GameInvitePicker open={gamePickerOpen} onClose={() => setGamePickerOpen(false)} onPick={sendGameInvite} />
       <MovieWheelPicker open={wheelOpen} onClose={() => setWheelOpen(false)} onSend={sendMovieWheel} />
@@ -583,6 +623,30 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
           >
             <Heart className="size-4 fill-current" />
           </button>
+          <button
+            type="button"
+            onClick={() => {
+              try {
+                setMenuOpen(false);
+                setStickersOpen(false);
+                setOpenGroup(null);
+                setRitualsOpen((r) => !r);
+              } catch (err) {
+                console.error("[ChatComposer] failed to open rituals", err);
+                toast.error("Couldn't open rituals");
+              }
+            }}
+            className={`size-11 rounded-full flex items-center justify-center shrink-0 transition-colors ${
+              ritualsOpen
+                ? "bg-gilt text-velvet"
+                : "bg-surface border border-border text-gilt hover:border-gilt/60"
+            }`}
+            title="Rituals — heartbeat, mood, letters, capsules & more"
+            aria-label="Open rituals panel"
+          >
+            <Sparkles className="size-4" />
+          </button>
+
           <div className="flex-1 relative min-w-0">
             <input
               value={text}

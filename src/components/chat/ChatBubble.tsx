@@ -624,6 +624,34 @@ function ChatBubbleImpl({
             </div>
           )}
 
+          {m.type === "heartbeat" && (
+            <div className="flex items-center gap-2.5">
+              <span className="text-2xl animate-heartbeat-pulse">💗</span>
+              <div className="leading-tight">
+                <p className="text-[8px] uppercase tracking-[0.3em] opacity-70">Heartbeat</p>
+                <p className="text-xs">{mine ? "you sent your heartbeat" : "feel this"}</p>
+              </div>
+            </div>
+          )}
+          {m.type === "mood" && (
+            <MoodCard moodId={(m.media_meta as any)?.mood} note={m.content ?? undefined} />
+          )}
+          {m.type === "love_letter" && <LoveLetterCard content={m.content ?? ""} mine={mine} />}
+          {m.type === "time_capsule" && (
+            <TimeCapsuleCard
+              content={m.content ?? ""}
+              unlockAt={String((m.media_meta as any)?.unlock_at ?? new Date().toISOString())}
+            />
+          )}
+          {m.type === "confession" && (
+            <ConfessionCard
+              prompt={String((m.media_meta as any)?.prompt ?? "A confession")}
+              content={m.content ?? ""}
+            />
+          )}
+
+
+
           {m.type === "voice" && m.media_url && (
             <VoicePlayer path={m.media_url} durationMs={(m.media_meta as any)?.duration_ms} />
           )}
