@@ -4,6 +4,7 @@ import { Heart, Pin, Trash2, Reply, Check, CheckCheck, Download, Zap, Phone, Vid
 import { toast } from "sonner";
 import { translateMessage } from "@/lib/chat-tools.functions";
 import { signMedia, type MessageRow } from "@/lib/chat";
+import { saveMediaToGallery } from "@/lib/save-media";
 import { VoicePlayer } from "./VoicePlayer";
 import { SignedImage } from "./SignedImage";
 import { SignedVideo } from "./SignedVideo";
