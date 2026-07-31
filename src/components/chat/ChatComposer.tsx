@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import {
   Plus, X, Image as ImageIcon, Paperclip, Smile, Send, Film,
-  Video as VideoIcon, Gamepad2, Heart, HeartHandshake, Handshake, Hand, Zap, EyeOff, Eye, Disc3, Sparkles, Pointer, CalendarClock,
+  Video as VideoIcon, Gamepad2, Heart, HeartHandshake, Handshake, Hand, Zap, EyeOff, Eye, Disc3, Sparkles, Pointer, CalendarClock, Angry, Feather, Laugh,
 } from "lucide-react";
 import { toast } from "sonner";
 import { uploadChatMedia, type MessageRow } from "@/lib/chat";
@@ -30,7 +30,7 @@ type Props = {
 
   onSend: (input: {
     content?: string;
-    type?: "text" | "voice" | "image" | "video" | "file" | "sticker" | "watch_invite" | "game_invite" | "kiss" | "hug" | "headpat" | "handhold" | "boop" | "nudge" | "whisper" | "movie_wheel";
+    type?: "text" | "voice" | "image" | "video" | "file" | "sticker" | "watch_invite" | "game_invite" | "kiss" | "hug" | "headpat" | "handhold" | "boop" | "slap" | "anger" | "tickle" | "wink" | "nudge" | "whisper" | "movie_wheel";
     media_url?: string | null;
     media_meta?: Record<string, unknown> | null;
     reply_to_id?: string | null;
@@ -140,6 +140,26 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
     }
   }
 
+
+  async function sendAffection(
+    type: "slap" | "anger" | "tickle" | "wink",
+    content: string,
+    toastMsg: string,
+  ) {
+    setMenuOpen(false);
+    try {
+      await onSend({ type, content, disappear_seconds: disappearSecs });
+      toast.success(toastMsg);
+    } catch (err: any) {
+      console.error("[ChatComposer] affection send failed", type, err);
+      toast.error(err?.message ?? "Couldn't send");
+    }
+  }
+
+  const sendSlap = () => sendAffection("slap", `👋 Slapped ${partnerName}`, `You slapped ${partnerName} 💢`);
+  const sendAnger = () => sendAffection("anger", `💢 Mad at ${partnerName}`, `${partnerName} knows you're mad 💢`);
+  const sendTickle = () => sendAffection("tickle", `🪶 Tickled ${partnerName}`, `You tickled ${partnerName} 🪶`);
+  const sendWink = () => sendAffection("wink", `😉 Winked at ${partnerName}`, `You winked at ${partnerName} 😉`);
 
   async function sendWatchInvite(movie: TmdbMovie & { media_type?: "movie" | "tv" }) {
     setWatchPickerOpen(false);
@@ -481,6 +501,10 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
               <GroupChoice icon={<Handshake className="size-4" />} label="Handhold" onClick={() => { setOpenGroup(null); sendHandhold(); }} />
               <GroupChoice icon={<Pointer className="size-4" />} label="Boop" onClick={() => { setOpenGroup(null); sendBoop(); }} />
               <GroupChoice icon={<Zap className="size-4" />} label="Nudge" onClick={() => { setOpenGroup(null); sendNudge(); }} />
+              <GroupChoice icon={<Hand className="size-4 -scale-x-100" />} label="Slap" onClick={() => { setOpenGroup(null); sendSlap(); }} />
+              <GroupChoice icon={<Angry className="size-4" />} label="Anger" onClick={() => { setOpenGroup(null); sendAnger(); }} />
+              <GroupChoice icon={<Feather className="size-4" />} label="Tickle" onClick={() => { setOpenGroup(null); sendTickle(); }} />
+              <GroupChoice icon={<Laugh className="size-4" />} label="Wink" onClick={() => { setOpenGroup(null); sendWink(); }} />
             </div>
           </div>
         </div>

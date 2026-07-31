@@ -18,6 +18,10 @@ import { HugOverlay } from "@/components/chat/HugOverlay";
 import { HeadpatOverlay } from "@/components/chat/HeadpatOverlay";
 import { HandholdOverlay } from "@/components/chat/HandholdOverlay";
 import { BoopOverlay } from "@/components/chat/BoopOverlay";
+import { SlapOverlay } from "@/components/chat/SlapOverlay";
+import { AngerOverlay } from "@/components/chat/AngerOverlay";
+import { TickleOverlay } from "@/components/chat/TickleOverlay";
+import { WinkOverlay } from "@/components/chat/WinkOverlay";
 import { PunishmentLockDialog } from "@/components/chat/PunishmentLockDialog";
 import { PunishmentLockOverlay } from "@/components/chat/PunishmentLockOverlay";
 import { PunishmentLockBanner } from "@/components/chat/PunishmentLockBanner";
@@ -173,6 +177,10 @@ function ChatPeer() {
   const [headpatTick, setHeadpatTick] = useState(0);
   const [handholdTick, setHandholdTick] = useState(0);
   const [boopTick, setBoopTick] = useState(0);
+  const [slapTick, setSlapTick] = useState(0);
+  const [angerTick, setAngerTick] = useState(0);
+  const [tickleTick, setTickleTick] = useState(0);
+  const [winkTick, setWinkTick] = useState(0);
   const [shake, setShake] = useState(false);
   const lastFxIdRef = useRef<string | null>(null);
   const playedFxRef = useRef<Set<string>>(new Set());
@@ -274,7 +282,8 @@ function ChatPeer() {
     const now = Date.now();
     const candidates = messages.filter((m) => {
       if (m.sender_id === me.id) return false;
-      if (m.type !== "kiss" && m.type !== "nudge" && m.type !== "hug" && m.type !== "headpat" && m.type !== "handhold" && m.type !== "boop") return false;
+      const fxTypes = ["kiss", "nudge", "hug", "headpat", "handhold", "boop", "slap", "anger", "tickle", "wink"];
+      if (!fxTypes.includes(m.type)) return false;
       if (playedFxRef.current.has(m.id)) return false;
       const fresh = now - new Date(m.created_at).getTime() <= 15000;
       const unseen = !m.read_at;
@@ -320,6 +329,18 @@ function ChatPeer() {
           if ("vibrate" in navigator) navigator.vibrate?.([15, 30, 15]);
         }, delay);
         delay += 400;
+      } else if (m.type === "slap") {
+        window.setTimeout(() => setSlapTick((t) => t + 1), delay);
+        delay += 600;
+      } else if (m.type === "anger") {
+        window.setTimeout(() => setAngerTick((t) => t + 1), delay);
+        delay += 550;
+      } else if (m.type === "tickle") {
+        window.setTimeout(() => setTickleTick((t) => t + 1), delay);
+        delay += 520;
+      } else if (m.type === "wink") {
+        window.setTimeout(() => setWinkTick((t) => t + 1), delay);
+        delay += 420;
       } else if (m.type === "nudge" && !nudgePlayed) {
         nudgePlayed = true;
         window.setTimeout(() => {
@@ -658,6 +679,10 @@ function ChatPeer() {
       <HeadpatOverlay trigger={headpatTick} />
       <HandholdOverlay trigger={handholdTick} />
       <BoopOverlay trigger={boopTick} />
+      <SlapOverlay trigger={slapTick} />
+      <AngerOverlay trigger={angerTick} />
+      <TickleOverlay trigger={tickleTick} />
+      <WinkOverlay trigger={winkTick} />
       <UnlockCelebration trigger={unlockTick || null} />
 
 
