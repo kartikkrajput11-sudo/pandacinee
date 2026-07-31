@@ -533,9 +533,9 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
             type="button"
             onClick={() => {
               try {
-                setMenuOpen(true);
+                setMenuOpen(false);
                 setStickersOpen(false);
-                setOpenGroup("affection");
+                setOpenGroup((g) => (g === "affection" ? null : "affection"));
               } catch (err) {
                 console.error("[ChatComposer] failed to open affection panel", err);
                 toast.error("Couldn't open affection");
