@@ -14,8 +14,7 @@ export function SlapOverlay({ trigger }: { trigger: number }) {
   const [active, setActive] = useState(false);
   const [prints, setPrints] = useState<Print[]>([]);
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
-  const [dragging, setDragging] = useState(false);
-  const [swing, setSwing] = useState(0);
+    const [swing, setSwing] = useState(0);
   const timers = useRef<number[]>([]);
 
   useEffect(() => () => { timers.current.forEach(window.clearTimeout); }, []);
@@ -96,25 +95,11 @@ export function SlapOverlay({ trigger }: { trigger: number }) {
         </div>
       )}
 
-      {/* Draggable panda — grab and fling for another slap */}
+      {/* Landed panda — settles after the strike */}
       {pos && (
         <div
-          role="button"
-          tabIndex={0}
-          aria-label="Drag the panda and release to slap again"
-          className="absolute pointer-events-auto cursor-grab active:cursor-grabbing touch-none select-none"
-          style={{ left: pos.x, top: pos.y, transform: `translate(-50%,-50%) scale(${dragging ? 1.15 : 1})`, transition: dragging ? "none" : "transform 200ms ease" }}
-          onPointerDown={(e) => {
-            (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
-            setDragging(true);
-          }}
-          onPointerMove={(e) => { if (dragging) setPos({ x: e.clientX, y: e.clientY }); }}
-          onPointerUp={(e) => {
-            if (!dragging) return;
-            setDragging(false);
-            land(e.clientX, e.clientY);
-          }}
-          onPointerCancel={() => setDragging(false)}
+          className="absolute pointer-events-none select-none"
+          style={{ left: pos.x, top: pos.y, transform: "translate(-50%,-50%)" }}
         >
           <img
             src={pandaSlap}
@@ -122,14 +107,11 @@ export function SlapOverlay({ trigger }: { trigger: number }) {
             width={220}
             height={220}
             draggable={false}
+            className="animate-affection-float"
             style={{ width: 220, height: 220, filter: "drop-shadow(0 8px 20px hsl(0 60% 20% / 0.6))" }}
           />
-          <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 whitespace-nowrap text-[9px] uppercase tracking-[0.22em] text-red-200/80">
-            drag & release
-          </span>
         </div>
       )}
-
 
       {/* Caption */}
       <div className="absolute inset-x-0 top-[calc(50%+150px)] flex flex-col items-center gap-2 animate-kiss-caption">
