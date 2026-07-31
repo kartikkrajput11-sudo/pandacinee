@@ -15,6 +15,8 @@ import { AiStickerPicker } from "./AiStickerPicker";
 import { pandaStickerContent, type PandaStickerId } from "@/lib/panda-stickers";
 import type { AiStickerMood } from "@/lib/ai-stickers.functions";
 import type { TmdbMovie } from "@/lib/tmdb.functions";
+import { preloadAffectionStickers } from "@/lib/affection-preload";
+
 
 const KISS_EMOJIS = ["💋", "💜", "🌸", "🫧", "💫", "🐼", "🌷", "🫶"];
 
