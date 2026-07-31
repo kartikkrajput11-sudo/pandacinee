@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { MovableAffection } from "./MovableAffection";
+import pandaWink from "@/assets/panda-wink-sticker.png";
 
 /**
  * Wink overlay — a flirty wink with a sheen sweep and drifting sparks.
@@ -35,9 +36,15 @@ export function WinkOverlay({ trigger }: { trigger: number }) {
         <div className="absolute inset-y-0 w-1/3 bg-gradient-to-r from-transparent via-white/25 to-transparent animate-wink-sheen" />
       </div>
       <MovableAffection hint="drag the wink">
-        <span className="text-7xl animate-wink-pop select-none" style={{ filter: "drop-shadow(0 10px 24px hsl(340 40% 20% / 0.5))" }}>
-          😉
-        </span>
+        <img
+          src={pandaWink}
+          alt="winking panda"
+          width={260}
+          height={260}
+          draggable={false}
+          className="animate-wink-pop select-none"
+          style={{ width: 260, height: 260, filter: "drop-shadow(0 14px 30px hsl(340 40% 20% / 0.45))" }}
+        />
       </MovableAffection>
       <div className="absolute inset-0 flex items-center justify-center">
         {Array.from({ length: 8 }).map((_, i) => {

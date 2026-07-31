@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { MovableAffection } from "./MovableAffection";
+import pandaAnger from "@/assets/panda-anger-sticker.png";
 
 /**
  * Anger overlay — a stormy "I'm mad at you" flare: red vignette,
@@ -33,11 +34,15 @@ export function AngerOverlay({ trigger }: { trigger: number }) {
       />
 
       <MovableAffection hint="drag the anger">
-        <span className="text-7xl animate-anger-throb select-none" style={{ filter: "drop-shadow(0 0 22px hsl(0 90% 55% / 0.7))" }}>
-          😤
-        </span>
-        <span className="absolute -translate-x-16 -translate-y-14 text-4xl animate-anger-throb select-none">💢</span>
-        <span className="absolute translate-x-16 -translate-y-12 text-3xl animate-anger-throb select-none" style={{ animationDelay: "120ms" }}>💢</span>
+        <img
+          src={pandaAnger}
+          alt="angry panda"
+          width={260}
+          height={260}
+          draggable={false}
+          className="animate-anger-throb select-none"
+          style={{ width: 260, height: 260, filter: "drop-shadow(0 14px 30px hsl(0 60% 20% / 0.55))" }}
+        />
       </MovableAffection>
 
       {/* Steam puffs */}
