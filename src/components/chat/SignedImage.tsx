@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { X } from "lucide-react";
+import { X, Download } from "lucide-react";
 import { signMedia } from "@/lib/chat";
+import { saveMediaToGallery } from "@/lib/save-media";
 
 export function SignedImage({ path, className }: { path: string; className?: string }) {
   const [url, setUrl] = useState<string | null>(null);
