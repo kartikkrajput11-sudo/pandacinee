@@ -1,89 +1,89 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 /**
- * MovableAffection — wraps an affection's main visual so the user can
- * pick it up and drag it anywhere on screen. It starts centered (or at
- * a given offset), stays interactive, and reports drops so overlays can
- * leave an imprint / replay their effect where it landed.
+ * AffectionStage (exported as MovableAffection for compatibility) —
+ * a static, premium presentation frame for an affection's main visual.
+ * It centers the sticker, wraps it in a slow rotating gilt halo, a soft
+ * bloom and a glass plinth, then lets it breathe with a gentle float.
+ * No dragging: the moment plays itself.
  */
 export function MovableAffection({
   children,
   offsetY = 0,
-  hint = "drag me",
-  showHint = true,
-  onDrop,
   className = "",
+  tint = "rose",
 }: {
   children: React.ReactNode;
   offsetY?: number;
+  /** kept for API compatibility — no longer used */
   hint?: string;
   showHint?: boolean;
   onDrop?: (x: number, y: number) => void;
   className?: string;
+  tint?: "rose" | "red" | "gold";
 }) {
-  const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
-  const [dragging, setDragging] = useState(false);
-  const moved = useRef(false);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    try {
-      const set = () =>
-        setPos({ x: window.innerWidth / 2, y: window.innerHeight / 2 + offsetY });
-      set();
-      window.addEventListener("resize", set);
-      return () => window.removeEventListener("resize", set);
-    } catch (err) {
-      console.error("[MovableAffection] failed to position", err);
-      return;
-    }
-  }, [offsetY]);
+    const id = window.requestAnimationFrame(() => setReady(true));
+    return () => window.cancelAnimationFrame(id);
+  }, []);
 
-  if (!pos) return null;
+  const hue =
+    tint === "red"
+      ? "0 85% 60%"
+      : tint === "gold"
+        ? "38 80% 62%"
+        : "342 68% 62%";
 
   return (
     <div
-      role="button"
-      tabIndex={0}
-      aria-label={hint}
-      className={`absolute pointer-events-auto touch-none select-none cursor-grab active:cursor-grabbing ${className}`}
+      className={`absolute left-1/2 top-1/2 pointer-events-none select-none ${className}`}
       style={{
-        left: pos.x,
-        top: pos.y,
-        transform: `translate(-50%,-50%) scale(${dragging ? 1.08 : 1})`,
-        transition: dragging ? "none" : "transform 220ms ease",
-        willChange: "left, top, transform",
+        transform: `translate(-50%, calc(-50% + ${offsetY}px))`,
       }}
-      onPointerDown={(e) => {
-        try {
-          (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
-          moved.current = false;
-          setDragging(true);
-        } catch (err) {
-          console.error("[MovableAffection] pointer down failed", err);
-        }
-      }}
-      onPointerMove={(e) => {
-        if (!dragging) return;
-        moved.current = true;
-        setPos({ x: e.clientX, y: e.clientY });
-      }}
-      onPointerUp={(e) => {
-        if (!dragging) return;
-        setDragging(false);
-        try {
-          if (moved.current) onDrop?.(e.clientX, e.clientY);
-        } catch (err) {
-          console.error("[MovableAffection] drop handler failed", err);
-        }
-      }}
-      onPointerCancel={() => setDragging(false)}
     >
-      {children}
-      {showHint && (
-        <span className="pointer-events-none absolute -bottom-6 left-1/2 -translate-x-1/2 whitespace-nowrap text-[9px] uppercase tracking-[0.22em] text-candle/60">
-          {hint}
-        </span>
-      )}
+      <div
+        className="relative flex items-center justify-center"
+        style={{
+          opacity: ready ? 1 : 0,
+          transform: ready ? "scale(1)" : "scale(0.82)",
+          transition: "opacity 320ms ease, transform 520ms cubic-bezier(.22,1.4,.36,1)",
+        }}
+      >
+        {/* Soft bloom */}
+        <span
+          aria-hidden
+          className="absolute size-[22rem] rounded-full blur-2xl animate-affection-bloom"
+          style={{ background: `radial-gradient(closest-side, hsl(${hue} / 0.28), transparent 70%)` }}
+        />
+        {/* Rotating gilt halo */}
+        <span
+          aria-hidden
+          className="absolute size-64 rounded-full animate-affection-halo"
+          style={{
+            background: `conic-gradient(from 0deg, transparent 0deg, hsl(${hue} / 0.55) 60deg, transparent 140deg, hsl(38 80% 70% / 0.4) 220deg, transparent 320deg)`,
+            maskImage: "radial-gradient(closest-side, transparent 68%, #000 71%, #000 78%, transparent 81%)",
+            WebkitMaskImage: "radial-gradient(closest-side, transparent 68%, #000 71%, #000 78%, transparent 81%)",
+          }}
+        />
+        {/* Inner ring */}
+        <span
+          aria-hidden
+          className="absolute size-52 rounded-full border animate-affection-ring"
+          style={{ borderColor: `hsl(${hue} / 0.35)`, boxShadow: `0 0 40px hsl(${hue} / 0.25) inset` }}
+        />
+        {/* Subject */}
+        <div className="relative animate-affection-float" style={{ filter: `drop-shadow(0 18px 34px hsl(${hue} / 0.35))` }}>
+          {children}
+        </div>
+        {/* Glass plinth */}
+        <span
+          aria-hidden
+          className="absolute -bottom-6 h-6 w-40 rounded-[50%] blur-md"
+          style={{ background: `radial-gradient(closest-side, hsl(${hue} / 0.4), transparent 75%)` }}
+        />
+      </div>
     </div>
   );
 }
