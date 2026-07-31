@@ -1,4 +1,14 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
+
+/** Renders overlay effects into <body> so blurred/scrolling admin
+ *  containers can't clip or contain fixed-position animations. */
+function OverlayPortal({ children }: { children: React.ReactNode }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  if (!mounted || typeof document === "undefined") return null;
+  return createPortal(<>{children}</>, document.body);
+}
 import { toast } from "sonner";
 import {
   Heart, HeartHandshake, Sparkles, Lock, Unlock, Film, BookOpen,
