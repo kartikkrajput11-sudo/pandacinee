@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { MovableAffection } from "./MovableAffection";
+
 
 /**
  * Kiss overlay — a realistic soft lip imprint smooches down at
