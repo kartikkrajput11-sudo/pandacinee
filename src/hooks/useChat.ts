@@ -216,7 +216,7 @@ export function useChat(meId: string | null, partnerId: string | null) {
   const send = useCallback(
     async (input: {
       content?: string;
-      type?: "text" | "voice" | "image" | "video" | "file" | "sticker" | "watch_invite" | "game_invite" | "kiss" | "hug" | "headpat" | "handhold" | "boop" | "nudge" | "whisper" | "movie_wheel";
+      type?: "text" | "voice" | "image" | "video" | "file" | "sticker" | "watch_invite" | "game_invite" | "kiss" | "hug" | "headpat" | "handhold" | "boop" | "slap" | "anger" | "tickle" | "wink" | "nudge" | "whisper" | "movie_wheel";
       media_url?: string | null;
       media_meta?: Record<string, unknown> | null;
       reply_to_id?: string | null;

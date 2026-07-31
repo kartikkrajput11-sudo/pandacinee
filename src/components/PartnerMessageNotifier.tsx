@@ -28,6 +28,10 @@ function previewFor(type: string, content: string): string {
     case "headpat": return "✋ patted your head";
     case "handhold": return "🤝 wants to hold hands";
     case "boop": return "👉 booped your nose";
+    case "slap": return "💢 slapped you";
+    case "anger": return "😤 is mad at you";
+    case "tickle": return "🪶 tickled you";
+    case "wink": return "😉 winked at you";
     case "nudge": return "👉 Nudge!";
     case "poll": return "📊 Poll";
     default: return content?.slice(0, 80) || "New message";
