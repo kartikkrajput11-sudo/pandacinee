@@ -37,7 +37,7 @@ export function HugOverlay({ trigger }: { trigger: number }) {
           />
 
           {/* Panda sticker */}
-          <div className="absolute inset-0 flex items-center justify-center">
+          <MovableAffection hint="drag the hug">
             <img
               src={pandaHug}
               alt="two pandas hugging"
@@ -51,7 +51,7 @@ export function HugOverlay({ trigger }: { trigger: number }) {
               }}
               draggable={false}
             />
-          </div>
+          </MovableAffection>
 
           {/* Caption */}
           <div className="absolute inset-x-0 top-[calc(50%+140px)] flex flex-col items-center gap-2 animate-kiss-caption">

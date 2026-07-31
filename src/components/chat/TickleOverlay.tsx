@@ -35,11 +35,11 @@ export function TickleOverlay({ trigger }: { trigger: number }) {
         }}
       />
 
-      <div className="absolute inset-0 flex items-center justify-center">
+      <MovableAffection hint="drag the feather">
         <span className="text-7xl animate-tickle-feather select-none" style={{ filter: "drop-shadow(0 10px 22px hsl(340 40% 20% / 0.45))" }}>
           🪶
         </span>
-      </div>
+      </MovableAffection>
 
       <div className="absolute inset-0 flex items-end justify-center pb-24">
         {laughs.map((emo, i) => (

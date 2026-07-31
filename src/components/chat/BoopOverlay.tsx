@@ -50,7 +50,7 @@ export function BoopOverlay({ trigger }: { trigger: number }) {
           </div>
 
           {/* Sticker with a bouncy pop */}
-          <div className="absolute inset-0 flex items-center justify-center">
+          <MovableAffection hint="drag the boop">
             <img
               src={pandaBoop}
               alt="two pandas booping noses"
@@ -64,7 +64,7 @@ export function BoopOverlay({ trigger }: { trigger: number }) {
               }}
               draggable={false}
             />
-          </div>
+          </MovableAffection>
 
           {/* Tiny sparks around */}
           <div className="absolute inset-0 flex items-center justify-center">

@@ -37,7 +37,7 @@ export function HandholdOverlay({ trigger }: { trigger: number }) {
           />
 
           {/* Sticker */}
-          <div className="absolute inset-0 flex items-center justify-center">
+          <MovableAffection hint="drag the hands">
             <img
               src={pandaHandhold}
               alt="two pandas holding hands"
@@ -51,7 +51,7 @@ export function HandholdOverlay({ trigger }: { trigger: number }) {
               }}
               draggable={false}
             />
-          </div>
+          </MovableAffection>
 
           {/* Pearl-string sparkles */}
           <div className="absolute inset-0 flex items-center justify-center">
