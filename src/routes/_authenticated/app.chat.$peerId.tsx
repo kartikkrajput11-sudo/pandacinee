@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, Phone, Video, Pin, ChevronDown, Lock, Flame, ArrowDown, MoreVertical, Trash2, Images } from "lucide-react";
+import { ArrowLeft, Phone, Video, Pin, ChevronDown, Lock, Flame, MoreVertical, Trash2, Images } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useQuery } from "@tanstack/react-query";
@@ -255,8 +255,7 @@ function ChatPeer() {
     return () => ro.disconnect();
   }, [messages.length]);
 
-  // Auto-load older when user scrolls near the top, and track scroll-to-bottom FAB visibility.
-  const [showScrollFab, setShowScrollFab] = useState(false);
+  // Auto-load older when user scrolls near the top.
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
@@ -267,17 +266,11 @@ function ChatPeer() {
       }
       const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
       stickToBottomRef.current = distanceFromBottom < 120;
-      setShowScrollFab(distanceFromBottom > 240);
     };
     el.addEventListener("scroll", onScroll, { passive: true });
     return () => el.removeEventListener("scroll", onScroll);
   }, [hasMore, loadingOlder, loading, loadOlder]);
 
-  const scrollToBottom = useCallback(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
-  }, []);
 
   // Locally mark this thread as read whenever the last message id changes,
   // so the unread badge on /app/chat clears even when the user has
@@ -671,16 +664,6 @@ function ChatPeer() {
         )}
       </div>
 
-      {showScrollFab && (
-        <button
-          type="button"
-          onClick={scrollToBottom}
-          aria-label="Scroll to latest"
-          className="absolute right-4 bottom-40 size-10 rounded-full bg-surface-elevated/90 backdrop-blur-md border border-petal/30 flex items-center justify-center text-petal shadow-lg animate-fade-in z-20"
-        >
-          <ArrowDown className="size-4" />
-        </button>
-      )}
 
 
 
