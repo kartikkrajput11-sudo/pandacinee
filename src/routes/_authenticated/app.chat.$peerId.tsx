@@ -32,6 +32,7 @@ import { PunishmentLockBanner } from "@/components/chat/PunishmentLockBanner";
 import { PunishmentVerificationChat } from "@/components/chat/PunishmentVerificationChat";
 import { usePunishmentVerification } from "@/hooks/usePunishmentVerification";
 import { UnlockCelebration } from "@/components/chat/UnlockCelebration";
+import { loadSeenFx, saveSeenFx } from "@/lib/seen-affections";
 import { typeMeta } from "@/lib/punishment";
 import { UserAvatar } from "@/components/UserAvatar";
 import { ForwardDialog, canForward } from "@/components/chat/ForwardDialog";
