@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import {
   Plus, X, Image as ImageIcon, Paperclip, Smile, Send, Film,
-  Video as VideoIcon, Gamepad2, Heart, HeartHandshake, Handshake, Hand, Zap, EyeOff, Eye, Disc3, Sparkles, Pointer, CalendarClock, Angry, Feather, Laugh,
+  Video as VideoIcon, Gamepad2, Heart, HeartHandshake, Handshake, Hand, Zap, EyeOff, Eye, Disc3, Sparkles, Pointer, CalendarClock, Angry, Feather, Laugh, ChevronRight,
 } from "lucide-react";
 import { toast } from "sonner";
 import { uploadChatMedia, type MessageRow } from "@/lib/chat";
@@ -67,11 +67,14 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
   const [whisper, setWhisper] = useState(false);
   const [viewOnce, setViewOnce] = useState(false);
   const [recording, setRecording] = useState(false);
+  const [focused, setFocused] = useState(false);
   const [openGroup, setOpenGroup] = useState<null | "media" | "sticker" | "together" | "affection">(null);
 
+  const inputRef = useRef<HTMLInputElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const imgRef = useRef<HTMLInputElement>(null);
   const vidRef = useRef<HTMLInputElement>(null);
+  const composing = (focused || text.trim().length > 0) && !recording;
 
   async function sendGameInvite(g: GamePick) {
     setGamePickerOpen(false);
