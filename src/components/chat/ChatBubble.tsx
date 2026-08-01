@@ -722,7 +722,12 @@ function ChatBubbleImpl({
 
         {actionsOpen && typeof document !== "undefined" && createPortal(
           <div
-            className={`fixed inset-0 z-[200] flex flex-col items-center justify-center gap-4 px-6 bg-black/60 backdrop-blur-xl ${actionsClosing ? "animate-fade-out" : "animate-fade-in"}`}
+            style={{
+              height: "100dvh",
+              paddingTop: "max(1rem, env(safe-area-inset-top))",
+              paddingBottom: "max(1rem, env(safe-area-inset-bottom))",
+            }}
+            className={`fixed inset-x-0 top-0 z-[200] flex flex-col items-center justify-center gap-3 px-6 overflow-y-auto overscroll-contain bg-black/60 backdrop-blur-xl ${actionsClosing ? "animate-fade-out" : "animate-fade-in"}`}
             onClick={() => { closeActions(); }}
             onPointerDown={(e) => e.stopPropagation()}
             onMouseMove={armIdleClose}
