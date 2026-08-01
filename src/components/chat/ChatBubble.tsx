@@ -775,7 +775,7 @@ function ChatBubbleImpl({
 
             {/* Action menu */}
             <div
-              className="w-full max-w-xs rounded-2xl bg-surface-elevated/95 border border-border shadow-2xl overflow-hidden animate-scale-in"
+              className="w-full max-w-xs shrink-0 rounded-2xl bg-surface-elevated/95 border border-border shadow-2xl overflow-hidden animate-scale-in"
               onClick={(e) => e.stopPropagation()}
             >
               <button
