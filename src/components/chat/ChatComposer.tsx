@@ -585,6 +585,15 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
           }`}
           aria-hidden={recording}
         >
+          {/* Shortcut cluster — gracefully collapses while composing */}
+          <div
+            className={`flex items-center gap-2 overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+              composing
+                ? "max-w-0 opacity-0 -translate-x-2 scale-90 pointer-events-none"
+                : "max-w-[240px] opacity-100 translate-x-0 scale-100"
+            }`}
+            aria-hidden={composing}
+          >
           <button
             type="button"
             onClick={() => { setMenuOpen((m) => !m); setStickersOpen(false); }}
@@ -646,15 +655,34 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
           >
             <Sparkles className="size-4" />
           </button>
+          </div>
+
+          {/* Collapse handle — brings the shortcuts back */}
+          <button
+            type="button"
+            onClick={() => { setFocused(false); inputRef.current?.blur(); }}
+            className={`size-11 rounded-full bg-surface border border-border text-petal flex items-center justify-center shrink-0 overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+              composing ? "max-w-11 opacity-100 scale-100" : "max-w-0 w-0 border-0 opacity-0 scale-90 pointer-events-none"
+            }`}
+            title="Show shortcuts"
+            aria-label="Show shortcuts"
+            aria-hidden={!composing}
+          >
+            <ChevronRight className="size-4" />
+          </button>
 
           <div className="flex-1 relative min-w-0">
             <input
+              ref={inputRef}
               value={text}
               onChange={(e) => { setText(e.target.value); onTyping(e.target.value.length > 0); }}
-              onBlur={() => onTyping(false)}
+              onFocus={() => setFocused(true)}
+              onBlur={() => { setFocused(false); onTyping(false); }}
               placeholder={whisper ? `Whisper to ${partnerName}…` : `Message ${partnerName}…`}
               disabled={recording}
-              className={`w-full pl-4 py-3 bg-surface border rounded-full text-sm text-candle placeholder:text-candle-muted focus:outline-none transition-colors ${
+              className={`w-full pl-4 py-3 bg-surface border rounded-full text-sm text-candle placeholder:text-candle-muted focus:outline-none transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+                composing ? "shadow-[0_0_0_1px_rgba(236,72,153,0.35),0_8px_24px_-12px_rgba(236,72,153,0.55)]" : ""
+              } ${
                 whisper ? "border-petal/70 focus:border-petal pr-24" : "border-border focus:border-petal/60 pr-4"
               }`}
             />
@@ -665,6 +693,7 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
             )}
           </div>
         </div>
+
 
         {/* Trailing: schedule + send button OR voice recorder (single instance, morphs) */}
         <div className="min-w-0 flex items-center justify-end gap-1.5">
