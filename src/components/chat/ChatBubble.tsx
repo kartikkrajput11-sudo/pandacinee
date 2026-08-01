@@ -722,7 +722,12 @@ function ChatBubbleImpl({
 
         {actionsOpen && typeof document !== "undefined" && createPortal(
           <div
-            className={`fixed inset-0 z-[200] flex flex-col items-center justify-center gap-4 px-6 bg-black/60 backdrop-blur-xl ${actionsClosing ? "animate-fade-out" : "animate-fade-in"}`}
+            style={{
+              height: "100dvh",
+              paddingTop: "max(1rem, env(safe-area-inset-top))",
+              paddingBottom: "max(1rem, env(safe-area-inset-bottom))",
+            }}
+            className={`fixed inset-x-0 top-0 z-[200] flex flex-col items-center justify-center gap-3 px-6 overflow-y-auto overscroll-contain bg-black/60 backdrop-blur-xl ${actionsClosing ? "animate-fade-out" : "animate-fade-in"}`}
             onClick={() => { closeActions(); }}
             onPointerDown={(e) => e.stopPropagation()}
             onMouseMove={armIdleClose}
@@ -770,7 +775,7 @@ function ChatBubbleImpl({
 
             {/* Action menu */}
             <div
-              className="w-full max-w-xs rounded-2xl bg-surface-elevated/95 border border-border shadow-2xl overflow-hidden animate-scale-in"
+              className="w-full max-w-xs shrink-0 rounded-2xl bg-surface-elevated/95 border border-border shadow-2xl overflow-hidden animate-scale-in"
               onClick={(e) => e.stopPropagation()}
             >
               <button

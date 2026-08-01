@@ -44,7 +44,12 @@ export function SignedImage({ path, className }: { path: string; className?: str
 
       {open && typeof document !== "undefined" && createPortal(
         <div
-          className="fixed inset-0 z-[9999] bg-black/95 backdrop-blur-sm flex items-center justify-center p-4"
+          style={{
+            height: "100dvh",
+            paddingTop: "max(1rem, env(safe-area-inset-top))",
+            paddingBottom: "max(1rem, env(safe-area-inset-bottom))",
+          }}
+          className="fixed inset-x-0 top-0 z-[9999] bg-black/95 backdrop-blur-sm flex items-center justify-center px-4"
           onClick={() => setOpen(false)}
           onPointerDown={stop}
         >

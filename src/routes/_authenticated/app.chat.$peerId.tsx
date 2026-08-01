@@ -32,6 +32,7 @@ import { PunishmentLockBanner } from "@/components/chat/PunishmentLockBanner";
 import { PunishmentVerificationChat } from "@/components/chat/PunishmentVerificationChat";
 import { usePunishmentVerification } from "@/hooks/usePunishmentVerification";
 import { UnlockCelebration } from "@/components/chat/UnlockCelebration";
+import { loadSeenFx, saveSeenFx } from "@/lib/seen-affections";
 import { typeMeta } from "@/lib/punishment";
 import { UserAvatar } from "@/components/UserAvatar";
 import { ForwardDialog, canForward } from "@/components/chat/ForwardDialog";
@@ -198,6 +199,7 @@ function ChatPeer() {
   const [shake, setShake] = useState(false);
   const lastFxIdRef = useRef<string | null>(null);
   const playedFxRef = useRef<Set<string>>(new Set());
+  const seenFxLoadedFor = useRef<string | null>(null);
 
   const jumpTo = useCallback((id: string) => {
     const el = bubbleRefs.current[id];
@@ -287,12 +289,17 @@ function ChatPeer() {
   }, [me?.id, peer?.id, lastMsgId]);
 
 
-  // Trigger kiss / nudge FX for partner messages. Plays for anything that is
-  // (a) freshly arrived (< 15s old) OR (b) still unread — so if the partner
-  // sent a kiss/nudge while I was offline, the animation fires when I open
-  // the chat, right as I "see" it. Each message plays at most once per session.
+  // Trigger kiss / nudge FX for partner messages. Plays only for affections the
+  // user has never seen before: freshly arrived (< 15s old) or still unread and
+  // not already played on a previous visit. The played set is persisted per
+  // thread so reopening the chat never replays an old animation.
   useEffect(() => {
-    if (messages.length === 0 || !me) return;
+    if (messages.length === 0 || !me || !peer?.id) return;
+    const threadKey = `${me.id}:${peer.id}`;
+    if (seenFxLoadedFor.current !== threadKey) {
+      playedFxRef.current = loadSeenFx(me.id, peer.id);
+      seenFxLoadedFor.current = threadKey;
+    }
     const now = Date.now();
     const candidates = messages.filter((m) => {
       if (m.sender_id === me.id) return false;
@@ -372,7 +379,8 @@ function ChatPeer() {
         delay += 350;
       }
     }
-  }, [messages, me]);
+    saveSeenFx(me.id, peer.id, playedFxRef.current);
+  }, [messages, me, peer?.id]);
 
 
   if (isLoading || peerQ.isLoading) {
