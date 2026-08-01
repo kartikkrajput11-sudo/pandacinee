@@ -255,8 +255,7 @@ function ChatPeer() {
     return () => ro.disconnect();
   }, [messages.length]);
 
-  // Auto-load older when user scrolls near the top, and track scroll-to-bottom FAB visibility.
-  const [showScrollFab, setShowScrollFab] = useState(false);
+  // Auto-load older when user scrolls near the top.
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
@@ -267,17 +266,11 @@ function ChatPeer() {
       }
       const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
       stickToBottomRef.current = distanceFromBottom < 120;
-      setShowScrollFab(distanceFromBottom > 240);
     };
     el.addEventListener("scroll", onScroll, { passive: true });
     return () => el.removeEventListener("scroll", onScroll);
   }, [hasMore, loadingOlder, loading, loadOlder]);
 
-  const scrollToBottom = useCallback(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
-  }, []);
 
   // Locally mark this thread as read whenever the last message id changes,
   // so the unread badge on /app/chat clears even when the user has
