@@ -379,7 +379,8 @@ function ChatPeer() {
         delay += 350;
       }
     }
-  }, [messages, me]);
+    saveSeenFx(me.id, peer.id, playedFxRef.current);
+  }, [messages, me, peer?.id]);
 
 
   if (isLoading || peerQ.isLoading) {
