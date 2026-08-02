@@ -164,7 +164,7 @@ export function AnniversaryDayMode() {
       )}
 
       {open && (
-        <AnniversaryWorld day={day} partnerName={partnerName} test={testing} onClose={() => setOpen(false)} />
+        <AnniversaryWorld day={shownDay} partnerName={partnerName} test={testing} onClose={() => setOpen(false)} />
       )}
 
     </>
