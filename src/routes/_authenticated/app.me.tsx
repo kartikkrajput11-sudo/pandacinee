@@ -38,6 +38,7 @@ function Me() {
   const [favoriteColor, setFavoriteColor] = useState<string | null>(null);
   const [equippedTags, setEquippedTags] = useState<string[]>([]);
   const [anniversary, setAnniversary] = useState("");
+  const [birthday, setBirthday] = useState("");
   const [partnerNickname, setPartnerNickname] = useState("");
   const [saving, setSaving] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -52,6 +53,7 @@ function Me() {
     setFavoriteColor(me.favorite_color);
     setEquippedTags(Array.isArray((me as any).equipped_tags) ? ((me as any).equipped_tags as string[]) : []);
     setAnniversary(me.anniversary_date ?? "");
+    setBirthday(((me as { birthday?: string | null }).birthday) ?? "");
     setPartnerNickname(me.partner_nickname ?? "");
     setAvatarUrl(me.avatar_url);
   }, [me]);
@@ -149,6 +151,7 @@ function Me() {
         favorite_color: favoriteColor,
         equipped_tags: equippedTags,
         anniversary_date: anniversary || null,
+        birthday: birthday || null,
         partner_nickname: partnerNickname || null,
       })
       .eq("id", me.id);
@@ -388,6 +391,14 @@ function Me() {
                 type="date"
                 value={anniversary}
                 onChange={(e) => setAnniversary(e.target.value)}
+                className="w-full bg-velvet border border-border rounded-2xl px-4 py-3 text-candle"
+              />
+            </Field>
+            <Field label="Your birthday">
+              <input
+                type="date"
+                value={birthday}
+                onChange={(e) => setBirthday(e.target.value)}
                 className="w-full bg-velvet border border-border rounded-2xl px-4 py-3 text-candle"
               />
             </Field>
