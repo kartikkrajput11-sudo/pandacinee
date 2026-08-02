@@ -17,6 +17,7 @@ export const Route = createFileRoute("/_authenticated/app/hideseek")({
   validateSearch: (search: Record<string, unknown>) => ({
     matchId: typeof search.matchId === "string" ? search.matchId : undefined,
     friend: typeof search.friend === "string" ? search.friend : undefined,
+    room: typeof search.room === "string" ? search.room : undefined,
   }),
   head: () => ({
     meta: [

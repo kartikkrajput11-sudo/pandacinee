@@ -34,6 +34,7 @@ const searchSchema = z.object({
   ai: z.enum(["easy", "medium", "hard", "expert"]).optional(),
   matchId: z.string().optional(),
   friend: z.string().optional(),
+  room: z.string().optional(),
 });
 
 export const Route = createFileRoute("/_authenticated/app/chess")({
