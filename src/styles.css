@@ -250,27 +250,27 @@
 .light .tint-champagne{ background: color-mix(in oklab, var(--champagne) 55%, #ffffff); color: var(--candle); }
 
 /* Chip variants for tags / badges */
-.light .chip-peach    { background: var(--peach-soft);    color: #7a3520; border: 1px solid color-mix(in oklab, var(--peach) 45%, transparent); }
-.light .chip-marigold { background: var(--marigold-soft); color: #6a4a15; border: 1px solid color-mix(in oklab, var(--marigold) 50%, transparent); }
-.light .chip-sage     { background: var(--sage-soft);     color: #2e5540; border: 1px solid color-mix(in oklab, var(--sage) 50%, transparent); }
-.light .chip-sky      { background: var(--sky-soft);      color: #2f4a70; border: 1px solid color-mix(in oklab, var(--sky) 50%, transparent); }
+.light .chip-peach    { background: var(--peach-soft);    color: #6f4a33; border: 1px solid color-mix(in oklab, var(--peach) 45%, transparent); }
+.light .chip-marigold { background: var(--marigold-soft); color: #6b5220; border: 1px solid color-mix(in oklab, var(--marigold) 50%, transparent); }
+.light .chip-sage     { background: var(--sage-soft);     color: #4a5140; border: 1px solid color-mix(in oklab, var(--sage) 50%, transparent); }
+.light .chip-sky      { background: var(--sky-soft);      color: #44504f; border: 1px solid color-mix(in oklab, var(--sky) 50%, transparent); }
 .light .chip-plum     { background: var(--plum-soft);     color: var(--plum); border: 1px solid color-mix(in oklab, var(--plum) 40%, transparent); }
-.light .chip-rose     { background: var(--petal-soft);    color: #7a1f3a; border: 1px solid color-mix(in oklab, var(--petal) 50%, transparent); }
+.light .chip-rose     { background: var(--petal-soft);    color: #6b4f3a; border: 1px solid color-mix(in oklab, var(--petal) 50%, transparent); }
 
-.light .text-marigold { color: #8a5a12; }
-.light .text-sage     { color: #2e5540; }
-.light .text-sky      { color: #2f4a70; }
+.light .text-marigold { color: #6b5220; }
+.light .text-sage     { color: #4a5140; }
+.light .text-sky      { color: #44504f; }
 .light .text-plum     { color: var(--plum); }
-.light .text-peach    { color: #7a3520; }
+.light .text-peach    { color: #6f4a33; }
 
 /* Multi-hue divider */
 .light .rule-spectrum {
   height: 1px;
   background: linear-gradient(90deg,
     transparent 0%,
-    color-mix(in oklab, var(--petal) 55%, transparent) 20%,
-    color-mix(in oklab, var(--marigold) 55%, transparent) 45%,
-    color-mix(in oklab, var(--sky) 55%, transparent) 70%,
+    color-mix(in oklab, var(--lavender) 70%, transparent) 20%,
+    color-mix(in oklab, var(--petal) 45%, transparent) 50%,
+    color-mix(in oklab, var(--lavender) 70%, transparent) 80%,
     transparent 100%);
   border: 0;
 }
