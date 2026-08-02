@@ -224,8 +224,8 @@ export function FirstChapterCard({ ownerId, partnerName }: { ownerId: string; pa
       )}
 
       {picking && (
-        <Sheet title="Which first?" onClose={() => setPicking(false)}>
-          <div className="grid gap-2">
+        <Sheet title="Which first?" subtitle="Tap a moment to write it down." onClose={() => setPicking(false)}>
+          <div className="grid grid-cols-2 gap-2.5">
             {available.map((m) => (
               <button
                 key={m.key}
@@ -241,18 +241,19 @@ export function FirstChapterCard({ ownerId, partnerName }: { ownerId: string; pa
                     story: "",
                   });
                 }}
-                className="flex items-center gap-3 rounded-2xl border border-border/60 bg-velvet/40 px-4 py-3 text-left transition hover:border-petal/60"
+                className="flex h-full flex-col items-start gap-2 rounded-2xl border border-border/60 bg-velvet/40 p-3.5 text-left transition active:scale-[0.98] hover:border-petal/60 hover:bg-petal/10"
               >
-                <span className="text-lg">{m.emoji}</span>
-                <span className="min-w-0 flex-1">
-                  <span className="block text-sm text-candle">{m.label}</span>
-                  <span className="block text-[11px] text-candle-muted">{m.hint}</span>
+                <span className="grid size-9 place-items-center rounded-xl border border-petal/25 bg-petal/10 text-lg">
+                  {m.emoji}
                 </span>
+                <span className="block text-sm leading-snug text-candle">{m.label}</span>
+                <span className="block text-[11px] leading-snug text-candle-muted">{m.hint}</span>
               </button>
             ))}
           </div>
         </Sheet>
       )}
+
 
       {draft && (
         <Sheet title={draft.label} onClose={() => setDraft(null)}>
