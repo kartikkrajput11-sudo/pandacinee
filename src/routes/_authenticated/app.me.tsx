@@ -3,6 +3,13 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, LogOut, Heart, Copy, Camera, Save, Sun, Moon, Monitor, ChevronRight, Lock, Coins, Volume2, VolumeX, Eye, EyeOff, CheckCheck, Check, Compass, Sparkles } from "lucide-react";
 import { EditorialPageHeader } from "@/components/editorial/SectionHeader";
+import { Button } from "@/components/ui/button";
+import {
+  SettingsGroup,
+  SettingsLinkRow,
+  SettingsButtonRow,
+  SettingsPanelRow,
+} from "@/components/settings/SettingsGroup";
 
 import { isSfxEnabled, setSfxEnabled, sfxReaction } from "@/lib/sfx";
 import { toast } from "sonner";
