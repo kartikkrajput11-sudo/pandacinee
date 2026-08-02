@@ -100,7 +100,8 @@ function CalendarPage() {
           label: o.label,
           emoji: o.emoji,
           blurb: o.blurb,
-          tone: o.tone,
+          // Couple days count as partner days once you're paired.
+          tone: partner && o.tone === "love" ? "partner" : o.tone,
         });
       }
     }
