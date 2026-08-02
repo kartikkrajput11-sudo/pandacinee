@@ -826,3 +826,12 @@ function PunishmentLockToggle({ me, onSaved }: { me: any; onSaved: () => void })
   );
 }
 
+
+function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl border border-border bg-velvet/40 px-3 py-2.5 text-center">
+      <p className="font-serif italic text-lg text-candle leading-none truncate">{value}</p>
+      <p className="text-[9px] uppercase tracking-[0.24em] text-candle-muted mt-1.5">{label}</p>
+    </div>
+  );
+}
