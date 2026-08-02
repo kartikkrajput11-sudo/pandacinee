@@ -408,36 +408,47 @@ function CalendarPage() {
               </div>
             </section>
 
-            <section className="rounded-3xl border border-border/60 bg-surface-elevated/40 p-5 backdrop-blur-xl">
-              <p className="mb-3 text-[10px] uppercase tracking-[0.3em] text-candle-muted">On the horizon</p>
-              <ul className="space-y-2.5">
-                {upcoming.map((m) => {
-                  const n = daysUntil(m.date, today);
-                  return (
-                    <li key={m.id}>
-                      <button
-                        onClick={() => {
-                          setCursor(new Date(m.date.getFullYear(), m.date.getMonth(), 1));
-                          setSelected(m.date);
-                        }}
-                        className="flex w-full items-center gap-3 text-left"
-                      >
-                        <span className="text-base">{m.emoji}</span>
-                        <span className={`flex-1 truncate text-sm ${m.tone === "partner" ? "text-petal" : "text-candle"}`}>
-                          {m.label}
-                        </span>
-                        <span className="shrink-0 text-[10px] uppercase tracking-[0.18em] text-candle-muted">
-                          {n === 0 ? "Today" : n === 1 ? "Tomorrow" : `${n}d`}
-                        </span>
-                      </button>
-                    </li>
-                  );
-                })}
-                {upcoming.length === 0 && <li className="text-sm text-candle-muted">Nothing for a while.</li>}
-              </ul>
-            </section>
+            {upcoming.length > 1 && (
+              <section className="rounded-3xl border border-border/60 bg-surface-elevated/40 p-5 backdrop-blur-xl">
+                <p className="mb-3 text-[10px] uppercase tracking-[0.3em] text-candle-muted">On the horizon</p>
+                <ul className="divide-y divide-border/40">
+                  {upcoming.slice(1).map((m) => {
+                    const n = daysUntil(m.date, today);
+                    return (
+                      <li key={m.id}>
+                        <button
+                          onClick={() => {
+                            setCursor(new Date(m.date.getFullYear(), m.date.getMonth(), 1));
+                            setSelected(m.date);
+                          }}
+                          className="flex w-full items-center gap-3 py-2.5 text-left transition hover:opacity-80"
+                        >
+                          <span className="grid size-8 shrink-0 place-items-center rounded-xl border border-border/50 bg-velvet/40 text-sm">
+                            {m.emoji}
+                          </span>
+                          <span className="min-w-0 flex-1">
+                            <span className={`block truncate text-sm ${m.tone === "partner" ? "text-petal" : "text-candle"}`}>
+                              {m.label}
+                            </span>
+                            <span className="block truncate text-[11px] text-candle-muted">
+                              {m.date.toLocaleDateString(undefined, { day: "numeric", month: "short" })}
+                            </span>
+                          </span>
+                          <span className="shrink-0 text-[10px] uppercase tracking-[0.18em] text-candle-muted">
+                            {n === 0 ? "Today" : n === 1 ? "Tomorrow" : `${n}d`}
+                          </span>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </section>
+            )}
+
+            {me && <FirstChapterCard ownerId={me.id} partnerName={partner?.display_name ?? null} />}
           </div>
         </div>
+
       </div>
 
       {adding && me && (
