@@ -90,6 +90,7 @@ export function AnniversaryDayMode() {
   }, [day]);
 
   if (!effectiveDay) return null;
+  const shownDay: NonNullable<AnnivDay> = effectiveDay;
 
 
   return (
@@ -134,7 +135,7 @@ export function AnniversaryDayMode() {
                 Golden Hour · Today only
               </span>
               <span className="block font-serif italic text-sm text-[#f7ecd2] truncate">
-                {annivTitle(day)} with {partnerName}
+                {annivTitle(shownDay)} with {partnerName}
               </span>
             </span>
             <span className="text-[10px] uppercase tracking-[0.24em] text-[#1a1109] bg-gradient-to-r from-[#c9a84c] to-[#f0d78c] rounded-full px-3 py-1 shrink-0">
