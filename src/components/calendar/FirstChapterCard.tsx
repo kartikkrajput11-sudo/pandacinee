@@ -133,25 +133,26 @@ export function FirstChapterCard({ ownerId, partnerName }: { ownerId: string; pa
 
   return (
     <section className="rounded-3xl border border-petal/30 bg-[linear-gradient(160deg,var(--petal-soft),transparent_65%)] p-5 backdrop-blur-xl shadow-[var(--shadow-velvet)]">
-      <div className="mb-4 flex items-start justify-between gap-3">
-        <div>
+      <div className="mb-4 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+        <div className="min-w-0">
           <p className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.3em] text-petal">
             <Sparkles className="size-3" /> First chapter
           </p>
-          <h2 className="font-serif text-2xl leading-tight">The day we met</h2>
-          <p className="mt-1 text-xs text-candle-muted">
+          <p className="mt-1 truncate text-xs text-candle-muted">
             {partnerName ? `Every first with ${partnerName}, kept forever.` : "Every first, kept forever."}
           </p>
         </div>
         {available.length > 0 && ordered.length > 0 && (
           <button
             onClick={() => setPicking(true)}
-            className="mt-1 flex shrink-0 items-center gap-1.5 rounded-full border border-petal/40 bg-petal/10 px-3 py-1.5 text-[11px] uppercase tracking-[0.18em] text-petal transition hover:bg-petal/20"
+            aria-label="Add a first"
+            className="grid size-9 shrink-0 place-items-center rounded-full border border-petal/40 bg-petal/10 text-petal transition hover:bg-petal/20"
           >
-            <Plus className="size-3.5" /> First
+            <Plus className="size-4" />
           </button>
         )}
       </div>
+
 
       {isLoading ? (
         <p className="text-sm text-candle-muted">Opening the album…</p>
