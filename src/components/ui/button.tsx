@@ -16,13 +16,29 @@ const buttonVariants = cva(
         secondary: "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
+        /* ---- Pandacine house variants ---- */
+        petal:
+          "bg-petal text-velvet font-semibold shadow-[0_10px_30px_-14px_var(--petal)] hover:brightness-105 active:scale-[0.99]",
+        quiet:
+          "bg-surface border border-border text-candle hover:border-petal/40 hover:bg-surface/80",
+        soft:
+          "bg-petal-soft/50 border border-petal/30 text-petal hover:bg-petal-soft/70",
+        railIcon:
+          "rounded-full bg-velvet border border-border text-candle-muted hover:text-petal hover:border-petal/40",
+        chip:
+          "rounded-full border border-petal/40 text-petal text-[10px] uppercase tracking-[0.24em] hover:bg-petal/10",
       },
       size: {
         default: "h-9 px-4 py-2",
         sm: "h-8 rounded-md px-3 text-xs",
         lg: "h-10 rounded-md px-8",
         icon: "h-9 w-9",
+        /* ---- Pandacine house sizes ---- */
+        pill: "h-8 rounded-full px-3.5 text-xs",
+        block: "w-full h-12 rounded-2xl px-5 text-sm",
+        tile: "h-10 w-10 rounded-full",
       },
+
     },
     defaultVariants: {
       variant: "default",
