@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { ArrowLeft, Crown, Eye, Swords } from "lucide-react";
+import { ArrowLeft, Crown, Eye, Heart, Swords } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { UserAvatar } from "@/components/UserAvatar";
 
@@ -17,11 +17,14 @@ export function GroupPlayersBar({
   meId,
   gameName,
   currentTurnUserId,
+  partnerId,
 }: {
   matchId: string;
   meId?: string | null;
   gameName: string;
   currentTurnUserId?: string | null;
+  /** Paired partner — their seat gets the petal treatment. */
+  partnerId?: string | null;
 }) {
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [profiles, setProfiles] = useState<Record<string, Profile>>({});
@@ -100,13 +103,16 @@ export function GroupPlayersBar({
             const isMe = p.user_id === meId;
             const isHost = p.user_id === hostId;
             const isTurn = p.user_id === currentTurnUserId;
+            const isPartner = !!partnerId && p.user_id === partnerId;
             return (
               <div
                 key={p.user_id}
                 className={`flex shrink-0 items-center gap-2 rounded-full border px-2 py-1 pr-3 transition ${
                   isTurn
                     ? "border-amber-300/60 bg-amber-400/10 shadow-[0_0_18px_-4px_rgba(251,191,36,0.55)]"
-                    : "border-white/10 bg-white/5"
+                    : isPartner
+                      ? "border-petal/60 bg-petal/15 shadow-[0_0_18px_-4px_var(--petal)]"
+                      : "border-white/10 bg-white/5"
                 }`}
               >
                 <div className="relative">
@@ -118,13 +124,20 @@ export function GroupPlayersBar({
                   {isHost && (
                     <Crown className="absolute -right-1 -top-1 h-3 w-3 text-amber-300 drop-shadow" />
                   )}
+                  {isPartner && (
+                    <Heart className="absolute -bottom-1 -right-1 h-3 w-3 fill-current text-petal drop-shadow" />
+                  )}
                 </div>
                 <div className="flex min-w-0 flex-col leading-tight">
                   <span className="max-w-[7rem] truncate text-xs font-medium text-white/90">
                     {isMe ? "You" : prof?.display_name ?? "Player"}
                   </span>
-                  <span className="text-[9px] uppercase tracking-[0.12em] text-white/40">
-                    Seat {(p.seat ?? 0) + 1}
+                  <span
+                    className={`text-[9px] uppercase tracking-[0.12em] ${
+                      isPartner ? "text-petal" : "text-white/40"
+                    }`}
+                  >
+                    {isPartner ? "Your panda" : `Seat ${(p.seat ?? 0) + 1}`}
                   </span>
                 </div>
               </div>
