@@ -140,16 +140,14 @@
 }
 
 /* ============================================================
- * LIGHT THEME — Lavender daydream
+ * LIGHT THEME — Warm Sand, pressed paper
  * ============================================================ */
 .light body {
   background-color: var(--background);
   background-image:
-    radial-gradient(ellipse 70% 55% at 15% 8%,   color-mix(in oklab, var(--petal) 18%, transparent) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 45% at 90% 18%,  color-mix(in oklab, var(--lavender) 22%, transparent) 0%, transparent 60%),
-    radial-gradient(ellipse 55% 45% at 82% 82%,  color-mix(in oklab, var(--peach) 16%, transparent) 0%, transparent 62%),
-    radial-gradient(ellipse 50% 42% at 12% 82%,  color-mix(in oklab, var(--sage) 18%, transparent) 0%, transparent 62%),
-    linear-gradient(180deg, #f3e9fd 0%, #ede2fb 55%, #f5ebff 100%);
+    radial-gradient(ellipse 70% 50% at 12% 4%,  color-mix(in oklab, var(--lavender) 14%, transparent) 0%, transparent 62%),
+    radial-gradient(ellipse 60% 45% at 92% 12%, color-mix(in oklab, var(--peach) 12%, transparent) 0%, transparent 62%),
+    linear-gradient(180deg, #faf8f5 0%, #f6f2ea 60%, #faf8f5 100%);
   background-attachment: fixed;
 }
 .light body::before {
@@ -158,77 +156,55 @@
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  opacity: 0.4;
+  opacity: 0.35;
   background-image:
-    radial-gradient(circle at 20% 30%, rgba(255,255,255,0.9) 0.6px, transparent 1.6px),
-    radial-gradient(circle at 70% 60%, rgba(255,255,255,0.8) 0.6px, transparent 1.6px),
-    radial-gradient(circle at 45% 80%, rgba(255,255,255,0.7) 0.6px, transparent 1.6px),
-    radial-gradient(circle at 85% 15%, rgba(255,255,255,0.9) 0.6px, transparent 1.6px);
-  background-size: 240px 240px, 180px 180px, 300px 300px, 220px 220px;
+    radial-gradient(circle at 22% 34%, rgba(139,115,85,0.10) 0.5px, transparent 1.4px),
+    radial-gradient(circle at 68% 62%, rgba(139,115,85,0.08) 0.5px, transparent 1.4px);
+  background-size: 180px 180px, 240px 240px;
 }
 .light body > * { position: relative; z-index: 1; }
 
 .light {
-  --shadow-petal: 0 24px 60px -22px color-mix(in oklab, var(--petal) 28%, transparent),
-                  0 8px 24px  -12px color-mix(in oklab, var(--lavender) 22%, transparent);
-  --shadow-velvet: 0 30px 80px -30px color-mix(in oklab, var(--plum) 24%, transparent),
-                   0 10px 30px -14px color-mix(in oklab, var(--lavender) 22%, transparent);
-  --shadow-marigold: 0 22px 55px -22px color-mix(in oklab, var(--lavender) 32%, transparent),
-                     0 6px 18px -10px color-mix(in oklab, var(--petal) 20%, transparent);
-  --shadow-sage:    0 22px 55px -22px color-mix(in oklab, var(--sage) 30%, transparent),
-                    0 6px 18px -10px color-mix(in oklab, var(--lavender) 20%, transparent);
+  --shadow-petal: 0 18px 44px -26px color-mix(in oklab, var(--plum) 22%, transparent);
+  --shadow-velvet: 0 22px 60px -34px color-mix(in oklab, var(--plum) 24%, transparent);
+  --shadow-marigold: 0 18px 44px -26px color-mix(in oklab, var(--marigold) 24%, transparent);
+  --shadow-sage:    0 18px 44px -26px color-mix(in oklab, var(--sage) 24%, transparent);
 }
 
 .light .glass {
-  background:
-    linear-gradient(180deg,
-      color-mix(in oklab, #ffffff 88%, var(--petal)) 0%,
-      color-mix(in oklab, #ffffff 84%, var(--lavender)) 100%);
-  backdrop-filter: blur(18px) saturate(140%);
-  border: 1px solid color-mix(in oklab, var(--petal) 18%, transparent);
-  box-shadow:
-    0 1px 0 rgba(255,255,255,0.95) inset,
-    0 20px 50px -28px color-mix(in oklab, var(--petal) 24%, transparent);
+  background: var(--surface-elevated);
+  backdrop-filter: none;
+  border: 1px solid color-mix(in oklab, var(--lavender) 45%, transparent);
+  box-shadow: none;
 }
 .light .glass-strong {
-  background:
-    linear-gradient(180deg,
-      #ffffff 0%,
-      color-mix(in oklab, #ffffff 86%, var(--lavender)) 100%);
-  backdrop-filter: blur(28px) saturate(160%);
-  border: 1px solid color-mix(in oklab, var(--petal) 22%, transparent);
-  box-shadow:
-    0 1px 0 rgba(255,255,255,0.98) inset,
-    0 30px 70px -30px color-mix(in oklab, var(--petal) 26%, transparent),
-    0 10px 30px -18px color-mix(in oklab, var(--lavender) 22%, transparent);
+  background: #ffffff;
+  backdrop-filter: none;
+  border: 1px solid color-mix(in oklab, var(--lavender) 55%, transparent);
+  box-shadow: 0 14px 36px -30px color-mix(in oklab, var(--plum) 40%, transparent);
 }
 
 .light .aurora-bg,
 .light .aurora-fixed {
   background:
-    radial-gradient(ellipse 58% 45% at 18% 12%,  color-mix(in oklab, var(--petal) 24%, transparent) 0%, transparent 60%),
-    radial-gradient(ellipse 55% 40% at 84% 20%,  color-mix(in oklab, var(--lavender) 26%, transparent) 0%, transparent 60%),
-    radial-gradient(ellipse 52% 40% at 78% 82%,  color-mix(in oklab, var(--peach) 18%, transparent) 0%, transparent 62%),
-    radial-gradient(ellipse 48% 38% at 16% 78%,  color-mix(in oklab, var(--sage) 20%, transparent) 0%, transparent 62%),
-    linear-gradient(180deg, #f3e9fd 0%, #f6ecff 100%);
-  filter: blur(0) saturate(115%);
+    radial-gradient(ellipse 58% 45% at 18% 10%, color-mix(in oklab, var(--lavender) 16%, transparent) 0%, transparent 62%),
+    radial-gradient(ellipse 52% 40% at 84% 84%, color-mix(in oklab, var(--peach) 14%, transparent) 0%, transparent 62%),
+    linear-gradient(180deg, #faf8f5 0%, #f4efe6 100%);
+  filter: none;
 }
 .light .spotlight {
   background:
     radial-gradient(circle 340px at var(--mx, 50%) var(--my, 0%),
-      color-mix(in oklab, var(--petal) 22%, transparent) 0%,
-      color-mix(in oklab, var(--lavender) 14%, transparent) 40%,
-      transparent 72%),
+      color-mix(in oklab, var(--lavender) 22%, transparent) 0%,
+      transparent 70%),
     #ffffff;
 }
 
 .light .ring-rose,
 .light .ring-petal {
   box-shadow:
-    0 0 0 1px color-mix(in oklab, var(--petal) 50%, transparent),
-    0 24px 60px -24px color-mix(in oklab, var(--petal) 34%, transparent),
-    0 0 36px -8px color-mix(in oklab, var(--lavender) 30%, transparent),
-    inset 0 1px 0 rgba(255,255,255,0.95);
+    0 0 0 1px color-mix(in oklab, var(--lavender) 70%, transparent),
+    0 18px 44px -28px color-mix(in oklab, var(--plum) 30%, transparent);
 }
 
 .light [class*="bg-surface"],
