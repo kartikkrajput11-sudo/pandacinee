@@ -3,6 +3,13 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, LogOut, Heart, Copy, Camera, Save, Sun, Moon, Monitor, ChevronRight, Lock, Coins, Volume2, VolumeX, Eye, EyeOff, CheckCheck, Check, Compass, Sparkles } from "lucide-react";
 import { EditorialPageHeader } from "@/components/editorial/SectionHeader";
+import { Button } from "@/components/ui/button";
+import {
+  SettingsGroup,
+  SettingsLinkRow,
+  SettingsButtonRow,
+  SettingsPanelRow,
+} from "@/components/settings/SettingsGroup";
 
 import { isSfxEnabled, setSfxEnabled, sfxReaction } from "@/lib/sfx";
 import { toast } from "sonner";
@@ -428,99 +435,74 @@ function Me() {
           </div>
 
 
-          <button
-            onClick={save}
-            disabled={saving}
-            className="w-full mb-6 py-3.5 bg-petal text-velvet rounded-2xl text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
-          >
+          <Button onClick={save} disabled={saving} variant="petal" size="block" className="mb-6">
             <Save className="size-4" /> {saving ? "Saving…" : "Save changes"}
-          </button>
+          </Button>
 
-          <ThemeSection />
-          <SoundToggle />
-          <ActivityVisibleToggle me={me} onSaved={() => queryClient.invalidateQueries({ queryKey: ["profile"] })} />
-          <ReadReceiptsToggle me={me} onSaved={() => queryClient.invalidateQueries({ queryKey: ["profile"] })} />
+          <SettingsGroup title="Appearance & sound">
+            <SettingsPanelRow>
+              <ThemeSection />
+            </SettingsPanelRow>
+            <SoundToggle />
+          </SettingsGroup>
 
+          <SettingsGroup title="Privacy" hint="Only affects what your panda sees">
+            <ActivityVisibleToggle me={me} onSaved={() => queryClient.invalidateQueries({ queryKey: ["profile"] })} />
+            <ReadReceiptsToggle me={me} onSaved={() => queryClient.invalidateQueries({ queryKey: ["profile"] })} />
+            <PunishmentLockToggle me={me} onSaved={() => queryClient.invalidateQueries({ queryKey: ["profile"] })} />
+          </SettingsGroup>
 
-          <PunishmentLockToggle me={me} onSaved={() => queryClient.invalidateQueries({ queryKey: ["profile"] })} />
+          <SettingsGroup title="Your space">
+            <SettingsLinkRow
+              to="/app/partner"
+              icon={<Heart className="size-4" />}
+              label={partner ? partnerNickname || partner.display_name : "Invite your partner"}
+              description={partner ? "Nickname, anniversary & pairing" : "Share your code to begin"}
+            />
+            <SettingsLinkRow
+              to="/app/help"
+              icon={<span className="text-base">📖</span>}
+              label="Help & guide"
+              description="How everything works · FAQ · Contact"
+            />
+            <SettingsButtonRow
+              onClick={() => window.dispatchEvent(new CustomEvent("pandacine:open-tour"))}
+              icon={<Compass className="size-4" />}
+              label="Take the guided tour"
+              description="A walk-through of every feature"
+            />
+            <SettingsButtonRow
+              onClick={() => window.dispatchEvent(new Event("pandacine:anniv-test"))}
+              icon={<span className="text-base">🥂</span>}
+              label="Preview Anniversary Day"
+              description="Try Nocturne mode before the date"
+            />
+          </SettingsGroup>
 
-          <Link to="/app/partner" className="p-5 mb-4 rounded-3xl border border-border bg-surface flex items-center gap-3 hover:border-petal/40 transition-colors">
-            <Heart className="size-5 text-petal" />
-            <div className="flex-1 min-w-0">
-              <p className="text-[10px] uppercase tracking-widest text-petal">Partner</p>
-              {partner ? (
-                <p className="font-serif italic text-lg truncate">{partnerNickname || partner.display_name}</p>
-              ) : (
-                <p className="text-sm text-candle-muted">Invite your partner</p>
-              )}
-            </div>
-            <ChevronRight className="size-4 text-candle-muted" />
-          </Link>
+          <SettingsGroup title="Invite">
+            <SettingsPanelRow>
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-[10px] uppercase tracking-widest text-petal">Your invite code</p>
+                  <p className="font-serif text-3xl italic tracking-widest text-candle truncate">{me.invite_code}</p>
+                </div>
+                <Button onClick={copyCode} variant="railIcon" size="tile" aria-label="Copy code">
+                  <Copy className="size-4" />
+                </Button>
+              </div>
+            </SettingsPanelRow>
+          </SettingsGroup>
 
+          <SettingsGroup title="Account">
+            <SettingsButtonRow
+              onClick={signOut}
+              icon={<LogOut className="size-4" />}
+              label="Sign out"
+              description="You'll need your email to return"
+              trailing={<span />}
+            />
+          </SettingsGroup>
 
-          <Link to="/app/help" className="p-5 mb-4 rounded-3xl border border-border bg-surface flex items-center gap-3 hover:border-petal/40 transition-colors">
-            <span className="text-xl">📖</span>
-            <div className="flex-1">
-              <p className="text-[10px] uppercase tracking-widest text-candle-muted">Help & guide</p>
-              <p className="text-sm text-candle">How everything works · FAQ · Contact</p>
-            </div>
-            <ChevronRight className="size-4 text-candle-muted" />
-          </Link>
-
-          <button
-            onClick={() => window.dispatchEvent(new CustomEvent("pandacine:open-tour"))}
-            className="w-full p-5 mb-4 rounded-3xl border border-border bg-surface flex items-center gap-3 text-left hover:border-petal/40 transition-colors"
-          >
-            <span className="text-xl">✦</span>
-            <div className="flex-1">
-              <p className="text-[10px] uppercase tracking-widest text-candle-muted">Walk-through</p>
-              <p className="text-sm text-candle">Take a guided tour of the app</p>
-            </div>
-            <ChevronRight className="size-4 text-candle-muted" />
-          </button>
-
-          <button
-            onClick={() => window.dispatchEvent(new Event("pandacine:anniv-test"))}
-            className="w-full p-5 mb-4 rounded-3xl border border-[#c9a84c]/40 bg-gradient-to-r from-[#1a1109] via-[#241708] to-[#1a1109] flex items-center gap-3 text-left hover:border-[#f0d78c]/70 transition-colors"
-          >
-            <span className="text-xl">🥂</span>
-            <div className="flex-1">
-              <p className="text-[10px] uppercase tracking-widest text-[#c9a84c]">Preview</p>
-              <p className="text-sm text-[#f7ecd2]">Test Anniversary Day (Nocturne mode)</p>
-            </div>
-            <ChevronRight className="size-4 text-[#c9a84c]" />
-          </button>
-
-
-
-
-          <div className="p-5 rounded-3xl border border-border bg-surface mb-4">
-            <p className="text-[10px] uppercase tracking-widest text-petal mb-2">Your invite code</p>
-            <div className="flex items-center justify-between gap-3">
-              <p className="font-serif text-3xl italic tracking-widest text-candle">{me.invite_code}</p>
-              <button
-                onClick={copyCode}
-                className="size-10 rounded-full bg-velvet border border-border flex items-center justify-center text-candle-muted hover:text-petal"
-                aria-label="Copy code"
-              >
-                <Copy className="size-4" />
-              </button>
-            </div>
-          </div>
-
-          <button
-            onClick={() => window.dispatchEvent(new Event("pandacine:open-tour"))}
-            className="w-full py-3.5 bg-surface border border-border rounded-2xl text-candle text-sm font-medium flex items-center justify-center gap-2 hover:border-petal/40 transition-colors mb-3"
-          >
-            <Compass className="size-4 text-petal" /> Take the guided tour
-          </button>
-
-          <button
-            onClick={signOut}
-            className="w-full py-3.5 bg-surface border border-border rounded-2xl text-candle text-sm font-medium flex items-center justify-center gap-2 hover:border-petal/40 transition-colors"
-          >
-            <LogOut className="size-4" /> Sign out
-          </button>
         </>
       )}
     </div>
@@ -620,7 +602,7 @@ function ThemeSection() {
     { id: "light", label: "Light", Icon: Sun },
   ];
   return (
-    <div className="p-5 mb-4 rounded-3xl border border-border bg-surface">
+    <div>
       <p className="text-[10px] uppercase tracking-widest text-petal mb-3">Appearance</p>
       <div className="grid grid-cols-3 gap-2">
         {options.map(({ id, label, Icon }) => (
@@ -652,7 +634,7 @@ function SoundToggle() {
   return (
     <button
       onClick={toggle}
-      className="w-full p-5 mb-4 rounded-3xl border border-border bg-surface flex items-center gap-3 hover:border-petal/40 transition-colors text-left"
+      className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-petal-soft/10 disabled:opacity-60"
     >
       {on ? <Volume2 className="size-5 text-petal" /> : <VolumeX className="size-5 text-candle-muted" />}
       <div className="flex-1">
@@ -690,7 +672,7 @@ function ActivityVisibleToggle({ me, onSaved }: { me: any; onSaved: () => void }
     <button
       onClick={toggle}
       disabled={busy}
-      className="w-full p-5 mb-4 rounded-3xl border border-border bg-surface flex items-center gap-3 hover:border-petal/40 transition-colors text-left disabled:opacity-60"
+      className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-petal-soft/10 disabled:opacity-60"
     >
       {on ? <Eye className="size-5 text-petal" /> : <EyeOff className="size-5 text-candle-muted" />}
       <div className="flex-1">
@@ -731,7 +713,7 @@ function ReadReceiptsToggle({ me, onSaved }: { me: any; onSaved: () => void }) {
     <button
       onClick={toggle}
       disabled={busy}
-      className="w-full p-5 mb-4 rounded-3xl border border-border bg-surface flex items-center gap-3 hover:border-petal/40 transition-colors text-left disabled:opacity-60"
+      className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-petal-soft/10 disabled:opacity-60"
     >
       {on ? <CheckCheck className="size-5 text-petal" /> : <Check className="size-5 text-candle-muted" />}
       <div className="flex-1">
@@ -780,7 +762,7 @@ function PunishmentLockToggle({ me, onSaved }: { me: any; onSaved: () => void })
     else onSaved();
   }
   return (
-    <div className="p-5 mb-4 rounded-3xl border border-border bg-surface">
+    <div className="px-4 py-4">
       <button
         type="button"
         onClick={() => enabled && setOpen((o) => !o)}

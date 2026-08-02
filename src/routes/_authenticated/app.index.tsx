@@ -9,6 +9,7 @@ import { PartnerPresenceCard } from "@/components/PartnerPresenceCard";
 import { MemoryOfTheDayCard } from "@/components/MemoryOfTheDayCard";
 import { Heart, ArrowRight, Users, LineChart, Clapperboard, BookHeart, Gift, Feather, Sparkles, Stars, Milestone, ListChecks, Compass, MapPin, CalendarHeart } from "lucide-react";
 import { AvatarImg } from "@/components/AvatarImg";
+import { Button } from "@/components/ui/button";
 import NotificationCenter from "@/components/NotificationCenter";
 import { EditorialPageHeader, EditorialSectionHeader } from "@/components/editorial/SectionHeader";
 
@@ -57,13 +58,15 @@ function Home() {
         }
         trailing={
           <>
-            <button
+            <Button
               onClick={() => window.dispatchEvent(new Event("pandacine:open-tour"))}
-              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface/70 border border-petal/40 text-[10px] uppercase tracking-[0.28em] text-petal hover:bg-petal/10 transition"
+              variant="chip"
+              size="pill"
+              className="hidden sm:inline-flex"
               aria-label="Start guided tour"
             >
               ✦ Tour
-            </button>
+            </Button>
             <span data-tour="home-notify"><NotificationCenter /></span>
             <Avatar profile={profile} />
           </>
@@ -207,20 +210,17 @@ function Home() {
         </div>
       </section>
 
-      {/* Friends circle — de-emphasized */}
-      <Link
-        to="/app/friends"
-        className="relative z-10 flex items-center gap-3 p-4 rounded-2xl bg-surface/60 border border-border hover:border-petal/40 transition-colors"
-      >
-        <div className="size-9 rounded-xl bg-petal-soft flex items-center justify-center">
-          <Users className="size-4 text-petal" />
+      {/* Section: Your circle */}
+      <section className="relative z-10">
+        <EditorialSectionHeader eyebrow="✦ Chapter III" title="Your circle" />
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+          <TileLink to="/app/friends" Icon={Users} label="Friends" caption="Your circle" />
+          <TileLink to="/app/calendar" Icon={CalendarHeart} label="Calendar" caption="Dates that matter" />
+          <TileLink to="/app/shop" Icon={Sparkles} label="Tag Shop" caption="Spend your coins" />
+          <TileLink to="/app/me" Icon={Compass} label="Profile" caption="You & settings" />
         </div>
-        <div className="flex-1">
-          <p className="text-[10px] uppercase tracking-widest text-candle-muted">Your circle</p>
-          <p className="text-sm text-candle">Friends</p>
-        </div>
-        <ArrowRight className="size-4 text-candle-muted" />
-      </Link>
+      </section>
+
     </div>
   );
 }
