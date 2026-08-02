@@ -443,9 +443,16 @@ function CalendarPage() {
                           }}
                           className="flex w-full items-center gap-3 py-2.5 text-left transition hover:opacity-80"
                         >
-                          <span className="grid size-8 shrink-0 place-items-center rounded-xl border border-border/50 bg-velvet/40 text-sm">
+                          <span
+                            className={`grid size-8 shrink-0 place-items-center rounded-xl border text-sm ${
+                              m.tone === "partner"
+                                ? "border-petal/50 bg-petal/15 animate-[partner-glow_2.8s_ease-in-out_infinite]"
+                                : "border-border/50 bg-velvet/40"
+                            }`}
+                          >
                             {m.emoji}
                           </span>
+
                           <span className="min-w-0 flex-1">
                             <span className={`block truncate text-sm ${m.tone === "partner" ? "text-petal" : "text-candle"}`}>
                               {m.label}
