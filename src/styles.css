@@ -11,9 +11,9 @@
  * ============================================================ */
 
 @theme inline {
-  --font-serif: "Fraunces", "Cormorant Garamond", ui-serif, Georgia, serif;
-  --font-sans: "Instrument Sans", "Outfit", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Fraunces", ui-serif, Georgia, serif;
+  --font-serif: "Cormorant Garamond", ui-serif, Georgia, serif;
+  --font-sans: "Karla", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Cormorant Garamond", ui-serif, Georgia, serif;
 
 
 
