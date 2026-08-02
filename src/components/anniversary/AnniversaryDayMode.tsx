@@ -17,6 +17,20 @@ export function AnniversaryDayMode() {
   const [day, setDay] = useState<AnnivDay>(null);
   const [open, setOpen] = useState(false);
   const [dismissed, setDismissed] = useState(false);
+  const [testing, setTesting] = useState(false);
+
+  // Manual preview: any surface can fire `pandacine:anniv-test` to enter the
+  // Nocturne takeover immediately, even when today isn't the real day.
+  useEffect(() => {
+    const onTest = () => {
+      setTesting(true);
+      setDismissed(false);
+      setOpen(true);
+    };
+    window.addEventListener("pandacine:anniv-test", onTest);
+    return () => window.removeEventListener("pandacine:anniv-test", onTest);
+  }, []);
+
 
   const partnerName = partner
     ? profile?.partner_nickname || partner.display_name || "your panda"
