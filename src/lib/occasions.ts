@@ -41,7 +41,11 @@ export const OCCASIONS: Occasion[] = [
 
   { key: "womens-day", label: "International Women's Day", emoji: "💐", tone: "festive", blurb: "Celebrate her, loudly.", month: 3, day: 8 },
   { key: "happiness-day", label: "Day of Happiness", emoji: "🌞", tone: "festive", blurb: "Do one small thing that makes them smile.", month: 3, day: 20 },
+  { key: "couple-appreciation", label: "Couple Appreciation Day", emoji: "💞", tone: "love", blurb: "A whole day about the two of you.", month: 4, day: 18 },
+  { key: "cuddle-up-day", label: "Cuddle Up Day", emoji: "🛋️", tone: "love", blurb: "Blanket, film, no phones.", month: 1, day: 6 },
+  { key: "loving-day", label: "Loving Day", emoji: "🕊️", tone: "love", blurb: "Love, chosen freely.", month: 6, day: 12 },
   { key: "kiss-intl", label: "International Kissing Day", emoji: "😘", tone: "love", blurb: "No excuse needed today.", month: 7, day: 6 },
+  { key: "date-night-day", label: "Date Night Day", emoji: "🍷", tone: "love", blurb: "Book the table, dress up a little.", month: 6, day: 24 },
   { key: "friendship-intl", label: "International Friendship Day", emoji: "🤝", tone: "friend", blurb: "Message the friends you've been meaning to.", month: 7, day: 30 },
   { key: "girlfriend-day", label: "National Girlfriend Day", emoji: "👑", tone: "love", blurb: "Her day. Spoil her.", month: 8, day: 1 },
   { key: "friendship-day", label: "Friendship Day", emoji: "🎈", tone: "friend", blurb: "First Sunday of August — for the crew.", month: 8, day: (y) => nthWeekdayOfMonth(y, 8, 0, 1) },
