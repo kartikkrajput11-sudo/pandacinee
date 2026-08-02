@@ -4,6 +4,8 @@ import { BottomNav } from "@/components/BottomNav";
 import { IncomingCallListener } from "@/components/IncomingCallListener";
 import { OnboardingFlow } from "@/components/OnboardingFlow";
 import { AppTour } from "@/components/AppTour";
+import { AnniversaryDayMode } from "@/components/anniversary/AnniversaryDayMode";
+
 import { usePresenceHeartbeat } from "@/hooks/usePresenceHeartbeat";
 import { useGamePresence } from "@/hooks/useGamePresence";
 import { useProfile } from "@/hooks/useProfile";
