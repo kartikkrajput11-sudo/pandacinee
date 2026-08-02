@@ -255,7 +255,14 @@ function CalendarPage() {
           </button>
         </header>
 
+        {me && (
+          <div className="mb-6">
+            <FirstChapterCard ownerId={me.id} partnerName={partner?.display_name ?? null} />
+          </div>
+        )}
+
         <div className="grid gap-6 lg:grid-cols-[1.6fr_1fr]">
+
           {/* Month */}
           <section className="rounded-3xl border border-border/60 bg-surface-elevated/40 p-5 backdrop-blur-xl shadow-[var(--shadow-velvet)]">
             <div className="mb-5 flex items-center justify-between">
