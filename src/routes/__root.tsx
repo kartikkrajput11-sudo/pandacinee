@@ -90,7 +90,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content:
           "Your premium space to watch movies, play games, chat, call, celebrate milestones, and cherish every moment together.",
       },
-      { name: "theme-color", content: "#0a0a1a" },
+      { name: "theme-color", content: "#faf8f5" },
       { property: "og:title", content: "PANDACINE — Connect Together" },
       {
         property: "og:description",
@@ -113,7 +113,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,300..900,0..100,0..1;1,9..144,300..900,0..100,0..1&family=Instrument+Sans:ital,wght@0,400..700;1,400..700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600&family=Karla:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500&display=swap",
       },
 
 
@@ -127,7 +127,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" className="light">
       <head>
         <HeadContent />
       </head>
@@ -163,7 +163,7 @@ function RootComponent() {
         <BroadcastListener />
         
         <Toaster
-          theme="dark"
+          theme="light"
           position="top-center"
           expand
           visibleToasts={4}
