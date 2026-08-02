@@ -83,7 +83,7 @@ export function FirstChapterCard({ ownerId, partnerName }: { ownerId: string; pa
   });
 
   const ordered = useMemo(() => {
-    const rank = new Map(FIRST_MILESTONES.map((m, i) => [m.key, i]));
+    const rank = new Map<string, number>(FIRST_MILESTONES.map((m, i) => [m.key as string, i]));
     return [...rows].sort(
       (a, b) => (rank.get(a.kind.slice(6)) ?? 99) - (rank.get(b.kind.slice(6)) ?? 99),
     );
