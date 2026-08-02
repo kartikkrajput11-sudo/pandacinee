@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { Sparkles } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
 import { anniversaryDayFor, annivTitle, todayKey, type AnnivDay } from "@/lib/anniversary-mode";
-import { GoldenHourExperience } from "@/components/anniversary/GoldenHourExperience";
+import { AnniversaryWorld } from "@/components/anniversary/AnniversaryWorld";
+
 
 /**
  * AnniversaryDayMode — when it's the couple's day, the entire app changes skin:
@@ -16,6 +17,20 @@ export function AnniversaryDayMode() {
   const [day, setDay] = useState<AnnivDay>(null);
   const [open, setOpen] = useState(false);
   const [dismissed, setDismissed] = useState(false);
+  const [testing, setTesting] = useState(false);
+
+  // Manual preview: any surface can fire `pandacine:anniv-test` to enter the
+  // Nocturne takeover immediately, even when today isn't the real day.
+  useEffect(() => {
+    const onTest = () => {
+      setTesting(true);
+      setDismissed(false);
+      setOpen(true);
+    };
+    window.addEventListener("pandacine:anniv-test", onTest);
+    return () => window.removeEventListener("pandacine:anniv-test", onTest);
+  }, []);
+
 
   const partnerName = partner
     ? profile?.partner_nickname || partner.display_name || "your panda"
@@ -33,6 +48,16 @@ export function AnniversaryDayMode() {
     const id = window.setInterval(compute, 60 * 60 * 1000);
     return () => window.clearInterval(id);
   }, [profile?.partner_id, profile?.anniversary_date, profile?.paired_at]);
+
+  // In preview mode, fall back to a synthetic anchor so the world still renders.
+  const fallbackAnchor = (() => {
+    const iso = profile?.anniversary_date || profile?.paired_at;
+    const d = iso ? new Date(iso) : new Date();
+    if (isNaN(d.getTime())) return new Date(Date.now() - 365 * 86400000);
+    return d;
+  })();
+  const effectiveDay: AnnivDay =
+    day ?? (testing ? { kind: "year", count: 1, anchor: fallbackAnchor } : null);
 
   // Skin the whole document while the day lasts.
   useEffect(() => {
@@ -64,7 +89,9 @@ export function AnniversaryDayMode() {
     return () => window.clearTimeout(t);
   }, [day]);
 
-  if (!day) return null;
+  if (!effectiveDay) return null;
+  const shownDay: NonNullable<AnnivDay> = effectiveDay;
+
 
   return (
     <>
@@ -108,7 +135,7 @@ export function AnniversaryDayMode() {
                 Golden Hour · Today only
               </span>
               <span className="block font-serif italic text-sm text-[#f7ecd2] truncate">
-                {annivTitle(day)} with {partnerName}
+                {annivTitle(shownDay)} with {partnerName}
               </span>
             </span>
             <span className="text-[10px] uppercase tracking-[0.24em] text-[#1a1109] bg-gradient-to-r from-[#c9a84c] to-[#f0d78c] rounded-full px-3 py-1 shrink-0">
@@ -137,8 +164,9 @@ export function AnniversaryDayMode() {
       )}
 
       {open && (
-        <GoldenHourExperience day={day} partnerName={partnerName} onClose={() => setOpen(false)} />
+        <AnniversaryWorld day={shownDay} partnerName={partnerName} test={testing} onClose={() => setOpen(false)} />
       )}
+
     </>
   );
 }

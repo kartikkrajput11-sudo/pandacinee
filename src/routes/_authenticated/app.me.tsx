@@ -468,6 +468,20 @@ function Me() {
             <ChevronRight className="size-4 text-candle-muted" />
           </button>
 
+          <button
+            onClick={() => window.dispatchEvent(new Event("pandacine:anniv-test"))}
+            className="w-full p-5 mb-4 rounded-3xl border border-[#c9a84c]/40 bg-gradient-to-r from-[#1a1109] via-[#241708] to-[#1a1109] flex items-center gap-3 text-left hover:border-[#f0d78c]/70 transition-colors"
+          >
+            <span className="text-xl">🥂</span>
+            <div className="flex-1">
+              <p className="text-[10px] uppercase tracking-widest text-[#c9a84c]">Preview</p>
+              <p className="text-sm text-[#f7ecd2]">Test Anniversary Day (Nocturne mode)</p>
+            </div>
+            <ChevronRight className="size-4 text-[#c9a84c]" />
+          </button>
+
+
+
 
           <div className="p-5 rounded-3xl border border-border bg-surface mb-4">
             <p className="text-[10px] uppercase tracking-widest text-petal mb-2">Your invite code</p>

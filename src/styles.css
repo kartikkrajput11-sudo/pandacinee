@@ -1893,3 +1893,42 @@ body { overscroll-behavior-y: contain; }
   100% { transform: translateX(220%) rotate(8deg); }
 }
 .animate-card-sheen { animation: card-sheen 5.5s ease-in-out infinite; }
+
+/* ---- Anniversary Nocturne (AnniversaryWorld) ---- */
+@keyframes anniv-star {
+  0%, 100% { opacity: 0.25; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
+.animate-anniv-star { animation: anniv-star 4.5s ease-in-out infinite; }
+
+@keyframes anniv-room {
+  from { opacity: 0; transform: translateY(14px) scale(0.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.animate-anniv-room { animation: anniv-room 0.55s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+@keyframes anniv-digit {
+  from { opacity: 0; transform: translateY(18px) rotateX(-40deg); }
+  to { opacity: 1; transform: translateY(0) rotateX(0); }
+}
+.animate-anniv-digit { animation: anniv-digit 0.6s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+@keyframes anniv-moon {
+  0%, 100% { opacity: 0.55; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.12); }
+}
+.animate-anniv-moon { animation: anniv-moon 6s ease-in-out infinite; }
+
+@keyframes anniv-clink-l {
+  0%, 100% { transform: translateX(0) rotate(0deg); }
+  45% { transform: translateX(26px) rotate(16deg); }
+  60% { transform: translateX(20px) rotate(10deg); }
+}
+.animate-anniv-clink-l { animation: anniv-clink-l 1.2s ease-in-out; }
+
+@keyframes anniv-clink-r {
+  0%, 100% { transform: translateX(0) scaleX(-1) rotate(0deg); }
+  45% { transform: translateX(-26px) scaleX(-1) rotate(16deg); }
+  60% { transform: translateX(-20px) scaleX(-1) rotate(10deg); }
+}
+.animate-anniv-clink-r { animation: anniv-clink-r 1.2s ease-in-out; }
