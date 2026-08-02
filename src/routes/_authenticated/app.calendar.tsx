@@ -156,6 +156,14 @@ function CalendarPage() {
 
     for (const row of saved) {
       const d = parseYmd(row.date);
+      const isFirst = row.kind.startsWith("first:");
+      const blurb = isFirst
+        ? (row.note ?? "")
+            .split(" | ")
+            .map((s) => s.trim())
+            .filter(Boolean)
+            .join(" · ") || "A first, remembered."
+        : (row.note ?? (row.owner_id === me?.id ? undefined : `Saved by ${partner?.display_name ?? "your partner"}`));
       const years = row.yearly ? [year - 1, year, year + 1] : [d.getFullYear()];
       for (const y of years) {
         list.push({
@@ -163,8 +171,8 @@ function CalendarPage() {
           date: new Date(y, d.getMonth(), d.getDate()),
           label: row.title,
           emoji: row.emoji || (row.kind === "birthday" ? "🎂" : "✨"),
-          blurb: row.note ?? (row.owner_id === me?.id ? undefined : `Saved by ${partner?.display_name ?? "your partner"}`),
-          tone: row.kind === "birthday" ? "friend" : row.owner_id === me?.id ? "love" : "partner",
+          blurb,
+          tone: isFirst ? "partner" : row.kind === "birthday" ? "friend" : row.owner_id === me?.id ? "love" : "partner",
           removableId: row.owner_id === me?.id ? row.id : undefined,
         });
       }
