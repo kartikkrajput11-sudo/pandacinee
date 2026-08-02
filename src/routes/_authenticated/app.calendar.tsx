@@ -234,35 +234,61 @@ function CalendarPage() {
       />
 
       <div className="relative mx-auto w-full max-w-5xl px-4 pb-24 pt-6">
-        <header className="mb-8 flex items-start justify-between gap-4">
-          <div className="flex items-start gap-3">
+        <header className="mb-5 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+          <div className="flex min-w-0 items-center gap-3">
             <Link
               to="/app"
-              className="mt-1 grid size-9 place-items-center rounded-full border border-border/60 bg-surface-elevated/60 backdrop-blur transition hover:border-petal/50"
+              className="grid size-9 shrink-0 place-items-center rounded-full border border-border/60 bg-surface-elevated/60 backdrop-blur transition hover:border-petal/50"
               aria-label="Back"
             >
               <ArrowLeft className="size-4" />
             </Link>
-            <div>
+            <div className="min-w-0">
               <p className="text-[10px] uppercase tracking-[0.36em] text-candle-muted">Pandacine</p>
-              <h1 className="font-serif text-3xl leading-tight sm:text-4xl">The Calendar</h1>
+              <h1 className="truncate font-serif text-2xl leading-tight sm:text-3xl">The Calendar</h1>
             </div>
           </div>
           <button
             onClick={() => setAdding(true)}
-            className="mt-1 flex items-center gap-1.5 rounded-full border border-petal/40 bg-petal/10 px-3.5 py-1.5 text-[11px] uppercase tracking-[0.2em] text-petal transition hover:bg-petal/20"
+            className="flex shrink-0 items-center gap-1.5 rounded-full border border-petal/40 bg-petal/10 px-3.5 py-2 text-[11px] uppercase tracking-[0.2em] text-petal transition hover:bg-petal/20"
           >
             <Plus className="size-3.5" /> Date
           </button>
         </header>
 
-        {me && (
-          <div className="mb-6">
-            <FirstChapterCard ownerId={me.id} partnerName={partner?.display_name ?? null} />
-          </div>
+        {/* Next up — one clear focal point */}
+        {upcoming[0] && (
+          <button
+            onClick={() => {
+              setCursor(new Date(upcoming[0]!.date.getFullYear(), upcoming[0]!.date.getMonth(), 1));
+              setSelected(upcoming[0]!.date);
+            }}
+            className="mb-6 flex w-full items-center gap-4 rounded-3xl border border-petal/30 bg-[linear-gradient(120deg,var(--petal-soft),transparent_70%)] p-4 text-left backdrop-blur-xl shadow-[var(--shadow-velvet)] transition hover:border-petal/60"
+          >
+            <span className="grid size-12 shrink-0 place-items-center rounded-2xl border border-petal/30 bg-velvet/40 text-2xl">
+              {upcoming[0]!.emoji}
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-[10px] uppercase tracking-[0.3em] text-petal">Next up</span>
+              <span className="block truncate font-serif text-xl leading-tight">{upcoming[0]!.label}</span>
+              <span className="block truncate text-xs text-candle-muted">
+                {upcoming[0]!.date.toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" })}
+              </span>
+            </span>
+            <span className="shrink-0 text-right">
+              <span className="block font-serif text-2xl text-petal">
+                {daysUntil(upcoming[0]!.date, today) === 0 ? "Today" : daysUntil(upcoming[0]!.date, today)}
+              </span>
+              {daysUntil(upcoming[0]!.date, today) > 0 && (
+                <span className="block text-[10px] uppercase tracking-[0.2em] text-candle-muted">
+                  {daysUntil(upcoming[0]!.date, today) === 1 ? "day" : "days"}
+                </span>
+              )}
+            </span>
+          </button>
         )}
 
-        <div className="grid gap-6 lg:grid-cols-[1.6fr_1fr]">
+        <div className="grid items-start gap-6 lg:grid-cols-[1.5fr_1fr]">
 
           {/* Month */}
           <section className="rounded-3xl border border-border/60 bg-surface-elevated/40 p-5 backdrop-blur-xl shadow-[var(--shadow-velvet)]">
@@ -311,7 +337,7 @@ function CalendarPage() {
                   <button
                     key={i}
                     onClick={() => setSelected(d)}
-                    className={`relative aspect-square rounded-2xl border text-sm transition ${
+                    className={`relative grid aspect-square place-items-center rounded-2xl border text-sm transition ${
                       isSelected
                         ? "border-petal bg-petal/20 text-candle"
                         : hasPartner
@@ -321,10 +347,7 @@ function CalendarPage() {
                             : "border-transparent hover:border-border/60"
                     }`}
                   >
-                    <span className={`${isToday ? "font-semibold text-petal" : ""}`}>{d.getDate()}</span>
-                    {isToday && !isSelected && (
-                      <span className="absolute inset-x-0 -bottom-0.5 mx-auto h-px w-4 bg-petal" />
-                    )}
+                    <span className={`leading-none ${isToday ? "font-semibold text-petal" : ""}`}>{d.getDate()}</span>
                     {dayMarks.length > 0 && (
                       <span className="absolute inset-x-0 bottom-1.5 flex items-center justify-center gap-0.5">
                         {dayMarks.slice(0, 3).map((m) => (
@@ -337,13 +360,14 @@ function CalendarPage() {
               })}
             </div>
 
-            <div className="mt-5 flex flex-wrap items-center gap-4 border-t border-border/40 pt-4 text-[10px] uppercase tracking-[0.18em] text-candle-muted">
+            <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-border/40 pt-4 text-[10px] uppercase tracking-[0.18em] text-candle-muted">
               <Legend dot="bg-petal" label={partner ? partner.display_name : "Partner"} />
               <Legend dot="bg-rose-300" label="Love" />
               <Legend dot="bg-sky-300" label="Friends" />
               <Legend dot="bg-amber-300" label="Festive" />
             </div>
           </section>
+
 
           {/* Detail + upcoming */}
           <div className="space-y-6">
