@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, Check, Lock, Sparkles, RotateCcw, Heart, Wifi, Users } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
 import { useProfileById } from "@/hooks/useProfileById";
+import { gameRoomKey, isPartnerRoom } from "@/lib/game-room";
 import { useMatchOpponent } from "@/hooks/useMatchOpponent";
 import { pickQuestions, type KnowMeQuestion } from "@/lib/knowme";
 import { sfxReaction, sfxPollVote, sfxKiss } from "@/lib/sfx";
@@ -51,7 +52,7 @@ type PeerMsg =
 function KnowMePage() {
   const { data } = useProfile();
   const me = data?.profile;
-  const { matchId, friend } = Route.useSearch();
+  const { matchId, friend, room } = Route.useSearch();
   const { opponentId: matchOppId } = useMatchOpponent(matchId, me?.id);
   const otherId = matchId ? matchOppId : (friend && me && friend !== me.id ? friend : null);
   const { data: otherProfile } = useProfileById(otherId);
@@ -92,7 +93,7 @@ function KnowMePage() {
 
   useEffect(() => {
     if (mode !== "online" || !me || !partner) return;
-    const key = matchId ?? [me.id, partner.id].sort().join(":");
+    const key = gameRoomKey({ room, matchId, meId: me.id, otherId: partner.id });
     const channel = supabase.channel(`knowme:${key}`, {
       config: { broadcast: { self: false }, presence: { key: me.id } },
     });
@@ -420,7 +421,7 @@ function KnowMePage() {
 
       {mode === "online" && me && partner && (
         <GameChat
-          roomKey={`knowme:${[me.id, partner.id].sort().join(":")}`}
+          roomKey={`knowme:${gameRoomKey({ room, matchId, meId: me.id, otherId: partner.id })}`}
           me={me}
           partnerName={partner.display_name}
           title="Whisper"

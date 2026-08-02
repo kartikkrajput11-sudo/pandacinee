@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { ArrowLeft, RotateCcw, Eye, EyeOff, Sparkles, Users, Wifi, MessageCircle, Lock } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
 import { useProfileById } from "@/hooks/useProfileById";
+import { gameRoomKey, isPartnerRoom } from "@/lib/game-room";
 import { useMatchOpponent } from "@/hooks/useMatchOpponent";
 import { supabase } from "@/integrations/supabase/client";
 import { sfxKiss, sfxPollVote, sfxReaction } from "@/lib/sfx";
@@ -317,7 +318,7 @@ const WHISPER_PROMPTS = [
 function HideSeekPage() {
   const { data } = useProfile();
   const me = data?.profile;
-  const { matchId, friend } = Route.useSearch();
+  const { matchId, friend, room } = Route.useSearch();
   const { opponentId: matchOppId } = useMatchOpponent(matchId, me?.id);
   const otherId = matchId ? matchOppId : (friend && me && friend !== me.id ? friend : null);
   const { data: otherProfile } = useProfileById(otherId);
@@ -364,7 +365,7 @@ function HideSeekPage() {
 
   useEffect(() => {
     if (mode !== "online" || !me || !partner) return;
-    const key = matchId ?? [me.id, partner.id].sort().join(":");
+    const key = gameRoomKey({ room, matchId, meId: me.id, otherId: partner.id });
     const channel = supabase.channel(`hideseek:${key}`, {
       config: { broadcast: { self: false }, presence: { key: me.id } },
     });
@@ -752,7 +753,7 @@ function HideSeekPage() {
 
       {mode === "online" && me && partner && (
         <GameChat
-          roomKey={`hideseek:${[me.id, partner.id].sort().join(":")}`}
+          roomKey={`hideseek:${gameRoomKey({ room, matchId, meId: me.id, otherId: partner.id })}`}
           me={me}
           partnerName={partner.display_name}
           title="Whisper"

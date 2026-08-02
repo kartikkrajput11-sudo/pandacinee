@@ -7,6 +7,7 @@ import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
 import { useProfileById } from "@/hooks/useProfileById";
+import { isPartnerRoom } from "@/lib/game-room";
 import { useMatchOpponent } from "@/hooks/useMatchOpponent";
 import { ChessBoard } from "@/components/chess/ChessBoard";
 import { PromotionDialog } from "@/components/chess/PromotionDialog";

@@ -12,6 +12,7 @@ import { InviteFriendCard } from "@/components/games/InviteFriendCard";
 
 import { useProfile } from "@/hooks/useProfile";
 import { useProfileById } from "@/hooks/useProfileById";
+import { gameRoomKey, isPartnerRoom } from "@/lib/game-room";
 import { useMatchOpponent } from "@/hooks/useMatchOpponent";
 import {
   initialState,
@@ -53,7 +54,7 @@ type Mode = "partner" | "local";
 function LudoPage() {
   const { data } = useProfile();
   const me = data?.profile;
-  const { matchId, friend } = Route.useSearch();
+  const { matchId, friend, room } = Route.useSearch();
   const { opponentId: matchOppId } = useMatchOpponent(matchId, me?.id);
   const otherId = matchId ? matchOppId : (friend && me && friend !== me.id ? friend : null);
   const { data: otherProfile } = useProfileById(otherId);
@@ -65,7 +66,7 @@ function LudoPage() {
       } as { id: string; display_name?: string; avatar_url?: string | null })
     : data?.partner;
   const [mode, setMode] = useState<Mode | null>(null);
-  useEffect(() => { if ((matchId || friend) && partner && !mode) setMode("partner"); }, [matchId, friend, partner, mode]);
+  useEffect(() => { if ((matchId || friend || room) && partner && !mode) setMode("partner"); }, [matchId, friend, room, partner, mode]);
   const [state, setState] = useState<State>(() => initialState());
 
   // Determine local seat for partner mode. Lower UUID plays Red.
@@ -78,7 +79,7 @@ function LudoPage() {
   const chRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   useEffect(() => {
     if (mode !== "partner" || !me || !partner) return;
-    const key = matchId ?? [me.id, partner.id].sort().join(":");
+    const key = gameRoomKey({ room, matchId, meId: me.id, otherId: partner.id });
     const ch = supabase.channel(`ludo:${key}`, { config: { broadcast: { self: false } } });
 
     ch.on("broadcast", { event: "state" }, ({ payload }) => {
@@ -357,7 +358,7 @@ function LudoPage() {
 
         {mode === "partner" && me && partner && (
           <GameChat
-            roomKey={`ludo:${[me.id, partner.id].sort().join(":")}`}
+            roomKey={`ludo:${gameRoomKey({ room, matchId, meId: me.id, otherId: partner.id })}`}
             me={me}
             partnerName={partner.display_name}
             title="Ludo table"
