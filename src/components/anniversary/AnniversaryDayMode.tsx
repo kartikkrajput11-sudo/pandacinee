@@ -49,6 +49,16 @@ export function AnniversaryDayMode() {
     return () => window.clearInterval(id);
   }, [profile?.partner_id, profile?.anniversary_date, profile?.paired_at]);
 
+  // In preview mode, fall back to a synthetic anchor so the world still renders.
+  const fallbackAnchor = (() => {
+    const iso = profile?.anniversary_date || profile?.paired_at;
+    const d = iso ? new Date(iso) : new Date();
+    if (isNaN(d.getTime())) return new Date(Date.now() - 365 * 86400000);
+    return d;
+  })();
+  const effectiveDay: AnnivDay =
+    day ?? (testing ? { kind: "year", count: 1, anchor: fallbackAnchor } : null);
+
   // Skin the whole document while the day lasts.
   useEffect(() => {
     const root = document.documentElement;
@@ -79,7 +89,8 @@ export function AnniversaryDayMode() {
     return () => window.clearTimeout(t);
   }, [day]);
 
-  if (!day) return null;
+  if (!effectiveDay) return null;
+
 
   return (
     <>
