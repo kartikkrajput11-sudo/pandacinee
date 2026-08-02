@@ -602,7 +602,7 @@ function ThemeSection() {
     { id: "light", label: "Light", Icon: Sun },
   ];
   return (
-    <div className="p-5 mb-4 rounded-3xl border border-border bg-surface">
+    <div>
       <p className="text-[10px] uppercase tracking-widest text-petal mb-3">Appearance</p>
       <div className="grid grid-cols-3 gap-2">
         {options.map(({ id, label, Icon }) => (
@@ -634,7 +634,7 @@ function SoundToggle() {
   return (
     <button
       onClick={toggle}
-      className="w-full p-5 mb-4 rounded-3xl border border-border bg-surface flex items-center gap-3 hover:border-petal/40 transition-colors text-left"
+      className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-petal-soft/10 disabled:opacity-60"
     >
       {on ? <Volume2 className="size-5 text-petal" /> : <VolumeX className="size-5 text-candle-muted" />}
       <div className="flex-1">
@@ -672,7 +672,7 @@ function ActivityVisibleToggle({ me, onSaved }: { me: any; onSaved: () => void }
     <button
       onClick={toggle}
       disabled={busy}
-      className="w-full p-5 mb-4 rounded-3xl border border-border bg-surface flex items-center gap-3 hover:border-petal/40 transition-colors text-left disabled:opacity-60"
+      className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-petal-soft/10 disabled:opacity-60"
     >
       {on ? <Eye className="size-5 text-petal" /> : <EyeOff className="size-5 text-candle-muted" />}
       <div className="flex-1">
@@ -713,7 +713,7 @@ function ReadReceiptsToggle({ me, onSaved }: { me: any; onSaved: () => void }) {
     <button
       onClick={toggle}
       disabled={busy}
-      className="w-full p-5 mb-4 rounded-3xl border border-border bg-surface flex items-center gap-3 hover:border-petal/40 transition-colors text-left disabled:opacity-60"
+      className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-petal-soft/10 disabled:opacity-60"
     >
       {on ? <CheckCheck className="size-5 text-petal" /> : <Check className="size-5 text-candle-muted" />}
       <div className="flex-1">
@@ -762,7 +762,7 @@ function PunishmentLockToggle({ me, onSaved }: { me: any; onSaved: () => void })
     else onSaved();
   }
   return (
-    <div className="p-5 mb-4 rounded-3xl border border-border bg-surface">
+    <div className="px-4 py-4">
       <button
         type="button"
         onClick={() => enabled && setOpen((o) => !o)}
