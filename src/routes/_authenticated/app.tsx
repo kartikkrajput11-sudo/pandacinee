@@ -49,6 +49,8 @@ function AppShell() {
       />
       <OnboardingFlow />
       <IncomingCallListener />
+      <AnniversaryDayMode />
+
       <div className="relative z-[2] w-full max-w-[1400px] mx-auto">
         <Outlet />
       </div>
