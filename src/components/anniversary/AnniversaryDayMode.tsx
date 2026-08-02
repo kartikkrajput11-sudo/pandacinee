@@ -138,8 +138,9 @@ export function AnniversaryDayMode() {
       )}
 
       {open && (
-        <GoldenHourExperience day={day} partnerName={partnerName} onClose={() => setOpen(false)} />
+        <AnniversaryWorld day={day} partnerName={partnerName} test={testing} onClose={() => setOpen(false)} />
       )}
+
     </>
   );
 }
