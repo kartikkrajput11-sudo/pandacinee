@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { sfxKiss, sfxPollVote, sfxReaction } from "@/lib/sfx";
 import { toast } from "sonner";
 import { GameChat } from "@/components/games/GameChat";
+import { GameRoomBadge } from "@/components/games/GameRoomBadge";
 import { GroupPlayersBar } from "@/components/games/GroupPlayersBar";
 import { InviteFriendCard } from "@/components/games/InviteFriendCard";
 
@@ -751,6 +752,9 @@ function HideSeekPage() {
         )}
       </div>
 
+      {mode === "online" && me && partner && !matchId && (
+        <GameRoomBadge partnerRoom={isPartnerRoom(partner.id, data?.partner?.id)} name={partner.display_name} />
+      )}
       {mode === "online" && me && partner && (
         <GameChat
           roomKey={`hideseek:${gameRoomKey({ room, matchId, meId: me.id, otherId: partner.id })}`}

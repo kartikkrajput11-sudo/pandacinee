@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { LudoWinAnimation } from "@/components/ludo/LudoWinAnimation";
 import { GameChat } from "@/components/games/GameChat";
+import { GameRoomBadge } from "@/components/games/GameRoomBadge";
 import { sfxLudoDiceRoll, sfxLudoHop, sfxLudoCapture, sfxLudoHome, sfxLudoWin } from "@/lib/sfx";
 import { GroupPlayersBar } from "@/components/games/GroupPlayersBar";
 import { InviteFriendCard } from "@/components/games/InviteFriendCard";
@@ -356,6 +357,9 @@ function LudoPage() {
           onDone={() => {}}
         />
 
+        {mode === "partner" && me && partner && !matchId && (
+          <GameRoomBadge partnerRoom={isPartnerRoom(partner.id, data?.partner?.id)} name={partner.display_name} />
+        )}
         {mode === "partner" && me && partner && (
           <GameChat
             roomKey={`ludo:${gameRoomKey({ room, matchId, meId: me.id, otherId: partner.id })}`}

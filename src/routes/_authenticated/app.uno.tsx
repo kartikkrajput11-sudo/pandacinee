@@ -26,6 +26,7 @@ import {
 import { sfxReaction, sfxPollVote, sfxKiss } from "@/lib/sfx";
 import { GroupPlayersBar } from "@/components/games/GroupPlayersBar";
 import { GameChat } from "@/components/games/GameChat";
+import { GameRoomBadge } from "@/components/games/GameRoomBadge";
 import { InviteFriendCard } from "@/components/games/InviteFriendCard";
 
 
@@ -626,6 +627,12 @@ function UnoPage() {
           </div>
         )}
       </div>
+      {me && (mode === "partner" || matchId) && partner && !matchId && (
+        <GameRoomBadge
+          partnerRoom={isPartnerRoom(partner.id, data?.partner?.id)}
+          name={"display_name" in partner ? (partner as { display_name?: string | null }).display_name : null}
+        />
+      )}
       {me && (mode === "partner" || matchId) && partner && (
         <GameChat
           roomKey={`uno:${gameRoomKey({ room, matchId, meId: me.id, otherId: partner.id })}`}
