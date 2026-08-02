@@ -16,7 +16,7 @@ type Act = {
   body: string;
   Icon: typeof Heart;
   /** optional writing prompt persisted per-day in localStorage */
-  prompt?: { key: string; placeholder: string; label: string };
+  prompt?: { storageKey: string; placeholder: string; label: string };
 };
 
 export function GoldenHourExperience({
@@ -47,7 +47,7 @@ export function GoldenHourExperience({
         body: `One sentence — no poetry required. Something you promise ${partnerName} for the year ahead.`,
         Icon: Feather,
         prompt: {
-          key: `pandacine.golden.${dkey}.vow`,
+          storageKey: `pandacine.golden.${dkey}.vow`,
           label: "Today's vow",
           placeholder: `I promise ${partnerName} that…`,
         },
@@ -58,7 +58,7 @@ export function GoldenHourExperience({
         body: "Pick one ordinary moment from this chapter and set it in gold. Not the big one — the small one you keep returning to.",
         Icon: Gem,
         prompt: {
-          key: `pandacine.golden.${dkey}.memory`,
+          storageKey: `pandacine.golden.${dkey}.memory`,
           label: "The gilded moment",
           placeholder: "The night we…",
         },
@@ -69,7 +69,7 @@ export function GoldenHourExperience({
         body: "Something you want to exist by the next time this day comes around.",
         Icon: Heart,
         prompt: {
-          key: `pandacine.golden.${dkey}.wish`,
+          storageKey: `pandacine.golden.${dkey}.wish`,
           label: "A wish for next year",
           placeholder: "By this day next year, I hope we…",
         },
@@ -239,7 +239,7 @@ export function GoldenHourExperience({
   return createPortal(body, document.body);
 }
 
-function GoldenPrompt({ key: storageKey, label, placeholder }: { key: string; label: string; placeholder: string }) {
+function GoldenPrompt({ storageKey, label, placeholder }: { storageKey: string; label: string; placeholder: string }) {
   const [value, setValue] = useState("");
   const [saved, setSaved] = useState(false);
 
