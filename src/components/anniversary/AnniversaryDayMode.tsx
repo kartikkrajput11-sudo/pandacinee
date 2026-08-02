@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { Sparkles } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
 import { anniversaryDayFor, annivTitle, todayKey, type AnnivDay } from "@/lib/anniversary-mode";
-import { GoldenHourExperience } from "@/components/anniversary/GoldenHourExperience";
+import { AnniversaryWorld } from "@/components/anniversary/AnniversaryWorld";
+
 
 /**
  * AnniversaryDayMode — when it's the couple's day, the entire app changes skin:
