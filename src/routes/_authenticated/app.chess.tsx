@@ -7,6 +7,7 @@ import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
 import { useProfileById } from "@/hooks/useProfileById";
+import { isPartnerRoom } from "@/lib/game-room";
 import { useMatchOpponent } from "@/hooks/useMatchOpponent";
 import { ChessBoard } from "@/components/chess/ChessBoard";
 import { PromotionDialog } from "@/components/chess/PromotionDialog";
@@ -34,6 +35,7 @@ const searchSchema = z.object({
   ai: z.enum(["easy", "medium", "hard", "expert"]).optional(),
   matchId: z.string().optional(),
   friend: z.string().optional(),
+  room: z.string().optional(),
 });
 
 export const Route = createFileRoute("/_authenticated/app/chess")({

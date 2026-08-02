@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
 import { useProfileById } from "@/hooks/useProfileById";
+import { gameRoomKey, isPartnerRoom } from "@/lib/game-room";
 import {
   initialState,
   playCard,
@@ -25,6 +26,7 @@ import {
 import { sfxReaction, sfxPollVote, sfxKiss } from "@/lib/sfx";
 import { GroupPlayersBar } from "@/components/games/GroupPlayersBar";
 import { GameChat } from "@/components/games/GameChat";
+import { GameRoomBadge } from "@/components/games/GameRoomBadge";
 import { InviteFriendCard } from "@/components/games/InviteFriendCard";
 
 
@@ -33,6 +35,7 @@ export const Route = createFileRoute("/_authenticated/app/uno")({
   validateSearch: (search: Record<string, unknown>) => ({
     matchId: typeof search.matchId === "string" ? search.matchId : undefined,
     friend: typeof search.friend === "string" ? search.friend : undefined,
+    room: typeof search.room === "string" ? search.room : undefined,
   }),
   head: () => ({
     meta: [
@@ -64,7 +67,7 @@ const COLOR_SWATCH: Record<UnoColor, string> = {
 function UnoPage() {
   const { data } = useProfile();
   const me = data?.profile;
-  const { matchId, friend } = Route.useSearch();
+  const { matchId, friend, room } = Route.useSearch();
   const [matchOpponentId, setMatchOpponentId] = useState<string | null>(null);
 
   // If arrived from a group match lobby, resolve the seated opponent so we can
@@ -102,8 +105,8 @@ function UnoPage() {
   const [mode, setMode] = useState<Mode | null>(null);
   // Auto-enter partner mode when we arrived from a group match or friend invite.
   useEffect(() => {
-    if ((matchId || friend) && partner && !mode) setMode("partner");
-  }, [matchId, friend, partner, mode]);
+    if ((matchId || friend || room) && partner && !mode) setMode("partner");
+  }, [matchId, friend, room, partner, mode]);
   const [state, setState] = useState<UnoState>(() => initialState());
   const [flashId, setFlashId] = useState<string | null>(null);
   const [deckPulse, setDeckPulse] = useState(0);
@@ -123,7 +126,7 @@ function UnoPage() {
   const chRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   useEffect(() => {
     if (mode !== "partner" || !me || !partner) return;
-    const key = matchId ?? [me.id, partner.id].sort().join(":");
+    const key = gameRoomKey({ room, matchId, meId: me.id, otherId: partner.id });
     const isHost = me.id < partner.id;
 
     const ch = supabase.channel(`uno:${key}`, { config: { broadcast: { self: false } } });
@@ -312,7 +315,7 @@ function UnoPage() {
 
   return (
     <div className="min-h-screen relative overflow-hidden">
-      {matchId && <GroupPlayersBar matchId={matchId} meId={me?.id} gameName="Uno" />}
+      {matchId && <GroupPlayersBar partnerId={data?.partner?.id ?? null} matchId={matchId} meId={me?.id} gameName="Uno" />}
       <UnoAmbient />
       <div className="relative z-10 pt-8 px-4 pb-24">
         {/* Header */}
@@ -624,9 +627,15 @@ function UnoPage() {
           </div>
         )}
       </div>
+      {me && (mode === "partner" || matchId) && partner && !matchId && (
+        <GameRoomBadge
+          partnerRoom={isPartnerRoom(partner.id, data?.partner?.id)}
+          name={"display_name" in partner ? (partner as { display_name?: string | null }).display_name : null}
+        />
+      )}
       {me && (mode === "partner" || matchId) && partner && (
         <GameChat
-          roomKey={matchId ?? `uno:${[me.id, partner.id].sort().join(":")}`}
+          roomKey={`uno:${gameRoomKey({ room, matchId, meId: me.id, otherId: partner.id })}`}
           me={me}
           partnerName={"display_name" in partner ? (partner as { display_name?: string | null }).display_name : null}
           title="Table talk"

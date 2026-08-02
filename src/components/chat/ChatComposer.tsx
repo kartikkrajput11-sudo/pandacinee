@@ -9,6 +9,7 @@ import { VoiceRecorder } from "./VoiceRecorder";
 import { WatchInvitePicker } from "./WatchInvitePicker";
 import { EmojiPicker } from "./EmojiPicker";
 import { GameInvitePicker, type GamePick } from "./GameInvitePicker";
+import { newGameRoomId } from "@/lib/game-room";
 import { MovieWheelPicker, type WheelEntry } from "./MovieWheelPicker";
 import { PandaStickerPicker } from "./PandaStickerPicker";
 import { AiStickerPicker } from "./AiStickerPicker";
@@ -83,7 +84,7 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
       await onSend({
         type: "game_invite",
         content: g.name,
-        media_meta: { game_id: g.id, emoji: g.emoji, body: g.body, href: g.href },
+        media_meta: { game_id: g.id, emoji: g.emoji, body: g.body, href: g.href, room: newGameRoomId() },
         reply_to_id: replyTo?.id ?? null,
         disappear_seconds: disappearSecs,
       });

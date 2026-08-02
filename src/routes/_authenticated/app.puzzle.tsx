@@ -332,7 +332,7 @@ function PuzzleTogether() {
     <>
     <div className="pt-10 px-5 pb-10">
 
-      {matchId && <GroupPlayersBar matchId={matchId} meId={me?.id} gameName="Puzzle Together" />}
+      {matchId && <GroupPlayersBar partnerId={data?.partner?.id ?? null} matchId={matchId} meId={me?.id} gameName="Puzzle Together" />}
       <header className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <GameBackLink className="text-candle-muted">

@@ -4,11 +4,13 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { ArrowLeft, RotateCcw, Eye, EyeOff, Sparkles, Users, Wifi, MessageCircle, Lock } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
 import { useProfileById } from "@/hooks/useProfileById";
+import { gameRoomKey, isPartnerRoom } from "@/lib/game-room";
 import { useMatchOpponent } from "@/hooks/useMatchOpponent";
 import { supabase } from "@/integrations/supabase/client";
 import { sfxKiss, sfxPollVote, sfxReaction } from "@/lib/sfx";
 import { toast } from "sonner";
 import { GameChat } from "@/components/games/GameChat";
+import { GameRoomBadge } from "@/components/games/GameRoomBadge";
 import { GroupPlayersBar } from "@/components/games/GroupPlayersBar";
 import { InviteFriendCard } from "@/components/games/InviteFriendCard";
 
@@ -17,6 +19,7 @@ export const Route = createFileRoute("/_authenticated/app/hideseek")({
   validateSearch: (search: Record<string, unknown>) => ({
     matchId: typeof search.matchId === "string" ? search.matchId : undefined,
     friend: typeof search.friend === "string" ? search.friend : undefined,
+    room: typeof search.room === "string" ? search.room : undefined,
   }),
   head: () => ({
     meta: [
@@ -316,7 +319,7 @@ const WHISPER_PROMPTS = [
 function HideSeekPage() {
   const { data } = useProfile();
   const me = data?.profile;
-  const { matchId, friend } = Route.useSearch();
+  const { matchId, friend, room } = Route.useSearch();
   const { opponentId: matchOppId } = useMatchOpponent(matchId, me?.id);
   const otherId = matchId ? matchOppId : (friend && me && friend !== me.id ? friend : null);
   const { data: otherProfile } = useProfileById(otherId);
@@ -363,7 +366,7 @@ function HideSeekPage() {
 
   useEffect(() => {
     if (mode !== "online" || !me || !partner) return;
-    const key = matchId ?? [me.id, partner.id].sort().join(":");
+    const key = gameRoomKey({ room, matchId, meId: me.id, otherId: partner.id });
     const channel = supabase.channel(`hideseek:${key}`, {
       config: { broadcast: { self: false }, presence: { key: me.id } },
     });
@@ -611,7 +614,7 @@ function HideSeekPage() {
 
   return (
     <div className="min-h-dvh bg-gradient-to-b from-velvet via-surface to-velvet">
-      {matchId && <GroupPlayersBar matchId={matchId} meId={me?.id} gameName="Hide & Seek" />}
+      {matchId && <GroupPlayersBar partnerId={data?.partner?.id ?? null} matchId={matchId} meId={me?.id} gameName="Hide & Seek" />}
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
         <div className="absolute -top-24 -left-16 size-72 rounded-full blur-3xl opacity-40"
           style={{ background: "radial-gradient(circle, oklch(0.72 0.18 15 / 0.55), transparent 70%)" }} />
@@ -749,9 +752,12 @@ function HideSeekPage() {
         )}
       </div>
 
+      {mode === "online" && me && partner && !matchId && (
+        <GameRoomBadge partnerRoom={isPartnerRoom(partner.id, data?.partner?.id)} name={partner.display_name} />
+      )}
       {mode === "online" && me && partner && (
         <GameChat
-          roomKey={`hideseek:${[me.id, partner.id].sort().join(":")}`}
+          roomKey={`hideseek:${gameRoomKey({ room, matchId, meId: me.id, otherId: partner.id })}`}
           me={me}
           partnerName={partner.display_name}
           title="Whisper"

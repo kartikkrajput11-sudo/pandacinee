@@ -3,6 +3,7 @@ import { UserPlus, X, Search, Send } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
+import { newGameRoomId } from "@/lib/game-room";
 import { useFriendships } from "@/hooks/useFriends";
 import { AvatarImg } from "@/components/AvatarImg";
 import { GAMES, type GameKind } from "@/lib/games";
@@ -61,6 +62,7 @@ export function InviteFriendCard({
       setSendingId(null);
       return;
     }
+    const room = newGameRoomId();
     const { error } = await supabase.from("messages").insert({
       sender_id: u.user.id,
       receiver_id: peerId,
@@ -72,6 +74,7 @@ export function InviteFriendCard({
         body: meta.body,
         href,
         friend: u.user.id, // when recipient accepts, they play WITH me
+        room,
       } as never,
     });
     setSendingId(null);
@@ -83,7 +86,7 @@ export function InviteFriendCard({
     setOpen(false);
     // Take the sender straight into the shared room so both sides land on the same channel.
     try {
-      navigate({ to: href, search: { friend: peerId } as never });
+      navigate({ to: href, search: { friend: peerId, room } as never });
     } catch {
       // If the route rejects the search param, fall back to plain navigation.
       navigate({ to: href });

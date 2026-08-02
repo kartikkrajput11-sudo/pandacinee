@@ -4,11 +4,13 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, Check, Lock, Sparkles, RotateCcw, Heart, Wifi, Users } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
 import { useProfileById } from "@/hooks/useProfileById";
+import { gameRoomKey, isPartnerRoom } from "@/lib/game-room";
 import { useMatchOpponent } from "@/hooks/useMatchOpponent";
 import { pickQuestions, type KnowMeQuestion } from "@/lib/knowme";
 import { sfxReaction, sfxPollVote, sfxKiss } from "@/lib/sfx";
 import { supabase } from "@/integrations/supabase/client";
 import { GameChat } from "@/components/games/GameChat";
+import { GameRoomBadge } from "@/components/games/GameRoomBadge";
 import { GroupPlayersBar } from "@/components/games/GroupPlayersBar";
 import { InviteFriendCard } from "@/components/games/InviteFriendCard";
 
@@ -17,6 +19,7 @@ export const Route = createFileRoute("/_authenticated/app/knowme")({
   validateSearch: (search: Record<string, unknown>) => ({
     matchId: typeof search.matchId === "string" ? search.matchId : undefined,
     friend: typeof search.friend === "string" ? search.friend : undefined,
+    room: typeof search.room === "string" ? search.room : undefined,
   }),
   head: () => ({
     meta: [
@@ -50,7 +53,7 @@ type PeerMsg =
 function KnowMePage() {
   const { data } = useProfile();
   const me = data?.profile;
-  const { matchId, friend } = Route.useSearch();
+  const { matchId, friend, room } = Route.useSearch();
   const { opponentId: matchOppId } = useMatchOpponent(matchId, me?.id);
   const otherId = matchId ? matchOppId : (friend && me && friend !== me.id ? friend : null);
   const { data: otherProfile } = useProfileById(otherId);
@@ -91,7 +94,7 @@ function KnowMePage() {
 
   useEffect(() => {
     if (mode !== "online" || !me || !partner) return;
-    const key = matchId ?? [me.id, partner.id].sort().join(":");
+    const key = gameRoomKey({ room, matchId, meId: me.id, otherId: partner.id });
     const channel = supabase.channel(`knowme:${key}`, {
       config: { broadcast: { self: false }, presence: { key: me.id } },
     });
@@ -290,7 +293,7 @@ function KnowMePage() {
 
   return (
     <div className="min-h-dvh bg-gradient-to-b from-velvet via-surface to-velvet">
-      {matchId && <GroupPlayersBar matchId={matchId} meId={me?.id} gameName="Know Me" />}
+      {matchId && <GroupPlayersBar partnerId={data?.partner?.id ?? null} matchId={matchId} meId={me?.id} gameName="Know Me" />}
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
         <div className="absolute -top-24 -left-16 size-72 rounded-full blur-3xl opacity-40"
              style={{ background: "radial-gradient(circle, oklch(0.72 0.18 15 / 0.55), transparent 70%)" }} />
@@ -417,9 +420,12 @@ function KnowMePage() {
         )}
       </div>
 
+      {mode === "online" && me && partner && !matchId && (
+        <GameRoomBadge partnerRoom={isPartnerRoom(partner.id, data?.partner?.id)} name={partner.display_name} />
+      )}
       {mode === "online" && me && partner && (
         <GameChat
-          roomKey={`knowme:${[me.id, partner.id].sort().join(":")}`}
+          roomKey={`knowme:${gameRoomKey({ room, matchId, meId: me.id, otherId: partner.id })}`}
           me={me}
           partnerName={partner.display_name}
           title="Whisper"

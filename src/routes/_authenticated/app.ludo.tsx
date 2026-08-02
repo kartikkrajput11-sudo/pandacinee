@@ -6,12 +6,14 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { LudoWinAnimation } from "@/components/ludo/LudoWinAnimation";
 import { GameChat } from "@/components/games/GameChat";
+import { GameRoomBadge } from "@/components/games/GameRoomBadge";
 import { sfxLudoDiceRoll, sfxLudoHop, sfxLudoCapture, sfxLudoHome, sfxLudoWin } from "@/lib/sfx";
 import { GroupPlayersBar } from "@/components/games/GroupPlayersBar";
 import { InviteFriendCard } from "@/components/games/InviteFriendCard";
 
 import { useProfile } from "@/hooks/useProfile";
 import { useProfileById } from "@/hooks/useProfileById";
+import { gameRoomKey, isPartnerRoom } from "@/lib/game-room";
 import { useMatchOpponent } from "@/hooks/useMatchOpponent";
 import {
   initialState,
@@ -38,6 +40,7 @@ export const Route = createFileRoute("/_authenticated/app/ludo")({
   validateSearch: (search: Record<string, unknown>) => ({
     matchId: typeof search.matchId === "string" ? search.matchId : undefined,
     friend: typeof search.friend === "string" ? search.friend : undefined,
+    room: typeof search.room === "string" ? search.room : undefined,
   }),
   head: () => ({
     meta: [
@@ -52,7 +55,7 @@ type Mode = "partner" | "local";
 function LudoPage() {
   const { data } = useProfile();
   const me = data?.profile;
-  const { matchId, friend } = Route.useSearch();
+  const { matchId, friend, room } = Route.useSearch();
   const { opponentId: matchOppId } = useMatchOpponent(matchId, me?.id);
   const otherId = matchId ? matchOppId : (friend && me && friend !== me.id ? friend : null);
   const { data: otherProfile } = useProfileById(otherId);
@@ -64,7 +67,7 @@ function LudoPage() {
       } as { id: string; display_name?: string; avatar_url?: string | null })
     : data?.partner;
   const [mode, setMode] = useState<Mode | null>(null);
-  useEffect(() => { if ((matchId || friend) && partner && !mode) setMode("partner"); }, [matchId, friend, partner, mode]);
+  useEffect(() => { if ((matchId || friend || room) && partner && !mode) setMode("partner"); }, [matchId, friend, room, partner, mode]);
   const [state, setState] = useState<State>(() => initialState());
 
   // Determine local seat for partner mode. Lower UUID plays Red.
@@ -77,7 +80,7 @@ function LudoPage() {
   const chRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   useEffect(() => {
     if (mode !== "partner" || !me || !partner) return;
-    const key = matchId ?? [me.id, partner.id].sort().join(":");
+    const key = gameRoomKey({ room, matchId, meId: me.id, otherId: partner.id });
     const ch = supabase.channel(`ludo:${key}`, { config: { broadcast: { self: false } } });
 
     ch.on("broadcast", { event: "state" }, ({ payload }) => {
@@ -246,7 +249,7 @@ function LudoPage() {
 
   return (
     <div className="min-h-screen relative overflow-hidden">
-      {matchId && <GroupPlayersBar matchId={matchId} meId={me?.id} gameName="Ludo" />}
+      {matchId && <GroupPlayersBar partnerId={data?.partner?.id ?? null} matchId={matchId} meId={me?.id} gameName="Ludo" />}
       <LudoAmbient />
       <div className="relative z-10 pt-8 px-4 pb-24 max-w-xl mx-auto">
         <header className="flex items-center justify-between mb-5">
@@ -354,9 +357,12 @@ function LudoPage() {
           onDone={() => {}}
         />
 
+        {mode === "partner" && me && partner && !matchId && (
+          <GameRoomBadge partnerRoom={isPartnerRoom(partner.id, data?.partner?.id)} name={partner.display_name} />
+        )}
         {mode === "partner" && me && partner && (
           <GameChat
-            roomKey={`ludo:${[me.id, partner.id].sort().join(":")}`}
+            roomKey={`ludo:${gameRoomKey({ room, matchId, meId: me.id, otherId: partner.id })}`}
             me={me}
             partnerName={partner.display_name}
             title="Ludo table"
