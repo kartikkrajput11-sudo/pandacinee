@@ -5,6 +5,7 @@ import { ArrowLeft, ChevronLeft, ChevronRight, Plus, X, Trash2 } from "lucide-re
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
+import { FirstChapterCard } from "@/components/calendar/FirstChapterCard";
 import {
   OCCASIONS,
   occasionDay,
@@ -156,6 +157,14 @@ function CalendarPage() {
 
     for (const row of saved) {
       const d = parseYmd(row.date);
+      const isFirst = row.kind.startsWith("first:");
+      const blurb = isFirst
+        ? (row.note ?? "")
+            .split(" | ")
+            .map((s) => s.trim())
+            .filter(Boolean)
+            .join(" · ") || "A first, remembered."
+        : (row.note ?? (row.owner_id === me?.id ? undefined : `Saved by ${partner?.display_name ?? "your partner"}`));
       const years = row.yearly ? [year - 1, year, year + 1] : [d.getFullYear()];
       for (const y of years) {
         list.push({
@@ -163,8 +172,8 @@ function CalendarPage() {
           date: new Date(y, d.getMonth(), d.getDate()),
           label: row.title,
           emoji: row.emoji || (row.kind === "birthday" ? "🎂" : "✨"),
-          blurb: row.note ?? (row.owner_id === me?.id ? undefined : `Saved by ${partner?.display_name ?? "your partner"}`),
-          tone: row.kind === "birthday" ? "friend" : row.owner_id === me?.id ? "love" : "partner",
+          blurb,
+          tone: isFirst ? "partner" : row.kind === "birthday" ? "friend" : row.owner_id === me?.id ? "love" : "partner",
           removableId: row.owner_id === me?.id ? row.id : undefined,
         });
       }
@@ -247,7 +256,14 @@ function CalendarPage() {
           </button>
         </header>
 
+        {me && (
+          <div className="mb-6">
+            <FirstChapterCard ownerId={me.id} partnerName={partner?.display_name ?? null} />
+          </div>
+        )}
+
         <div className="grid gap-6 lg:grid-cols-[1.6fr_1fr]">
+
           {/* Month */}
           <section className="rounded-3xl border border-border/60 bg-surface-elevated/40 p-5 backdrop-blur-xl shadow-[var(--shadow-velvet)]">
             <div className="mb-5 flex items-center justify-between">
