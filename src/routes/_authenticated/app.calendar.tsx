@@ -338,25 +338,45 @@ function CalendarPage() {
                     key={i}
                     onClick={() => setSelected(d)}
                     className={`relative grid aspect-square place-items-center rounded-2xl border text-sm transition ${
-                      isSelected
-                        ? "border-petal bg-petal/20 text-candle"
-                        : hasPartner
-                          ? "border-petal/45 bg-petal/10 text-candle shadow-[0_0_20px_-8px_var(--petal)]"
+                      hasPartner
+                        ? `border-petal/60 bg-petal/15 text-candle animate-[partner-glow_2.8s_ease-in-out_infinite] ${
+                            isSelected ? "border-petal bg-petal/25" : ""
+                          }`
+                        : isSelected
+                          ? "border-petal bg-petal/20 text-candle"
                           : dayMarks.length
                             ? "border-border/60 bg-surface-elevated/60"
                             : "border-transparent hover:border-border/60"
                     }`}
                   >
-                    <span className={`leading-none ${isToday ? "font-semibold text-petal" : ""}`}>{d.getDate()}</span>
+                    {hasPartner && (
+                      <span
+                        aria-hidden
+                        className="pointer-events-none absolute inset-0 rounded-2xl bg-[radial-gradient(circle_at_50%_45%,var(--petal-soft),transparent_70%)] animate-[halo-pulse_2.8s_ease-in-out_infinite]"
+                      />
+                    )}
+                    <span
+                      className={`relative leading-none ${
+                        hasPartner ? "font-semibold text-petal" : isToday ? "font-semibold text-petal" : ""
+                      }`}
+                    >
+                      {d.getDate()}
+                    </span>
                     {dayMarks.length > 0 && (
                       <span className="absolute inset-x-0 bottom-1.5 flex items-center justify-center gap-0.5">
                         {dayMarks.slice(0, 3).map((m) => (
-                          <span key={m.id} className={`size-1 rounded-full ${TONE_DOT[m.tone]}`} />
+                          <span
+                            key={m.id}
+                            className={`size-1 rounded-full ${TONE_DOT[m.tone]} ${
+                              m.tone === "partner" ? "shadow-[0_0_6px_var(--petal)]" : ""
+                            }`}
+                          />
                         ))}
                       </span>
                     )}
                   </button>
                 );
+
               })}
             </div>
 
@@ -423,9 +443,16 @@ function CalendarPage() {
                           }}
                           className="flex w-full items-center gap-3 py-2.5 text-left transition hover:opacity-80"
                         >
-                          <span className="grid size-8 shrink-0 place-items-center rounded-xl border border-border/50 bg-velvet/40 text-sm">
+                          <span
+                            className={`grid size-8 shrink-0 place-items-center rounded-xl border text-sm ${
+                              m.tone === "partner"
+                                ? "border-petal/50 bg-petal/15 animate-[partner-glow_2.8s_ease-in-out_infinite]"
+                                : "border-border/50 bg-velvet/40"
+                            }`}
+                          >
                             {m.emoji}
                           </span>
+
                           <span className="min-w-0 flex-1">
                             <span className={`block truncate text-sm ${m.tone === "partner" ? "text-petal" : "text-candle"}`}>
                               {m.label}
