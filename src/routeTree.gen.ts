@@ -58,6 +58,7 @@ import { Route as AuthenticatedAppConstellationRouteImport } from './routes/_aut
 import { Route as AuthenticatedAppConciergeRouteImport } from './routes/_authenticated/app.concierge'
 import { Route as AuthenticatedAppChessRouteImport } from './routes/_authenticated/app.chess'
 import { Route as AuthenticatedAppCallsRouteImport } from './routes/_authenticated/app.calls'
+import { Route as AuthenticatedAppCalendarRouteImport } from './routes/_authenticated/app.calendar'
 import { Route as AuthenticatedAppBucketRouteImport } from './routes/_authenticated/app.bucket'
 import { Route as AuthenticatedAppAnniversaryRouteImport } from './routes/_authenticated/app.anniversary'
 import { Route as AuthenticatedAppMoviesIndexRouteImport } from './routes/_authenticated/app.movies.index'
@@ -340,6 +341,12 @@ const AuthenticatedAppCallsRoute = AuthenticatedAppCallsRouteImport.update({
   path: '/calls',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
+const AuthenticatedAppCalendarRoute =
+  AuthenticatedAppCalendarRouteImport.update({
+    id: '/calendar',
+    path: '/calendar',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppBucketRoute = AuthenticatedAppBucketRouteImport.update({
   id: '/bucket',
   path: '/bucket',
@@ -508,6 +515,7 @@ export interface FileRoutesByFullPath {
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/app/anniversary': typeof AuthenticatedAppAnniversaryRoute
   '/app/bucket': typeof AuthenticatedAppBucketRoute
+  '/app/calendar': typeof AuthenticatedAppCalendarRoute
   '/app/calls': typeof AuthenticatedAppCallsRoute
   '/app/chess': typeof AuthenticatedAppChessRoute
   '/app/concierge': typeof AuthenticatedAppConciergeRoute
@@ -583,6 +591,7 @@ export interface FileRoutesByTo {
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/app/anniversary': typeof AuthenticatedAppAnniversaryRoute
   '/app/bucket': typeof AuthenticatedAppBucketRoute
+  '/app/calendar': typeof AuthenticatedAppCalendarRoute
   '/app/calls': typeof AuthenticatedAppCallsRoute
   '/app/chess': typeof AuthenticatedAppChessRoute
   '/app/concierge': typeof AuthenticatedAppConciergeRoute
@@ -659,6 +668,7 @@ export interface FileRoutesById {
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/_authenticated/app/anniversary': typeof AuthenticatedAppAnniversaryRoute
   '/_authenticated/app/bucket': typeof AuthenticatedAppBucketRoute
+  '/_authenticated/app/calendar': typeof AuthenticatedAppCalendarRoute
   '/_authenticated/app/calls': typeof AuthenticatedAppCallsRoute
   '/_authenticated/app/chess': typeof AuthenticatedAppChessRoute
   '/_authenticated/app/concierge': typeof AuthenticatedAppConciergeRoute
@@ -737,6 +747,7 @@ export interface FileRouteTypes {
     | '/email/unsubscribe'
     | '/app/anniversary'
     | '/app/bucket'
+    | '/app/calendar'
     | '/app/calls'
     | '/app/chess'
     | '/app/concierge'
@@ -812,6 +823,7 @@ export interface FileRouteTypes {
     | '/email/unsubscribe'
     | '/app/anniversary'
     | '/app/bucket'
+    | '/app/calendar'
     | '/app/calls'
     | '/app/chess'
     | '/app/concierge'
@@ -887,6 +899,7 @@ export interface FileRouteTypes {
     | '/email/unsubscribe'
     | '/_authenticated/app/anniversary'
     | '/_authenticated/app/bucket'
+    | '/_authenticated/app/calendar'
     | '/_authenticated/app/calls'
     | '/_authenticated/app/chess'
     | '/_authenticated/app/concierge'
@@ -1316,6 +1329,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppCallsRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/calendar': {
+      id: '/_authenticated/app/calendar'
+      path: '/calendar'
+      fullPath: '/app/calendar'
+      preLoaderRoute: typeof AuthenticatedAppCalendarRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/bucket': {
       id: '/_authenticated/app/bucket'
       path: '/bucket'
@@ -1562,6 +1582,7 @@ const AuthenticatedAppChatGroupGroupIdRouteWithChildren =
 interface AuthenticatedAppRouteChildren {
   AuthenticatedAppAnniversaryRoute: typeof AuthenticatedAppAnniversaryRoute
   AuthenticatedAppBucketRoute: typeof AuthenticatedAppBucketRoute
+  AuthenticatedAppCalendarRoute: typeof AuthenticatedAppCalendarRoute
   AuthenticatedAppCallsRoute: typeof AuthenticatedAppCallsRoute
   AuthenticatedAppChessRoute: typeof AuthenticatedAppChessRoute
   AuthenticatedAppConciergeRoute: typeof AuthenticatedAppConciergeRoute
@@ -1612,6 +1633,7 @@ interface AuthenticatedAppRouteChildren {
 const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppAnniversaryRoute: AuthenticatedAppAnniversaryRoute,
   AuthenticatedAppBucketRoute: AuthenticatedAppBucketRoute,
+  AuthenticatedAppCalendarRoute: AuthenticatedAppCalendarRoute,
   AuthenticatedAppCallsRoute: AuthenticatedAppCallsRoute,
   AuthenticatedAppChessRoute: AuthenticatedAppChessRoute,
   AuthenticatedAppConciergeRoute: AuthenticatedAppConciergeRoute,

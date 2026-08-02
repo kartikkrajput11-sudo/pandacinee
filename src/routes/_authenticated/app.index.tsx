@@ -7,7 +7,7 @@ import { DailyQuestionCard } from "@/components/DailyQuestionCard";
 import { PartnerPresenceCard } from "@/components/PartnerPresenceCard";
 
 import { MemoryOfTheDayCard } from "@/components/MemoryOfTheDayCard";
-import { Heart, ArrowRight, Users, LineChart, Clapperboard, BookHeart, Gift, Feather, Sparkles, Stars, Milestone, ListChecks, Compass, MapPin } from "lucide-react";
+import { Heart, ArrowRight, Users, LineChart, Clapperboard, BookHeart, Gift, Feather, Sparkles, Stars, Milestone, ListChecks, Compass, MapPin, CalendarHeart } from "lucide-react";
 import { AvatarImg } from "@/components/AvatarImg";
 import NotificationCenter from "@/components/NotificationCenter";
 import { EditorialPageHeader, EditorialSectionHeader } from "@/components/editorial/SectionHeader";
@@ -184,6 +184,7 @@ function Home() {
           <TileLink to="/app/coupons" Icon={Heart} label="Coupons" caption="Sweet favors" />
           <TileLink to="/app/bucket" Icon={MapPin} label="Bucket List" caption="Dreams together" />
           <TileLink to="/app/journal" Icon={BookHeart} label="Our Journal" caption="Shared timeline" />
+          <TileLink to="/app/calendar" Icon={CalendarHeart} label="The Calendar" caption="Every date that matters" />
         </div>
       </section>
 

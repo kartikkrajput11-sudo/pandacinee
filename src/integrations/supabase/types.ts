@@ -1115,6 +1115,48 @@ export type Database = {
           },
         ]
       }
+      important_dates: {
+        Row: {
+          created_at: string
+          date: string
+          emoji: string | null
+          id: string
+          kind: string
+          note: string | null
+          owner_id: string
+          person_id: string | null
+          title: string
+          updated_at: string
+          yearly: boolean
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          emoji?: string | null
+          id?: string
+          kind?: string
+          note?: string | null
+          owner_id: string
+          person_id?: string | null
+          title: string
+          updated_at?: string
+          yearly?: boolean
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          emoji?: string | null
+          id?: string
+          kind?: string
+          note?: string | null
+          owner_id?: string
+          person_id?: string | null
+          title?: string
+          updated_at?: string
+          yearly?: boolean
+        }
+        Relationships: []
+      }
       love_coupons: {
         Row: {
           created_at: string
@@ -1645,6 +1687,7 @@ export type Database = {
           anniversary_date: string | null
           avatar_url: string | null
           bio: string | null
+          birthday: string | null
           coins: number
           created_at: string
           display_name: string
@@ -1681,6 +1724,7 @@ export type Database = {
           anniversary_date?: string | null
           avatar_url?: string | null
           bio?: string | null
+          birthday?: string | null
           coins?: number
           created_at?: string
           display_name: string
@@ -1717,6 +1761,7 @@ export type Database = {
           anniversary_date?: string | null
           avatar_url?: string | null
           bio?: string | null
+          birthday?: string | null
           coins?: number
           created_at?: string
           display_name?: string
@@ -2708,6 +2753,7 @@ export type Database = {
           anniversary_date: string | null
           avatar_url: string | null
           bio: string | null
+          birthday: string | null
           coins: number
           created_at: string
           display_name: string
