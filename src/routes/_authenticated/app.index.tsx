@@ -94,7 +94,26 @@ function Home() {
         </Link>
       )}
 
+      {/* The Calendar — lifted to the top */}
+      <Link
+        to="/app/calendar"
+        className="group relative z-10 flex items-center gap-4 overflow-hidden rounded-3xl border border-petal/30 bg-[linear-gradient(160deg,var(--petal-soft),transparent_70%)] p-5 backdrop-blur-xl transition-transform hover:-translate-y-0.5"
+      >
+        <div className="grid size-12 shrink-0 place-items-center rounded-2xl border border-petal/30 bg-petal/10">
+          <CalendarHeart className="size-5 text-petal" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-[10px] uppercase tracking-[0.24em] text-petal">Every date that matters</p>
+          <p className="font-serif text-xl italic leading-tight">The Calendar</p>
+          <p className="mt-0.5 text-[11px] text-candle-muted">
+            Valentine's week, birthdays, anniversaries — and the day you met.
+          </p>
+        </div>
+        <ArrowRight className="size-4 text-candle-muted transition-all group-hover:translate-x-0.5 group-hover:text-petal" />
+      </Link>
+
       {/* Hero: Anniversary countdown */}
+
       {partner && (
         <div className="relative z-10">
           <CountdownCard
