@@ -12,9 +12,9 @@ type ThemeCtx = {
 const Ctx = createContext<ThemeCtx | null>(null);
 
 function readSaved(): ThemeMode {
-  if (typeof window === "undefined") return "dark";
+  if (typeof window === "undefined") return "light";
   const v = window.localStorage.getItem("pandacine-theme");
-  return v === "light" || v === "dark" || v === "default" || v === "system" ? v : "dark";
+  return v === "light" || v === "dark" || v === "default" || v === "system" ? v : "light";
 }
 
 function systemPrefersDark(): boolean {
@@ -38,8 +38,8 @@ function resolve(mode: ThemeMode): ResolvedTheme {
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [mode, setModeState] = useState<ThemeMode>("dark");
-  const [resolved, setResolved] = useState<ResolvedTheme>("dark");
+  const [mode, setModeState] = useState<ThemeMode>("light");
+  const [resolved, setResolved] = useState<ResolvedTheme>("light");
 
   useEffect(() => {
     const initial = readSaved();
@@ -74,6 +74,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
 export function useTheme() {
   const v = useContext(Ctx);
-  if (!v) return { mode: "dark" as ThemeMode, resolved: "dark" as ResolvedTheme, setMode: () => {} };
+  if (!v) return { mode: "light" as ThemeMode, resolved: "light" as ResolvedTheme, setMode: () => {} };
   return v;
 }
