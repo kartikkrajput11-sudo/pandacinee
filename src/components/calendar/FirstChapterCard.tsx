@@ -143,7 +143,7 @@ export function FirstChapterCard({ ownerId, partnerName }: { ownerId: string; pa
             {partnerName ? `Every first with ${partnerName}, kept forever.` : "Every first, kept forever."}
           </p>
         </div>
-        {available.length > 0 && (
+        {available.length > 0 && ordered.length > 0 && (
           <button
             onClick={() => setPicking(true)}
             className="mt-1 flex shrink-0 items-center gap-1.5 rounded-full border border-petal/40 bg-petal/10 px-3 py-1.5 text-[11px] uppercase tracking-[0.18em] text-petal transition hover:bg-petal/20"
@@ -224,8 +224,8 @@ export function FirstChapterCard({ ownerId, partnerName }: { ownerId: string; pa
       )}
 
       {picking && (
-        <Sheet title="Which first?" onClose={() => setPicking(false)}>
-          <div className="grid gap-2">
+        <Sheet title="Which first?" subtitle="Tap a moment to write it down." onClose={() => setPicking(false)}>
+          <div className="grid grid-cols-2 gap-2.5">
             {available.map((m) => (
               <button
                 key={m.key}
@@ -241,18 +241,19 @@ export function FirstChapterCard({ ownerId, partnerName }: { ownerId: string; pa
                     story: "",
                   });
                 }}
-                className="flex items-center gap-3 rounded-2xl border border-border/60 bg-velvet/40 px-4 py-3 text-left transition hover:border-petal/60"
+                className="flex h-full flex-col items-start gap-2 rounded-2xl border border-border/60 bg-velvet/40 p-3.5 text-left transition active:scale-[0.98] hover:border-petal/60 hover:bg-petal/10"
               >
-                <span className="text-lg">{m.emoji}</span>
-                <span className="min-w-0 flex-1">
-                  <span className="block text-sm text-candle">{m.label}</span>
-                  <span className="block text-[11px] text-candle-muted">{m.hint}</span>
+                <span className="grid size-9 place-items-center rounded-xl border border-petal/25 bg-petal/10 text-lg">
+                  {m.emoji}
                 </span>
+                <span className="block text-sm leading-snug text-candle">{m.label}</span>
+                <span className="block text-[11px] leading-snug text-candle-muted">{m.hint}</span>
               </button>
             ))}
           </div>
         </Sheet>
       )}
+
 
       {draft && (
         <Sheet title={draft.label} onClose={() => setDraft(null)}>
@@ -308,19 +309,40 @@ export function FirstChapterCard({ ownerId, partnerName }: { ownerId: string; pa
   );
 }
 
-function Sheet({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
+function Sheet({
+  title,
+  subtitle,
+  onClose,
+  children,
+}: {
+  title: string;
+  subtitle?: string;
+  onClose: () => void;
+  children: React.ReactNode;
+}) {
   return (
     <div className="fixed inset-0 z-50 grid place-items-end sm:place-items-center">
       <button aria-label="Close" onClick={onClose} className="absolute inset-0 bg-velvet/70 backdrop-blur-md" />
-      <div className="relative max-h-[85dvh] w-full max-w-md overflow-y-auto rounded-t-3xl border border-border/60 bg-surface-elevated/95 p-5 backdrop-blur-2xl sm:rounded-3xl">
-        <div className="mb-4 flex items-center justify-between">
-          <h3 className="font-serif text-xl">{title}</h3>
-          <button onClick={onClose} aria-label="Close">
-            <X className="size-4 text-candle-muted" />
-          </button>
+      <div className="relative flex max-h-[88dvh] w-full max-w-md flex-col rounded-t-3xl border border-border/60 bg-surface-elevated/95 backdrop-blur-2xl sm:rounded-3xl">
+        <div className="sticky top-0 z-10 rounded-t-3xl border-b border-border/40 bg-surface-elevated/95 px-5 pb-3 pt-3 backdrop-blur-2xl">
+          <span aria-hidden className="mx-auto mb-3 block h-1 w-10 rounded-full bg-border sm:hidden" />
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <h3 className="font-serif text-xl leading-tight">{title}</h3>
+              {subtitle && <p className="mt-0.5 text-[11px] text-candle-muted">{subtitle}</p>}
+            </div>
+            <button
+              onClick={onClose}
+              aria-label="Close"
+              className="grid size-8 shrink-0 place-items-center rounded-full border border-border/60 text-candle-muted transition hover:border-petal/50 hover:text-petal"
+            >
+              <X className="size-4" />
+            </button>
+          </div>
         </div>
-        {children}
+        <div className="overflow-y-auto px-5 pb-5 pt-4">{children}</div>
       </div>
     </div>
   );
 }
+
