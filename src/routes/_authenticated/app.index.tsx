@@ -1,81 +1,24 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
 import { useProfile } from "@/hooks/useProfile";
+import { Petals } from "@/components/Petals";
 import { CountdownCard } from "@/components/CountdownCard";
 import { StreakBadge } from "@/components/StreakBadge";
 import { DailyQuestionCard } from "@/components/DailyQuestionCard";
 import { PartnerPresenceCard } from "@/components/PartnerPresenceCard";
+
 import { MemoryOfTheDayCard } from "@/components/MemoryOfTheDayCard";
-import {
-  Heart,
-  ArrowRight,
-  Users,
-  Clapperboard,
-  BookHeart,
-  Gift,
-  Feather,
-  Sparkles,
-  Stars,
-  Milestone,
-  ListChecks,
-  Compass,
-  MapPin,
-  CalendarHeart,
-  ChevronDown,
-} from "lucide-react";
+import { Heart, ArrowRight, Users, LineChart, Clapperboard, BookHeart, Gift, Feather, Sparkles, Stars, Milestone, ListChecks, Compass, MapPin, CalendarHeart } from "lucide-react";
 import { AvatarImg } from "@/components/AvatarImg";
 import { Button } from "@/components/ui/button";
 import NotificationCenter from "@/components/NotificationCenter";
+import { EditorialPageHeader, EditorialSectionHeader } from "@/components/editorial/SectionHeader";
+
+
+
 
 export const Route = createFileRoute("/_authenticated/app/")({
   component: Home,
 });
-
-type Entry = {
-  to: string;
-  label: string;
-  caption: string;
-  Icon: typeof Heart;
-  search?: Record<string, unknown>;
-};
-
-const JOURNEY: { title: string; entries: Entry[] }[] = [
-  {
-    title: "Just for two",
-    entries: [
-      { to: "/app/letters", label: "Love Letters", caption: "Seal now, open later", Icon: Feather },
-      { to: "/app/timeline", label: "Timeline", caption: "Highlights of us", Icon: Milestone },
-      { to: "/app/constellation", label: "Constellation", caption: "Your night sky", Icon: Stars },
-      { to: "/app/anniversary", label: "Anniversary", caption: "Just for us", Icon: Heart },
-    ],
-  },
-  {
-    title: "Evenings in",
-    entries: [
-      { to: "/app/movies", label: "Watch", caption: "Tonight's pick", Icon: Clapperboard, search: { q: "" } },
-      { to: "/app/watchlist", label: "Watchlist", caption: "Shared queue", Icon: ListChecks },
-      { to: "/app/memories", label: "Memories", caption: "Your archive", Icon: BookHeart },
-      { to: "/app/journal", label: "Our Journal", caption: "Shared timeline", Icon: BookHeart },
-    ],
-  },
-  {
-    title: "Little dreams",
-    entries: [
-      { to: "/app/wishlist", label: "Wishlist", caption: "Little dreams", Icon: Gift },
-      { to: "/app/bucket", label: "Bucket List", caption: "Dreams together", Icon: MapPin },
-      { to: "/app/coupons", label: "Coupons", caption: "Sweet favors", Icon: Heart },
-      { to: "/app/shop", label: "Tag Shop", caption: "Spend your coins", Icon: Sparkles },
-    ],
-  },
-  {
-    title: "Around you",
-    entries: [
-      { to: "/app/friends", label: "Friends", caption: "Your circle", Icon: Users },
-      { to: "/app/calendar", label: "Calendar", caption: "Dates that matter", Icon: CalendarHeart },
-      { to: "/app/me", label: "Profile", caption: "You & settings", Icon: Compass },
-    ],
-  },
-];
 
 function Home() {
   const { data, isLoading } = useProfile();
@@ -83,175 +26,228 @@ function Home() {
   const partner = data?.partner;
 
   const greeting = useGreeting();
-  const partnerName = partner ? profile?.partner_nickname || partner.display_name : "your panda";
-  const firstName = isLoading ? "…" : profile?.display_name?.split(" ")[0] ?? "Friend";
+  const partnerName = partner ? (profile?.partner_nickname || partner.display_name) : "your panda";
 
   return (
-    <div className="relative mx-auto max-w-2xl px-5 pb-8 pt-10 space-y-6">
-      {/* Header */}
-      <header
-        data-tour="home-hero"
-        className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4 pb-5"
-      >
-        <div className="min-w-0">
-          <p className="mb-1 text-[10px] font-medium uppercase tracking-[0.24em] text-petal">
-            {greeting}
-          </p>
-          <h1 className="truncate font-serif text-3xl font-semibold leading-tight text-candle">
-            {partner ? `${firstName} & ${partnerName}` : firstName}
-          </h1>
-        </div>
-        <div className="flex shrink-0 items-center gap-2">
-          <Button
-            onClick={() => window.dispatchEvent(new Event("pandacine:open-tour"))}
-            variant="chip"
-            size="pill"
-            className="hidden sm:inline-flex"
-            aria-label="Start guided tour"
-          >
-            Tour
-          </Button>
-          <span data-tour="home-notify">
-            <NotificationCenter />
-          </span>
-          <Avatar profile={profile} />
-        </div>
-      </header>
+    <div className="relative px-5 pt-10 space-y-6">
+      <Petals count={4} />
 
-      <div className="h-px w-full bg-border" />
+
+
+      {/* Editorial hero header */}
+      <div data-tour="home-hero">
+      <EditorialPageHeader
+        eyebrow={greeting}
+        title={
+          <>
+            <span className="text-candle-muted/70 not-italic text-xl md:text-2xl font-serif">
+              Hello,{" "}
+            </span>
+            {isLoading ? "…" : profile?.display_name?.split(" ")[0] ?? "Friend"}
+          </>
+        }
+        subtitle={
+          partner ? (
+            <>
+              with <span className="text-candle">{partnerName}</span>{" "}
+              <span className="text-petal">❤︎</span>
+            </>
+          ) : (
+            "A cinema for two — invite your panda to begin."
+          )
+        }
+        trailing={
+          <>
+            <Button
+              onClick={() => window.dispatchEvent(new Event("pandacine:open-tour"))}
+              variant="chip"
+              size="pill"
+              className="hidden sm:inline-flex"
+              aria-label="Start guided tour"
+            >
+              ✦ Tour
+            </Button>
+            <span data-tour="home-notify"><NotificationCenter /></span>
+            <Avatar profile={profile} />
+          </>
+        }
+        className="relative z-[120]"
+      />
+      </div>
+
 
       {/* Invite banner (no partner) */}
       {!partner && !isLoading && (
         <Link
           to="/app/invite"
-          className="block rounded-3xl border border-petal/30 bg-petal-soft p-6 transition-colors hover:border-petal/60"
+          className="relative z-10 block p-5 rounded-3xl glass-strong hover:-translate-y-0.5 transition-transform"
         >
           <div className="flex items-start gap-4">
-            <Heart className="mt-1 size-5 shrink-0 text-petal" strokeWidth={1.5} />
-            <div className="min-w-0 flex-1">
-              <p className="text-[10px] uppercase tracking-[0.22em] text-petal">Begin here</p>
-              <h2 className="font-serif text-xl italic text-candle">Invite your partner</h2>
-              <p className="mt-1 text-sm text-candle-muted">
+            <div className="size-11 rounded-2xl bg-petal text-velvet flex items-center justify-center shrink-0 petal-glow">
+              <Heart className="size-5" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-serif text-xl italic mb-1">Invite your partner</h3>
+              <p className="text-sm text-candle-muted">
                 PANDACINE is built for two. Share your code to begin.
               </p>
             </div>
-            <ArrowRight className="mt-1 size-4 text-petal" />
+            <ArrowRight className="size-5 text-petal mt-1" />
           </div>
         </Link>
       )}
 
-      {/* Primary spotlight — countdown */}
-      {partner && (
-        <CountdownCard
-          anniversaryDate={profile?.anniversary_date ?? null}
-          pairedAt={profile?.paired_at ?? null}
-          emoji={profile?.favorite_emoji ?? "🌸"}
-          accent={profile?.favorite_color ?? "#8b7355"}
-          me={profile ? { display_name: profile.display_name, avatar_url: profile.avatar_url } : null}
-          partner={{ display_name: partner.display_name, avatar_url: partner.avatar_url }}
-        />
-      )}
+      {/* The Calendar — lifted to the top */}
+      <Link
+        to="/app/calendar"
+        className="group relative z-10 flex items-center gap-4 overflow-hidden rounded-3xl border border-petal/30 bg-[linear-gradient(160deg,var(--petal-soft),transparent_70%)] p-5 backdrop-blur-xl transition-transform hover:-translate-y-0.5"
+      >
+        <div className="grid size-12 shrink-0 place-items-center rounded-2xl border border-petal/30 bg-petal/10">
+          <CalendarHeart className="size-5 text-petal" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-[10px] uppercase tracking-[0.24em] text-petal">Every date that matters</p>
+          <p className="font-serif text-xl italic leading-tight">The Calendar</p>
+          <p className="mt-0.5 text-[11px] text-candle-muted">
+            Valentine's week, birthdays, anniversaries — and the day you met.
+          </p>
+        </div>
+        <ArrowRight className="size-4 text-candle-muted transition-all group-hover:translate-x-0.5 group-hover:text-petal" />
+      </Link>
 
-      {/* Utility row — streak & mood */}
-      <div className="grid gap-4 sm:grid-cols-2">
-        {profile && <StreakBadge meId={profile.id} partnerId={profile.partner_id} />}
-        {profile && (
-          <Link
-            to="/app/mood"
-            className="group flex items-center gap-4 rounded-3xl border border-border bg-surface-elevated p-5 transition-colors hover:border-petal/40"
-          >
-            <span className="grid size-11 shrink-0 place-items-center rounded-full border border-border bg-background text-lg">
-              {profile.mood_emoji ?? "💭"}
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="block text-[10px] uppercase tracking-[0.22em] text-candle-muted">
-                You are feeling
-              </span>
-              <span className="block truncate font-serif text-xl font-semibold text-candle">
-                {profile.mood ? profile.mood : "Say a word"}
-              </span>
-            </span>
-            <ArrowRight className="size-4 text-candle-muted transition-transform group-hover:translate-x-0.5" />
-          </Link>
-        )}
-      </div>
+      {/* Hero: Anniversary countdown */}
+
+      {partner && (
+        <div className="relative z-10">
+          <CountdownCard
+            anniversaryDate={profile?.anniversary_date ?? null}
+            pairedAt={profile?.paired_at ?? null}
+            emoji={profile?.favorite_emoji ?? "🌸"}
+            accent={profile?.favorite_color ?? "#f87171"}
+            me={profile ? { display_name: profile.display_name, avatar_url: profile.avatar_url } : null}
+            partner={{ display_name: partner.display_name, avatar_url: partner.avatar_url }}
+          />
+        </div>
+      )}
 
       {/* Partner presence */}
       {partner && (
-        <PartnerPresenceCard partner={partner} nickname={profile?.partner_nickname ?? undefined} />
+        <div className="relative z-10">
+          <PartnerPresenceCard partner={partner} nickname={profile?.partner_nickname ?? undefined} />
+        </div>
       )}
 
-      {/* Question of the day */}
+      {/* Couple streak */}
       {profile && (
-        <DailyQuestionCard meId={profile.id} partnerId={profile.partner_id} partnerName={partnerName} />
+        <div className="relative z-10">
+          <StreakBadge meId={profile.id} partnerId={profile.partner_id} />
+        </div>
+      )}
+
+      {/* Today's question */}
+      {profile && (
+        <div className="relative z-10">
+          <DailyQuestionCard meId={profile.id} partnerId={profile.partner_id} partnerName={partnerName} />
+        </div>
+      )}
+
+
+      {/* Mood entry */}
+      {profile && (
+        <Link
+          to="/app/mood"
+          className="relative z-10 flex items-center gap-4 p-5 rounded-3xl glass overflow-hidden hover:-translate-y-0.5 transition-transform group"
+        >
+          <div className="size-12 rounded-2xl bg-petal-soft border border-petal/30 flex items-center justify-center text-xl">
+            {profile.mood_emoji ?? "💭"}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-[10px] uppercase tracking-[0.2em] text-petal flex items-center gap-1.5">
+              <LineChart className="size-3" /> Mood
+            </p>
+            <p className="font-serif text-lg italic truncate leading-tight">
+              {profile.mood ? profile.mood : "How are you feeling?"}
+            </p>
+            <p className="text-[11px] text-candle-muted mt-0.5">Share it — set the tone of your day.</p>
+          </div>
+          <ArrowRight className="size-4 text-candle-muted group-hover:text-petal group-hover:translate-x-0.5 transition-all" />
+        </Link>
       )}
 
       {/* Memory of the day */}
-      <MemoryOfTheDayCard />
+      <div className="relative z-10">
+        <MemoryOfTheDayCard />
+      </div>
 
-      {/* Your journey — one directory instead of many pages */}
-      <section data-tour="home-signature" className="pt-2">
-        <div className="mb-4 flex items-end justify-between gap-4">
-          <h2 className="font-serif text-2xl font-semibold text-candle">Your journey</h2>
-          <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-candle-muted">
-            Everything, in one place
-          </span>
-        </div>
-        <div className="overflow-hidden rounded-3xl border border-border bg-surface-elevated">
-          {JOURNEY.map((group, i) => (
-            <JourneyGroup key={group.title} group={group} defaultOpen={i === 0} />
-          ))}
+      {/* Section: Signature — luxury features for two */}
+      {partner && (
+        <section className="relative z-10" data-tour="home-signature">
+          <EditorialSectionHeader eyebrow="✦ Chapter I" title="Signature" />
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+
+            <SignatureTile to="/app/letters" Icon={Feather} label="Love Letters" caption="Seal now, open later" swatch="from-[#c9a84c]/40 to-[#f0d78c]/10" />
+            <SignatureTile to="/app/timeline" Icon={Milestone} label="Timeline" caption="Highlights of us" swatch="from-[#c96b7a]/40 to-[#f0c0cc]/10" />
+            <SignatureTile to="/app/constellation" Icon={Stars} label="Constellation" caption="Your night sky" swatch="from-[#5cbdb9]/40 to-[#0d7a5f]/10" />
+            <SignatureTile to="/app/watchlist" Icon={ListChecks} label="Watchlist" caption="Shared queue" swatch="from-[#f0d78c]/40 to-[#c9a84c]/10" />
+          </div>
+        </section>
+
+      )}
+
+
+      {/* Section: Together */}
+      <section className="relative z-10">
+        <EditorialSectionHeader eyebrow="✦ Chapter II" title="Together" />
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+          <TileLink to="/app/movies" search={{ q: "" }} Icon={Clapperboard} label="Watch" caption="Tonight's pick" />
+          <TileLink to="/app/memories" Icon={BookHeart} label="Memories" caption="Your archive" />
+          <TileLink to="/app/anniversary" Icon={Heart} label="Anniversary" caption="Just for us" />
+          <TileLink to="/app/wishlist" Icon={Gift} label="Wishlist" caption="Little dreams" />
+          <TileLink to="/app/coupons" Icon={Heart} label="Coupons" caption="Sweet favors" />
+          <TileLink to="/app/bucket" Icon={MapPin} label="Bucket List" caption="Dreams together" />
+          <TileLink to="/app/journal" Icon={BookHeart} label="Our Journal" caption="Shared timeline" />
+          
         </div>
       </section>
+
+      {/* Section: Your circle */}
+      <section className="relative z-10">
+        <EditorialSectionHeader eyebrow="✦ Chapter III" title="Your circle" />
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+          <TileLink to="/app/friends" Icon={Users} label="Friends" caption="Your circle" />
+          <TileLink to="/app/calendar" Icon={CalendarHeart} label="Calendar" caption="Dates that matter" />
+          <TileLink to="/app/shop" Icon={Sparkles} label="Tag Shop" caption="Spend your coins" />
+          <TileLink to="/app/me" Icon={Compass} label="Profile" caption="You & settings" />
+        </div>
+      </section>
+
     </div>
   );
 }
 
-function JourneyGroup({
-  group,
-  defaultOpen,
+function TileLink({
+  to,
+  search,
+  Icon,
+  label,
+  caption,
 }: {
-  group: { title: string; entries: Entry[] };
-  defaultOpen?: boolean;
+  to: string;
+  search?: Record<string, unknown>;
+  Icon: typeof Heart;
+  label: string;
+  caption: string;
 }) {
-  const [open, setOpen] = useState(!!defaultOpen);
   return (
-    <div className="border-b border-border last:border-b-0">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        aria-expanded={open}
-        className="flex w-full items-center justify-between gap-3 px-5 py-4 text-left"
-      >
-        <span className="font-serif text-lg italic text-candle">{group.title}</span>
-        <ChevronDown
-          className={`size-4 shrink-0 text-candle-muted transition-transform duration-300 ${
-            open ? "rotate-180" : ""
-          }`}
-        />
-      </button>
-      {open && (
-        <div className="px-2 pb-2">
-          {group.entries.map(({ to, label, caption, Icon, search }) => (
-            <Link
-              key={to}
-              to={to as any}
-              search={search as any}
-              className="group flex items-center gap-4 rounded-2xl px-3 py-3 transition-colors hover:bg-background"
-            >
-              <Icon className="size-[18px] shrink-0 text-petal" strokeWidth={1.5} />
-              <span className="min-w-0 flex-1">
-                <span className="block truncate font-serif text-lg text-candle">{label}</span>
-                <span className="block truncate text-[11px] uppercase tracking-[0.16em] text-candle-muted">
-                  {caption}
-                </span>
-              </span>
-              <ArrowRight className="size-4 shrink-0 text-candle-muted transition-transform group-hover:translate-x-0.5" />
-            </Link>
-          ))}
-        </div>
-      )}
-    </div>
+    <Link
+      to={to as any}
+      search={search as any}
+      className="group relative p-4 rounded-2xl glass overflow-hidden hover:-translate-y-0.5 transition-transform"
+    >
+      <Icon className="size-5 text-petal mb-3" />
+      <p className="text-[10px] uppercase tracking-widest text-candle-muted">{caption}</p>
+      <p className="font-serif italic text-lg mt-0.5">{label}</p>
+    </Link>
   );
 }
 
@@ -265,10 +261,10 @@ function Avatar({ profile }: { profile?: { avatar_url: string | null; display_na
   return (
     <Link
       to="/app/me"
-      className="flex size-10 items-center justify-center overflow-hidden rounded-full border border-border bg-surface-elevated transition-transform active:scale-95"
+      className="size-11 rounded-full glass flex items-center justify-center overflow-hidden active:scale-95 transition-transform"
     >
       {profile?.avatar_url ? (
-        <AvatarImg src={profile.avatar_url} alt="" className="h-full w-full object-cover" />
+        <AvatarImg src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
       ) : (
         <span className="text-xs font-semibold text-candle">{initials ?? "🐼"}</span>
       )}
@@ -283,4 +279,34 @@ function useGreeting() {
   if (h < 17) return "Good afternoon";
   if (h < 22) return "Good evening";
   return "Late night";
+}
+
+function SignatureTile({
+  to,
+  Icon,
+  label,
+  caption,
+  swatch,
+}: {
+  to: string;
+  Icon: typeof Heart;
+  label: string;
+  caption: string;
+  swatch: string;
+}) {
+  return (
+    <Link
+      to={to as any}
+      className="group relative aspect-[1.1] p-4 rounded-2xl overflow-hidden bg-velvet border border-petal/20 hover:-translate-y-0.5 transition-transform"
+    >
+      <div className={`absolute inset-0 bg-gradient-to-br ${swatch} opacity-70 pointer-events-none`} />
+      <div className="relative z-10 h-full flex flex-col">
+        <Icon className="size-5 text-candle" />
+        <div className="mt-auto">
+          <p className="text-[10px] uppercase tracking-widest text-candle-muted">{caption}</p>
+          <p className="font-serif italic text-lg text-candle mt-0.5 leading-tight">{label}</p>
+        </div>
+      </div>
+    </Link>
+  );
 }

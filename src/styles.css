@@ -11,9 +11,9 @@
  * ============================================================ */
 
 @theme inline {
-  --font-serif: "Cormorant Garamond", ui-serif, Georgia, serif;
-  --font-sans: "Karla", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Cormorant Garamond", ui-serif, Georgia, serif;
+  --font-serif: "Fraunces", "Cormorant Garamond", ui-serif, Georgia, serif;
+  --font-sans: "Instrument Sans", "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Fraunces", ui-serif, Georgia, serif;
 
 
 
@@ -109,45 +109,47 @@
 
 
 .light {
-  /* Warm Sand — pressed-paper daylight.
-     Linen background, ivory panels, hairline clay rules, walnut ink accents. */
-  --velvet: #f0ebe3;
-  --background: #faf8f5;
+  /* Lavender Daylight — soft lilac porcelain with electric-purple accents.
+     Inspired by a dreamy lavender iCloud aesthetic: airy, pastel, luminous. */
+  --velvet: #ede4fb;
+  --background: #f1e7fd;
   --surface: #ffffff;
-  --surface-elevated: #f6f1e9;
-  --foreground: #1a1a1a;
-  --candle: #1a1a1a;
-  --candle-muted: #8b7355;
-  --petal: #8b7355;
-  --petal-soft: #ede5d8;
-  --lavender: #c9b99a;
-  --border: #e3dacb;
-  --input: #f2ede4;
+  --surface-elevated: #f6ecff;
+  --foreground: #2b1a52;
+  --candle: #2b1a52;
+  --candle-muted: #6b5aa0;
+  --petal: #8b5cf6;
+  --petal-soft: #e6d7ff;
+  --lavender: #a78bfa;
+  --border: #e0d1f5;
+  --input: #ece0fb;
 
-  --peach:      #d8b49a;
-  --peach-soft: #f4e9de;
-  --marigold:   #c9a86a;
-  --marigold-soft:#f3ebda;
-  --champagne:  #f0ebe3;
-  --sage:       #a9b09a;
-  --sage-soft:  #eaece3;
-  --sky:        #a8b2b8;
-  --sky-soft:   #e8ecee;
-  --plum:       #6b4f3a;
-  --plum-soft:  #ece1d6;
-  --mist:       #f5f2ec;
-  --ink-soft:   #3b3129;
+  --peach:      #f4b8d0;
+  --peach-soft: #fbe0ec;
+  --marigold:   #d9b8ef;
+  --marigold-soft:#f0e0fb;
+  --champagne:  #ece1fb;
+  --sage:       #b8c4f0;
+  --sage-soft:  #e0e6fb;
+  --sky:        #b0b8ef;
+  --sky-soft:   #dee2fa;
+  --plum:       #6d3aa8;
+  --plum-soft:  #ead6f7;
+  --mist:       #f3edfb;
+  --ink-soft:   #3a2670;
 }
 
 /* ============================================================
- * LIGHT THEME — Warm Sand, pressed paper
+ * LIGHT THEME — Lavender daydream
  * ============================================================ */
 .light body {
   background-color: var(--background);
   background-image:
-    radial-gradient(ellipse 70% 50% at 12% 4%,  color-mix(in oklab, var(--lavender) 14%, transparent) 0%, transparent 62%),
-    radial-gradient(ellipse 60% 45% at 92% 12%, color-mix(in oklab, var(--peach) 12%, transparent) 0%, transparent 62%),
-    linear-gradient(180deg, #faf8f5 0%, #f6f2ea 60%, #faf8f5 100%);
+    radial-gradient(ellipse 70% 55% at 15% 8%,   color-mix(in oklab, var(--petal) 18%, transparent) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 45% at 90% 18%,  color-mix(in oklab, var(--lavender) 22%, transparent) 0%, transparent 60%),
+    radial-gradient(ellipse 55% 45% at 82% 82%,  color-mix(in oklab, var(--peach) 16%, transparent) 0%, transparent 62%),
+    radial-gradient(ellipse 50% 42% at 12% 82%,  color-mix(in oklab, var(--sage) 18%, transparent) 0%, transparent 62%),
+    linear-gradient(180deg, #f3e9fd 0%, #ede2fb 55%, #f5ebff 100%);
   background-attachment: fixed;
 }
 .light body::before {
@@ -156,89 +158,124 @@
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  opacity: 0.35;
+  opacity: 0.4;
   background-image:
-    radial-gradient(circle at 22% 34%, rgba(139,115,85,0.10) 0.5px, transparent 1.4px),
-    radial-gradient(circle at 68% 62%, rgba(139,115,85,0.08) 0.5px, transparent 1.4px);
-  background-size: 180px 180px, 240px 240px;
+    radial-gradient(circle at 20% 30%, rgba(255,255,255,0.9) 0.6px, transparent 1.6px),
+    radial-gradient(circle at 70% 60%, rgba(255,255,255,0.8) 0.6px, transparent 1.6px),
+    radial-gradient(circle at 45% 80%, rgba(255,255,255,0.7) 0.6px, transparent 1.6px),
+    radial-gradient(circle at 85% 15%, rgba(255,255,255,0.9) 0.6px, transparent 1.6px);
+  background-size: 240px 240px, 180px 180px, 300px 300px, 220px 220px;
 }
 .light body > * { position: relative; z-index: 1; }
 
 .light {
-  --shadow-petal: 0 18px 44px -26px color-mix(in oklab, var(--plum) 22%, transparent);
-  --shadow-velvet: 0 22px 60px -34px color-mix(in oklab, var(--plum) 24%, transparent);
-  --shadow-marigold: 0 18px 44px -26px color-mix(in oklab, var(--marigold) 24%, transparent);
-  --shadow-sage:    0 18px 44px -26px color-mix(in oklab, var(--sage) 24%, transparent);
+  --shadow-petal: 0 24px 60px -22px color-mix(in oklab, var(--petal) 28%, transparent),
+                  0 8px 24px  -12px color-mix(in oklab, var(--lavender) 22%, transparent);
+  --shadow-velvet: 0 30px 80px -30px color-mix(in oklab, var(--plum) 24%, transparent),
+                   0 10px 30px -14px color-mix(in oklab, var(--lavender) 22%, transparent);
+  --shadow-marigold: 0 22px 55px -22px color-mix(in oklab, var(--lavender) 32%, transparent),
+                     0 6px 18px -10px color-mix(in oklab, var(--petal) 20%, transparent);
+  --shadow-sage:    0 22px 55px -22px color-mix(in oklab, var(--sage) 30%, transparent),
+                    0 6px 18px -10px color-mix(in oklab, var(--lavender) 20%, transparent);
 }
 
 .light .glass {
-  background: var(--surface-elevated);
-  backdrop-filter: none;
-  border: 1px solid color-mix(in oklab, var(--lavender) 45%, transparent);
-  box-shadow: none;
+  background:
+    linear-gradient(180deg,
+      color-mix(in oklab, #ffffff 88%, var(--petal)) 0%,
+      color-mix(in oklab, #ffffff 84%, var(--lavender)) 100%);
+  backdrop-filter: blur(18px) saturate(140%);
+  border: 1px solid color-mix(in oklab, var(--petal) 18%, transparent);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.95) inset,
+    0 20px 50px -28px color-mix(in oklab, var(--petal) 24%, transparent);
 }
 .light .glass-strong {
-  background: #ffffff;
-  backdrop-filter: none;
-  border: 1px solid color-mix(in oklab, var(--lavender) 55%, transparent);
-  box-shadow: 0 14px 36px -30px color-mix(in oklab, var(--plum) 40%, transparent);
+  background:
+    linear-gradient(180deg,
+      #ffffff 0%,
+      color-mix(in oklab, #ffffff 86%, var(--lavender)) 100%);
+  backdrop-filter: blur(28px) saturate(160%);
+  border: 1px solid color-mix(in oklab, var(--petal) 22%, transparent);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.98) inset,
+    0 30px 70px -30px color-mix(in oklab, var(--petal) 26%, transparent),
+    0 10px 30px -18px color-mix(in oklab, var(--lavender) 22%, transparent);
 }
 
 .light .aurora-bg,
 .light .aurora-fixed {
   background:
-    radial-gradient(ellipse 58% 45% at 18% 10%, color-mix(in oklab, var(--lavender) 16%, transparent) 0%, transparent 62%),
-    radial-gradient(ellipse 52% 40% at 84% 84%, color-mix(in oklab, var(--peach) 14%, transparent) 0%, transparent 62%),
-    linear-gradient(180deg, #faf8f5 0%, #f4efe6 100%);
-  filter: none;
+    radial-gradient(ellipse 58% 45% at 18% 12%,  color-mix(in oklab, var(--petal) 24%, transparent) 0%, transparent 60%),
+    radial-gradient(ellipse 55% 40% at 84% 20%,  color-mix(in oklab, var(--lavender) 26%, transparent) 0%, transparent 60%),
+    radial-gradient(ellipse 52% 40% at 78% 82%,  color-mix(in oklab, var(--peach) 18%, transparent) 0%, transparent 62%),
+    radial-gradient(ellipse 48% 38% at 16% 78%,  color-mix(in oklab, var(--sage) 20%, transparent) 0%, transparent 62%),
+    linear-gradient(180deg, #f3e9fd 0%, #f6ecff 100%);
+  filter: blur(0) saturate(115%);
 }
 .light .spotlight {
   background:
     radial-gradient(circle 340px at var(--mx, 50%) var(--my, 0%),
-      color-mix(in oklab, var(--lavender) 22%, transparent) 0%,
-      transparent 70%),
+      color-mix(in oklab, var(--petal) 22%, transparent) 0%,
+      color-mix(in oklab, var(--lavender) 14%, transparent) 40%,
+      transparent 72%),
     #ffffff;
 }
 
 .light .ring-rose,
 .light .ring-petal {
   box-shadow:
-    0 0 0 1px color-mix(in oklab, var(--lavender) 70%, transparent),
-    0 18px 44px -28px color-mix(in oklab, var(--plum) 30%, transparent);
+    0 0 0 1px color-mix(in oklab, var(--petal) 50%, transparent),
+    0 24px 60px -24px color-mix(in oklab, var(--petal) 34%, transparent),
+    0 0 36px -8px color-mix(in oklab, var(--lavender) 30%, transparent),
+    inset 0 1px 0 rgba(255,255,255,0.95);
 }
 
 .light [class*="bg-surface"],
 .light .studio-surface {
-  background-image: none;
-  background-color: var(--surface-elevated);
-  box-shadow: none;
+  background-image: linear-gradient(
+    180deg,
+    #ffffff 0%,
+    color-mix(in oklab, #ffffff 94%, var(--lavender)) 100%
+  );
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.95),
+    0 1px 0 color-mix(in oklab, var(--petal) 12%, transparent);
 }
 
 .light ::selection {
-  background: color-mix(in oklab, var(--lavender) 45%, #ffffff);
+  background: color-mix(in oklab, var(--petal) 28%, #ffffff);
   color: var(--candle);
 }
 
 
 
 .light .petal-glow {
-  box-shadow: 0 16px 40px -26px color-mix(in oklab, var(--plum) 40%, transparent);
+  box-shadow:
+    0 22px 50px -22px color-mix(in oklab, var(--petal) 40%, transparent),
+    0 6px 18px  -10px color-mix(in oklab, var(--sky) 30%, transparent),
+    0 4px 14px  -8px  color-mix(in oklab, var(--marigold) 24%, transparent);
 }
 
 .light .text-rose-gradient {
   background: linear-gradient(100deg,
-    var(--plum) 0%,
-    var(--petal) 45%,
-    var(--marigold) 100%);
+    #8a2a4a 0%,
+    var(--petal) 35%,
+    var(--marigold) 68%,
+    var(--plum) 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 
 .light .hairline {
-  border: 1px solid color-mix(in oklab, var(--lavender) 50%, transparent);
-  background-image: none;
-  background-color: #ffffff;
+  border: 1px solid color-mix(in oklab, var(--petal) 20%, transparent);
+  background-image: linear-gradient(
+    180deg,
+    #ffffff 0%,
+    color-mix(in oklab, #ffffff 92%, var(--peach)) 60%,
+    color-mix(in oklab, #ffffff 90%, var(--sky)) 100%
+  );
 }
 
 /* Opt-in chromatic tints for cards & panels */
@@ -250,27 +287,27 @@
 .light .tint-champagne{ background: color-mix(in oklab, var(--champagne) 55%, #ffffff); color: var(--candle); }
 
 /* Chip variants for tags / badges */
-.light .chip-peach    { background: var(--peach-soft);    color: #6f4a33; border: 1px solid color-mix(in oklab, var(--peach) 45%, transparent); }
-.light .chip-marigold { background: var(--marigold-soft); color: #6b5220; border: 1px solid color-mix(in oklab, var(--marigold) 50%, transparent); }
-.light .chip-sage     { background: var(--sage-soft);     color: #4a5140; border: 1px solid color-mix(in oklab, var(--sage) 50%, transparent); }
-.light .chip-sky      { background: var(--sky-soft);      color: #44504f; border: 1px solid color-mix(in oklab, var(--sky) 50%, transparent); }
+.light .chip-peach    { background: var(--peach-soft);    color: #7a3520; border: 1px solid color-mix(in oklab, var(--peach) 45%, transparent); }
+.light .chip-marigold { background: var(--marigold-soft); color: #6a4a15; border: 1px solid color-mix(in oklab, var(--marigold) 50%, transparent); }
+.light .chip-sage     { background: var(--sage-soft);     color: #2e5540; border: 1px solid color-mix(in oklab, var(--sage) 50%, transparent); }
+.light .chip-sky      { background: var(--sky-soft);      color: #2f4a70; border: 1px solid color-mix(in oklab, var(--sky) 50%, transparent); }
 .light .chip-plum     { background: var(--plum-soft);     color: var(--plum); border: 1px solid color-mix(in oklab, var(--plum) 40%, transparent); }
-.light .chip-rose     { background: var(--petal-soft);    color: #6b4f3a; border: 1px solid color-mix(in oklab, var(--petal) 50%, transparent); }
+.light .chip-rose     { background: var(--petal-soft);    color: #7a1f3a; border: 1px solid color-mix(in oklab, var(--petal) 50%, transparent); }
 
-.light .text-marigold { color: #6b5220; }
-.light .text-sage     { color: #4a5140; }
-.light .text-sky      { color: #44504f; }
+.light .text-marigold { color: #8a5a12; }
+.light .text-sage     { color: #2e5540; }
+.light .text-sky      { color: #2f4a70; }
 .light .text-plum     { color: var(--plum); }
-.light .text-peach    { color: #6f4a33; }
+.light .text-peach    { color: #7a3520; }
 
 /* Multi-hue divider */
 .light .rule-spectrum {
   height: 1px;
   background: linear-gradient(90deg,
     transparent 0%,
-    color-mix(in oklab, var(--lavender) 70%, transparent) 20%,
-    color-mix(in oklab, var(--petal) 45%, transparent) 50%,
-    color-mix(in oklab, var(--lavender) 70%, transparent) 80%,
+    color-mix(in oklab, var(--petal) 55%, transparent) 20%,
+    color-mix(in oklab, var(--marigold) 55%, transparent) 45%,
+    color-mix(in oklab, var(--sky) 55%, transparent) 70%,
     transparent 100%);
   border: 0;
 }
