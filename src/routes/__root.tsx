@@ -90,7 +90,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content:
           "Your premium space to watch movies, play games, chat, call, celebrate milestones, and cherish every moment together.",
       },
-      { name: "theme-color", content: "#0a0a1a" },
+      { name: "theme-color", content: "#faf8f5" },
       { property: "og:title", content: "PANDACINE — Connect Together" },
       {
         property: "og:description",
@@ -127,7 +127,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" className="light">
       <head>
         <HeadContent />
       </head>
@@ -163,7 +163,7 @@ function RootComponent() {
         <BroadcastListener />
         
         <Toaster
-          theme="dark"
+          theme="light"
           position="top-center"
           expand
           visibleToasts={4}
