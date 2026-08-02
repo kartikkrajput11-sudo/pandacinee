@@ -109,34 +109,34 @@
 
 
 .light {
-  /* Lavender Daylight — soft lilac porcelain with electric-purple accents.
-     Inspired by a dreamy lavender iCloud aesthetic: airy, pastel, luminous. */
-  --velvet: #ede4fb;
-  --background: #f1e7fd;
+  /* Warm Sand — pressed-paper daylight.
+     Linen background, ivory panels, hairline clay rules, walnut ink accents. */
+  --velvet: #f0ebe3;
+  --background: #faf8f5;
   --surface: #ffffff;
-  --surface-elevated: #f6ecff;
-  --foreground: #2b1a52;
-  --candle: #2b1a52;
-  --candle-muted: #6b5aa0;
-  --petal: #8b5cf6;
-  --petal-soft: #e6d7ff;
-  --lavender: #a78bfa;
-  --border: #e0d1f5;
-  --input: #ece0fb;
+  --surface-elevated: #f6f1e9;
+  --foreground: #1a1a1a;
+  --candle: #1a1a1a;
+  --candle-muted: #8b7355;
+  --petal: #8b7355;
+  --petal-soft: #ede5d8;
+  --lavender: #c9b99a;
+  --border: #e3dacb;
+  --input: #f2ede4;
 
-  --peach:      #f4b8d0;
-  --peach-soft: #fbe0ec;
-  --marigold:   #d9b8ef;
-  --marigold-soft:#f0e0fb;
-  --champagne:  #ece1fb;
-  --sage:       #b8c4f0;
-  --sage-soft:  #e0e6fb;
-  --sky:        #b0b8ef;
-  --sky-soft:   #dee2fa;
-  --plum:       #6d3aa8;
-  --plum-soft:  #ead6f7;
-  --mist:       #f3edfb;
-  --ink-soft:   #3a2670;
+  --peach:      #d8b49a;
+  --peach-soft: #f4e9de;
+  --marigold:   #c9a86a;
+  --marigold-soft:#f3ebda;
+  --champagne:  #f0ebe3;
+  --sage:       #a9b09a;
+  --sage-soft:  #eaece3;
+  --sky:        #a8b2b8;
+  --sky-soft:   #e8ecee;
+  --plum:       #6b4f3a;
+  --plum-soft:  #ece1d6;
+  --mist:       #f5f2ec;
+  --ink-soft:   #3b3129;
 }
 
 /* ============================================================
