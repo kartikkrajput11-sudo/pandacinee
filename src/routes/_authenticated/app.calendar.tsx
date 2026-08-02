@@ -121,21 +121,17 @@ function CalendarPage() {
         });
       }
       const monthly = new Date(year, cursor.getMonth(), start.getDate());
-      if (monthly.getMonth() === cursor.getMonth() && monthly > start) {
-        const months =
-          (monthly.getFullYear() - start.getFullYear()) * 12 + (monthly.getMonth() - start.getMonth());
-        if (months > 0 && monthly.getDate() !== start.getDate() + 0 ? true : true) {
-          if (monthly.getMonth() !== start.getMonth() || monthly.getFullYear() !== start.getFullYear()) {
-            list.push({
-              id: `monthiv-${ymd(monthly)}`,
-              date: monthly,
-              label: `${months} month${months > 1 ? "s" : ""} together`,
-              emoji: "🌙",
-              blurb: "Monthiversary — the app dresses up for it.",
-              tone: "partner",
-            });
-          }
-        }
+      const months =
+        (monthly.getFullYear() - start.getFullYear()) * 12 + (monthly.getMonth() - start.getMonth());
+      if (monthly.getMonth() === cursor.getMonth() && months > 0 && months % 12 !== 0) {
+        list.push({
+          id: `monthiv-${ymd(monthly)}`,
+          date: monthly,
+          label: `${months} month${months > 1 ? "s" : ""} together`,
+          emoji: "\ud83c\udf19",
+          blurb: "Monthiversary \u2014 the app dresses up for it.",
+          tone: "partner",
+        });
       }
     }
 
