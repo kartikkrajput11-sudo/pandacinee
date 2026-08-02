@@ -143,7 +143,7 @@ export function FirstChapterCard({ ownerId, partnerName }: { ownerId: string; pa
             {partnerName ? `Every first with ${partnerName}, kept forever.` : "Every first, kept forever."}
           </p>
         </div>
-        {available.length > 0 && (
+        {available.length > 0 && ordered.length > 0 && (
           <button
             onClick={() => setPicking(true)}
             className="mt-1 flex shrink-0 items-center gap-1.5 rounded-full border border-petal/40 bg-petal/10 px-3 py-1.5 text-[11px] uppercase tracking-[0.18em] text-petal transition hover:bg-petal/20"
