@@ -196,37 +196,100 @@ function Me() {
         <div className="text-candle-muted text-sm">Loading…</div>
       ) : (
         <>
-          <div className="flex items-center gap-4 mb-6">
-            <button
-              onClick={() => fileRef.current?.click()}
-              className="relative size-20 rounded-full bg-petal-soft border border-petal/20 flex items-center justify-center overflow-hidden group"
-            >
-              {avatarUrl ? (
-                <AvatarImg src={avatarUrl} className="w-full h-full object-cover" />
-              ) : (
-                <span className="font-serif text-3xl italic text-petal">
-                  {me.display_name?.[0]?.toUpperCase() ?? "🐼"}
-                </span>
-              )}
-              <span className="absolute inset-0 bg-velvet/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                <Camera className="size-5 text-candle" />
-              </span>
-            </button>
-            <input
-              ref={fileRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={(e) => {
-                const f = e.target.files?.[0];
-                if (f) uploadAvatar(f);
-              }}
+          {/* Luxury membership card */}
+          <div className="relative mb-6 rounded-[28px] overflow-hidden border border-petal/25 glass-strong shadow-[0_40px_110px_-55px_color-mix(in_oklab,var(--petal)_80%,transparent)]">
+            <div
+              aria-hidden
+              className="pointer-events-none absolute -top-24 -right-16 size-64 rounded-full blur-3xl opacity-40"
+              style={{ background: `radial-gradient(circle, ${favoriteColor ?? "var(--petal)"}, transparent 70%)` }}
             />
-            <div className="min-w-0 flex-1">
-              <p className="font-serif text-2xl italic truncate">{me.display_name}</p>
-              <p className="text-sm text-candle-muted truncate">@{me.username}</p>
+            <div
+              aria-hidden
+              className="pointer-events-none absolute -bottom-24 -left-20 size-64 rounded-full blur-3xl opacity-25"
+              style={{ background: "radial-gradient(circle, var(--lavender), transparent 70%)" }}
+            />
+            <span
+              aria-hidden
+              className="pointer-events-none absolute inset-y-0 -left-1/3 w-1/3 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-card-sheen"
+            />
+
+            <div className="relative p-6">
+              <div className="flex items-center justify-between mb-5">
+                <p className="text-[10px] uppercase tracking-[0.4em] text-petal">Pandacine · Member</p>
+                <span className="text-[10px] uppercase tracking-[0.28em] text-candle-muted">
+                  {partner ? "Paired" : "Solo"}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={() => fileRef.current?.click()}
+                  className="relative size-20 rounded-2xl bg-petal-soft border border-petal/30 flex items-center justify-center overflow-hidden group shrink-0"
+                >
+                  {avatarUrl ? (
+                    <AvatarImg src={avatarUrl} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="font-serif text-3xl italic text-petal">
+                      {me.display_name?.[0]?.toUpperCase() ?? "🐼"}
+                    </span>
+                  )}
+                  <span className="absolute inset-0 bg-velvet/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <Camera className="size-5 text-candle" />
+                  </span>
+                </button>
+                <div className="min-w-0 flex-1">
+                  <p className="font-serif text-2xl italic truncate leading-tight">{me.display_name}</p>
+                  <p className="text-sm text-candle-muted truncate">@{me.username}</p>
+                  {me.bio && (
+                    <p className="text-xs text-candle-muted/80 italic truncate mt-1">{me.bio}</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="mt-5 grid grid-cols-3 gap-2">
+                <Stat label="Coins" value={String((me as any).coins ?? 0)} />
+                <Stat
+                  label="Together"
+                  value={
+                    me.anniversary_date || me.paired_at
+                      ? `${Math.max(
+                          0,
+                          Math.floor(
+                            (Date.now() - new Date((me.anniversary_date || me.paired_at) as string).getTime()) /
+                              86400000,
+                          ),
+                        )}d`
+                      : "—"
+                  }
+                />
+                <Stat label="Mood" value={me.mood_emoji ?? "💭"} />
+              </div>
+
+              <div className="mt-4 flex items-center justify-between gap-3 pt-4 border-t border-border/60">
+                <div className="min-w-0">
+                  <p className="text-[10px] uppercase tracking-[0.28em] text-candle-muted">Invite code</p>
+                  <p className="font-mono text-sm text-candle tracking-[0.2em] truncate">{me.invite_code}</p>
+                </div>
+                <button
+                  onClick={copyCode}
+                  className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-petal/40 text-petal text-[10px] uppercase tracking-[0.24em] hover:bg-petal/10 transition"
+                >
+                  <Copy className="size-3" /> Copy
+                </button>
+              </div>
             </div>
           </div>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) uploadAvatar(f);
+            }}
+          />
+
 
           <Link
             to="/app/shop"
