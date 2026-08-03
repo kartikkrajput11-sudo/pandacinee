@@ -37,6 +37,7 @@ import { Route as AuthenticatedAppRitualsRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAppPuzzleRouteImport } from './routes/_authenticated/app.puzzle'
 import { Route as AuthenticatedAppPoolRouteImport } from './routes/_authenticated/app.pool'
 import { Route as AuthenticatedAppPlayRouteImport } from './routes/_authenticated/app.play'
+import { Route as AuthenticatedAppPetRouteImport } from './routes/_authenticated/app.pet'
 import { Route as AuthenticatedAppPartnerRouteImport } from './routes/_authenticated/app.partner'
 import { Route as AuthenticatedAppPaintRouteImport } from './routes/_authenticated/app.paint'
 import { Route as AuthenticatedAppMoviesRouteImport } from './routes/_authenticated/app.movies'
@@ -227,6 +228,11 @@ const AuthenticatedAppPoolRoute = AuthenticatedAppPoolRouteImport.update({
 const AuthenticatedAppPlayRoute = AuthenticatedAppPlayRouteImport.update({
   id: '/play',
   path: '/play',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
+const AuthenticatedAppPetRoute = AuthenticatedAppPetRouteImport.update({
+  id: '/pet',
+  path: '/pet',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
 const AuthenticatedAppPartnerRoute = AuthenticatedAppPartnerRouteImport.update({
@@ -537,6 +543,7 @@ export interface FileRoutesByFullPath {
   '/app/movies': typeof AuthenticatedAppMoviesRouteWithChildren
   '/app/paint': typeof AuthenticatedAppPaintRoute
   '/app/partner': typeof AuthenticatedAppPartnerRoute
+  '/app/pet': typeof AuthenticatedAppPetRoute
   '/app/play': typeof AuthenticatedAppPlayRoute
   '/app/pool': typeof AuthenticatedAppPoolRoute
   '/app/puzzle': typeof AuthenticatedAppPuzzleRoute
@@ -612,6 +619,7 @@ export interface FileRoutesByTo {
   '/app/mood': typeof AuthenticatedAppMoodRoute
   '/app/paint': typeof AuthenticatedAppPaintRoute
   '/app/partner': typeof AuthenticatedAppPartnerRoute
+  '/app/pet': typeof AuthenticatedAppPetRoute
   '/app/play': typeof AuthenticatedAppPlayRoute
   '/app/pool': typeof AuthenticatedAppPoolRoute
   '/app/puzzle': typeof AuthenticatedAppPuzzleRoute
@@ -690,6 +698,7 @@ export interface FileRoutesById {
   '/_authenticated/app/movies': typeof AuthenticatedAppMoviesRouteWithChildren
   '/_authenticated/app/paint': typeof AuthenticatedAppPaintRoute
   '/_authenticated/app/partner': typeof AuthenticatedAppPartnerRoute
+  '/_authenticated/app/pet': typeof AuthenticatedAppPetRoute
   '/_authenticated/app/play': typeof AuthenticatedAppPlayRoute
   '/_authenticated/app/pool': typeof AuthenticatedAppPoolRoute
   '/_authenticated/app/puzzle': typeof AuthenticatedAppPuzzleRoute
@@ -769,6 +778,7 @@ export interface FileRouteTypes {
     | '/app/movies'
     | '/app/paint'
     | '/app/partner'
+    | '/app/pet'
     | '/app/play'
     | '/app/pool'
     | '/app/puzzle'
@@ -844,6 +854,7 @@ export interface FileRouteTypes {
     | '/app/mood'
     | '/app/paint'
     | '/app/partner'
+    | '/app/pet'
     | '/app/play'
     | '/app/pool'
     | '/app/puzzle'
@@ -921,6 +932,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/movies'
     | '/_authenticated/app/paint'
     | '/_authenticated/app/partner'
+    | '/_authenticated/app/pet'
     | '/_authenticated/app/play'
     | '/_authenticated/app/pool'
     | '/_authenticated/app/puzzle'
@@ -1180,6 +1192,13 @@ declare module '@tanstack/react-router' {
       path: '/play'
       fullPath: '/app/play'
       preLoaderRoute: typeof AuthenticatedAppPlayRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/pet': {
+      id: '/_authenticated/app/pet'
+      path: '/pet'
+      fullPath: '/app/pet'
+      preLoaderRoute: typeof AuthenticatedAppPetRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/partner': {
@@ -1604,6 +1623,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppMoviesRoute: typeof AuthenticatedAppMoviesRouteWithChildren
   AuthenticatedAppPaintRoute: typeof AuthenticatedAppPaintRoute
   AuthenticatedAppPartnerRoute: typeof AuthenticatedAppPartnerRoute
+  AuthenticatedAppPetRoute: typeof AuthenticatedAppPetRoute
   AuthenticatedAppPlayRoute: typeof AuthenticatedAppPlayRoute
   AuthenticatedAppPoolRoute: typeof AuthenticatedAppPoolRoute
   AuthenticatedAppPuzzleRoute: typeof AuthenticatedAppPuzzleRoute
@@ -1655,6 +1675,7 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppMoviesRoute: AuthenticatedAppMoviesRouteWithChildren,
   AuthenticatedAppPaintRoute: AuthenticatedAppPaintRoute,
   AuthenticatedAppPartnerRoute: AuthenticatedAppPartnerRoute,
+  AuthenticatedAppPetRoute: AuthenticatedAppPetRoute,
   AuthenticatedAppPlayRoute: AuthenticatedAppPlayRoute,
   AuthenticatedAppPoolRoute: AuthenticatedAppPoolRoute,
   AuthenticatedAppPuzzleRoute: AuthenticatedAppPuzzleRoute,
@@ -1720,13 +1741,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

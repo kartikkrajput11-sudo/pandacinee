@@ -1586,6 +1586,45 @@ export type Database = {
         }
         Relationships: []
       }
+      pet_pandas: {
+        Row: {
+          affection: number
+          costume: string
+          created_at: string
+          interactions: number
+          last_visit: string | null
+          name: string
+          streak: number
+          unlocked: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          affection?: number
+          costume?: string
+          created_at?: string
+          interactions?: number
+          last_visit?: string | null
+          name?: string
+          streak?: number
+          unlocked?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          affection?: number
+          costume?: string
+          created_at?: string
+          interactions?: number
+          last_visit?: string | null
+          name?: string
+          streak?: number
+          unlocked?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       poll_votes: {
         Row: {
           created_at: string
