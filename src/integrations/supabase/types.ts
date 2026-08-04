@@ -2511,6 +2511,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_grant_coins: {
+        Args: { _amount: number; _note?: string; _target: string }
+        Returns: number
+      }
       call_answer: {
         Args: { _call_id: string; _device_id: string }
         Returns: {
