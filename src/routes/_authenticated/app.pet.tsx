@@ -127,7 +127,7 @@ function PetRoute() {
 
       {!isLoading && pet?.unlocked && (
         <>
-          <section className="rounded-3xl glass-strong p-4">
+          <section className="relative -mx-2 overflow-visible rounded-[2.5rem] bg-transparent p-2">
             <div className="mb-2 flex items-center justify-center gap-2">
               {editing ? (
                 <>
