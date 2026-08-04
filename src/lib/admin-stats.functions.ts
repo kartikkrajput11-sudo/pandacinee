@@ -293,15 +293,14 @@ export const adminSendCoins = createServerFn({ method: "POST" })
   })
   .handler(async ({ data, context }): Promise<{ ok: true; coins: number }> => {
     await ensureAdmin(context);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const admin = supabaseAdmin as any;
-    const { data: prof, error: readErr } = await admin
-      .from("profiles").select("coins").eq("id", data.userId).maybeSingle();
-    if (readErr) throw new Error(readErr.message);
-    if (!prof) throw new Error("User not found");
-    const next = Math.max(0, (prof.coins ?? 0) + data.amount);
-    const { error: upErr } = await admin
-      .from("profiles").update({ coins: next }).eq("id", data.userId);
-    if (upErr) throw new Error(upErr.message);
-    return { ok: true, coins: next };
+    // profiles.coins / panda_coins are protected by a DB trigger, so a plain
+    // UPDATE silently no-ops. Go through the privileged RPC instead.
+    const { data: balance, error } = await (context.supabase as any).rpc("admin_grant_coins", {
+      _target: data.userId,
+      _amount: data.amount,
+      _note: "admin_grant",
+    });
+    if (error) throw new Error(error.message);
+    return { ok: true, coins: Number(balance ?? 0) };
   });
+
