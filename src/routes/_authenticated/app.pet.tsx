@@ -92,9 +92,10 @@ function PetRoute() {
 
       {!isLoading && !pet?.unlocked && (
         <section className="rounded-3xl glass-strong p-5 space-y-4">
-          <div className="pointer-events-none opacity-60 blur-[1px]">
-            <PandaStage playful={false} lite className="mx-auto max-w-[260px]" />
+          <div className="pointer-events-none">
+            <PandaStage playful={false} lite className="mx-auto max-w-[300px]" />
           </div>
+
           <div className="text-center space-y-2">
             <h2 className="font-serif text-2xl italic">Adopt your panda</h2>
             <p className="text-sm text-candle-muted">
@@ -126,7 +127,7 @@ function PetRoute() {
 
       {!isLoading && pet?.unlocked && (
         <>
-          <section className="rounded-3xl glass-strong p-4">
+          <section className="relative -mx-2 overflow-visible rounded-[2.5rem] bg-transparent p-2">
             <div className="mb-2 flex items-center justify-center gap-2">
               {editing ? (
                 <>

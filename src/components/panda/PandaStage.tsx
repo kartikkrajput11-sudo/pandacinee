@@ -104,7 +104,9 @@ export function PandaStage({ name = "Pan", className, playful = true, onInteract
         transition={{ duration: 1.6, repeat: state.chaos ? Infinity : 0 }}
         className={cn("relative z-10 mx-auto w-full max-w-[420px] cursor-grab active:cursor-grabbing", dragging && "z-20")}
       >
-        <PandaCharacter state={state} onZone={onZone} lite={lite} className="w-full h-auto drop-shadow-[0_30px_60px_rgba(0,0,0,.55)]" />
+        <PandaCharacter state={state} onZone={onZone} lite={lite} className="w-full h-auto" />
+
+
 
         {/* speech / thought bubbles */}
         <AnimatePresence>
@@ -194,6 +196,32 @@ export function PandaStage({ name = "Pan", className, playful = true, onInteract
               />
             </div>
           </div>
+
+          {/* hunger / mood */}
+          <div className="mx-auto max-w-[320px]">
+            <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.22em] text-candle-muted">
+              <span>Belly</span>
+              <span className={state.ignoring ? "text-coral" : "text-petal"}>
+                {state.ignoring
+                  ? "sulking — feed bamboo"
+                  : state.hunger > 0.6
+                    ? "very hungry"
+                    : state.hunger > 0.3
+                      ? "peckish"
+                      : sleeping
+                        ? "sleeping"
+                        : "content"}
+              </span>
+            </div>
+            <div className="mt-1 h-1.5 rounded-full bg-surface overflow-hidden border border-border">
+              <motion.div
+                className={cn("h-full", state.ignoring ? "bg-coral" : "bg-petal petal-glow")}
+                animate={{ width: `${Math.max(6, (1 - state.hunger) * 100)}%` }}
+                transition={{ type: "spring", stiffness: 120, damping: 18 }}
+              />
+            </div>
+          </div>
+
 
           {/* treats & gestures */}
           <div className="flex flex-wrap items-center justify-center gap-2">

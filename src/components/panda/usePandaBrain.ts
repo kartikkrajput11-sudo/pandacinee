@@ -16,6 +16,7 @@ export type Emotion =
   | "proud"
   | "chaotic"
   | "angry"
+  | "sulking"
   | "surprised"
   | "scared"
   | "relaxed"
@@ -53,7 +54,9 @@ export type Action =
   | "celebrate"
   | "gift"
   | "sugarRush"
-  | "throwBack";
+  | "throwBack"
+  | "stir"
+  | "sulk";
 
 export type Costume =
   | "classic"
@@ -85,6 +88,10 @@ export type PandaState = {
   hearts: number;
   confetti: number;
   says: string | null;
+  /** Neglected too long — the panda sulks and refuses to look at you. */
+  ignoring: boolean;
+  /** 0..1, how long since the last treat. */
+  hunger: number;
 };
 
 const DREAMS = [
@@ -219,25 +226,70 @@ export function usePandaBrain({ containerRef, onInteract, idleStory = true }: Br
   );
 
   /* ------------------------------------------------------------------ *
-   * Idle story — a 60s loop with randomised beats, restarted on touch.  *
+   * Life cycle — drowsiness grows with silence, sleep is gradual, and   *
+   * neglect (no treats for hours) makes the panda sulk and ignore you.  *
    * ------------------------------------------------------------------ */
-  const idleClock = useRef(0);
   const lastTouch = useRef(Date.now());
+  const stage = useRef<"awake" | "bored" | "drowsy" | "dozing" | "asleep" | "dreaming">("awake");
+  const [ignoring, setIgnoring] = useState(false);
+  const [hunger, setHunger] = useState(0);
+  const lastFed = useRef<number>(Date.now());
+  const sulkArmed = useRef(false);
 
+  const FED_KEY = "panda:lastFed";
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(FED_KEY);
+      if (raw) lastFed.current = Number(raw) || Date.now();
+    } catch {
+      /* storage unavailable */
+    }
+  }, []);
+
+  const markFed = useCallback(() => {
+    lastFed.current = Date.now();
+    try {
+      window.localStorage.setItem(FED_KEY, String(lastFed.current));
+    } catch {
+      /* ignore */
+    }
+    sulkArmed.current = false;
+    setHunger(0);
+    setIgnoring(false);
+  }, []);
+
+  /** Slow, believable waking: a stir, a yawn, a long stretch, then alert. */
   const wakeUp = useCallback(() => {
-    if (!asleep.current) return;
+    if (stage.current === "awake" || stage.current === "bored") return;
+    const wasDeep = stage.current === "asleep" || stage.current === "dreaming";
+    stage.current = "awake";
     asleep.current = false;
     setThought(null);
-    doAction("wake", 900);
-    feel("confused", 1200);
-    after(900, () => {
-      doAction("stretch", 1200);
-      feel("relaxed", 1600);
+    if (!wasDeep) {
+      setEmotionRaw(baseEmotion.current);
+      return;
+    }
+    doAction("stir", 2200);
+    setEmotionRaw("sleepy");
+    after(2000, () => {
+      doAction("yawn", 1800);
+      pandaSfx.yawn();
+    });
+    after(3600, () => {
+      doAction("wake", 2200);
+      setEmotionRaw("confused");
+    });
+    after(5600, () => {
+      doAction("stretch", 1800);
+      feel("relaxed", 2400);
+    });
+    after(7600, () => {
+      feel("happy", 1800);
+      pandaSfx.giggle();
     });
   }, [after, doAction, feel]);
 
   const resetIdle = useCallback(() => {
-    idleClock.current = 0;
     lastTouch.current = Date.now();
     wakeUp();
   }, [wakeUp]);
@@ -245,83 +297,107 @@ export function usePandaBrain({ containerRef, onInteract, idleStory = true }: Br
   useEffect(() => {
     if (!idleStory) return;
     const id = window.setInterval(() => {
-      idleClock.current = (idleClock.current + 1) % 62;
-      const t = idleClock.current;
-      const quiet = Date.now() - lastTouch.current > 4000;
-      if (!quiet) return;
+      const quiet = (Date.now() - lastTouch.current) / 1000; // seconds of no interaction
+      const hoursHungry = (Date.now() - lastFed.current) / 3.6e6;
+      setHunger(Math.max(0, Math.min(1, hoursHungry / 10)));
 
-      switch (t) {
-        case 5:
-          doAction("wave", 1500);
-          feel("happy", 2000);
-          pandaSfx.giggle();
-          break;
-        case 10:
-          feel("proud", 2500);
-          say("PANDACINE ✦", 2200);
-          break;
-        case 15:
-          doAction("pullBamboo", 2200);
-          feel("hungry", 2600);
-          break;
-        case 20:
-          doAction("eat", 2400);
-          pandaSfx.chew();
-          break;
-        case 25:
-          doAction("chew", 3000);
-          feel("happy", 3000);
-          break;
-        case 30:
-          doAction("rubBelly", 2600);
+      /* --- neglect: cutely angry, then pointedly ignoring you --------- */
+      if (hoursHungry > 8 && !sulkArmed.current && stage.current === "awake") {
+        sulkArmed.current = true;
+        setEmotionRaw("angry");
+        doAction("sulk", 2000);
+        pandaSfx.growl();
+        say("hmph.", 2400);
+        window.setTimeout(() => {
+          setEmotionRaw("sulking");
+          setIgnoring(true);
+        }, 2400);
+        return;
+      }
+      if (ignoring) {
+        // Sulking pandas do very little — an occasional huff, back turned.
+        if (Math.random() < 0.06) {
+          doAction("sulk", 1600);
+          say(pick(["…", "hmph", "no bamboo, no talk"]), 2000);
+        }
+        return;
+      }
+
+      /* --- the awake loop: little life beats ------------------------- */
+      if (quiet < 25) {
+        stage.current = "awake";
+        if (Math.random() < 0.05) feel(pick(["curious", "playful", "happy", "shy"] as Emotion[]), 1500);
+        if (Math.random() < 0.02) {
+          doAction("earScratch", 1400);
+        }
+        if (hoursHungry > 3 && Math.random() < 0.05) {
+          feel("hungry", 2400);
+          say("bamboo? 🎋", 2000);
+        }
+        if (Math.random() < 0.0015) {
+          const rare = pick(RARE);
+          setCostume(rare);
+          say(`${rare} panda!`, 2600);
+          burstConfetti(30);
+          window.setTimeout(() => setCostume(seasonalCostume() ?? "classic"), 12000);
+        }
+        return;
+      }
+
+      /* --- silence: drift down into sleep, stage by stage ------------ */
+      if (quiet < 45) {
+        if (stage.current !== "bored") {
+          stage.current = "bored";
+          doAction(pick(["stretch", "pullBamboo", "wave"]), 2000);
           feel("relaxed", 3000);
-          break;
-        case 35:
-          doAction("yawn", 2200);
-          feel("sleepy", 3000);
+        } else if (Math.random() < 0.08) {
+          doAction(pick(["earScratch", "chew", "pose"]), 1600);
+        }
+        return;
+      }
+      if (quiet < 80) {
+        if (stage.current !== "drowsy") {
+          stage.current = "drowsy";
+          doAction("yawn", 2600);
+          setEmotionRaw("sleepy");
           pandaSfx.yawn();
-          break;
-        case 40:
+        }
+        return;
+      }
+      if (quiet < 110) {
+        if (stage.current !== "dozing") {
+          stage.current = "dozing";
+          setEmotionRaw("sleepy");
+          doAction("stir", 3000);
+        }
+        return;
+      }
+      if (quiet < 190) {
+        if (stage.current !== "asleep") {
+          stage.current = "asleep";
           asleep.current = true;
           setEmotionRaw("asleep");
-          break;
-        case 45:
-          if (asleep.current) {
-            doAction("snore", 4000);
-            pandaSfx.snore();
-          }
-          break;
-        case 50:
-          if (asleep.current) {
-            setEmotionRaw("dreaming");
-            setThought(pick(DREAMS));
-          }
-          break;
-        case 55:
-          if (asleep.current) {
-            asleep.current = false;
-            setThought(null);
-            setEmotionRaw("confused");
-            doAction("wake", 1200);
-          }
-          break;
-        case 58:
-          setEmotionRaw(baseEmotion.current);
-          break;
-        default:
-          // tiny random spice so the loop never feels canned
-          if (t % 7 === 0 && Math.random() < 0.25) feel(pick(["curious", "playful", "happy", "shy"] as Emotion[]), 1500);
-          if (Math.random() < 0.002) {
-            const rare = pick(RARE);
-            setCostume(rare);
-            say(`${rare} panda!`, 2600);
-            burstConfetti(30);
-            window.setTimeout(() => setCostume(seasonalCostume() ?? "classic"), 12000);
-          }
+          setAction(null);
+          window.setTimeout(() => {
+            if (stage.current === "asleep") {
+              doAction("snore", 6000);
+              pandaSfx.snore();
+            }
+          }, 4000);
+        }
+        return;
+      }
+      if (stage.current !== "dreaming") {
+        stage.current = "dreaming";
+        asleep.current = true;
+        setEmotionRaw("dreaming");
+        setThought(pick(DREAMS));
+      } else if (Math.random() < 0.05) {
+        setThought(pick(DREAMS));
       }
     }, 1000);
     return () => window.clearInterval(id);
-  }, [burstConfetti, doAction, feel, idleStory, say]);
+  }, [burstConfetti, doAction, feel, idleStory, ignoring, say]);
 
   /* --------------------------- cursor brain -------------------------- */
   const angleAcc = useRef(0);
@@ -481,9 +557,28 @@ export function usePandaBrain({ containerRef, onInteract, idleStory = true }: Br
   /* --------------------------- interactions -------------------------- */
   const interact = useCallback(
     (zone: Zone | "camera" | "bamboo" | "popcorn" | "cookie" | "peekaboo" | "drag") => {
+      const isTreat = zone === "bamboo" || zone === "popcorn" || zone === "cookie";
+      // A sulking panda only forgives food — everything else gets the cold shoulder.
+      if (ignoring && !isTreat) {
+        doAction("sulk", 1600);
+        say(pick(["hmph!", "…", "you forgot me"]), 2000);
+        pandaSfx.growl();
+        return;
+      }
+      if (isTreat) {
+        const wasSulking = ignoring;
+        markFed();
+        if (wasSulking) {
+          feel("happy", 2600);
+          burstHearts(6);
+          say("…okay, forgiven 🎋", 2600);
+          pandaSfx.happy();
+        }
+      }
       resetIdle();
       bumpInteractions(zone);
       switch (zone) {
+
         case "head":
           feel("happy", 2200);
           doAction("headpat", 2000);
@@ -556,12 +651,12 @@ export function usePandaBrain({ containerRef, onInteract, idleStory = true }: Br
           break;
       }
     },
-    [after, bumpInteractions, bumpTickle, burstHearts, doAction, feel, resetIdle],
+    [after, bumpInteractions, bumpTickle, burstHearts, doAction, feel, ignoring, markFed, resetIdle, say],
   );
 
   const state: PandaState = useMemo(
-    () => ({ emotion, action, look, tickle, interactions, chaos, costume, thought, hearts, confetti, says }),
-    [emotion, action, look, tickle, interactions, chaos, costume, thought, hearts, confetti, says],
+    () => ({ emotion, action, look, tickle, interactions, chaos, costume, thought, hearts, confetti, says, ignoring, hunger }),
+    [emotion, action, look, tickle, interactions, chaos, costume, thought, hearts, confetti, says, ignoring, hunger],
   );
 
   return {
@@ -574,6 +669,8 @@ export function usePandaBrain({ containerRef, onInteract, idleStory = true }: Br
     burstConfetti,
     burstHearts,
     resetIdle,
+    markFed,
     isAsleep: () => asleep.current,
   };
 }
+
