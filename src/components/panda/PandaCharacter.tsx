@@ -104,7 +104,7 @@ function furRing(
     const ny = Math.sin(t);
     const x = cx + nx * rx;
     const y = cy + ny * ry;
-    const l = len * (0.55 + rand(seed + i * 3.7) * 0.9);
+    const l = len * (0.3 + rand(seed + i * 3.7) * 0.5);
     const drift = (rand(seed + i * 9.3) - 0.5) * l * 0.9;
     out.push(`M ${x.toFixed(1)} ${y.toFixed(1)} q ${(nx * l * 0.6 + drift).toFixed(1)} ${(ny * l * 0.6).toFixed(1)} ${(nx * l + drift).toFixed(1)} ${(ny * l).toFixed(1)}`);
   }
@@ -305,7 +305,7 @@ export const PandaCharacter = memo(function PandaCharacter({
             transition={{ duration: a === "tailPull" ? 0.6 : sleeping ? 5 : 2.6, repeat: a === "tailPull" ? 0 : Infinity, ease: "easeInOut" }}
           >
             <ellipse cx="234" cy="272" rx="21" ry="18" fill="url(#furW)" filter="url(#furEdge)" />
-            <g stroke="#efe7de" strokeWidth="1.1" fill="none" opacity=".7">
+            <g stroke="#efe7de" strokeWidth=".7" fill="none" opacity=".38">
               {furRing(234, 272, 21, 18, lite ? 8 : 16, 5, 131).map((d, i) => (
                 <path key={i} d={d} strokeLinecap="round" />
               ))}
@@ -338,7 +338,7 @@ export const PandaCharacter = memo(function PandaCharacter({
             transition={{ duration: sleeping ? 5.2 : 3.1, repeat: Infinity, ease: "easeInOut" }}
           >
             <ellipse cx="150" cy="252" rx="86" ry="80" fill="url(#furW)" filter="url(#furEdge)" />
-            <g stroke="#f3ebe3" strokeWidth="1.2" fill="none" opacity=".85">
+            <g stroke="#f3ebe3" strokeWidth=".8" fill="none" opacity=".42">
               {fur.body.map((d, i) => (
                 <path key={i} d={d} strokeLinecap="round" />
               ))}
@@ -473,7 +473,7 @@ export const PandaCharacter = memo(function PandaCharacter({
                   transition={{ duration: a === "earScratch" ? 0.8 : 2.4, repeat: a === "earScratch" ? 1 : Infinity }}
                 >
                   <circle cx={150 + s * 64} cy="78" r="28" fill="url(#furB)" filter="url(#furEdge)" />
-                  <g stroke="#3b3446" strokeWidth="1.2" fill="none" opacity=".9">
+                  <g stroke="#3b3446" strokeWidth=".8" fill="none" opacity=".45">
                     {(s < 0 ? fur.earL : fur.earR).map((d, i) => (
                       <path key={i} d={d} strokeLinecap="round" />
                     ))}
@@ -493,7 +493,7 @@ export const PandaCharacter = memo(function PandaCharacter({
                 onPointerDown={() => onZone?.("head")}
                 style={{ cursor: "pointer" }}
               />
-              <g stroke="#f4ece4" strokeWidth="1.2" fill="none" opacity=".9" pointerEvents="none">
+              <g stroke="#f4ece4" strokeWidth=".8" fill="none" opacity=".45" pointerEvents="none">
                 {fur.head.map((d, i) => (
                   <path key={i} d={d} strokeLinecap="round" />
                 ))}
@@ -503,7 +503,7 @@ export const PandaCharacter = memo(function PandaCharacter({
               <ellipse cx="150" cy="196" rx="72" ry="26" fill="url(#occ)" opacity=".35" pointerEvents="none" />
               {/* muzzle mass */}
               <ellipse cx="150" cy="176" rx="46" ry="34" fill="#fffdfa" opacity=".55" pointerEvents="none" />
-              <g stroke="#f2eae2" strokeWidth="1" fill="none" opacity=".8" pointerEvents="none">
+              <g stroke="#f2eae2" strokeWidth=".7" fill="none" opacity=".35" pointerEvents="none">
                 {[...fur.cheekL, ...fur.cheekR].map((d, i) => (
                   <path key={i} d={d} strokeLinecap="round" />
                 ))}
@@ -519,7 +519,7 @@ export const PandaCharacter = memo(function PandaCharacter({
                   pointerEvents="none"
                 >
                   <ellipse cx={150 + s * 36} cy="134" rx="28" ry="34" fill="url(#furB)" filter="url(#furEdge)" />
-                  <g stroke="#2a2433" strokeWidth="1.1" fill="none" opacity=".95">
+                  <g stroke="#2a2433" strokeWidth=".8" fill="none" opacity=".5">
                     {furRing(150 + s * 36, 134, 28, 34, lite ? 10 : 22, 6, s < 0 ? 151 : 171).map((d, i) => (
                       <path key={i} d={d} strokeLinecap="round" />
                     ))}
