@@ -104,7 +104,15 @@ export function PandaStage({ name = "Pan", className, playful = true, onInteract
         transition={{ duration: 1.6, repeat: state.chaos ? Infinity : 0 }}
         className={cn("relative z-10 mx-auto w-full max-w-[420px] cursor-grab active:cursor-grabbing", dragging && "z-20")}
       >
-        <PandaCharacter state={state} onZone={onZone} lite={lite} className="w-full h-auto drop-shadow-[0_30px_60px_rgba(0,0,0,.55)]" />
+        <PandaCharacter
+          state={state}
+          onZone={onZone}
+          lite={lite}
+          className="w-full h-auto"
+          // crisp contact shadow only — no soft blur haze over the fur
+          style={undefined}
+        />
+
 
         {/* speech / thought bubbles */}
         <AnimatePresence>
