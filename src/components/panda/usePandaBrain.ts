@@ -16,6 +16,7 @@ export type Emotion =
   | "proud"
   | "chaotic"
   | "angry"
+  | "sulking"
   | "surprised"
   | "scared"
   | "relaxed"
@@ -53,7 +54,9 @@ export type Action =
   | "celebrate"
   | "gift"
   | "sugarRush"
-  | "throwBack";
+  | "throwBack"
+  | "stir"
+  | "sulk";
 
 export type Costume =
   | "classic"
@@ -85,6 +88,10 @@ export type PandaState = {
   hearts: number;
   confetti: number;
   says: string | null;
+  /** Neglected too long — the panda sulks and refuses to look at you. */
+  ignoring: boolean;
+  /** 0..1, how long since the last treat. */
+  hunger: number;
 };
 
 const DREAMS = [
