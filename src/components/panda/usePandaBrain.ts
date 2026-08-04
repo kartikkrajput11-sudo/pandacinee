@@ -557,9 +557,28 @@ export function usePandaBrain({ containerRef, onInteract, idleStory = true }: Br
   /* --------------------------- interactions -------------------------- */
   const interact = useCallback(
     (zone: Zone | "camera" | "bamboo" | "popcorn" | "cookie" | "peekaboo" | "drag") => {
+      const isTreat = zone === "bamboo" || zone === "popcorn" || zone === "cookie";
+      // A sulking panda only forgives food — everything else gets the cold shoulder.
+      if (ignoring && !isTreat) {
+        doAction("sulk", 1600);
+        say(pick(["hmph!", "…", "you forgot me"]), 2000);
+        pandaSfx.growl();
+        return;
+      }
+      if (isTreat) {
+        const wasSulking = ignoring;
+        markFed();
+        if (wasSulking) {
+          feel("happy", 2600);
+          burstHearts(6);
+          say("…okay, forgiven 🎋", 2600);
+          pandaSfx.happy();
+        }
+      }
       resetIdle();
       bumpInteractions(zone);
       switch (zone) {
+
         case "head":
           feel("happy", 2200);
           doAction("headpat", 2000);
