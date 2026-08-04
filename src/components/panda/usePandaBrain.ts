@@ -651,12 +651,12 @@ export function usePandaBrain({ containerRef, onInteract, idleStory = true }: Br
           break;
       }
     },
-    [after, bumpInteractions, bumpTickle, burstHearts, doAction, feel, resetIdle],
+    [after, bumpInteractions, bumpTickle, burstHearts, doAction, feel, ignoring, markFed, resetIdle, say],
   );
 
   const state: PandaState = useMemo(
-    () => ({ emotion, action, look, tickle, interactions, chaos, costume, thought, hearts, confetti, says }),
-    [emotion, action, look, tickle, interactions, chaos, costume, thought, hearts, confetti, says],
+    () => ({ emotion, action, look, tickle, interactions, chaos, costume, thought, hearts, confetti, says, ignoring, hunger }),
+    [emotion, action, look, tickle, interactions, chaos, costume, thought, hearts, confetti, says, ignoring, hunger],
   );
 
   return {
@@ -669,6 +669,8 @@ export function usePandaBrain({ containerRef, onInteract, idleStory = true }: Br
     burstConfetti,
     burstHearts,
     resetIdle,
+    markFed,
     isAsleep: () => asleep.current,
   };
 }
+
