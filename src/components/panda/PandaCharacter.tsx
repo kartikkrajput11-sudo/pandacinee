@@ -534,6 +534,7 @@ export const PandaCharacter = memo(function PandaCharacter({
                     cx={150 + s * 34}
                     cy="134"
                     rx="13"
+                    ry="14"
                     fill="#fffdf9"
                     animate={{ ry: 14 * eyeOpen }}
                     transition={{ duration: 0.09 }}
