@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { uploadChatMedia, type MessageRow } from "@/lib/chat";
+import { startUpload } from "@/lib/upload-manager";
 import { VoiceRecorder } from "./VoiceRecorder";
 import { WatchInvitePicker } from "./WatchInvitePicker";
 import { EmojiPicker } from "./EmojiPicker";
