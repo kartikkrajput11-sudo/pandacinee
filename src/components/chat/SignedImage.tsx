@@ -1,12 +1,23 @@
 import { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
-import { X, Download } from "lucide-react";
 import { signMedia } from "@/lib/chat";
-import { saveMediaToGallery } from "@/lib/save-media";
+import { MediaLightbox } from "./MediaLightbox";
+
+/**
+ * Collect every chat photo currently in the DOM, in visual order, so the
+ * lightbox can swipe through the whole conversation.
+ */
+function collectGallery(current: string): { paths: string[]; index: number } {
+  if (typeof document === "undefined") return { paths: [current], index: 0 };
+  const nodes = Array.from(document.querySelectorAll<HTMLElement>("[data-media-path]"));
+  const paths = nodes.map((n) => n.dataset.mediaPath!).filter(Boolean);
+  const index = paths.indexOf(current);
+  if (index < 0 || paths.length === 0) return { paths: [current], index: 0 };
+  return { paths, index };
+}
 
 export function SignedImage({ path, className }: { path: string; className?: string }) {
   const [url, setUrl] = useState<string | null>(null);
-  const [open, setOpen] = useState(false);
+  const [gallery, setGallery] = useState<{ paths: string[]; index: number } | null>(null);
 
   useEffect(() => {
     let m = true;
@@ -14,19 +25,16 @@ export function SignedImage({ path, className }: { path: string; className?: str
     return () => { m = false; };
   }, [path]);
 
-  useEffect(() => {
-    if (!open) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
-    window.addEventListener("keydown", onKey);
-    return () => {
-      document.body.style.overflow = prev;
-      window.removeEventListener("keydown", onKey);
-    };
-  }, [open]);
-
-  if (!url) return <div className={`${className} bg-velvet/30 animate-pulse`} />;
+  if (!url) {
+    return (
+      <div
+        className={`${className ?? ""} relative overflow-hidden bg-velvet/40 border border-border/50`}
+        style={{ minWidth: 140, minHeight: 120 }}
+      >
+        <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.6s_infinite] bg-gradient-to-r from-transparent via-petal/15 to-transparent" />
+      </div>
+    );
+  }
 
   const stop = (e: React.SyntheticEvent) => e.stopPropagation();
 
@@ -34,55 +42,22 @@ export function SignedImage({ path, className }: { path: string; className?: str
     <>
       <img
         src={url}
-        className={`${className ?? ""} cursor-zoom-in`}
+        data-media-path={path}
+        className={`${className ?? ""} cursor-zoom-in transition-transform duration-300 hover:scale-[1.015]`}
         loading="lazy"
         alt=""
         onPointerDown={stop}
         onPointerUp={stop}
-        onClick={(e) => { e.stopPropagation(); setOpen(true); }}
+        onClick={(e) => { e.stopPropagation(); setGallery(collectGallery(path)); }}
       />
 
-      {open && typeof document !== "undefined" && createPortal(
-        <div
-          style={{
-            height: "100dvh",
-            paddingTop: "max(1rem, env(safe-area-inset-top))",
-            paddingBottom: "max(1rem, env(safe-area-inset-bottom))",
-          }}
-          className="fixed inset-x-0 top-0 z-[9999] bg-black/95 backdrop-blur-sm flex items-center justify-center px-4"
-          onClick={() => setOpen(false)}
-          onPointerDown={stop}
-        >
-          <div className="absolute top-4 right-4 flex items-center gap-2">
-            <button
-              type="button"
-              onClick={(e) => { e.stopPropagation(); saveMediaToGallery(url, { kind: "image" }); }}
-              className="h-11 px-4 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/15 flex items-center gap-2 backdrop-blur text-xs font-medium"
-              aria-label="Save photo to gallery"
-              title="Save to gallery"
-            >
-              <Download className="size-4" /> Save
-            </button>
-            <button
-              type="button"
-              onClick={(e) => { e.stopPropagation(); setOpen(false); }}
-              className="size-11 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/15 flex items-center justify-center backdrop-blur"
-              aria-label="Close"
-            >
-              <X className="size-5" />
-            </button>
-          </div>
-          <span className="absolute top-5 left-4 text-[9px] uppercase tracking-[0.28em] text-white/70 bg-black/40 backdrop-blur-sm px-2 py-0.5 rounded-full border border-white/10">
-            Pandacine
-          </span>
-          <img
-            src={url}
-            alt=""
-            onClick={(e) => e.stopPropagation()}
-            className="max-w-full max-h-full object-contain rounded-xl shadow-[0_20px_60px_-20px_rgba(236,72,153,0.5)]"
-          />
-        </div>,
-        document.body,
+      {gallery && (
+        <MediaLightbox
+          paths={gallery.paths}
+          index={gallery.index}
+          onIndex={(i) => setGallery((g) => (g ? { ...g, index: i } : g))}
+          onClose={() => setGallery(null)}
+        />
       )}
     </>
   );
