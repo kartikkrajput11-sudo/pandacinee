@@ -448,6 +448,7 @@ function GroupChat() {
             </div>
           );
         })}
+        {meId && <UploadTray scope={meId} />}
       </div>
 
       {/* Long-press action overlay */}
