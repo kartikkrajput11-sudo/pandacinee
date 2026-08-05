@@ -10,7 +10,9 @@ import { useGroup } from "@/hooks/useGroups";
 import { useGroupChat, type GroupMessage } from "@/hooks/useGroupChat";
 import { useGroupReads, seenByForMessage } from "@/hooks/useGroupReads";
 import { supabase } from "@/integrations/supabase/client";
-import { uploadChatMedia, signMedia } from "@/lib/chat";
+import { signMedia } from "@/lib/chat";
+import { startUpload } from "@/lib/upload-manager";
+import { UploadTray } from "@/components/chat/UploadTray";
 import { startGroupCall } from "@/lib/callActions";
 import { UserAvatar } from "@/components/UserAvatar";
 import { PollComposer } from "@/components/chat/PollComposer";
@@ -153,15 +155,18 @@ function GroupChat() {
     }
   }
 
-  async function handleImage(file: File) {
+  function handleImage(file: File) {
     if (!meId) return;
-    try {
-      const path = await uploadChatMedia(file, meId, "image", file.name.split(".").pop() || "jpg");
-      await chat.send({ content: "📷 Photo", type: "image", media_url: path, reply_to_id: replyTo?.id ?? null });
-      setReplyTo(null);
-    } catch (e: any) {
-      toast.error(e.message ?? "Upload failed");
-    }
+    const replyId = replyTo?.id ?? null;
+    startUpload({
+      scope: meId,
+      kind: "image",
+      file,
+      onComplete: async (path) => {
+        await chat.send({ content: "📷 Photo", type: "image", media_url: path, reply_to_id: replyId });
+      },
+    });
+    setReplyTo(null);
   }
 
   async function handleVoice(path: string, durationMs: number) {
@@ -443,6 +448,7 @@ function GroupChat() {
             </div>
           );
         })}
+        {meId && <UploadTray scope={meId} />}
       </div>
 
       {/* Long-press action overlay */}

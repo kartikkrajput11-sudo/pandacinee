@@ -10,6 +10,7 @@ import { useChat } from "@/hooks/useChat";
 import { usePunishmentLock } from "@/hooks/usePunishmentLock";
 import { ChatBubble } from "@/components/chat/ChatBubble";
 import { ChatComposer } from "@/components/chat/ChatComposer";
+import { UploadTray } from "@/components/chat/UploadTray";
 import { formatLastSeen } from "@/hooks/usePresenceHeartbeat";
 import { ChatSearch } from "@/components/chat/ChatSearch";
 
@@ -651,6 +652,7 @@ function ChatPeer() {
             </div>
           );
         })}
+        <UploadTray scope={me.id} />
         {partnerTyping && (
           <div className="px-3 mt-2 flex">
             <div className="px-4 py-2.5 rounded-2xl rounded-bl-md bg-surface-elevated border border-border">
