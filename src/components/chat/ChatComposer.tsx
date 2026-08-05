@@ -304,26 +304,25 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
     }
   }
 
-  async function uploadAndSend(
+  function uploadAndSend(
     file: File,
     kind: "image" | "video" | "file",
     payload: (path: string) => Parameters<typeof onSend>[0],
-    label: string,
+    _label: string,
   ) {
     setMenuOpen(false);
-    const ext = (file.name.split(".").pop() || "bin").toLowerCase();
-    const task = (async () => {
-      const path = await uploadChatMedia(file, meId, kind, ext);
-      await onSend(payload(path));
-      onClearReply();
-    })();
-    toast.promise(task, {
-      loading: `Sending ${label}…`,
-      success: `${label[0].toUpperCase()}${label.slice(1)} sent`,
-      error: (err: any) => err?.message ?? "Upload failed",
+    const replyId = replyTo?.id ?? null;
+    startUpload({
+      scope: meId,
+      kind,
+      file,
+      onComplete: async (path) => {
+        await onSend({ ...payload(path), reply_to_id: replyId });
+      },
     });
-    try { await task; } catch { /* toast already shown */ }
+    onClearReply();
   }
+
 
   async function handleImage(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
