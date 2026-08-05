@@ -133,7 +133,7 @@ export function SignedVideo({ path }: { path: string }) {
   if (!url) {
     return (
       <div className="relative overflow-hidden rounded-2xl border border-border/60 w-[260px] h-[180px] bg-velvet/40">
-        <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.6s_infinite] bg-gradient-to-r from-transparent via-petal/15 to-transparent" />
+        <div className="absolute inset-0 -translate-x-full animate-[media-shimmer_1.6s_infinite] bg-gradient-to-r from-transparent via-petal/15 to-transparent" />
       </div>
     );
   }

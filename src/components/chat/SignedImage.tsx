@@ -31,7 +31,7 @@ export function SignedImage({ path, className }: { path: string; className?: str
         className={`${className ?? ""} relative overflow-hidden bg-velvet/40 border border-border/50`}
         style={{ minWidth: 140, minHeight: 120 }}
       >
-        <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.6s_infinite] bg-gradient-to-r from-transparent via-petal/15 to-transparent" />
+        <div className="absolute inset-0 -translate-x-full animate-[media-shimmer_1.6s_infinite] bg-gradient-to-r from-transparent via-petal/15 to-transparent" />
       </div>
     );
   }
