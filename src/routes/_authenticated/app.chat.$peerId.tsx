@@ -10,6 +10,7 @@ import { useChat } from "@/hooks/useChat";
 import { usePunishmentLock } from "@/hooks/usePunishmentLock";
 import { ChatBubble } from "@/components/chat/ChatBubble";
 import { ChatComposer } from "@/components/chat/ChatComposer";
+import { UploadTray } from "@/components/chat/UploadTray";
 import { formatLastSeen } from "@/hooks/usePresenceHeartbeat";
 import { ChatSearch } from "@/components/chat/ChatSearch";
 
