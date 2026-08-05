@@ -4,7 +4,7 @@ import {
   Video as VideoIcon, Gamepad2, Heart, HeartHandshake, Handshake, Hand, Zap, EyeOff, Eye, Disc3, Sparkles, Pointer, CalendarClock, Angry, Feather, Laugh, ChevronRight,
 } from "lucide-react";
 import { toast } from "sonner";
-import { uploadChatMedia, type MessageRow } from "@/lib/chat";
+import { type MessageRow } from "@/lib/chat";
 import { startUpload } from "@/lib/upload-manager";
 import { VoiceRecorder } from "./VoiceRecorder";
 import { WatchInvitePicker } from "./WatchInvitePicker";
