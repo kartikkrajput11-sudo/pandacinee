@@ -361,22 +361,13 @@ export function ChatComposer({ meId, partnerName, replyTo, onClearReply, onTypin
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
-    setMenuOpen(false);
-    try {
-      const ext = (file.name.split(".").pop() || "bin").toLowerCase();
-      const path = await uploadChatMedia(file, meId, "file", ext);
-      await onSend({
-        type: "file",
-        content: file.name,
-        media_url: path,
-        media_meta: { name: file.name, size: file.size, mime: file.type },
-        reply_to_id: replyTo?.id ?? null,
-        disappear_seconds: disappearSecs,
-      });
-      onClearReply();
-    } catch (err: any) {
-      toast.error(err?.message ?? "Upload failed");
-    }
+    uploadAndSend(file, "file", (path) => ({
+      type: "file",
+      content: file.name,
+      media_url: path,
+      media_meta: { name: file.name, size: file.size, mime: file.type },
+      disappear_seconds: disappearSecs,
+    }), "file");
   }
 
   async function handleVoiceSend(path: string, durationMs: number) {
