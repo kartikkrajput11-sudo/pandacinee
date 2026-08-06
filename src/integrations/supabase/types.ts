@@ -1209,6 +1209,7 @@ export type Database = {
           reply_reaction: string | null
           seal_motto: string | null
           sender_id: string
+          style: Json
           theme: string
           title: string
           unlock_at: string
@@ -1228,6 +1229,7 @@ export type Database = {
           reply_reaction?: string | null
           seal_motto?: string | null
           sender_id: string
+          style?: Json
           theme?: string
           title?: string
           unlock_at?: string
@@ -1247,6 +1249,7 @@ export type Database = {
           reply_reaction?: string | null
           seal_motto?: string | null
           sender_id?: string
+          style?: Json
           theme?: string
           title?: string
           unlock_at?: string
@@ -1845,6 +1848,7 @@ export type Database = {
           progress: number
           prompt: string
           required_count: number
+          shared: boolean
           status: Database["public"]["Enums"]["punishment_status"]
           target_id: string
           type: Database["public"]["Enums"]["punishment_type"]
@@ -1862,6 +1866,7 @@ export type Database = {
           progress?: number
           prompt: string
           required_count?: number
+          shared?: boolean
           status?: Database["public"]["Enums"]["punishment_status"]
           target_id: string
           type: Database["public"]["Enums"]["punishment_type"]
@@ -1879,6 +1884,7 @@ export type Database = {
           progress?: number
           prompt?: string
           required_count?: number
+          shared?: boolean
           status?: Database["public"]["Enums"]["punishment_status"]
           target_id?: string
           type?: Database["public"]["Enums"]["punishment_type"]
@@ -2775,6 +2781,7 @@ export type Database = {
           reply_reaction: string | null
           seal_motto: string | null
           sender_id: string
+          style: Json
           theme: string
           title: string
           unlock_at: string
