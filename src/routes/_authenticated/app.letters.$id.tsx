@@ -8,6 +8,8 @@ import { openLoveLetter } from "@/lib/letters.functions";
 import { PandacineWaxSeal } from "@/components/PandacineWaxSeal";
 import { VoicePlayer } from "@/components/chat/VoicePlayer";
 import { signMedia } from "@/lib/chat";
+import { fontOf, paperOf, type LetterStyle } from "@/lib/letter-style";
+import { LetterDecorations } from "@/components/letters/LetterDecorations";
 
 export const Route = createFileRoute("/_authenticated/app/letters/$id")({
   component: LetterView,
@@ -30,6 +32,7 @@ type Letter = {
   reply_reaction: string | null;
   replied_at: string | null;
   unlock_on_anniversary: boolean;
+  style?: LetterStyle | null;
 };
 
 const THEME_STYLE: Record<Letter["theme"], { seal: string; page: string; text: string; ring: string }> = {

@@ -235,7 +235,12 @@ function LetterTile({ letter, me }: { letter: Letter; me: string }) {
       params={{ id: letter.id }}
       className="relative aspect-[4/5] rounded-3xl overflow-hidden border border-petal/25 bg-velvet flex flex-col p-4 hover:-translate-y-0.5 transition-transform"
     >
-      <div className={`absolute inset-0 opacity-30 ${themeMeta.swatch}`} />
+      <div
+        className="absolute inset-0"
+        style={{ background: paperOf(letter.style)?.background }}
+      />
+      <div className={`absolute inset-0 opacity-20 ${themeMeta.swatch}`} />
+      <LetterDecorations style={letter.style} seed={letter.id} count={5} />
       <div className="absolute top-3 right-3">
         <div className={`size-11 rounded-full ${themeMeta.swatch} flex items-center justify-center shadow-[0_4px_20px_rgba(0,0,0,0.3)] ${sealed ? "" : "opacity-40 grayscale"}`}>
           {sealed ? (
