@@ -1936,3 +1936,10 @@ body { overscroll-behavior-y: contain; }
   60% { transform: translateX(-20px) scaleX(-1) rotate(10deg); }
 }
 .animate-anniv-clink-r { animation: anniv-clink-r 1.2s ease-in-out; }
+
+/* Drifting letter decorations (petals, stars, hearts, bamboo) */
+@keyframes float-slow {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+  50% { transform: translate3d(0, -14px, 0) rotate(8deg); }
+}
+.animate-float-slow { animation: float-slow 9s ease-in-out infinite; }

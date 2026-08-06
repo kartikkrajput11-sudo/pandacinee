@@ -44,7 +44,7 @@ function applyOverride(m: TmdbMovie, ov: CustomMovieRow | undefined): TmdbMovie 
 
 export const Route = createFileRoute("/_authenticated/app/movies/")({
   component: Movies,
-  validateSearch: (s: Record<string, unknown>) => ({
+  validateSearch: (s: { q?: unknown; type?: unknown; minRating?: unknown }) => ({
     q: typeof s.q === "string" ? s.q : "",
     type: (s.type === "movie" || s.type === "tv" || s.type === "series" ? s.type : "all") as "all" | "movie" | "tv" | "series",
     minRating: typeof s.minRating === "number" ? s.minRating : 0,

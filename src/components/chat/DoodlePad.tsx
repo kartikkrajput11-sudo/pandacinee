@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Eraser, Trash2, X, Send, Undo2 } from "lucide-react";
+import { Eraser, Trash2, X, Send, Undo2, Redo2 } from "lucide-react";
 
 type Stroke = {
   color: string;
@@ -8,8 +8,18 @@ type Stroke = {
   pts: { x: number; y: number }[];
 };
 
-const COLORS = ["#1f1f1f", "#ec4899", "#8b5cf6", "#22c55e", "#f59e0b", "#0ea5e9", "#ffffff"];
-const SIZES = [3, 6, 10, 18];
+const COLORS = [
+  "#1f1f1f",
+  "#e11d48",
+  "#ec4899",
+  "#f59e0b",
+  "#22c55e",
+  "#0ea5e9",
+  "#8b5cf6",
+  "#a16207",
+  "#ffffff",
+];
+const SIZES = [3, 6, 10, 18, 28];
 
 type Props = {
   open: boolean;
@@ -24,6 +34,7 @@ export function DoodlePad({ open, onClose, onSend, sending }: Props) {
   const [size, setSize] = useState<number>(SIZES[1]);
   const [erase, setErase] = useState(false);
   const [strokes, setStrokes] = useState<Stroke[]>([]);
+  const [redoStack, setRedoStack] = useState<Stroke[]>([]);
   const drawingRef = useRef<Stroke | null>(null);
 
   // Setup canvas + redraw whenever strokes change
@@ -91,13 +102,28 @@ export function DoodlePad({ open, onClose, onSend, sending }: Props) {
     const s = drawingRef.current;
     drawingRef.current = null;
     setStrokes((prev) => [...prev, s]);
+    setRedoStack([]);
   }
 
   function undo() {
-    setStrokes((s) => s.slice(0, -1));
+    setStrokes((prev) => {
+      if (prev.length === 0) return prev;
+      const last = prev[prev.length - 1];
+      setRedoStack((r) => [...r, last]);
+      return prev.slice(0, -1);
+    });
+  }
+  function redo() {
+    setRedoStack((prev) => {
+      if (prev.length === 0) return prev;
+      const last = prev[prev.length - 1];
+      setStrokes((s) => [...s, last]);
+      return prev.slice(0, -1);
+    });
   }
   function clearAll() {
     setStrokes([]);
+    setRedoStack([]);
   }
 
   async function send() {
@@ -180,6 +206,15 @@ export function DoodlePad({ open, onClose, onSend, sending }: Props) {
             title="Undo"
           >
             <Undo2 className="size-4" />
+          </button>
+          <button
+            onClick={redo}
+            disabled={redoStack.length === 0}
+            className="size-9 rounded-full border border-border bg-velvet text-candle flex items-center justify-center disabled:opacity-40"
+            aria-label="Redo"
+            title="Redo"
+          >
+            <Redo2 className="size-4" />
           </button>
           <button
             onClick={clearAll}

@@ -8,6 +8,8 @@ import { openLoveLetter } from "@/lib/letters.functions";
 import { PandacineWaxSeal } from "@/components/PandacineWaxSeal";
 import { VoicePlayer } from "@/components/chat/VoicePlayer";
 import { signMedia } from "@/lib/chat";
+import { fontOf, paperOf, type LetterStyle } from "@/lib/letter-style";
+import { LetterDecorations } from "@/components/letters/LetterDecorations";
 
 export const Route = createFileRoute("/_authenticated/app/letters/$id")({
   component: LetterView,
@@ -30,6 +32,7 @@ type Letter = {
   reply_reaction: string | null;
   replied_at: string | null;
   unlock_on_anniversary: boolean;
+  style?: LetterStyle | null;
 };
 
 const THEME_STYLE: Record<Letter["theme"], { seal: string; page: string; text: string; ring: string }> = {
@@ -162,7 +165,11 @@ function LetterView() {
   }
 
   return (
-    <div className={`min-h-screen ${style.page}`}>
+    <div
+      className={`min-h-screen relative ${paperOf(letter.style) ? "" : style.page}`}
+      style={paperOf(letter.style) ? { background: paperOf(letter.style)!.background } : undefined}
+    >
+      <LetterDecorations style={letter.style} seed={letter.id} count={14} />
       <div className="max-w-lg mx-auto px-5 pt-8 pb-20 relative">
         <header className="flex items-center gap-3 mb-8">
           <Link to="/app/letters" className={`${style.text} opacity-70`}>
@@ -252,7 +259,7 @@ function LetterView() {
 
             <div
               className={`${style.text} whitespace-pre-wrap leading-relaxed text-lg`}
-              style={{ fontFamily: "'Cormorant Garamond', 'Playfair Display', Georgia, serif" }}
+              style={{ fontFamily: fontOf(letter.style).stack }}
             >
               {letter.body}
             </div>

@@ -62,16 +62,27 @@ export function usePunishmentLock(meId: string | null, peerId: string | null) {
     };
   }, [meId, peerId]);
 
-  const activeLock = useMemo(() => {
+  const liveLocks = useMemo(() => {
     const now = Date.now();
-    return (
-      locks.find(
-        (l) =>
-          l.status === "active" &&
-          (!l.expires_at || new Date(l.expires_at).getTime() > now),
-      ) ?? null
+    return locks.filter(
+      (l) =>
+        l.status === "active" &&
+        (!l.expires_at || new Date(l.expires_at).getTime() > now),
     );
   }, [locks]);
+
+  /** A lock the partner placed on me (I must complete it). */
+  const lockOnMe = useMemo(
+    () => liveLocks.find((l) => l.target_id === meId) ?? null,
+    [liveLocks, meId],
+  );
+  /** A lock I placed on the partner (I supervise it). */
+  const lockByMe = useMemo(
+    () => liveLocks.find((l) => l.locker_id === meId) ?? null,
+    [liveLocks, meId],
+  );
+
+  const activeLock = lockOnMe ?? lockByMe;
 
   useEffect(() => {
     if (!activeLock?.expires_at) return;
@@ -98,24 +109,34 @@ export function usePunishmentLock(meId: string | null, peerId: string | null) {
       prompt: string;
       required_count: number;
       max_duration_seconds: number | null;
+      /** Shared punishment — both partners take on the same challenge together. */
+      shared?: boolean;
     }) => {
       if (!meId || !peerId) return;
       const expires_at = input.max_duration_seconds
         ? new Date(Date.now() + input.max_duration_seconds * 1000).toISOString()
         : null;
-      const { error } = await db.from("punishment_locks").insert({
-        locker_id: meId,
-        target_id: peerId,
+      const base = {
         type: input.type,
         prompt: input.prompt,
         required_count: input.required_count,
         max_duration_seconds: input.max_duration_seconds,
         expires_at,
-      });
+        shared: !!input.shared,
+      };
+      const rows = input.shared
+        ? [
+            { ...base, locker_id: meId, target_id: peerId },
+            // Mirror row: the partner locks me with the same challenge.
+            { ...base, locker_id: peerId, target_id: meId },
+          ]
+        : [{ ...base, locker_id: meId, target_id: peerId }];
+      const { error } = await db.from("punishment_locks").insert(rows);
       if (error) throw error;
     },
     [meId, peerId],
   );
+
 
   const incrementProgress = useCallback(
     async (lockId: string, current: number, next: number) => {
@@ -148,6 +169,8 @@ export function usePunishmentLock(meId: string | null, peerId: string | null) {
 
   return {
     activeLock,
+    lockOnMe,
+    lockByMe,
     iAmLocked,
     iAmLocker,
     createLock,
@@ -156,3 +179,4 @@ export function usePunishmentLock(meId: string | null, peerId: string | null) {
     cancelLock,
   };
 }
+

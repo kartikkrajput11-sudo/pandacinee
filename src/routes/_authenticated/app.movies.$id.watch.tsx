@@ -130,7 +130,7 @@ const SOURCES: Source[] = [
 const REACTIONS = ["❤️", "🔥", "😂", "😱", "🥰", "🍿"];
 
 export const Route = createFileRoute("/_authenticated/app/movies/$id/watch")({
-  validateSearch: (raw: Record<string, unknown>) => {
+  validateSearch: (raw: { season?: unknown; episode?: unknown; with?: unknown; type?: unknown }) => {
     const s = Number(raw.season);
     const e = Number(raw.episode);
     const w = typeof raw.with === "string" && raw.with.length > 0 ? raw.with : undefined;

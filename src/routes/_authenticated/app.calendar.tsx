@@ -5,6 +5,7 @@ import { ArrowLeft, ChevronLeft, ChevronRight, Plus, X, Trash2 } from "lucide-re
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
+import { SealedLettersCard } from "@/components/letters/SealedLettersCard";
 import { FirstChapterCard } from "@/components/calendar/FirstChapterCard";
 import {
   OCCASIONS,
@@ -428,6 +429,8 @@ function CalendarPage() {
                 ))}
               </div>
             </section>
+
+            <SealedLettersCard meId={data?.profile?.id ?? null} />
 
             {upcoming.length > 1 && (
               <section className="rounded-3xl border border-border/60 bg-surface-elevated/40 p-5 backdrop-blur-xl">

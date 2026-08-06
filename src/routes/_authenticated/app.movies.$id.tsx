@@ -13,9 +13,10 @@ import { trackRecentMovie } from "@/lib/recent-movies";
 
 
 export const Route = createFileRoute("/_authenticated/app/movies/$id")({
-  validateSearch: (s: Record<string, unknown>) => ({
-    type: s.type === "tv" || s.type === "movie" ? (s.type as "tv" | "movie") : undefined,
-  }),
+  validateSearch: (s: { type?: unknown }) =>
+    ({
+      type: s.type === "tv" || s.type === "movie" ? (s.type as "tv" | "movie") : undefined,
+    }) as { type?: "tv" | "movie" },
   component: MovieDetail,
 });
 

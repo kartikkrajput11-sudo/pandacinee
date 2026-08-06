@@ -8,6 +8,9 @@ import { draftLoveLetter } from "@/lib/letters.functions";
 import { PandacineWaxSeal } from "@/components/PandacineWaxSeal";
 import { VoiceRecorder } from "@/components/chat/VoiceRecorder";
 import { uploadChatMedia, signMedia } from "@/lib/chat";
+import { LETTER_PAPERS, LETTER_FONTS, LETTER_DECORATIONS, fontOf, paperOf, type LetterStyle } from "@/lib/letter-style";
+import { LetterDecorations } from "@/components/letters/LetterDecorations";
+import { Search } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/app/letters/")({
   component: LettersRoute,
@@ -24,6 +27,7 @@ type Letter = {
   unlock_at: string;
   opened_at: string | null;
   created_at: string;
+  style?: LetterStyle | null;
 };
 
 const THEMES: { id: Letter["theme"]; label: string; swatch: string; ring: string }[] = [
@@ -71,8 +75,23 @@ function LettersRoute() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [me?.id]);
 
-  const sealed = letters.filter((l) => !l.opened_at);
-  const opened = letters.filter((l) => l.opened_at);
+  const [query, setQuery] = useState("");
+  const [scope, setScope] = useState<"all" | "mine" | "theirs">("all");
+
+  const visible = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return letters.filter((l) => {
+      if (scope === "mine" && l.sender_id !== me?.id) return false;
+      if (scope === "theirs" && l.sender_id === me?.id) return false;
+      if (!q) return true;
+      const readable = l.sender_id === me?.id || !!l.opened_at;
+      const hay = readable ? `${l.title} ${l.body}` : l.title;
+      return hay.toLowerCase().includes(q);
+    });
+  }, [letters, query, scope, me?.id]);
+
+  const sealed = visible.filter((l) => !l.opened_at);
+  const opened = visible.filter((l) => l.opened_at);
 
   return (
     <div className="pt-10 px-5 pb-24 relative">
@@ -119,6 +138,44 @@ function LettersRoute() {
           >
             <Feather className="size-4" /> Begin
           </button>
+        </div>
+      )}
+
+      {!loading && partner && letters.length > 0 && (
+        <div className="mb-6 space-y-3">
+          <div className="relative">
+            <Search className="size-4 absolute left-4 top-1/2 -translate-y-1/2 text-candle-muted" />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search the vault…"
+              className="w-full bg-surface rounded-full pl-11 pr-4 py-2.5 text-sm text-candle placeholder:text-candle-muted focus:outline-none focus:ring-1 focus:ring-petal"
+            />
+          </div>
+          <div className="flex gap-2">
+            {(
+              [
+                { id: "all", label: "Everything" },
+                { id: "theirs", label: "For you" },
+                { id: "mine", label: "From you" },
+              ] as const
+            ).map((f) => (
+              <button
+                key={f.id}
+                onClick={() => setScope(f.id)}
+                className={`px-4 py-1.5 rounded-full text-[11px] uppercase tracking-[0.18em] border transition-colors ${
+                  scope === f.id
+                    ? "border-petal/60 bg-petal-soft/25 text-petal"
+                    : "border-border text-candle-muted"
+                }`}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+          {visible.length === 0 && (
+            <p className="text-sm text-candle-muted italic">No letters match that.</p>
+          )}
         </div>
       )}
 
@@ -178,7 +235,12 @@ function LetterTile({ letter, me }: { letter: Letter; me: string }) {
       params={{ id: letter.id }}
       className="relative aspect-[4/5] rounded-3xl overflow-hidden border border-petal/25 bg-velvet flex flex-col p-4 hover:-translate-y-0.5 transition-transform"
     >
-      <div className={`absolute inset-0 opacity-30 ${themeMeta.swatch}`} />
+      <div
+        className="absolute inset-0"
+        style={{ background: paperOf(letter.style)?.background }}
+      />
+      <div className={`absolute inset-0 opacity-20 ${themeMeta.swatch}`} />
+      <LetterDecorations style={letter.style} seed={letter.id} count={5} />
       <div className="absolute top-3 right-3">
         <div className={`size-11 rounded-full ${themeMeta.swatch} flex items-center justify-center shadow-[0_4px_20px_rgba(0,0,0,0.3)] ${sealed ? "" : "opacity-40 grayscale"}`}>
           {sealed ? (
@@ -221,6 +283,9 @@ function Composer({
   const [body, setBody] = useState("");
   const [theme, setTheme] = useState<Letter["theme"]>("gold");
   const [motto, setMotto] = useState("");
+  const [paper, setPaper] = useState<string>(LETTER_PAPERS[0].id);
+  const [font, setFont] = useState<string>(LETTER_FONTS[0].id);
+  const [decoration, setDecoration] = useState<string>("petals");
   const [previewBreaking, setPreviewBreaking] = useState(false);
   const [tone, setTone] = useState<"tender" | "playful" | "poetic" | "vulnerable">("tender");
   const [hints, setHints] = useState("");
@@ -329,6 +394,7 @@ function Composer({
       photo_url: photoPath,
       voice_url: voicePath,
       unlock_on_anniversary: unlockChoice === "anniversary",
+      style: { paper, font, decoration },
     });
     setSaving(false);
     if (error) {
@@ -371,7 +437,11 @@ function Composer({
               rows={9}
               placeholder="Write it as if they can hear you…"
               className="w-full bg-surface rounded-2xl px-4 py-3 text-candle placeholder:text-candle-muted resize-none focus:outline-none focus:ring-1 focus:ring-petal font-serif italic text-base leading-relaxed"
-              style={{ fontFamily: "'Cormorant Garamond', 'Playfair Display', Georgia, serif" }}
+              style={{
+                fontFamily: fontOf({ font }).stack,
+                background: paperOf({ paper })?.background,
+                color: paperOf({ paper })?.ink,
+              }}
             />
           </div>
 
@@ -419,6 +489,53 @@ function Composer({
                   aria-label={t.label}
                   className={`size-10 rounded-full ${t.swatch} transition-all ${theme === t.id ? `ring-2 ring-offset-2 ring-offset-surface-elevated ${t.ring}` : "opacity-70"}`}
                 />
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.25em] text-candle-muted mb-2">Paper</p>
+            <div className="grid grid-cols-5 gap-2">
+              {LETTER_PAPERS.map((pp) => (
+                <button
+                  key={pp.id}
+                  onClick={() => setPaper(pp.id)}
+                  aria-label={pp.label}
+                  className={`h-12 rounded-xl border transition-all ${paper === pp.id ? "border-petal ring-1 ring-petal" : "border-border opacity-80"}`}
+                  style={{ background: pp.background }}
+                />
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.25em] text-candle-muted mb-2">Handwriting</p>
+            <div className="flex flex-wrap gap-2">
+              {LETTER_FONTS.map((f) => (
+                <button
+                  key={f.id}
+                  onClick={() => setFont(f.id)}
+                  style={{ fontFamily: f.stack }}
+                  className={`px-4 py-2 rounded-full text-sm border transition-colors ${font === f.id ? "border-petal bg-petal-soft/25 text-petal" : "border-border text-candle-muted"}`}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.25em] text-candle-muted mb-2">Decoration</p>
+            <div className="flex flex-wrap gap-2">
+              {LETTER_DECORATIONS.map((d) => (
+                <button
+                  key={d.id}
+                  onClick={() => setDecoration(d.id)}
+                  className={`px-4 py-2 rounded-full text-sm border transition-colors ${decoration === d.id ? "border-petal bg-petal-soft/25 text-petal" : "border-border text-candle-muted"}`}
+                >
+                  <span className="mr-1">{d.emoji}</span>
+                  {d.label}
+                </button>
               ))}
             </div>
           </div>
