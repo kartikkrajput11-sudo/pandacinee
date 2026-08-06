@@ -169,6 +169,8 @@ export function usePunishmentLock(meId: string | null, peerId: string | null) {
 
   return {
     activeLock,
+    lockOnMe,
+    lockByMe,
     iAmLocked,
     iAmLocker,
     createLock,
@@ -177,3 +179,4 @@ export function usePunishmentLock(meId: string | null, peerId: string | null) {
     cancelLock,
   };
 }
+
