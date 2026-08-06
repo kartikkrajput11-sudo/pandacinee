@@ -109,24 +109,34 @@ export function usePunishmentLock(meId: string | null, peerId: string | null) {
       prompt: string;
       required_count: number;
       max_duration_seconds: number | null;
+      /** Shared punishment — both partners take on the same challenge together. */
+      shared?: boolean;
     }) => {
       if (!meId || !peerId) return;
       const expires_at = input.max_duration_seconds
         ? new Date(Date.now() + input.max_duration_seconds * 1000).toISOString()
         : null;
-      const { error } = await db.from("punishment_locks").insert({
-        locker_id: meId,
-        target_id: peerId,
+      const base = {
         type: input.type,
         prompt: input.prompt,
         required_count: input.required_count,
         max_duration_seconds: input.max_duration_seconds,
         expires_at,
-      });
+        shared: !!input.shared,
+      };
+      const rows = input.shared
+        ? [
+            { ...base, locker_id: meId, target_id: peerId },
+            // Mirror row: the partner locks me with the same challenge.
+            { ...base, locker_id: peerId, target_id: meId },
+          ]
+        : [{ ...base, locker_id: meId, target_id: peerId }];
+      const { error } = await db.from("punishment_locks").insert(rows);
       if (error) throw error;
     },
     [meId, peerId],
   );
+
 
   const incrementProgress = useCallback(
     async (lockId: string, current: number, next: number) => {
