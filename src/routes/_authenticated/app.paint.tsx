@@ -28,7 +28,7 @@ import { GroupPlayersBar } from "@/components/games/GroupPlayersBar";
 
 export const Route = createFileRoute("/_authenticated/app/paint")({
   component: PaintTogether,
-  validateSearch: (search: Record<string, unknown>) => ({
+  validateSearch: (search: { matchId?: unknown }) => ({
     matchId: typeof search.matchId === "string" ? search.matchId : undefined,
   }),
 });

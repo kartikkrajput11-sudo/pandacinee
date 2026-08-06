@@ -11,7 +11,7 @@ import { AvatarImg } from "@/components/AvatarImg";
 import { CustomMoviePlayer } from "@/components/CustomMoviePlayer";
 
 export const Route = createFileRoute("/_authenticated/app/movies/$id/party")({
-  validateSearch: (raw: Record<string, unknown>) => {
+  validateSearch: (raw: { season?: unknown; episode?: unknown; with?: unknown; type?: unknown }) => {
     const s = Number(raw.season);
     const e = Number(raw.episode);
     const w = typeof raw.with === "string" && raw.with.length > 0 ? raw.with : undefined;
