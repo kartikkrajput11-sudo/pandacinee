@@ -62,16 +62,27 @@ export function usePunishmentLock(meId: string | null, peerId: string | null) {
     };
   }, [meId, peerId]);
 
-  const activeLock = useMemo(() => {
+  const liveLocks = useMemo(() => {
     const now = Date.now();
-    return (
-      locks.find(
-        (l) =>
-          l.status === "active" &&
-          (!l.expires_at || new Date(l.expires_at).getTime() > now),
-      ) ?? null
+    return locks.filter(
+      (l) =>
+        l.status === "active" &&
+        (!l.expires_at || new Date(l.expires_at).getTime() > now),
     );
   }, [locks]);
+
+  /** A lock the partner placed on me (I must complete it). */
+  const lockOnMe = useMemo(
+    () => liveLocks.find((l) => l.target_id === meId) ?? null,
+    [liveLocks, meId],
+  );
+  /** A lock I placed on the partner (I supervise it). */
+  const lockByMe = useMemo(
+    () => liveLocks.find((l) => l.locker_id === meId) ?? null,
+    [liveLocks, meId],
+  );
+
+  const activeLock = lockOnMe ?? lockByMe;
 
   useEffect(() => {
     if (!activeLock?.expires_at) return;
