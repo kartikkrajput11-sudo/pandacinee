@@ -20,6 +20,7 @@ type Props = {
     prompt: string;
     required_count: number;
     max_duration_seconds: number | null;
+    shared?: boolean;
   }) => Promise<void>;
 };
 
@@ -29,6 +30,7 @@ export function PunishmentLockDialog({ open, onClose, targetName, mePrefs, peerP
   const [prompt, setPrompt] = useState("Sorry ❤️");
   const [count, setCount] = useState(20);
   const [duration, setDuration] = useState<number | null>(null);
+  const [shared, setShared] = useState(false);
   const [busy, setBusy] = useState(false);
 
   if (!open) return null;
@@ -40,6 +42,7 @@ export function PunishmentLockDialog({ open, onClose, targetName, mePrefs, peerP
     setPrompt("Sorry ❤️");
     setCount(20);
     setDuration(null);
+    setShared(false);
     setBusy(false);
   }
 
@@ -64,8 +67,9 @@ export function PunishmentLockDialog({ open, onClose, targetName, mePrefs, peerP
         prompt: clean,
         required_count: meta.countable ? Math.max(1, Math.min(100, count)) : 1,
         max_duration_seconds: duration,
+        shared,
       });
-      toast.success(`Chat locked for ${targetName} 🔒`);
+      toast.success(shared ? "Locked — you're both in it together 🔒" : `Chat locked for ${targetName} 🔒`);
       reset();
       onClose();
     } catch (e: any) {
@@ -336,6 +340,29 @@ export function PunishmentLockDialog({ open, onClose, targetName, mePrefs, peerP
                 Playful & consensual only.
               </p>
             </div>
+
+            <button
+              type="button"
+              onClick={() => setShared((v) => !v)}
+              className={`w-full flex items-center gap-3 rounded-2xl border px-4 py-3 text-left transition-colors ${
+                shared ? "border-petal/60 bg-petal-soft/15" : "border-border bg-candle/[0.03]"
+              }`}
+            >
+              <span className="text-lg">🤝</span>
+              <span className="flex-1">
+                <span className="block text-sm text-candle">Take it together</span>
+                <span className="block text-[11px] text-candle-muted">
+                  You get the same challenge as {targetName} — both chats stay locked until you're both done.
+                </span>
+              </span>
+              <span
+                className={`size-5 rounded-full border flex items-center justify-center text-[11px] ${
+                  shared ? "border-petal bg-petal text-velvet" : "border-border text-transparent"
+                }`}
+              >
+                ✓
+              </span>
+            </button>
 
             <div className="flex gap-2 pt-1">
               <GhostButton onClick={() => setStep(2)} disabled={busy}>Back</GhostButton>

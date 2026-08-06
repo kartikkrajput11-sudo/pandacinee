@@ -25,6 +25,7 @@ export type PunishmentLock = {
   completed_at: string | null;
   created_at: string;
   updated_at: string;
+  shared?: boolean;
   verification_status?: "none" | "pending" | "approved" | "retry";
   verification_feedback?: string | null;
 };
