@@ -165,7 +165,11 @@ function LetterView() {
   }
 
   return (
-    <div className={`min-h-screen ${style.page}`}>
+    <div
+      className={`min-h-screen relative ${paperOf(letter.style) ? "" : style.page}`}
+      style={paperOf(letter.style) ? { background: paperOf(letter.style)!.background } : undefined}
+    >
+      <LetterDecorations style={letter.style} seed={letter.id} count={14} />
       <div className="max-w-lg mx-auto px-5 pt-8 pb-20 relative">
         <header className="flex items-center gap-3 mb-8">
           <Link to="/app/letters" className={`${style.text} opacity-70`}>
@@ -255,7 +259,7 @@ function LetterView() {
 
             <div
               className={`${style.text} whitespace-pre-wrap leading-relaxed text-lg`}
-              style={{ fontFamily: "'Cormorant Garamond', 'Playfair Display', Georgia, serif" }}
+              style={{ fontFamily: fontOf(letter.style).stack }}
             >
               {letter.body}
             </div>
