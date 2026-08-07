@@ -167,7 +167,7 @@ function Play() {
             <Link
               key={kind}
               to="/app/games/$game"
-              params={{ game: kind }}
+              params={{ game: kind } as any}
               className={cardCls}
             >
               {inner}

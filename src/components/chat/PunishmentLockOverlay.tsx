@@ -512,6 +512,7 @@ export function PunishmentLockOverlay({
               <div className="space-y-2">
                 <Link
                   to="/app/paint"
+                  search={{ matchId: undefined }}
                   className="w-full py-3 rounded-full bg-white/[0.03] border border-white/10 hover:border-petal/40 text-sm text-candle flex items-center justify-center gap-2 transition-colors"
                 >
                   <Palette className="size-4 text-petal" /> Open Paint Together
