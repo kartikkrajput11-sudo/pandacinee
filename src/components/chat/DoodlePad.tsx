@@ -182,17 +182,36 @@ export function DoodlePad({ open, onClose, onSend, sending }: Props) {
       </div>
 
       <div className="px-3 pb-4 pt-2 border-t border-border bg-surface/60 backdrop-blur space-y-2">
-        <div className="flex items-center gap-2 flex-wrap">
-          {COLORS.map((c) => (
-            <button
-              key={c}
-              onClick={() => { setColor(c); setErase(false); }}
-              className={`size-7 rounded-full border-2 ${!erase && color === c ? "border-petal scale-110" : "border-border"}`}
-              style={{ backgroundColor: c }}
-              aria-label={`Color ${c}`}
+        {/* Full palette — hue rows, light → dark shades */}
+        <div className="flex items-start gap-2">
+          <div className="flex-1 grid grid-flow-col auto-cols-max gap-1 overflow-x-auto pb-1">
+            {PALETTE.map((row, ri) => (
+              <div key={ri} className="grid grid-rows-6 gap-1">
+                {row.map((c) => (
+                  <button
+                    key={c}
+                    onClick={() => { setColor(c); setErase(false); }}
+                    className={`size-6 rounded-md border transition-transform ${!erase && color === c ? "border-petal scale-110 ring-1 ring-petal" : "border-black/20"}`}
+                    style={{ backgroundColor: c }}
+                    aria-label={`Color ${c}`}
+                  />
+                ))}
+              </div>
+            ))}
+          </div>
+          <div className="flex flex-col items-center gap-1">
+            <span className="text-[9px] uppercase tracking-widest text-candle-muted">Custom</span>
+            <input
+              type="color"
+              value={erase ? "#ffffff" : color}
+              onChange={(e) => { setColor(e.target.value); setErase(false); }}
+              className="size-9 rounded-full bg-transparent border border-border cursor-pointer"
+              aria-label="Custom color"
             />
-          ))}
-          <button
+          </div>
+        </div>
+        <div className="flex items-center gap-2 flex-wrap">
+
             onClick={() => setErase((v) => !v)}
             className={`size-9 rounded-full border flex items-center justify-center ${erase ? "bg-petal border-petal text-velvet" : "bg-velvet border-border text-candle"}`}
             aria-label="Eraser"
