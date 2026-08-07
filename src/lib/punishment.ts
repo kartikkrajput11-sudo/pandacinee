@@ -63,7 +63,7 @@ export const PUNISHMENT_TYPES: {
     hint: "Type a phrase N times exactly.",
     countable: true,
     defaultCount: 20,
-    mode: "auto",
+    mode: "verify",
     optInKey: "pl_cat_writing",
     presets: [
       { prompt: "Sorry ❤️", count: 20 },
@@ -78,7 +78,7 @@ export const PUNISHMENT_TYPES: {
     hint: "Write unique compliments (min 5 chars each).",
     countable: true,
     defaultCount: 10,
-    mode: "auto",
+    mode: "verify",
     optInKey: "pl_cat_writing",
     presets: [
       { prompt: "10 compliments about your partner", count: 10 },
@@ -92,7 +92,7 @@ export const PUNISHMENT_TYPES: {
     hint: "One playful entry (joke, story, emoji story).",
     countable: true,
     defaultCount: 1,
-    mode: "auto",
+    mode: "verify",
     optInKey: "pl_cat_writing",
     presets: [
       { prompt: "Tell a joke", count: 1 },
@@ -107,7 +107,7 @@ export const PUNISHMENT_TYPES: {
     hint: "Answer Love Quiz questions correctly.",
     countable: true,
     defaultCount: 5,
-    mode: "auto",
+    mode: "verify",
     presets: [
       { prompt: "Answer 5 Love Quiz questions", count: 5 },
       { prompt: "Answer 3 Love Quiz questions", count: 3 },
