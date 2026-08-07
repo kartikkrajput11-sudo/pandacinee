@@ -379,6 +379,11 @@ export const PandaCharacter = memo(function PandaCharacter({
             animate={lite ? undefined : { scaleX: [1, 1.02, 1], scaleY: [1, 0.985, 1] }}
             transition={{ duration: sleeping ? 5.2 : 3.1, repeat: Infinity, ease: "easeInOut" }}
           >
+            <g stroke="#efe6dc" strokeWidth="1.6" fill="none" opacity=".55" strokeLinecap="round" pointerEvents="none">
+              {fur.bodyFringe.map((d, i) => (
+                <path key={i} d={d} />
+              ))}
+            </g>
             <ellipse cx="150" cy="252" rx="86" ry="80" fill="url(#furW)" filter="url(#furEdge)" />
             <g stroke="#f3ebe3" strokeWidth=".8" fill="none" opacity=".42">
               {fur.body.map((d, i) => (
@@ -514,7 +519,14 @@ export const PandaCharacter = memo(function PandaCharacter({
                   }}
                   transition={{ duration: a === "earScratch" ? 0.8 : 2.4, repeat: a === "earScratch" ? 1 : Infinity }}
                 >
+                  <g stroke="#2f2a3a" strokeWidth="1.5" fill="none" opacity=".75" strokeLinecap="round">
+                    {(s < 0 ? fur.earLFringe : fur.earRFringe).map((d, i) => (
+                      <path key={i} d={d} />
+                    ))}
+                  </g>
                   <circle cx={150 + s * 64} cy="78" r="28" fill="url(#furB)" filter="url(#furEdge)" />
+                  {/* inner-ear warmth */}
+                  <ellipse cx={150 + s * 64} cy="82" rx="13" ry="11" fill="#4a3540" opacity=".45" />
                   <g stroke="#3b3446" strokeWidth=".8" fill="none" opacity=".45">
                     {(s < 0 ? fur.earL : fur.earR).map((d, i) => (
                       <path key={i} d={d} strokeLinecap="round" />
@@ -525,6 +537,11 @@ export const PandaCharacter = memo(function PandaCharacter({
               ))}
 
               {/* skull */}
+              <g stroke="#f0e7dd" strokeWidth="1.6" fill="none" opacity=".6" strokeLinecap="round" pointerEvents="none">
+                {fur.headFringe.map((d, i) => (
+                  <path key={i} d={d} />
+                ))}
+              </g>
               <ellipse
                 cx="150"
                 cy="140"
@@ -537,6 +554,11 @@ export const PandaCharacter = memo(function PandaCharacter({
               />
               <g stroke="#f4ece4" strokeWidth=".8" fill="none" opacity=".45" pointerEvents="none">
                 {fur.head.map((d, i) => (
+                  <path key={i} d={d} strokeLinecap="round" />
+                ))}
+              </g>
+              <g stroke="#e6dbd1" strokeWidth=".55" fill="none" opacity=".3" pointerEvents="none">
+                {fur.headUnder.map((d, i) => (
                   <path key={i} d={d} strokeLinecap="round" />
                 ))}
               </g>
@@ -591,6 +613,16 @@ export const PandaCharacter = memo(function PandaCharacter({
                     />
                     <motion.circle cx={150 + s * 34 - 3} cy="130" r="2.6" fill="#fff" style={{ x: s < 0 ? px : pxR, y: py }} />
                     <motion.circle cx={150 + s * 34 + 3} cy="138" r="1.3" fill="#fff" opacity=".6" style={{ x: s < 0 ? px : pxR, y: py }} />
+                    {/* wet corneal sheen */}
+                    <motion.ellipse
+                      cx={150 + s * 34}
+                      cy="128"
+                      rx="8"
+                      ry="4"
+                      fill="url(#spec)"
+                      opacity=".55"
+                      style={{ x: s < 0 ? px : pxR, y: py }}
+                    />
                   </motion.g>
                   {eyeOpen <= 0.2 && (
                     <path
