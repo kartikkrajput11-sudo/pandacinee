@@ -2,8 +2,9 @@ import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { PandaLogo } from "@/components/PandaLogo";
 import { Petals } from "@/components/Petals";
 import { supabase } from "@/integrations/supabase/client";
-import heroImage from "@/assets/hero-couple.jpg";
+import { PandasWatching } from "@/components/landing/PandasWatching";
 import mascotImage from "@/assets/panda-mascot.png";
+
 
 export const Route = createFileRoute("/")({
   ssr: false,
