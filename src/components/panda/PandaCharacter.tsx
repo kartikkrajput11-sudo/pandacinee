@@ -255,7 +255,15 @@ export const PandaCharacter = memo(function PandaCharacter({
       earR: furRing(214, 78, 28, 28, lite ? 10 : 22, 7, 71),
       cheekL: furRing(104, 172, 26, 20, lite ? 8 : 16, 6, 91, Math.PI * 0.4, Math.PI * 1.1),
       cheekR: furRing(196, 172, 26, 20, lite ? 8 : 16, 6, 111, Math.PI * -0.1, Math.PI * 0.6),
+      // Outer guard-hair coats — drawn *behind* each mass for a soft silhouette.
+      headFringe: furFringe(150, 140, 91, 79, lite ? 44 : 120, 13, 211),
+      bodyFringe: furFringe(150, 252, 85, 79, lite ? 36 : 96, 14, 231, Math.PI * 0.02, Math.PI * 0.98),
+      earLFringe: furFringe(86, 78, 27, 27, lite ? 14 : 34, 9, 251),
+      earRFringe: furFringe(214, 78, 27, 27, lite ? 14 : 34, 9, 271),
+      // Fine undercoat inside the head mass — depth without edge noise.
+      headUnder: furRing(150, 146, 70, 60, lite ? 20 : 54, 6, 291),
     }),
+
     [lite],
   );
 
