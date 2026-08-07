@@ -8,18 +8,20 @@ type Stroke = {
   pts: { x: number; y: number }[];
 };
 
-const COLORS = [
-  "#1f1f1f",
-  "#e11d48",
-  "#ec4899",
-  "#f59e0b",
-  "#22c55e",
-  "#0ea5e9",
-  "#8b5cf6",
-  "#a16207",
-  "#ffffff",
+// Full palette — each row is one hue from light to dark shade.
+const PALETTE: string[][] = [
+  ["#ffffff", "#e5e7eb", "#9ca3af", "#4b5563", "#1f2937", "#000000"],
+  ["#fecaca", "#f87171", "#ef4444", "#dc2626", "#b91c1c", "#7f1d1d"],
+  ["#fbcfe8", "#f9a8d4", "#ec4899", "#db2777", "#be185d", "#831843"],
+  ["#fde68a", "#fcd34d", "#f59e0b", "#d97706", "#b45309", "#78350f"],
+  ["#bbf7d0", "#4ade80", "#22c55e", "#16a34a", "#15803d", "#14532d"],
+  ["#bae6fd", "#38bdf8", "#0ea5e9", "#0284c7", "#0369a1", "#0c4a6e"],
+  ["#ddd6fe", "#a78bfa", "#8b5cf6", "#7c3aed", "#6d28d9", "#4c1d95"],
+  ["#f5d0b5", "#e0a878", "#c1783c", "#a16207", "#7c4a12", "#4a2c0a"],
 ];
-const SIZES = [3, 6, 10, 18, 28];
+const COLORS = PALETTE.flat();
+const SIZES = [2, 4, 8, 14, 22, 34];
+
 
 type Props = {
   open: boolean;
