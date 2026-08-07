@@ -211,6 +211,7 @@ export function DoodlePad({ open, onClose, onSend, sending }: Props) {
           </div>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
+          <button
 
             onClick={() => setErase((v) => !v)}
             className={`size-9 rounded-full border flex items-center justify-center ${erase ? "bg-petal border-petal text-velvet" : "bg-velvet border-border text-candle"}`}
