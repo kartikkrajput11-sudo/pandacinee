@@ -111,6 +111,40 @@ function furRing(
   return out;
 }
 
+/**
+ * Outward guard hairs that break a silhouette so the edge never reads as a
+ * clean vector ellipse — this is what sells "fluffy" at a glance.
+ */
+function furFringe(
+  cx: number,
+  cy: number,
+  rx: number,
+  ry: number,
+  count: number,
+  len: number,
+  seed: number,
+  from = 0,
+  to = Math.PI * 2,
+) {
+  const out: string[] = [];
+  for (let i = 0; i < count; i++) {
+    const t = from + ((to - from) * i) / count + (rand(seed + i * 5.1) - 0.5) * 0.08;
+    const nx = Math.cos(t);
+    const ny = Math.sin(t);
+    const x = cx + nx * rx;
+    const y = cy + ny * ry;
+    const l = len * (0.45 + rand(seed + i * 2.3) * 0.85);
+    // curl each strand sideways so tufts clump like real fur
+    const tx = -ny * l * (rand(seed + i * 7.7) - 0.5) * 1.4;
+    const ty = nx * l * (rand(seed + i * 3.1) - 0.5) * 1.4;
+    out.push(
+      `M ${x.toFixed(1)} ${y.toFixed(1)} q ${(nx * l * 0.55 + tx * 0.4).toFixed(1)} ${(ny * l * 0.55 + ty * 0.4).toFixed(1)} ${(nx * l + tx).toFixed(1)} ${(ny * l + ty).toFixed(1)}`,
+    );
+  }
+  return out;
+}
+
+
 export type PandaCharacterProps = {
   state: PandaState;
   onZone?: (zone: Zone) => void;
