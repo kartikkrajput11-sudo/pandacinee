@@ -44,7 +44,11 @@ function applyOverride(m: TmdbMovie, ov: CustomMovieRow | undefined): TmdbMovie 
 
 export const Route = createFileRoute("/_authenticated/app/movies/")({
   component: Movies,
-  validateSearch: (s: { q?: unknown; type?: unknown; minRating?: unknown }) => ({
+  validateSearch: (s: { q?: unknown; type?: unknown; minRating?: unknown }): {
+    q?: string;
+    type?: "all" | "movie" | "tv" | "series";
+    minRating?: number;
+  } => ({
     q: typeof s.q === "string" ? s.q : "",
     type: (s.type === "movie" || s.type === "tv" || s.type === "series" ? s.type : "all") as "all" | "movie" | "tv" | "series",
     minRating: typeof s.minRating === "number" ? s.minRating : 0,
@@ -62,7 +66,7 @@ const GENRE = {
 } as const;
 
 function Movies() {
-  const { q, type, minRating } = Route.useSearch();
+  const { q = "", type = "all", minRating = 0 } = Route.useSearch();
   const navigate = useNavigate();
   const trending = useServerFn(tmdbTrending);
   const multi = useServerFn(tmdbMulti);
@@ -116,7 +120,7 @@ function Movies() {
   function updateSearch(patch: Partial<{ q: string; type: "all" | "movie" | "tv" | "series"; minRating: number }>) {
     navigate({
       to: "/app/movies",
-      search: (prev: { q: string; type: "all" | "movie" | "tv" | "series"; minRating: number }) => ({ ...prev, ...patch }),
+      search: ((prev: any) => ({ ...prev, ...patch })) as any,
     });
   }
 
@@ -710,7 +714,7 @@ function Rail({
         {category ? (
           <Link
             to="/app/movies/list"
-            search={{ category }}
+            search={{ category: category as any }}
             className="text-[10px] tracking-[0.2em] uppercase text-petal font-semibold shrink-0 hover:text-candle transition-colors"
           >
             View All

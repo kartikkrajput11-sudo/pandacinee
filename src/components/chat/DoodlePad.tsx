@@ -8,18 +8,20 @@ type Stroke = {
   pts: { x: number; y: number }[];
 };
 
-const COLORS = [
-  "#1f1f1f",
-  "#e11d48",
-  "#ec4899",
-  "#f59e0b",
-  "#22c55e",
-  "#0ea5e9",
-  "#8b5cf6",
-  "#a16207",
-  "#ffffff",
+// Full palette — each row is one hue from light to dark shade.
+const PALETTE: string[][] = [
+  ["#ffffff", "#e5e7eb", "#9ca3af", "#4b5563", "#1f2937", "#000000"],
+  ["#fecaca", "#f87171", "#ef4444", "#dc2626", "#b91c1c", "#7f1d1d"],
+  ["#fbcfe8", "#f9a8d4", "#ec4899", "#db2777", "#be185d", "#831843"],
+  ["#fde68a", "#fcd34d", "#f59e0b", "#d97706", "#b45309", "#78350f"],
+  ["#bbf7d0", "#4ade80", "#22c55e", "#16a34a", "#15803d", "#14532d"],
+  ["#bae6fd", "#38bdf8", "#0ea5e9", "#0284c7", "#0369a1", "#0c4a6e"],
+  ["#ddd6fe", "#a78bfa", "#8b5cf6", "#7c3aed", "#6d28d9", "#4c1d95"],
+  ["#f5d0b5", "#e0a878", "#c1783c", "#a16207", "#7c4a12", "#4a2c0a"],
 ];
-const SIZES = [3, 6, 10, 18, 28];
+const COLORS = PALETTE.flat();
+const SIZES = [2, 4, 8, 14, 22, 34];
+
 
 type Props = {
   open: boolean;
@@ -180,17 +182,37 @@ export function DoodlePad({ open, onClose, onSend, sending }: Props) {
       </div>
 
       <div className="px-3 pb-4 pt-2 border-t border-border bg-surface/60 backdrop-blur space-y-2">
-        <div className="flex items-center gap-2 flex-wrap">
-          {COLORS.map((c) => (
-            <button
-              key={c}
-              onClick={() => { setColor(c); setErase(false); }}
-              className={`size-7 rounded-full border-2 ${!erase && color === c ? "border-petal scale-110" : "border-border"}`}
-              style={{ backgroundColor: c }}
-              aria-label={`Color ${c}`}
+        {/* Full palette — hue rows, light → dark shades */}
+        <div className="flex items-start gap-2">
+          <div className="flex-1 grid grid-flow-col auto-cols-max gap-1 overflow-x-auto pb-1">
+            {PALETTE.map((row, ri) => (
+              <div key={ri} className="grid grid-rows-6 gap-1">
+                {row.map((c) => (
+                  <button
+                    key={c}
+                    onClick={() => { setColor(c); setErase(false); }}
+                    className={`size-6 rounded-md border transition-transform ${!erase && color === c ? "border-petal scale-110 ring-1 ring-petal" : "border-black/20"}`}
+                    style={{ backgroundColor: c }}
+                    aria-label={`Color ${c}`}
+                  />
+                ))}
+              </div>
+            ))}
+          </div>
+          <div className="flex flex-col items-center gap-1">
+            <span className="text-[9px] uppercase tracking-widest text-candle-muted">Custom</span>
+            <input
+              type="color"
+              value={erase ? "#ffffff" : color}
+              onChange={(e) => { setColor(e.target.value); setErase(false); }}
+              className="size-9 rounded-full bg-transparent border border-border cursor-pointer"
+              aria-label="Custom color"
             />
-          ))}
+          </div>
+        </div>
+        <div className="flex items-center gap-2 flex-wrap">
           <button
+
             onClick={() => setErase((v) => !v)}
             className={`size-9 rounded-full border flex items-center justify-center ${erase ? "bg-petal border-petal text-velvet" : "bg-velvet border-border text-candle"}`}
             aria-label="Eraser"

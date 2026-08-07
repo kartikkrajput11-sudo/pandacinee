@@ -111,6 +111,40 @@ function furRing(
   return out;
 }
 
+/**
+ * Outward guard hairs that break a silhouette so the edge never reads as a
+ * clean vector ellipse — this is what sells "fluffy" at a glance.
+ */
+function furFringe(
+  cx: number,
+  cy: number,
+  rx: number,
+  ry: number,
+  count: number,
+  len: number,
+  seed: number,
+  from = 0,
+  to = Math.PI * 2,
+) {
+  const out: string[] = [];
+  for (let i = 0; i < count; i++) {
+    const t = from + ((to - from) * i) / count + (rand(seed + i * 5.1) - 0.5) * 0.08;
+    const nx = Math.cos(t);
+    const ny = Math.sin(t);
+    const x = cx + nx * rx;
+    const y = cy + ny * ry;
+    const l = len * (0.45 + rand(seed + i * 2.3) * 0.85);
+    // curl each strand sideways so tufts clump like real fur
+    const tx = -ny * l * (rand(seed + i * 7.7) - 0.5) * 1.4;
+    const ty = nx * l * (rand(seed + i * 3.1) - 0.5) * 1.4;
+    out.push(
+      `M ${x.toFixed(1)} ${y.toFixed(1)} q ${(nx * l * 0.55 + tx * 0.4).toFixed(1)} ${(ny * l * 0.55 + ty * 0.4).toFixed(1)} ${(nx * l + tx).toFixed(1)} ${(ny * l + ty).toFixed(1)}`,
+    );
+  }
+  return out;
+}
+
+
 export type PandaCharacterProps = {
   state: PandaState;
   onZone?: (zone: Zone) => void;
@@ -221,7 +255,15 @@ export const PandaCharacter = memo(function PandaCharacter({
       earR: furRing(214, 78, 28, 28, lite ? 10 : 22, 7, 71),
       cheekL: furRing(104, 172, 26, 20, lite ? 8 : 16, 6, 91, Math.PI * 0.4, Math.PI * 1.1),
       cheekR: furRing(196, 172, 26, 20, lite ? 8 : 16, 6, 111, Math.PI * -0.1, Math.PI * 0.6),
+      // Outer guard-hair coats — drawn *behind* each mass for a soft silhouette.
+      headFringe: furFringe(150, 140, 91, 79, lite ? 44 : 120, 13, 211),
+      bodyFringe: furFringe(150, 252, 85, 79, lite ? 36 : 96, 14, 231, Math.PI * 0.02, Math.PI * 0.98),
+      earLFringe: furFringe(86, 78, 27, 27, lite ? 14 : 34, 9, 251),
+      earRFringe: furFringe(214, 78, 27, 27, lite ? 14 : 34, 9, 271),
+      // Fine undercoat inside the head mass — depth without edge noise.
+      headUnder: furRing(150, 146, 70, 60, lite ? 20 : 54, 6, 291),
     }),
+
     [lite],
   );
 
@@ -337,6 +379,11 @@ export const PandaCharacter = memo(function PandaCharacter({
             animate={lite ? undefined : { scaleX: [1, 1.02, 1], scaleY: [1, 0.985, 1] }}
             transition={{ duration: sleeping ? 5.2 : 3.1, repeat: Infinity, ease: "easeInOut" }}
           >
+            <g stroke="#efe6dc" strokeWidth="1.6" fill="none" opacity=".55" strokeLinecap="round" pointerEvents="none">
+              {fur.bodyFringe.map((d, i) => (
+                <path key={i} d={d} />
+              ))}
+            </g>
             <ellipse cx="150" cy="252" rx="86" ry="80" fill="url(#furW)" filter="url(#furEdge)" />
             <g stroke="#f3ebe3" strokeWidth=".8" fill="none" opacity=".42">
               {fur.body.map((d, i) => (
@@ -472,7 +519,14 @@ export const PandaCharacter = memo(function PandaCharacter({
                   }}
                   transition={{ duration: a === "earScratch" ? 0.8 : 2.4, repeat: a === "earScratch" ? 1 : Infinity }}
                 >
+                  <g stroke="#2f2a3a" strokeWidth="1.5" fill="none" opacity=".75" strokeLinecap="round">
+                    {(s < 0 ? fur.earLFringe : fur.earRFringe).map((d, i) => (
+                      <path key={i} d={d} />
+                    ))}
+                  </g>
                   <circle cx={150 + s * 64} cy="78" r="28" fill="url(#furB)" filter="url(#furEdge)" />
+                  {/* inner-ear warmth */}
+                  <ellipse cx={150 + s * 64} cy="82" rx="13" ry="11" fill="#4a3540" opacity=".45" />
                   <g stroke="#3b3446" strokeWidth=".8" fill="none" opacity=".45">
                     {(s < 0 ? fur.earL : fur.earR).map((d, i) => (
                       <path key={i} d={d} strokeLinecap="round" />
@@ -483,6 +537,11 @@ export const PandaCharacter = memo(function PandaCharacter({
               ))}
 
               {/* skull */}
+              <g stroke="#f0e7dd" strokeWidth="1.6" fill="none" opacity=".6" strokeLinecap="round" pointerEvents="none">
+                {fur.headFringe.map((d, i) => (
+                  <path key={i} d={d} />
+                ))}
+              </g>
               <ellipse
                 cx="150"
                 cy="140"
@@ -495,6 +554,11 @@ export const PandaCharacter = memo(function PandaCharacter({
               />
               <g stroke="#f4ece4" strokeWidth=".8" fill="none" opacity=".45" pointerEvents="none">
                 {fur.head.map((d, i) => (
+                  <path key={i} d={d} strokeLinecap="round" />
+                ))}
+              </g>
+              <g stroke="#e6dbd1" strokeWidth=".55" fill="none" opacity=".3" pointerEvents="none">
+                {fur.headUnder.map((d, i) => (
                   <path key={i} d={d} strokeLinecap="round" />
                 ))}
               </g>
@@ -549,6 +613,16 @@ export const PandaCharacter = memo(function PandaCharacter({
                     />
                     <motion.circle cx={150 + s * 34 - 3} cy="130" r="2.6" fill="#fff" style={{ x: s < 0 ? px : pxR, y: py }} />
                     <motion.circle cx={150 + s * 34 + 3} cy="138" r="1.3" fill="#fff" opacity=".6" style={{ x: s < 0 ? px : pxR, y: py }} />
+                    {/* wet corneal sheen */}
+                    <motion.ellipse
+                      cx={150 + s * 34}
+                      cy="128"
+                      rx="8"
+                      ry="4"
+                      fill="url(#spec)"
+                      opacity=".55"
+                      style={{ x: s < 0 ? px : pxR, y: py }}
+                    />
                   </motion.g>
                   {eyeOpen <= 0.2 && (
                     <path
