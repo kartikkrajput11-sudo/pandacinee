@@ -2,8 +2,9 @@ import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { PandaLogo } from "@/components/PandaLogo";
 import { Petals } from "@/components/Petals";
 import { supabase } from "@/integrations/supabase/client";
-import heroImage from "@/assets/hero-couple.jpg";
+import { PandasWatching } from "@/components/landing/PandasWatching";
 import mascotImage from "@/assets/panda-mascot.png";
+
 
 export const Route = createFileRoute("/")({
   ssr: false,
@@ -81,12 +82,8 @@ function Landing() {
           {/* Hero image */}
           <div className="mt-20 max-w-md mx-auto animate-fade-up [animation-delay:200ms]">
             <div className="relative rounded-3xl overflow-hidden border border-border petal-glow">
-              <img
-                src={heroImage}
-                alt="A couple watching a movie together in warm low light"
-                className="w-full aspect-[4/5] object-cover"
-                loading="eager"
-              />
+              <PandasWatching className="w-full aspect-[4/5] block" />
+
               <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-velvet via-velvet/60 to-transparent p-6">
                 <div className="flex items-center justify-between">
                   <div>
